@@ -41,15 +41,13 @@ import com.google.common.collect.Sets;
  */
 public abstract class RawAtlasSlicer
 {
-    private static final Logger logger = LoggerFactory.getLogger(RawAtlasSlicer.class);
-
     // JTS converters
     protected static final JtsPolygonConverter JTS_POLYGON_CONVERTER = new JtsPolygonConverter();
     protected static final JtsPolyLineConverter JTS_POLYLINE_CONVERTER = new JtsPolyLineConverter();
     protected static final JtsLocationConverter JTS_LOCATION_CONVERTER = new JtsLocationConverter();
     protected static final JtsLinearRingConverter JTS_LINEAR_RING_CONVERTER = new JtsLinearRingConverter();
     protected static final MultiplePolyLineToPolygonsConverter MULTIPLE_POLY_LINE_TO_POLYGON_CONVERTER = new MultiplePolyLineToPolygonsConverter();
-
+    private static final Logger logger = LoggerFactory.getLogger(RawAtlasSlicer.class);
     // JTS precision handling
     private static final Integer SEVEN_DIGIT_PRECISION_SCALE = 10_000_000;
     private static final PrecisionModel PRECISION_MODEL = new PrecisionModel(
@@ -155,6 +153,19 @@ public abstract class RawAtlasSlicer
         this.newPointCoordinates = newPointCoordinates;
         this.startingAtlas = startingAtlas;
         this.shardOrAtlasName = getShardOrAtlasName(startingAtlas);
+    }
+
+    public String getShardOrAtlasName()
+    {
+        return this.shardOrAtlasName;
+    }
+
+    /**
+     * @return the {@link Atlas} to be sliced
+     */
+    public Atlas getStartingAtlas()
+    {
+        return this.startingAtlas;
     }
 
     /**
@@ -286,18 +297,5 @@ public abstract class RawAtlasSlicer
     private String getShardOrAtlasName(final Atlas atlas)
     {
         return atlas.metaData().getShardName().orElse(atlas.getName());
-    }
-
-    public String getShardOrAtlasName()
-    {
-        return this.shardOrAtlasName;
-    }
-
-    /**
-     * @return the {@link Atlas} to be sliced
-     */
-    public Atlas getStartingAtlas()
-    {
-        return this.startingAtlas;
     }
 }

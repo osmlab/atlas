@@ -142,6 +142,9 @@ public enum ItemType
         this.value = value;
     }
 
+    public abstract <E extends AtlasEntity> Iterable<E> entitiesForIdentifiers(Atlas atlas,
+            Long... identifiers);
+
     public AtlasEntity entityForIdentifier(final Atlas atlas, final long identifier)
     {
         switch (this)
@@ -163,9 +166,6 @@ public enum ItemType
                 throw new CoreException("Invalid type {}", this);
         }
     }
-
-    public abstract <E extends AtlasEntity> Iterable<E> entitiesForIdentifiers(Atlas atlas,
-            Long... identifiers);
 
     @SuppressWarnings("unchecked")
     public <M extends AtlasEntity> Class<M> getMemberClass()
@@ -195,6 +195,8 @@ public enum ItemType
         return this.value;
     }
 
+    public abstract long numberOfEntities(Atlas atlas);
+
     public String toShortString()
     {
         switch (this)
@@ -215,6 +217,4 @@ public enum ItemType
                 throw new CoreException("Invalid type {}", this);
         }
     }
-
-    public abstract long numberOfEntities(Atlas atlas);
 }

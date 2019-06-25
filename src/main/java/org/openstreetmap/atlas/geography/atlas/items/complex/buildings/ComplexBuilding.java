@@ -43,7 +43,7 @@ public class ComplexBuilding extends ComplexEntity
     private MultiPolygon outline = null;
     private AtlasEntity outlineSource;
 
-    private Set<Long> containedOSMIDs;
+    private final Set<Long> containedOSMIDs;
 
     protected ComplexBuilding(final AtlasEntity source)
     {
@@ -137,6 +137,19 @@ public class ComplexBuilding extends ComplexEntity
         return BuildingMinLevelTag.get(this.getSource());
     }
 
+    @Override
+    public String toString()
+    {
+        final StringBuilder parts = new StringBuilder();
+        for (final BuildingPart part : this.buildingParts)
+        {
+            parts.append(part);
+        }
+        return String.format("[ComplexBuilding:\n\tOutline = %s,\n\tParts = %s]",
+                this.outline == null ? "MISSING" : this.outline.toReadableString(),
+                parts.toString());
+    }
+
     /**
      * @return The building's top height
      */
@@ -163,19 +176,6 @@ public class ComplexBuilding extends ComplexEntity
                     getSource().getIdentifier());
         }
         return Optional.empty();
-    }
-
-    @Override
-    public String toString()
-    {
-        final StringBuilder parts = new StringBuilder();
-        for (final BuildingPart part : this.buildingParts)
-        {
-            parts.append(part);
-        }
-        return String.format("[ComplexBuilding:\n\tOutline = %s,\n\tParts = %s]",
-                this.outline == null ? "MISSING" : this.outline.toReadableString(),
-                parts.toString());
     }
 
     protected void populateBuildingPartsAndOutline()

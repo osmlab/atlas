@@ -40,6 +40,32 @@ public class CommandOutputDelegate
     }
 
     /**
+     * Print a message (with no ending newline) to STDERR with the supplied attributes.
+     *
+     * @param string
+     *            the string to print
+     * @param attributes
+     *            the attributes
+     */
+    public void printStderr(final String string, final TTYAttribute... attributes)
+    {
+        this.parentCommand.printStderr(string, attributes);
+    }
+
+    /**
+     * Print a message (with no ending newline) to STDOUT with the supplied attributes.
+     *
+     * @param string
+     *            the string to print
+     * @param attributes
+     *            the attributes
+     */
+    public void printStdout(final String string, final TTYAttribute... attributes)
+    {
+        this.parentCommand.printStdout(string, attributes);
+    }
+
+    /**
      * Prints the supplied message like "commandName: message" to stderr. Automatically appends a
      * newline to the output.
      *
@@ -101,31 +127,5 @@ public class CommandOutputDelegate
     public void printlnWarnMessage(final String message)
     {
         this.parentCommand.printlnWarnMessage(message);
-    }
-
-    /**
-     * Print a message (with no ending newline) to STDERR with the supplied attributes.
-     *
-     * @param string
-     *            the string to print
-     * @param attributes
-     *            the attributes
-     */
-    public void printStderr(final String string, final TTYAttribute... attributes)
-    {
-        this.parentCommand.printStderr(string, attributes);
-    }
-
-    /**
-     * Print a message (with no ending newline) to STDOUT with the supplied attributes.
-     *
-     * @param string
-     *            the string to print
-     * @param attributes
-     *            the attributes
-     */
-    public void printStdout(final String string, final TTYAttribute... attributes)
-    {
-        this.parentCommand.printStdout(string, attributes);
     }
 }

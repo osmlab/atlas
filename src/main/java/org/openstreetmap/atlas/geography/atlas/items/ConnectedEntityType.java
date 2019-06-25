@@ -13,7 +13,7 @@ import java.util.function.Function;
  */
 public interface ConnectedEntityType<M extends AtlasEntity, C>
 {
-    String getPropertyName();
-
     Function<M, C> getAccessFunction();
+
+    String getPropertyName();
 }

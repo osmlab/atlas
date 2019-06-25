@@ -16,11 +16,8 @@ import org.openstreetmap.atlas.utilities.tuples.Tuple;
  */
 public class AtlasEntityKey extends Tuple<ItemType, Long>
 {
-    protected AtlasEntityKey(final ItemType itemType, final Long identifier)
-    {
-        super(itemType, identifier);
-    }
-
+    private static final long serialVersionUID = -3670403373644942819L;
+    
     public static AtlasEntityKey from(final ItemType itemType, final Long identifier)
     {
         return new AtlasEntityKey(itemType, identifier);
@@ -31,14 +28,14 @@ public class AtlasEntityKey extends Tuple<ItemType, Long>
         return from(featureChange.getItemType(), featureChange.getIdentifier());
     }
 
-    public ItemType getItemType()
+    protected AtlasEntityKey(final ItemType itemType, final Long identifier)
     {
-        return getFirst();
+        super(itemType, identifier);
     }
 
-    public Long getIdentifier()
+    public AtlasEntity getAtlasEntity(final Atlas atlas)
     {
-        return getSecond();
+        return getItemType().entityForIdentifier(atlas, getIdentifier());
     }
 
     public CompleteItemType getCompleteItemType()
@@ -46,8 +43,13 @@ public class AtlasEntityKey extends Tuple<ItemType, Long>
         return CompleteItemType.from(getItemType());
     }
 
-    public AtlasEntity getAtlasEntity(final Atlas atlas)
+    public Long getIdentifier()
     {
-        return getItemType().entityForIdentifier(atlas, getIdentifier());
+        return getSecond();
+    }
+
+    public ItemType getItemType()
+    {
+        return getFirst();
     }
 }

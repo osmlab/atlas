@@ -421,6 +421,71 @@ public final class MemberMerger<M>
     }
 
     /**
+     * Merge a member that has conflicting beforeViews. This can happen occasionally with
+     * {@link RelationBean}s and the in/out {@link Edge} identifier sets in {@link Node}, since
+     * these may be inconsistent across shards.
+     *
+     * @param beforeMemberLeft
+     *            the left side before view of the member
+     * @param afterMemberLeft
+     *            the left side after view of the member
+     * @param beforeMemberRight
+     *            the right side before view of the member
+     * @param afterMemberRight
+     *            the right side after view of the member
+     * @return a {@link MergedMemberBean} containing the merged beforeMember view and the merged
+     *         afterMember view
+     */
+    private MergedMemberBean<M> mergeMemberWithConflictingBeforeViews(final M beforeMemberLeft,
+            final M afterMemberLeft, final M beforeMemberRight, final M afterMemberRight)
+    {
+        final M beforeMemberResult;
+        final M afterMemberResult;
+
+        if (this.afterViewConflictingBeforeViewMerger == null)
+        {
+            throw new CoreException(
+                    "Conflicting beforeMembers {} and no afterView merge strategy capable of handling"
+                            + " conflicting beforeViews was provided; beforeView: {} vs {}",
+                    this.memberName, beforeMemberLeft, beforeMemberRight);
+        }
+
+        if (this.beforeViewMerger == null)
+        {
+            throw new CoreException(
+                    "Conflicting beforeMembers {} and no beforeView merge strategy was provided; beforeView: {} vs {}",
+                    this.memberName, beforeMemberLeft, beforeMemberRight);
+        }
+
+        try
+        {
+            beforeMemberResult = this.beforeViewMerger.apply(beforeMemberLeft, beforeMemberRight);
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException(
+                    "Attempted beforeView merge strategy failed for {} with beforeView: {} vs {}",
+                    this.memberName, beforeMemberLeft, beforeMemberRight, exception);
+        }
+
+        try
+        {
+            afterMemberResult = this.afterViewConflictingBeforeViewMerger.apply(beforeMemberLeft,
+                    afterMemberLeft, beforeMemberRight, afterMemberRight);
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException(
+                    "Tried merge strategy for handling conflicting beforeViews. but it failed for {}"
+                            + "\nbeforeView: {} vs {};\nafterView: {} vs {}",
+                    this.memberName, beforeMemberLeft, beforeMemberRight, afterMemberLeft,
+                    afterMemberRight, exception);
+        }
+
+        return new MergedMemberBean<>(beforeMemberResult, afterMemberResult);
+    }
+
+    /**
      * Merge a member that has consistent (possibly null) beforeViews.
      *
      * @param beforeMemberResult
@@ -491,71 +556,6 @@ public final class MemberMerger<M>
             throw new CoreException(
                     "Conflicting members and no merge strategy for {}; afterView: {} vs {}",
                     this.memberName, afterMemberLeft, afterMemberRight);
-        }
-
-        return new MergedMemberBean<>(beforeMemberResult, afterMemberResult);
-    }
-
-    /**
-     * Merge a member that has conflicting beforeViews. This can happen occasionally with
-     * {@link RelationBean}s and the in/out {@link Edge} identifier sets in {@link Node}, since
-     * these may be inconsistent across shards.
-     *
-     * @param beforeMemberLeft
-     *            the left side before view of the member
-     * @param afterMemberLeft
-     *            the left side after view of the member
-     * @param beforeMemberRight
-     *            the right side before view of the member
-     * @param afterMemberRight
-     *            the right side after view of the member
-     * @return a {@link MergedMemberBean} containing the merged beforeMember view and the merged
-     *         afterMember view
-     */
-    private MergedMemberBean<M> mergeMemberWithConflictingBeforeViews(final M beforeMemberLeft,
-            final M afterMemberLeft, final M beforeMemberRight, final M afterMemberRight)
-    {
-        final M beforeMemberResult;
-        final M afterMemberResult;
-
-        if (this.afterViewConflictingBeforeViewMerger == null)
-        {
-            throw new CoreException(
-                    "Conflicting beforeMembers {} and no afterView merge strategy capable of handling"
-                            + " conflicting beforeViews was provided; beforeView: {} vs {}",
-                    this.memberName, beforeMemberLeft, beforeMemberRight);
-        }
-
-        if (this.beforeViewMerger == null)
-        {
-            throw new CoreException(
-                    "Conflicting beforeMembers {} and no beforeView merge strategy was provided; beforeView: {} vs {}",
-                    this.memberName, beforeMemberLeft, beforeMemberRight);
-        }
-
-        try
-        {
-            beforeMemberResult = this.beforeViewMerger.apply(beforeMemberLeft, beforeMemberRight);
-        }
-        catch (final Exception exception)
-        {
-            throw new CoreException(
-                    "Attempted beforeView merge strategy failed for {} with beforeView: {} vs {}",
-                    this.memberName, beforeMemberLeft, beforeMemberRight, exception);
-        }
-
-        try
-        {
-            afterMemberResult = this.afterViewConflictingBeforeViewMerger.apply(beforeMemberLeft,
-                    afterMemberLeft, beforeMemberRight, afterMemberRight);
-        }
-        catch (final Exception exception)
-        {
-            throw new CoreException(
-                    "Tried merge strategy for handling conflicting beforeViews. but it failed for {}"
-                            + "\nbeforeView: {} vs {};\nafterView: {} vs {}",
-                    this.memberName, beforeMemberLeft, beforeMemberRight, afterMemberLeft,
-                    afterMemberRight, exception);
         }
 
         return new MergedMemberBean<>(beforeMemberResult, afterMemberResult);

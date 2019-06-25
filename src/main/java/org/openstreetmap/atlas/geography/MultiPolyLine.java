@@ -64,30 +64,12 @@ public class MultiPolyLine
     }
 
     @Override
-    public byte[] toWkb()
-    {
-        return new WkbMultiPolyLineConverter().convert(this);
-    }
-
-    @Override
-    public String toWkt()
-    {
-        return new WktMultiPolyLineConverter().convert(this);
-    }
-
-    @Override
     public JsonObject asGeoJsonGeometry()
     {
         final PolyLineCoordinateConverter converter = new PolyLineCoordinateConverter();
         final JsonArray coordinateArray = new JsonArray();
         Iterables.stream(this).map(converter::convert).forEach(coordinateArray::add);
         return GeoJsonUtils.geometry(this.getGeoJsonType(), coordinateArray);
-    }
-
-    @Override
-    public GeoJsonType getGeoJsonType()
-    {
-        return GeoJsonType.MULTI_LINESTRING;
     }
 
     public Iterable<GeoJsonBuilder.LocationIterableProperties> asLocationIterableProperties()
@@ -107,8 +89,26 @@ public class MultiPolyLine
     }
 
     @Override
+    public GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.MULTI_LINESTRING;
+    }
+
+    @Override
     public Iterator<PolyLine> iterator()
     {
         return this.polyLineList.iterator();
+    }
+
+    @Override
+    public byte[] toWkb()
+    {
+        return new WkbMultiPolyLineConverter().convert(this);
+    }
+
+    @Override
+    public String toWkt()
+    {
+        return new WktMultiPolyLineConverter().convert(this);
     }
 }

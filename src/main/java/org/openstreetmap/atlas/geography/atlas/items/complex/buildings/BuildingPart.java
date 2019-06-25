@@ -80,6 +80,12 @@ public class BuildingPart extends ComplexEntity
         return Objects.hash(this.geometry);
     }
 
+    @Override
+    public String toString()
+    {
+        return "[BuildingPart: Geometry = " + this.geometry.toReadableString() + "]";
+    }
+
     /**
      * @return The building part's top height
      */
@@ -101,11 +107,5 @@ public class BuildingPart extends ComplexEntity
                     getSource().getIdentifier());
         }
         return Optional.empty();
-    }
-
-    @Override
-    public String toString()
-    {
-        return "[BuildingPart: Geometry = " + this.geometry.toReadableString() + "]";
     }
 }

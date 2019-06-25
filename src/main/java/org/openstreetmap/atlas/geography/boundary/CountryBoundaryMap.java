@@ -94,9 +94,10 @@ import com.google.common.collect.Lists;
  */
 public class CountryBoundaryMap implements Serializable
 {
+    // Boundary file constants
+    static final String COUNTRY_BOUNDARY_DELIMITER = "||";
     private static final long serialVersionUID = -1714710346834527699L;
     private static final Logger logger = LoggerFactory.getLogger(CountryBoundaryMap.class);
-
     // Old country code field
     private static final String ISO_COUNTRY = "ISO_COUNTR";
     // New country code field
@@ -104,9 +105,6 @@ public class CountryBoundaryMap implements Serializable
     private static final List<String> COUNTRY_CODE_FIELDS = Arrays.asList(ISO_COUNTRY,
             COUNTRY_CODE);
     private static final String GEOMETRY_FIELD = "the_geom";
-
-    // Boundary file constants
-    static final String COUNTRY_BOUNDARY_DELIMITER = "||";
     private static final String LIST_SEPARATOR = "#";
     private static final String GRID_ENVELOPE_DELIMITER = "::";
     private static final String GRID_INDEX_DELIMITER = ";;";
@@ -159,37 +157,8 @@ public class CountryBoundaryMap implements Serializable
 
     private boolean useExpandedPolygonLimit = true;
     private transient Predicate<Taggable> shouldAlwaysSlicePredicate = taggable -> false;
-    private transient GeometryPrecisionReducer reducer;
+    private final transient GeometryPrecisionReducer reducer;
     private final CountryListTwoWayStringConverter countryListConverter = new CountryListTwoWayStringConverter();
-
-    /**
-     * Collects leaf nodes of given {@link AbstractNode} into the given {@link MultiMap} from
-     * {@link Geometry} to {@link Envelope}s.
-     *
-     * @param node
-     *            Starting node for collection
-     * @param cells
-     *            {@link MultiMap} to save cells into
-     */
-    @SuppressWarnings("unchecked")
-    static void collectCells(final AbstractNode node, final MultiMap<Geometry, Envelope> cells)
-    {
-        if (node.getLevel() > 0)
-        {
-            node.getChildBoundables().stream()
-                    .forEach(childNode -> collectCells((AbstractNode) childNode, cells));
-        }
-        else if (node.getLevel() == 0)
-        {
-            node.getChildBoundables().stream().forEach(item ->
-            {
-                final ItemBoundable boundable = (ItemBoundable) item;
-                final Geometry polygon = (Geometry) boundable.getItem();
-                final Envelope bounds = (Envelope) boundable.getBounds();
-                cells.add(polygon, bounds);
-            });
-        }
-    }
 
     /**
      * @param countryGeometries
@@ -375,6 +344,35 @@ public class CountryBoundaryMap implements Serializable
         }
     }
 
+    /**
+     * Collects leaf nodes of given {@link AbstractNode} into the given {@link MultiMap} from
+     * {@link Geometry} to {@link Envelope}s.
+     *
+     * @param node
+     *            Starting node for collection
+     * @param cells
+     *            {@link MultiMap} to save cells into
+     */
+    @SuppressWarnings("unchecked")
+    static void collectCells(final AbstractNode node, final MultiMap<Geometry, Envelope> cells)
+    {
+        if (node.getLevel() > 0)
+        {
+            node.getChildBoundables().stream()
+                    .forEach(childNode -> collectCells((AbstractNode) childNode, cells));
+        }
+        else if (node.getLevel() == 0)
+        {
+            node.getChildBoundables().stream().forEach(item ->
+            {
+                final ItemBoundable boundable = (ItemBoundable) item;
+                final Geometry polygon = (Geometry) boundable.getItem();
+                final Envelope bounds = (Envelope) boundable.getBounds();
+                cells.add(polygon, bounds);
+            });
+        }
+    }
+
     private static Stream<Geometry> geometries(final GeometryCollection collection)
     {
         return IntStream.range(0, collection.getNumGeometries())
@@ -405,317 +403,6 @@ public class CountryBoundaryMap implements Serializable
         this.reducer = new GeometryPrecisionReducer(JtsPrecisionManager.getPrecisionModel());
         this.reducer.setPointwise(true);
         this.reducer.setChangePrecisionModel(true);
-    }
-
-    void addCountry(final String country, final org.locationtech.jts.geom.MultiPolygon multiPolygon)
-    {
-        if (!this.envelope.intersects(multiPolygon.getEnvelopeInternal()))
-        {
-            return;
-        }
-
-        Geometry fixedPolygon = this.reducer.reduce(multiPolygon);
-        if (fixedPolygon instanceof Polygon)
-        {
-            fixedPolygon = new org.locationtech.jts.geom.MultiPolygon(
-                    new Polygon[] { (Polygon) fixedPolygon },
-                    JtsPrecisionManager.getGeometryFactory());
-        }
-
-        final List<Geometry> parts = geometries(
-                (org.locationtech.jts.geom.MultiPolygon) fixedPolygon).collect(Collectors.toList());
-        int polygonIdentifier = -1;
-        for (final Geometry part : parts)
-        {
-            polygonIdentifier++;
-            final Polygon polygon = (Polygon) part;
-            this.countryNameToBoundaryMap.add(country, polygon);
-
-            if (this.envelope.intersects(polygon.getEnvelopeInternal()))
-            {
-                setGeometryProperty(polygon, ISOCountryTag.KEY, country);
-                setGeometryProperty(polygon, POLYGON_ID_KEY, String.valueOf(polygonIdentifier));
-                this.rawIndex.insert(polygon.getEnvelopeInternal(), polygon);
-            }
-        }
-    }
-
-    void addCountry(final String country, final Polygon polygon)
-    {
-        this.countryNameToBoundaryMap.add(country, polygon);
-
-        if (this.envelope.intersects(polygon.getEnvelopeInternal()))
-        {
-            this.rawIndex.insert(polygon.getEnvelopeInternal(), polygon);
-        }
-    }
-
-    /**
-     * @return A {@link Map} from {@link Geometry}s to {@link List} of {@link Envelope} cells that
-     *         forms the grid index.
-     */
-    MultiMap<Geometry, Envelope> getCells()
-    {
-        if (this.gridIndex == null)
-        {
-            return null;
-        }
-
-        final MultiMap<Geometry, Envelope> polygonToCells = new MultiMap<>();
-        collectCells(this.gridIndex.getRoot(), polygonToCells);
-        return polygonToCells;
-    }
-
-    /**
-     * @return {@link STRtree} grid index used by this {@link CountryBoundaryMap}
-     */
-    STRtree getGridIndex()
-    {
-        return this.gridIndex;
-    }
-
-    /**
-     * @return the raw {@link STRtree} index used by this {@link CountryBoundaryMap}
-     */
-    STRtree getRawIndex()
-    {
-        return this.rawIndex;
-    }
-
-    /**
-     * Read a {@link CountryBoundaryMap} from the {@link ComplexBoundary}(ies) inside an
-     * {@link Atlas}
-     *
-     * @param atlas
-     *            The {@link Atlas} to read from.
-     */
-    void readFromAtlas(final Atlas atlas)
-    {
-        final Iterable<ComplexBoundary> deduplicatedComplexBoundaries = resolveOverlappingBorders(
-                new ComplexBoundaryFinder().find(atlas));
-        for (final ComplexBoundary complexBoundary : deduplicatedComplexBoundaries)
-        {
-            if (complexBoundary.hasCountryCode())
-            {
-                final List<String> countryCodes = new ArrayList<>();
-                try
-                {
-                    final MultiPolygon outline = complexBoundary.getOutline();
-                    final org.locationtech.jts.geom.MultiPolygon multiPolygon = JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER
-                            .backwardConvert(outline);
-                    complexBoundary.getCountries().forEach(isoCountry -> this
-                            .addCountry(isoCountry.getIso3CountryCode(), multiPolygon));
-                }
-                catch (final IllegalArgumentException e)
-                {
-                    throw new CoreException("Unable to read country boundary for country codes {}",
-                            countryCodes, e);
-                }
-            }
-        }
-    }
-
-    /**
-     * Read a {@link CountryBoundaryMap} from a {@link Resource} in plain text format
-     *
-     * @param resource
-     *            {@link Resource} containing {@link CountryBoundaryMap} in plain text format
-     */
-    void readFromPlainText(final Resource resource)
-    {
-        final Map<String, Integer> countryIdentifierMap = new HashMap<>();
-        final WKTReader reader = new WKTReader();
-
-        // Last piece is cells
-        STRtree gridIndexFromFile = null;
-
-        for (final String line : resource.lines())
-        {
-            // Ignore empty lines
-            if (line.isEmpty())
-            {
-                continue;
-            }
-
-            // Ignore previous version of grid index indicator. Previously generated boundary map
-            // files had grid indices serialized not the right way.
-            if (line.startsWith(SPATIAL_INDEX_DELIMITER))
-            {
-                logger.warn("Found previous version of grid index. Grid index will be ignored.");
-                continue;
-            }
-
-            // Read line and take respective action
-            if (line.startsWith(GRID_INDEX_DELIMITER))
-            {
-                if (this.countryNameToBoundaryMap.isEmpty())
-                {
-                    logger.warn("Cannot read grid index, because no country boundary is supplied.");
-                }
-
-                if (gridIndexFromFile == null)
-                {
-                    gridIndexFromFile = new STRtree();
-                }
-
-                // Strip the initial delimiter, and split on the second one
-                final String[] gridIndexParts = line.substring(GRID_INDEX_DELIMITER.length())
-                        .split(GRID_INDEX_DELIMITER);
-                final int length = gridIndexParts.length;
-
-                if (length < GRID_INDEX_MIN_LENGTH)
-                {
-                    throw new CoreException("Grid index entry is malformed.");
-                }
-
-                // First piece is polygon identifier
-                final String country = gridIndexParts[0];
-                final String identifier = gridIndexParts[1];
-                final Geometry polygon = this.countryNameToBoundaryMap.get(country)
-                        .get(Integer.valueOf(identifier));
-                if (polygon == null)
-                {
-                    throw new CoreException("Grid index entry is malformed missing polygon.");
-                }
-
-                // Starting from second item go over and parse cells
-                try
-                {
-                    for (int index = GRID_INDEX_FIRST_CELL_INDEX; index < length; index++)
-                    {
-                        final String cellWkt = gridIndexParts[index];
-                        if (Strings.isNullOrEmpty(cellWkt))
-                        {
-                            continue;
-                        }
-
-                        final Geometry cell = reader.read(cellWkt);
-                        gridIndexFromFile.insert(cell.getEnvelopeInternal(), polygon);
-                    }
-                }
-                catch (final Exception e)
-                {
-                    throw new CoreException("Failed to create grid index cells.", e);
-                }
-            }
-            else if (line.startsWith(GRID_ENVELOPE_DELIMITER))
-            {
-                try
-                {
-                    final Geometry envelope = reader
-                            .read(line.substring(GRID_ENVELOPE_DELIMITER.length()));
-                    this.gridIndexEnvelope = envelope.getEnvelopeInternal();
-                }
-                catch (final ParseException e)
-                {
-                    throw new CoreException("Failed to read grid index envelope.", e);
-                }
-            }
-            else
-            {
-                // Read the country boundaries
-                final StringTokenizer boundaryTokenizer = new StringTokenizer(line,
-                        COUNTRY_BOUNDARY_DELIMITER);
-                final String country = boundaryTokenizer.nextToken();
-                final String geometryString = boundaryTokenizer.nextToken();
-                try
-                {
-                    final StringTokenizer geometryTokenizer = new StringTokenizer(geometryString,
-                            LIST_SEPARATOR);
-                    while (geometryTokenizer.hasMoreTokens())
-                    {
-                        final String polygonString = geometryTokenizer.nextToken();
-                        final Geometry geometry = reader.read(polygonString);
-                        setGeometryProperty(geometry, ISOCountryTag.KEY, country);
-
-                        // NOTE: This is for backward compatibility. Older boundary maps save
-                        // MultiPolygons, but newer ones save Polygons and use the order per country
-                        // for grid indexing.
-                        // TODO Remove MultiPolygon part once all files move to the new format
-                        if (geometry instanceof Polygon)
-                        {
-                            final Integer identifier = countryIdentifierMap.get(country);
-                            if (identifier == null)
-                            {
-                                countryIdentifierMap.put(country, 0);
-                                setGeometryProperty(geometry, POLYGON_ID_KEY, String.valueOf(0));
-                            }
-                            else
-                            {
-                                countryIdentifierMap.put(country, identifier + 1);
-                                setGeometryProperty(geometry, POLYGON_ID_KEY,
-                                        String.valueOf(identifier + 1));
-                            }
-                            this.addCountry(country, (Polygon) geometry);
-                        }
-                        else if (geometry instanceof org.locationtech.jts.geom.MultiPolygon)
-                        {
-                            this.addCountry(country,
-                                    (org.locationtech.jts.geom.MultiPolygon) geometry);
-                        }
-                    }
-                }
-                catch (final Exception e)
-                {
-                    throw new CoreException("Invalid country boundary text file format.", e);
-                }
-            }
-        }
-
-        if (gridIndexFromFile != null)
-        {
-            logger.info("Successfully read grid index of size {} from file.",
-                    gridIndexFromFile.size());
-            gridIndexFromFile.build();
-            this.gridIndex = gridIndexFromFile;
-        }
-        else
-        {
-            logger.warn("Given boundary file didn't have grid index.");
-        }
-    }
-
-    /**
-     * Read a {@link CountryBoundaryMap} from a shape {@link File}
-     *
-     * @param file
-     *            Shape {@link File}
-     */
-    void readFromShapeFile(final File file)
-    {
-        FileDataStore store = null;
-        FeatureIterator<SimpleFeature> iterator = null;
-        try
-        {
-            store = FileDataStoreFinder.getDataStore(file);
-            iterator = store.getFeatureSource().getFeatures().features();
-            while (iterator.hasNext())
-            {
-                final Feature feature = iterator.next();
-                final Optional<Property> name = findCountryName(feature, COUNTRY_CODE_FIELDS);
-                final Property geometry = feature.getProperty(GEOMETRY_FIELD);
-                final String nameValue = (String) name.orElseThrow(() -> new CoreException(
-                        "Can't read country code attribute from shape file")).getValue();
-                final org.locationtech.jts.geom.MultiPolygon multiPolygon = (org.locationtech.jts.geom.MultiPolygon) geometry
-                        .getValue();
-                this.addCountry(nameValue, multiPolygon);
-            }
-        }
-        catch (final IOException e)
-        {
-            throw new CoreException("Error reading country boundary from file", e);
-        }
-        finally
-        {
-            if (iterator != null)
-            {
-                iterator.close();
-            }
-            if (store != null)
-            {
-                store.dispose();
-            }
-        }
     }
 
     /**
@@ -1422,6 +1109,317 @@ public class CountryBoundaryMap implements Serializable
 
             // Write grid index cells
             this.writeGridIndex(output);
+        }
+    }
+
+    void addCountry(final String country, final org.locationtech.jts.geom.MultiPolygon multiPolygon)
+    {
+        if (!this.envelope.intersects(multiPolygon.getEnvelopeInternal()))
+        {
+            return;
+        }
+
+        Geometry fixedPolygon = this.reducer.reduce(multiPolygon);
+        if (fixedPolygon instanceof Polygon)
+        {
+            fixedPolygon = new org.locationtech.jts.geom.MultiPolygon(
+                    new Polygon[] { (Polygon) fixedPolygon },
+                    JtsPrecisionManager.getGeometryFactory());
+        }
+
+        final List<Geometry> parts = geometries(
+                (org.locationtech.jts.geom.MultiPolygon) fixedPolygon).collect(Collectors.toList());
+        int polygonIdentifier = -1;
+        for (final Geometry part : parts)
+        {
+            polygonIdentifier++;
+            final Polygon polygon = (Polygon) part;
+            this.countryNameToBoundaryMap.add(country, polygon);
+
+            if (this.envelope.intersects(polygon.getEnvelopeInternal()))
+            {
+                setGeometryProperty(polygon, ISOCountryTag.KEY, country);
+                setGeometryProperty(polygon, POLYGON_ID_KEY, String.valueOf(polygonIdentifier));
+                this.rawIndex.insert(polygon.getEnvelopeInternal(), polygon);
+            }
+        }
+    }
+
+    void addCountry(final String country, final Polygon polygon)
+    {
+        this.countryNameToBoundaryMap.add(country, polygon);
+
+        if (this.envelope.intersects(polygon.getEnvelopeInternal()))
+        {
+            this.rawIndex.insert(polygon.getEnvelopeInternal(), polygon);
+        }
+    }
+
+    /**
+     * @return A {@link Map} from {@link Geometry}s to {@link List} of {@link Envelope} cells that
+     *         forms the grid index.
+     */
+    MultiMap<Geometry, Envelope> getCells()
+    {
+        if (this.gridIndex == null)
+        {
+            return null;
+        }
+
+        final MultiMap<Geometry, Envelope> polygonToCells = new MultiMap<>();
+        collectCells(this.gridIndex.getRoot(), polygonToCells);
+        return polygonToCells;
+    }
+
+    /**
+     * @return {@link STRtree} grid index used by this {@link CountryBoundaryMap}
+     */
+    STRtree getGridIndex()
+    {
+        return this.gridIndex;
+    }
+
+    /**
+     * @return the raw {@link STRtree} index used by this {@link CountryBoundaryMap}
+     */
+    STRtree getRawIndex()
+    {
+        return this.rawIndex;
+    }
+
+    /**
+     * Read a {@link CountryBoundaryMap} from the {@link ComplexBoundary}(ies) inside an
+     * {@link Atlas}
+     *
+     * @param atlas
+     *            The {@link Atlas} to read from.
+     */
+    void readFromAtlas(final Atlas atlas)
+    {
+        final Iterable<ComplexBoundary> deduplicatedComplexBoundaries = resolveOverlappingBorders(
+                new ComplexBoundaryFinder().find(atlas));
+        for (final ComplexBoundary complexBoundary : deduplicatedComplexBoundaries)
+        {
+            if (complexBoundary.hasCountryCode())
+            {
+                final List<String> countryCodes = new ArrayList<>();
+                try
+                {
+                    final MultiPolygon outline = complexBoundary.getOutline();
+                    final org.locationtech.jts.geom.MultiPolygon multiPolygon = JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER
+                            .backwardConvert(outline);
+                    complexBoundary.getCountries().forEach(isoCountry -> this
+                            .addCountry(isoCountry.getIso3CountryCode(), multiPolygon));
+                }
+                catch (final IllegalArgumentException e)
+                {
+                    throw new CoreException("Unable to read country boundary for country codes {}",
+                            countryCodes, e);
+                }
+            }
+        }
+    }
+
+    /**
+     * Read a {@link CountryBoundaryMap} from a {@link Resource} in plain text format
+     *
+     * @param resource
+     *            {@link Resource} containing {@link CountryBoundaryMap} in plain text format
+     */
+    void readFromPlainText(final Resource resource)
+    {
+        final Map<String, Integer> countryIdentifierMap = new HashMap<>();
+        final WKTReader reader = new WKTReader();
+
+        // Last piece is cells
+        STRtree gridIndexFromFile = null;
+
+        for (final String line : resource.lines())
+        {
+            // Ignore empty lines
+            if (line.isEmpty())
+            {
+                continue;
+            }
+
+            // Ignore previous version of grid index indicator. Previously generated boundary map
+            // files had grid indices serialized not the right way.
+            if (line.startsWith(SPATIAL_INDEX_DELIMITER))
+            {
+                logger.warn("Found previous version of grid index. Grid index will be ignored.");
+                continue;
+            }
+
+            // Read line and take respective action
+            if (line.startsWith(GRID_INDEX_DELIMITER))
+            {
+                if (this.countryNameToBoundaryMap.isEmpty())
+                {
+                    logger.warn("Cannot read grid index, because no country boundary is supplied.");
+                }
+
+                if (gridIndexFromFile == null)
+                {
+                    gridIndexFromFile = new STRtree();
+                }
+
+                // Strip the initial delimiter, and split on the second one
+                final String[] gridIndexParts = line.substring(GRID_INDEX_DELIMITER.length())
+                        .split(GRID_INDEX_DELIMITER);
+                final int length = gridIndexParts.length;
+
+                if (length < GRID_INDEX_MIN_LENGTH)
+                {
+                    throw new CoreException("Grid index entry is malformed.");
+                }
+
+                // First piece is polygon identifier
+                final String country = gridIndexParts[0];
+                final String identifier = gridIndexParts[1];
+                final Geometry polygon = this.countryNameToBoundaryMap.get(country)
+                        .get(Integer.valueOf(identifier));
+                if (polygon == null)
+                {
+                    throw new CoreException("Grid index entry is malformed missing polygon.");
+                }
+
+                // Starting from second item go over and parse cells
+                try
+                {
+                    for (int index = GRID_INDEX_FIRST_CELL_INDEX; index < length; index++)
+                    {
+                        final String cellWkt = gridIndexParts[index];
+                        if (Strings.isNullOrEmpty(cellWkt))
+                        {
+                            continue;
+                        }
+
+                        final Geometry cell = reader.read(cellWkt);
+                        gridIndexFromFile.insert(cell.getEnvelopeInternal(), polygon);
+                    }
+                }
+                catch (final Exception e)
+                {
+                    throw new CoreException("Failed to create grid index cells.", e);
+                }
+            }
+            else if (line.startsWith(GRID_ENVELOPE_DELIMITER))
+            {
+                try
+                {
+                    final Geometry envelope = reader
+                            .read(line.substring(GRID_ENVELOPE_DELIMITER.length()));
+                    this.gridIndexEnvelope = envelope.getEnvelopeInternal();
+                }
+                catch (final ParseException e)
+                {
+                    throw new CoreException("Failed to read grid index envelope.", e);
+                }
+            }
+            else
+            {
+                // Read the country boundaries
+                final StringTokenizer boundaryTokenizer = new StringTokenizer(line,
+                        COUNTRY_BOUNDARY_DELIMITER);
+                final String country = boundaryTokenizer.nextToken();
+                final String geometryString = boundaryTokenizer.nextToken();
+                try
+                {
+                    final StringTokenizer geometryTokenizer = new StringTokenizer(geometryString,
+                            LIST_SEPARATOR);
+                    while (geometryTokenizer.hasMoreTokens())
+                    {
+                        final String polygonString = geometryTokenizer.nextToken();
+                        final Geometry geometry = reader.read(polygonString);
+                        setGeometryProperty(geometry, ISOCountryTag.KEY, country);
+
+                        // NOTE: This is for backward compatibility. Older boundary maps save
+                        // MultiPolygons, but newer ones save Polygons and use the order per country
+                        // for grid indexing.
+                        // TODO Remove MultiPolygon part once all files move to the new format
+                        if (geometry instanceof Polygon)
+                        {
+                            final Integer identifier = countryIdentifierMap.get(country);
+                            if (identifier == null)
+                            {
+                                countryIdentifierMap.put(country, 0);
+                                setGeometryProperty(geometry, POLYGON_ID_KEY, String.valueOf(0));
+                            }
+                            else
+                            {
+                                countryIdentifierMap.put(country, identifier + 1);
+                                setGeometryProperty(geometry, POLYGON_ID_KEY,
+                                        String.valueOf(identifier + 1));
+                            }
+                            this.addCountry(country, (Polygon) geometry);
+                        }
+                        else if (geometry instanceof org.locationtech.jts.geom.MultiPolygon)
+                        {
+                            this.addCountry(country,
+                                    (org.locationtech.jts.geom.MultiPolygon) geometry);
+                        }
+                    }
+                }
+                catch (final Exception e)
+                {
+                    throw new CoreException("Invalid country boundary text file format.", e);
+                }
+            }
+        }
+
+        if (gridIndexFromFile != null)
+        {
+            logger.info("Successfully read grid index of size {} from file.",
+                    gridIndexFromFile.size());
+            gridIndexFromFile.build();
+            this.gridIndex = gridIndexFromFile;
+        }
+        else
+        {
+            logger.warn("Given boundary file didn't have grid index.");
+        }
+    }
+
+    /**
+     * Read a {@link CountryBoundaryMap} from a shape {@link File}
+     *
+     * @param file
+     *            Shape {@link File}
+     */
+    void readFromShapeFile(final File file)
+    {
+        FileDataStore store = null;
+        FeatureIterator<SimpleFeature> iterator = null;
+        try
+        {
+            store = FileDataStoreFinder.getDataStore(file);
+            iterator = store.getFeatureSource().getFeatures().features();
+            while (iterator.hasNext())
+            {
+                final Feature feature = iterator.next();
+                final Optional<Property> name = findCountryName(feature, COUNTRY_CODE_FIELDS);
+                final Property geometry = feature.getProperty(GEOMETRY_FIELD);
+                final String nameValue = (String) name.orElseThrow(() -> new CoreException(
+                        "Can't read country code attribute from shape file")).getValue();
+                final org.locationtech.jts.geom.MultiPolygon multiPolygon = (org.locationtech.jts.geom.MultiPolygon) geometry
+                        .getValue();
+                this.addCountry(nameValue, multiPolygon);
+            }
+        }
+        catch (final IOException e)
+        {
+            throw new CoreException("Error reading country boundary from file", e);
+        }
+        finally
+        {
+            if (iterator != null)
+            {
+                iterator.close();
+            }
+            if (store != null)
+            {
+                store.dispose();
+            }
         }
     }
 

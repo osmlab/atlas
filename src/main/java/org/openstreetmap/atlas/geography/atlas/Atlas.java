@@ -50,6 +50,13 @@ import com.google.gson.JsonObject;
 public interface Atlas
         extends Located, Iterable<AtlasEntity>, Serializable, GeoJsonFeatureCollection<AtlasEntity>
 {
+    static <E extends AtlasEntity> Iterable<E> entitiesMatchingId(final Long[] identifiers,
+            final LongFunction<E> function)
+    {
+        return Arrays.stream(identifiers).map(function::apply).filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+    }
+
     /**
      * @param identifier
      *            The {@link Area}'s identifier
@@ -391,18 +398,6 @@ public interface Atlas
     Line line(long identifier);
 
     /**
-     * A wrapper over {@link #line(long)} for multiple ids.
-     *
-     * @param identifiers
-     *            - The line identifiers to fetch.
-     * @return The {@link Line}s that corresponds to the provided identifier.
-     */
-    default Iterable<Line> lines(final Long... identifiers)
-    {
-        return entitiesMatchingId(identifiers, this::line);
-    }
-
-    /**
      * Return all the {@link LineItem}s
      *
      * @return All the {@link LineItem}s
@@ -470,6 +465,18 @@ public interface Atlas
      * @return All the {@link LineItem}s within and/or intersecting the {@link GeometricSurface}.
      */
     Iterable<LineItem> lineItemsWithin(GeometricSurface surface);
+
+    /**
+     * A wrapper over {@link #line(long)} for multiple ids.
+     *
+     * @param identifiers
+     *            - The line identifiers to fetch.
+     * @return The {@link Line}s that corresponds to the provided identifier.
+     */
+    default Iterable<Line> lines(final Long... identifiers)
+    {
+        return entitiesMatchingId(identifiers, this::line);
+    }
 
     /**
      * @return All the {@link Line}s in this {@link Atlas}
@@ -582,13 +589,6 @@ public interface Atlas
      * @return The meta data for this {@link Atlas}.
      */
     AtlasMetaData metaData();
-
-    static <E extends AtlasEntity> Iterable<E> entitiesMatchingId(final Long[] identifiers,
-            final LongFunction<E> function)
-    {
-        return Arrays.stream(identifiers).map(function::apply).filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-    }
 
     /**
      * @param identifier

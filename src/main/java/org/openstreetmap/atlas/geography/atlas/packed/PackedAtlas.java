@@ -68,10 +68,6 @@ public final class PackedAtlas extends AbstractAtlas
         PROTOBUF,
         JAVA
     }
-
-    private static final long serialVersionUID = -7582554057580336684L;
-    private static final Logger logger = LoggerFactory.getLogger(PackedAtlas.class);
-
     // Keep track of the field names for reflection code in the Serializer.
     protected static final String FIELD_PREFIX = "FIELD_";
     protected static final String FIELD_BOUNDS = "bounds";
@@ -123,61 +119,44 @@ public final class PackedAtlas extends AbstractAtlas
     protected static final Object FIELD_EDGE_END_NODE_INDEX_LOCK = new Object();
     protected static final String FIELD_EDGE_POLY_LINES = "edgePolyLines";
     protected static final Object FIELD_EDGE_POLY_LINES_LOCK = new Object();
-
     protected static final String FIELD_EDGE_TAGS = "edgeTags";
     protected static final Object FIELD_EDGE_TAGS_LOCK = new Object();
-
     protected static final String FIELD_EDGE_INDEX_TO_RELATION_INDICES = "edgeIndexToRelationIndices";
     protected static final Object FIELD_EDGE_INDEX_TO_RELATION_INDICES_LOCK = new Object();
-
     protected static final String FIELD_AREA_POLYGONS = "areaPolygons";
     protected static final Object FIELD_AREA_POLYGONS_LOCK = new Object();
-
     protected static final String FIELD_AREA_TAGS = "areaTags";
     protected static final Object FIELD_AREA_TAGS_LOCK = new Object();
-
     protected static final String FIELD_AREA_INDEX_TO_RELATION_INDICES = "areaIndexToRelationIndices";
     protected static final Object FIELD_AREA_INDEX_TO_RELATION_INDICES_LOCK = new Object();
-
     protected static final String FIELD_LINE_POLYLINES = "linePolyLines";
     protected static final Object FIELD_LINE_POLYLINES_LOCK = new Object();
-
     protected static final String FIELD_LINE_TAGS = "lineTags";
     protected static final Object FIELD_LINE_TAGS_LOCK = new Object();
-
     protected static final String FIELD_LINE_INDEX_TO_RELATION_INDICES = "lineIndexToRelationIndices";
     protected static final Object FIELD_LINE_INDEX_TO_RELATION_INDICES_LOCK = new Object();
-
     protected static final String FIELD_POINT_LOCATIONS = "pointLocations";
     protected static final Object FIELD_POINT_LOCATIONS_LOCK = new Object();
-
     protected static final String FIELD_POINT_TAGS = "pointTags";
     protected static final Object FIELD_POINT_TAGS_LOCK = new Object();
-
     protected static final String FIELD_POINT_INDEX_TO_RELATION_INDICES = "pointIndexToRelationIndices";
     protected static final Object FIELD_POINT_INDEX_TO_RELATION_INDICES_LOCK = new Object();
-
     protected static final String FIELD_RELATION_MEMBERS_INDICES = "relationMemberIndices";
     protected static final Object FIELD_RELATION_MEMBERS_INDICES_LOCK = new Object();
-
     protected static final String FIELD_RELATION_MEMBER_TYPES = "relationMemberTypes";
     protected static final Object FIELD_RELATION_MEMBER_TYPES_LOCK = new Object();
-
     protected static final String FIELD_RELATION_MEMBER_ROLES = "relationMemberRoles";
     protected static final Object FIELD_RELATION_MEMBER_ROLES_LOCK = new Object();
-
     protected static final String FIELD_RELATION_TAGS = "relationTags";
     protected static final Object FIELD_RELATION_TAGS_LOCK = new Object();
-
     protected static final String FIELD_RELATION_INDEX_TO_RELATION_INDICES = "relationIndexToRelationIndices";
     protected static final Object FIELD_RELATION_INDEX_TO_RELATION_INDICES_LOCK = new Object();
-
     protected static final String FIELD_RELATION_OSM_IDENTIFIER_TO_RELATION_IDENTIFIERS = "relationOsmIdentifierToRelationIdentifiers";
     protected static final Object FIELD_RELATION_OSM_IDENTIFIER_TO_RELATION_IDENTIFIERS_LOCK = new Object();
-
     protected static final String FIELD_RELATION_OSM_IDENTIFIERS = "relationOsmIdentifiers";
     protected static final Object FIELD_RELATION_OSM_IDENTIFIERS_LOCK = new Object();
-
+    private static final long serialVersionUID = -7582554057580336684L;
+    private static final Logger logger = LoggerFactory.getLogger(PackedAtlas.class);
     // Serializer.
     private transient PackedAtlasSerializer serializer;
 
@@ -1497,21 +1476,6 @@ public final class PackedAtlas extends AbstractAtlas
         }
     }
 
-    private LongArray areaIdentifiers()
-    {
-        if (this.areaIdentifiers == null)
-        {
-            synchronized (FIELD_AREA_IDENTIFIERS_LOCK)
-            {
-                if (this.areaIdentifiers == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_AREA_IDENTIFIERS);
-                }
-            }
-        }
-        return this.areaIdentifiers;
-    }
-
     private LongToLongMap areaIdentifierToAreaArrayIndex()
     {
         if (this.areaIdentifierToAreaArrayIndex == null)
@@ -1525,6 +1489,21 @@ public final class PackedAtlas extends AbstractAtlas
             }
         }
         return this.areaIdentifierToAreaArrayIndex;
+    }
+
+    private LongArray areaIdentifiers()
+    {
+        if (this.areaIdentifiers == null)
+        {
+            synchronized (FIELD_AREA_IDENTIFIERS_LOCK)
+            {
+                if (this.areaIdentifiers == null)
+                {
+                    this.serializer.deserializeIfNeeded(FIELD_AREA_IDENTIFIERS);
+                }
+            }
+        }
+        return this.areaIdentifiers;
     }
 
     private LongToLongMultiMap areaIndexToRelationIndices()
@@ -1603,21 +1582,6 @@ public final class PackedAtlas extends AbstractAtlas
         return this.edgeEndNodeIndex;
     }
 
-    private LongArray edgeIdentifiers()
-    {
-        if (this.edgeIdentifiers == null)
-        {
-            synchronized (FIELD_EDGE_IDENTIFIERS_LOCK)
-            {
-                if (this.edgeIdentifiers == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_EDGE_IDENTIFIERS);
-                }
-            }
-        }
-        return this.edgeIdentifiers;
-    }
-
     private LongToLongMap edgeIdentifierToEdgeArrayIndex()
     {
         if (this.edgeIdentifierToEdgeArrayIndex == null)
@@ -1631,6 +1595,21 @@ public final class PackedAtlas extends AbstractAtlas
             }
         }
         return this.edgeIdentifierToEdgeArrayIndex;
+    }
+
+    private LongArray edgeIdentifiers()
+    {
+        if (this.edgeIdentifiers == null)
+        {
+            synchronized (FIELD_EDGE_IDENTIFIERS_LOCK)
+            {
+                if (this.edgeIdentifiers == null)
+                {
+                    this.serializer.deserializeIfNeeded(FIELD_EDGE_IDENTIFIERS);
+                }
+            }
+        }
+        return this.edgeIdentifiers;
     }
 
     private LongToLongMultiMap edgeIndexToRelationIndices()
@@ -1708,21 +1687,6 @@ public final class PackedAtlas extends AbstractAtlas
         return result;
     }
 
-    private LongArray lineIdentifiers()
-    {
-        if (this.lineIdentifiers == null)
-        {
-            synchronized (FIELD_LINE_IDENTIFIERS_LOCK)
-            {
-                if (this.lineIdentifiers == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_LINE_IDENTIFIERS);
-                }
-            }
-        }
-        return this.lineIdentifiers;
-    }
-
     private LongToLongMap lineIdentifierToLineArrayIndex()
     {
         if (this.lineIdentifierToLineArrayIndex == null)
@@ -1736,6 +1700,21 @@ public final class PackedAtlas extends AbstractAtlas
             }
         }
         return this.lineIdentifierToLineArrayIndex;
+    }
+
+    private LongArray lineIdentifiers()
+    {
+        if (this.lineIdentifiers == null)
+        {
+            synchronized (FIELD_LINE_IDENTIFIERS_LOCK)
+            {
+                if (this.lineIdentifiers == null)
+                {
+                    this.serializer.deserializeIfNeeded(FIELD_LINE_IDENTIFIERS);
+                }
+            }
+        }
+        return this.lineIdentifiers;
     }
 
     private LongToLongMultiMap lineIndexToRelationIndices()
@@ -1807,21 +1786,6 @@ public final class PackedAtlas extends AbstractAtlas
         };
     }
 
-    private LongArray nodeIdentifiers()
-    {
-        if (this.nodeIdentifiers == null)
-        {
-            synchronized (FIELD_NODE_IDENTIFIERS_LOCK)
-            {
-                if (this.nodeIdentifiers == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_NODE_IDENTIFIERS);
-                }
-            }
-        }
-        return this.nodeIdentifiers;
-    }
-
     private LongToLongMap nodeIdentifierToNodeArrayIndex()
     {
         if (this.nodeIdentifierToNodeArrayIndex == null)
@@ -1837,19 +1801,19 @@ public final class PackedAtlas extends AbstractAtlas
         return this.nodeIdentifierToNodeArrayIndex;
     }
 
-    private LongToLongMultiMap nodeIndexToRelationIndices()
+    private LongArray nodeIdentifiers()
     {
-        if (this.nodeIndexToRelationIndices == null)
+        if (this.nodeIdentifiers == null)
         {
-            synchronized (FIELD_NODE_INDEX_TO_RELATION_INDICES_LOCK)
+            synchronized (FIELD_NODE_IDENTIFIERS_LOCK)
             {
-                if (this.nodeIndexToRelationIndices == null)
+                if (this.nodeIdentifiers == null)
                 {
-                    this.serializer.deserializeIfNeeded(FIELD_NODE_INDEX_TO_RELATION_INDICES);
+                    this.serializer.deserializeIfNeeded(FIELD_NODE_IDENTIFIERS);
                 }
             }
         }
-        return this.nodeIndexToRelationIndices;
+        return this.nodeIdentifiers;
     }
 
     private LongArrayOfArrays nodeInEdgesIndices()
@@ -1865,6 +1829,21 @@ public final class PackedAtlas extends AbstractAtlas
             }
         }
         return this.nodeInEdgesIndices;
+    }
+
+    private LongToLongMultiMap nodeIndexToRelationIndices()
+    {
+        if (this.nodeIndexToRelationIndices == null)
+        {
+            synchronized (FIELD_NODE_INDEX_TO_RELATION_INDICES_LOCK)
+            {
+                if (this.nodeIndexToRelationIndices == null)
+                {
+                    this.serializer.deserializeIfNeeded(FIELD_NODE_INDEX_TO_RELATION_INDICES);
+                }
+            }
+        }
+        return this.nodeIndexToRelationIndices;
     }
 
     private LongArray nodeLocations()
@@ -1913,21 +1892,6 @@ public final class PackedAtlas extends AbstractAtlas
         return this.nodeTags;
     }
 
-    private LongArray pointIdentifiers()
-    {
-        if (this.pointIdentifiers == null)
-        {
-            synchronized (FIELD_POINT_IDENTIFIERS_LOCK)
-            {
-                if (this.pointIdentifiers == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_POINT_IDENTIFIERS);
-                }
-            }
-        }
-        return this.pointIdentifiers;
-    }
-
     private LongToLongMap pointIdentifierToPointArrayIndex()
     {
         if (this.pointIdentifierToPointArrayIndex == null)
@@ -1942,6 +1906,21 @@ public final class PackedAtlas extends AbstractAtlas
             }
         }
         return this.pointIdentifierToPointArrayIndex;
+    }
+
+    private LongArray pointIdentifiers()
+    {
+        if (this.pointIdentifiers == null)
+        {
+            synchronized (FIELD_POINT_IDENTIFIERS_LOCK)
+            {
+                if (this.pointIdentifiers == null)
+                {
+                    this.serializer.deserializeIfNeeded(FIELD_POINT_IDENTIFIERS);
+                }
+            }
+        }
+        return this.pointIdentifiers;
     }
 
     private LongToLongMultiMap pointIndexToRelationIndices()
@@ -1990,21 +1969,6 @@ public final class PackedAtlas extends AbstractAtlas
         return this.pointTags;
     }
 
-    private LongArray relationIdentifiers()
-    {
-        if (this.relationIdentifiers == null)
-        {
-            synchronized (FIELD_RELATION_IDENTIFIERS_LOCK)
-            {
-                if (this.relationIdentifiers == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_RELATION_IDENTIFIERS);
-                }
-            }
-        }
-        return this.relationIdentifiers;
-    }
-
     private LongToLongMap relationIdentifierToRelationArrayIndex()
     {
         if (this.relationIdentifierToRelationArrayIndex == null)
@@ -2019,6 +1983,21 @@ public final class PackedAtlas extends AbstractAtlas
             }
         }
         return this.relationIdentifierToRelationArrayIndex;
+    }
+
+    private LongArray relationIdentifiers()
+    {
+        if (this.relationIdentifiers == null)
+        {
+            synchronized (FIELD_RELATION_IDENTIFIERS_LOCK)
+            {
+                if (this.relationIdentifiers == null)
+                {
+                    this.serializer.deserializeIfNeeded(FIELD_RELATION_IDENTIFIERS);
+                }
+            }
+        }
+        return this.relationIdentifiers;
     }
 
     private LongToLongMultiMap relationIndexToRelationIndices()
@@ -2081,21 +2060,6 @@ public final class PackedAtlas extends AbstractAtlas
         return this.relationMemberTypes;
     }
 
-    private LongArray relationOsmIdentifiers()
-    {
-        if (this.relationOsmIdentifiers == null)
-        {
-            synchronized (FIELD_RELATION_OSM_IDENTIFIERS_LOCK)
-            {
-                if (this.relationOsmIdentifiers == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_RELATION_OSM_IDENTIFIERS);
-                }
-            }
-        }
-        return this.relationOsmIdentifiers;
-    }
-
     private LongToLongMultiMap relationOsmIdentifierToRelationIdentifiers()
     {
         if (this.relationOsmIdentifierToRelationIdentifiers == null)
@@ -2110,6 +2074,21 @@ public final class PackedAtlas extends AbstractAtlas
             }
         }
         return this.relationOsmIdentifierToRelationIdentifiers;
+    }
+
+    private LongArray relationOsmIdentifiers()
+    {
+        if (this.relationOsmIdentifiers == null)
+        {
+            synchronized (FIELD_RELATION_OSM_IDENTIFIERS_LOCK)
+            {
+                if (this.relationOsmIdentifiers == null)
+                {
+                    this.serializer.deserializeIfNeeded(FIELD_RELATION_OSM_IDENTIFIERS);
+                }
+            }
+        }
+        return this.relationOsmIdentifiers;
     }
 
     private PackedTagStore relationTags()

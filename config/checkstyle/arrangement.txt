@@ -13,10 +13,10 @@ class,protected,non_static
 class,package_private,non_static
 class,private,non_static
 
-field,public,static
-field,protected,static
-field,package_private,static
-field,private,static
+# field,public,static
+# field,protected,static
+# field,package_private,static
+# field,private,static
 
 static_initializer_block,,non_static
 
