@@ -76,13 +76,13 @@ public class ComplexRoundabout extends ComplexEntity
         int clockwiseCount = 0;
         int counterClockwiseCount = 0;
 
-        for (int idx = 0; idx < roundaboutEdges.size(); idx++)
+        for (int index = 0; index < roundaboutEdges.size(); index++)
         {
             // Get the Edges to use in the cross product
-            final Edge edge1 = roundaboutEdges.get(idx);
+            final Edge edge1 = roundaboutEdges.get(index);
             // We mod the roundabout edges here so that we can get the last pair of edges in the
             // Roundabout correctly
-            final Edge edge2 = roundaboutEdges.get((idx + 1) % roundaboutEdges.size());
+            final Edge edge2 = roundaboutEdges.get((index + 1) % roundaboutEdges.size());
             // Get the cross product and then the direction of the roundabout
             final double crossProduct = getCrossProduct(edge1, edge2);
             final RoundaboutDirection direction;
@@ -206,8 +206,7 @@ public class ComplexRoundabout extends ComplexEntity
             }
 
             // Invalidate the roundabout if any of the edges are not car navigable or master Edges,
-            // or the route does not
-            // form a closed loop.
+            // or the route does not form a closed loop.
             if (this.roundaboutEdgeSet.stream()
                     .anyMatch(roundaboutEdge -> !HighwayTag.isCarNavigableHighway(roundaboutEdge)
                             || !roundaboutEdge.isMasterEdge())
