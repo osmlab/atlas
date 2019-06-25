@@ -570,9 +570,9 @@ public class FeatureChange implements Located, Serializable
     @Override
     public String toString()
     {
-        return "FeatureChange [changeType=" + this.changeType + ", reference={"
-                + this.afterView.getType() + "," + this.afterView.getIdentifier() + "}, tags="
-                + getTags() + ", bounds=" + bounds() + "]";
+        return "FeatureChange [changeType: " + this.changeType + ", reference: {"
+                + this.afterView.getType() + "," + this.afterView.getIdentifier() + "}, tags: "
+                + getTags() + ", bounds: " + bounds() + "]";
     }
 
     /**

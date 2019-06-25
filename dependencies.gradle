@@ -52,21 +52,23 @@ project.ext.packages = [
         pg:"org.openstreetmap.osmosis:osmosis-pgsnapshot:${versions.osmosis}",
     ],
     commons:[
-            io: "commons-io:commons-io:${versions.commons_io}",
-            cli:"commons-cli:commons-cli:${versions.cli}",
-            csv : "org.apache.commons:commons-csv:${versions.csv}",
-            lang: "org.apache.commons:commons-lang3:${versions.lang}",
+        io: "commons-io:commons-io:${versions.commons_io}",
+        cli:"commons-cli:commons-cli:${versions.cli}",
+        csv : "org.apache.commons:commons-csv:${versions.csv}",
+        lang: "org.apache.commons:commons-lang3:${versions.lang}",
     ],
     classgraph: "io.github.classgraph:classgraph:${versions.classgraph}",
     guava: "com.google.guava:guava:${versions.guava}",
     jsonassert: "org.skyscreamer:jsonassert:${versions.jsonassert}",
     jackson:[
-            core: "com.fasterxml.jackson.core:jackson-core:${versions.jackson_core}",
-            databind: "com.fasterxml.jackson.core:jackson-databind:${versions.jackson_databind}",
-            dataformat: "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${versions.jackson_dataformat_yaml}"
+        core: "com.fasterxml.jackson.core:jackson-core:${versions.jackson_core}",
+        databind: "com.fasterxml.jackson.core:jackson-databind:${versions.jackson_databind}",
+        dataformat: "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${versions.jackson_dataformat_yaml}"
     ],
     protobuf_java: "com.google.protobuf:protobuf-java:${versions.protobuf_java}",
     protoc: "com.google.protobuf:protoc:${versions.protoc}",
     artifact: "org.apache.maven:maven-artifact:${versions.artifact}",
     groovy: "org.codehaus.groovy:groovy:${versions.groovy}",
+    checkstyle: "com.puppycrawl.tools:checkstyle:${versions.checkstyle}",
+    checkstyle_tests: "com.puppycrawl.tools:checkstyle:${versions.checkstyle}:tests",
 ]

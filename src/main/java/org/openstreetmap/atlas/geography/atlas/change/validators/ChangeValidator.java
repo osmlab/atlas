@@ -8,6 +8,7 @@ import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.change.Change;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
 import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
+import org.openstreetmap.atlas.geography.atlas.change.exception.EmptyChangeException;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
@@ -45,7 +46,7 @@ public class ChangeValidator
     {
         if (this.change.changeCount() == 0)
         {
-            throw new CoreException("Change cannot be empty.");
+            throw new EmptyChangeException();
         }
     }
 

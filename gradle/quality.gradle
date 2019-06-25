@@ -61,8 +61,11 @@ dependencies
 spotless {
     java {
         target project.fileTree(project.rootDir) {
-            include '**/*.java'
+            include 'src/**/*.java'
             exclude 'src/generated/**/*.java'
+            exclude 'src/main/resources/**/*.java'
+            exclude 'src/test/resources/**/*.java'
+            exclude 'src/integrationTest/resources/**/*.java'
         }
         importOrder 'static java', 'static javax', 'static org', 'static com', 'static scala', 'java', 'javax', 'org', 'com', 'scala'
         removeUnusedImports()

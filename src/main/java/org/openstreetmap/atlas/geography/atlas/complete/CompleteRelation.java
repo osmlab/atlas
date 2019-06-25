@@ -288,6 +288,16 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
                 + this.relationIdentifiers + "]";
     }
 
+    @Override
+    public String toWkt()
+    {
+        if (this.bounds == null)
+        {
+            return null;
+        }
+        return this.bounds.toWkt();
+    }
+
     public CompleteRelation withAllKnownOsmMembers(final RelationBean allKnownOsmMembers)
     {
         this.allKnownOsmMembers = allKnownOsmMembers;
