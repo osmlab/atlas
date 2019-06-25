@@ -18,6 +18,12 @@ or with a specified ordering definition:
 </module>
 ```
 
+To use this with gradle, the project needs this dependency:
+
+```groovy
+
+```
+
 ## Ordering definition
 
 The ordering can be defined in a text file which has the following format:
