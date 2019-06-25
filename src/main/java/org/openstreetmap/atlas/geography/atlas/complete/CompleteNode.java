@@ -312,6 +312,16 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
                 + ", relationIdentifiers=" + this.relationIdentifiers + "]";
     }
 
+    @Override
+    public String toWkt()
+    {
+        if (this.location == null)
+        {
+            return null;
+        }
+        return this.location.toWkt();
+    }
+
     public CompleteNode withBoundsExtendedBy(final Rectangle bounds)
     {
         if (this.bounds == null)

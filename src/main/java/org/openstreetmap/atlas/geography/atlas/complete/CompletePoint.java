@@ -222,6 +222,16 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
                 + this.relationIdentifiers + "]";
     }
 
+    @Override
+    public String toWkt()
+    {
+        if (this.location == null)
+        {
+            return null;
+        }
+        return this.location.toWkt();
+    }
+
     public CompletePoint withBoundsExtendedBy(final Rectangle bounds)
     {
         if (this.bounds == null)

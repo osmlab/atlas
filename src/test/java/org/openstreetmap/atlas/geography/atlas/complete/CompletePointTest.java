@@ -107,6 +107,17 @@ public class CompletePointTest
     }
 
     @Test
+    public void testToWkt()
+    {
+        final CompletePoint point1 = new CompletePoint(123L);
+        point1.withLocation(Location.forString("0,0"));
+        Assert.assertEquals("POINT (0 0)", point1.toWkt());
+
+        final CompletePoint point2 = new CompletePoint(123L);
+        Assert.assertNull(point2.toWkt());
+    }
+
+    @Test
     public void testWithGeometry()
     {
         final CompletePoint point = new CompletePoint(1L);
