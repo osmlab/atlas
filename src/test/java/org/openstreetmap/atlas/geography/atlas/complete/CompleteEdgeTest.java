@@ -127,6 +127,17 @@ public class CompleteEdgeTest
     }
 
     @Test
+    public void testToWkt()
+    {
+        final CompleteEdge edge1 = new CompleteEdge(123L);
+        edge1.withPolyLine(new PolyLine(Location.forString("0,0"), Location.forString("1,1")));
+        Assert.assertEquals("LINESTRING (0 0, 1 1)", edge1.toWkt());
+
+        final CompleteEdge edge2 = new CompleteEdge(123L);
+        Assert.assertNull(edge2.toWkt());
+    }
+
+    @Test
     public void testWithGeometry()
     {
         final CompleteEdge edge = new CompleteEdge(1L);

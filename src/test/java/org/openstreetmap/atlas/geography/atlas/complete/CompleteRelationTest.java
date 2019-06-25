@@ -12,6 +12,7 @@ import org.junit.rules.ExpectedException;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
@@ -186,5 +187,17 @@ public class CompleteRelationTest
                         .collect(Collectors.toSet()),
                 result.relations().stream().map(Relation::getIdentifier)
                         .collect(Collectors.toSet()));
+    }
+
+    @Test
+    public void testToWkt()
+    {
+        final CompleteRelation relation1 = new CompleteRelation(123L);
+        relation1.withBounds(
+                Rectangle.forCorners(Location.forString("0,0"), Location.forString("1,1")));
+        Assert.assertEquals("POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))", relation1.toWkt());
+
+        final CompleteRelation relation2 = new CompleteRelation(123L);
+        Assert.assertNull(relation2.toWkt());
     }
 }
