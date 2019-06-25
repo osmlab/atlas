@@ -27,7 +27,7 @@ project.ext.versions = [
     protoc:'2.6.1',
     artifact:'3.5.4',
     groovy: '2.5.4',
-    atlas_chackstyle: '5.6.8-SNAPSHOT',
+    atlas_checkstyle: '5.6.8-SNAPSHOT',
 ]
 
 project.ext.packages = [
