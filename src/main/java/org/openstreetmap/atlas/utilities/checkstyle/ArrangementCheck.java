@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.utilities.collections.StringList;
@@ -18,6 +19,8 @@ import com.puppycrawl.tools.checkstyle.api.DetailAST;
 import com.puppycrawl.tools.checkstyle.api.TokenTypes;
 
 /**
+ * Check for specified ordering of elements in a source file.
+ * 
  * @author matthieun
  */
 public class ArrangementCheck extends AbstractCheck
@@ -98,7 +101,7 @@ public class ArrangementCheck extends AbstractCheck
     /**
      * @author matthieun
      */
-    private static class ObjectRawType
+    private class ObjectRawType
     {
         private final Visibility visibility;
         private final Type type;
@@ -152,7 +155,7 @@ public class ArrangementCheck extends AbstractCheck
     /**
      * @author matthieun
      */
-    private static class ObjectType implements Comparable<ObjectType>
+    private class ObjectType implements Comparable<ObjectType>
     {
         private final ObjectRawType objectRawType;
         private final String name;
@@ -207,7 +210,7 @@ public class ArrangementCheck extends AbstractCheck
         @Override
         public int compareTo(final ObjectType that)
         {
-            return OBJECT_TYPE_COMPARATOR.compare(this, that);
+            return ArrangementCheck.this.getObjectTypeComparator().compare(this, that);
         }
 
         @Override
@@ -268,19 +271,23 @@ public class ArrangementCheck extends AbstractCheck
     /**
      * @author matthieun
      */
-    private static class ObjectTypeComparator implements Comparator<ObjectType>
+    private class ObjectTypeComparator implements Comparator<ObjectType>
     {
         private static final int ARRANGEMENT_LINE_SIZE = 3;
-        private static final String FILE_NAME = "arrangement.txt";
+        private static final String ARRANGEMENT_FILE = "arrangement.txt";
         private final Map<ObjectRawType, Integer> rawTypeToOrderIndex;
 
         ObjectTypeComparator()
         {
+            this(new InputStreamResource(
+                    () -> ArrangementCheck.class.getResourceAsStream(ARRANGEMENT_FILE)));
+        }
+
+        ObjectTypeComparator(final Resource ordering)
+        {
             int index = 0;
             try
             {
-                final Resource ordering = new InputStreamResource(
-                        () -> ArrangementCheck.class.getResourceAsStream(FILE_NAME));
                 this.rawTypeToOrderIndex = new HashMap<>();
                 for (final String line : ordering.lines())
                 {
@@ -306,7 +313,7 @@ public class ArrangementCheck extends AbstractCheck
             {
                 throw new CoreException(
                         "Unable to parse file defining arrangement (was at line {}): {}", index + 1,
-                        ArrangementCheck.class.getResource(FILE_NAME).getPath(), e);
+                        ArrangementCheck.class.getResource(ARRANGEMENT_FILE).getPath(), e);
             }
         }
 
@@ -319,8 +326,7 @@ public class ArrangementCheck extends AbstractCheck
             {
                 final String leftName = left.getName();
                 final String rightName = right.getName();
-                final int result = leftName.compareTo(rightName);
-                return result;
+                return leftName.compareTo(rightName);
             }
             else
             {
@@ -335,7 +341,8 @@ public class ArrangementCheck extends AbstractCheck
         }
     }
 
-    private static final ObjectTypeComparator OBJECT_TYPE_COMPARATOR = new ObjectTypeComparator();
+    private ObjectTypeComparator objectTypeComparator;
+    private String arrangementDefinition = "";
 
     public static Optional<DetailAST> findFirstToken(final DetailAST source, final int tokenType)
     {
@@ -362,18 +369,23 @@ public class ArrangementCheck extends AbstractCheck
         return getDefaultTokens();
     }
 
+    public void setArrangementDefinition(final String arrangementDefinition)
+    {
+        this.arrangementDefinition = arrangementDefinition;
+    }
+
     @Override
     public void visitToken(final DetailAST object)
     {
         final ObjectType left = new ObjectType(object);
         if (!acceptedTokens().contains(object.getType())
-                || !OBJECT_TYPE_COMPARATOR.isComparable(left))
+                || !this.getObjectTypeComparator().isComparable(left))
         {
             return;
         }
         Optional<DetailAST> nextSibling = Optional.ofNullable(object.getNextSibling());
         while (nextSibling.isPresent() && (!acceptedTokens().contains(nextSibling.get().getType())
-                || !OBJECT_TYPE_COMPARATOR.isComparable(new ObjectType(nextSibling.get()))))
+                || !this.getObjectTypeComparator().isComparable(new ObjectType(nextSibling.get()))))
         {
             nextSibling = Optional.ofNullable(nextSibling.get().getNextSibling());
         }
@@ -406,5 +418,27 @@ public class ArrangementCheck extends AbstractCheck
             result.add(value);
         }
         return result;
+    }
+
+    private ObjectTypeComparator getObjectTypeComparator()
+    {
+        if (this.objectTypeComparator == null)
+        {
+            if (this.arrangementDefinition.isEmpty())
+            {
+                this.objectTypeComparator = new ObjectTypeComparator();
+            }
+            else if (this.arrangementDefinition.startsWith("/"))
+            {
+                this.objectTypeComparator = new ObjectTypeComparator(
+                        new File(this.arrangementDefinition));
+            }
+            else
+            {
+                throw new CoreException("Invalid configuration for ArrangementCheck: {}",
+                        this.arrangementDefinition);
+            }
+        }
+        return this.objectTypeComparator;
     }
 }
