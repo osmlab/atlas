@@ -266,6 +266,16 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
                 + ", relationIdentifiers=" + this.relationIdentifiers + "]";
     }
 
+    @Override
+    public String toWkt()
+    {
+        if (this.polyLine == null)
+        {
+            return null;
+        }
+        return this.polyLine.toWkt();
+    }
+
     public CompleteEdge withBoundsExtendedBy(final Rectangle bounds)
     {
         if (this.bounds == null)

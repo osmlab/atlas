@@ -151,6 +151,17 @@ public class CompleteNodeTest
     }
 
     @Test
+    public void testToWkt()
+    {
+        final CompleteNode node1 = new CompleteNode(123L);
+        node1.withLocation(Location.forString("0,0"));
+        Assert.assertEquals("POINT (0 0)", node1.toWkt());
+
+        final CompleteNode node2 = new CompleteNode(123L);
+        Assert.assertNull(node2.toWkt());
+    }
+
+    @Test
     public void testWithGeometry()
     {
         final CompleteNode node = new CompleteNode(1L);

@@ -223,6 +223,16 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
                 + this.relationIdentifiers + "]";
     }
 
+    @Override
+    public String toWkt()
+    {
+        if (this.polygon == null)
+        {
+            return null;
+        }
+        return this.polygon.toWkt();
+    }
+
     public CompleteArea withBoundsExtendedBy(final Rectangle bounds)
     {
         if (this.bounds == null)
