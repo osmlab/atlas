@@ -64,13 +64,10 @@ public abstract class Relation extends AtlasEntity
         OUTER,
         INNER
     }
-
-    private static final Logger logger = LoggerFactory.getLogger(Relation.class);
-    private static final long serialVersionUID = -9013894610780915685L;
-
     public static final Comparator<Relation> RELATION_ID_COMPARATOR = Comparator
             .comparingLong(AtlasObject::getIdentifier);
-
+    private static final Logger logger = LoggerFactory.getLogger(Relation.class);
+    private static final long serialVersionUID = -9013894610780915685L;
     private static final RelationOrAreaToMultiPolygonConverter MULTI_POLYGON_CONVERTER = new RelationOrAreaToMultiPolygonConverter();
 
     protected Relation(final Atlas atlas)
@@ -324,6 +321,18 @@ public abstract class Relation extends AtlasEntity
     public abstract RelationMemberList members();
 
     /**
+     * Get a subset of {@link #members()} matching the predicate.
+     *
+     * @param predicate
+     *            - the predicate to filter on.
+     * @return - {@link #members()} matching the predicate.
+     */
+    public RelationMemberList membersMatching(final Predicate<RelationMember> predicate)
+    {
+        return members().stream().filter(predicate).collect(RelationMemberList.collect());
+    }
+
+    /**
      * Get a subset of {@link #members()} matching a certain {@link ItemType}.
      *
      * @param itemTypes
@@ -346,18 +355,6 @@ public abstract class Relation extends AtlasEntity
                 .collect(RelationMemberList.collect());
 
         return relationMemberList;
-    }
-
-    /**
-     * Get a subset of {@link #members()} matching the predicate.
-     *
-     * @param predicate
-     *            - the predicate to filter on.
-     * @return - {@link #members()} matching the predicate.
-     */
-    public RelationMemberList membersMatching(final Predicate<RelationMember> predicate)
-    {
-        return members().stream().filter(predicate).collect(RelationMemberList.collect());
     }
 
     /**

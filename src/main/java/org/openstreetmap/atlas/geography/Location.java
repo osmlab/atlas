@@ -1,6 +1,6 @@
 package org.openstreetmap.atlas.geography;
 
-import java.awt.*;
+import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.io.Serializable;
 import java.util.Iterator;

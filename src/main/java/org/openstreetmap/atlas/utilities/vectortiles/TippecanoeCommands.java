@@ -25,11 +25,6 @@ import org.slf4j.LoggerFactory;
  */
 public final class TippecanoeCommands
 {
-    private TippecanoeCommands()
-    {
-        // Utility class
-    }
-
     private static final Logger logger = LoggerFactory.getLogger(TippecanoeCommands.class);
     private static final SingleLineMonitor MONITOR = new SingleLineMonitor()
     {
@@ -39,6 +34,31 @@ public final class TippecanoeCommands
             return Optional.of(line);
         }
     };
+
+    /**
+     * Concatenates all of the GeoJSON files in a directory into a single GeoJSON file. This find
+     * command is fairly sophisticated. What you see here is that it is finding everything in a
+     * certain directory with the extension of *.geojson but is not EVERYTHING.geojosn. It then
+     * pipes those files to cat which in turn outputs to EVERYTHING.geojson.
+     *
+     * @param geojsonDirectory
+     *            The directory of GeoJSON files to concatenate.
+     */
+    public static void concatenate(final Path geojsonDirectory)
+    {
+        final Time time = Time.now();
+        logger.info("Concatenating GeoJSON...");
+        final String directory = geojsonDirectory.toString();
+        final String cat = String.format(
+                "find '%s' -type f -name '*.geojson' \\! -path '%s'/%s -exec cat \\{\\} + > '%s/'%s",
+                directory, directory, LineDelimitedGeoJsonConverter.EVERYTHING, directory,
+                LineDelimitedGeoJsonConverter.EVERYTHING);
+        logger.info(cat);
+        final String[] bashCommandArray = new String[] { "bash", "-c", cat };
+        RunScript.run(bashCommandArray);
+        logger.info("Concatenated to {} in {}", LineDelimitedGeoJsonConverter.EVERYTHING,
+                time.elapsedSince());
+    }
 
     /**
      * Decompresses a directory of *.geojson.gz files recursively into *.geojson files.
@@ -62,31 +82,6 @@ public final class TippecanoeCommands
         {
             logger.warn("Not finding any .geojson.gz to decompress. Continuing...", exception);
         }
-    }
-
-    /**
-     * Concatenates all of the GeoJSON files in a directory into a single GeoJSON file. This find
-     * command is fairly sophisticated. What you see here is that it is finding everything in a
-     * certain directory with the extension of *.geojson but is not EVERYTHING.geojosn. It then
-     * pipes those files to cat which in turn outputs to EVERYTHING.geojson.
-     * 
-     * @param geojsonDirectory
-     *            The directory of GeoJSON files to concatenate.
-     */
-    public static void concatenate(final Path geojsonDirectory)
-    {
-        final Time time = Time.now();
-        logger.info("Concatenating GeoJSON...");
-        final String directory = geojsonDirectory.toString();
-        final String cat = String.format(
-                "find '%s' -type f -name '*.geojson' \\! -path '%s'/%s -exec cat \\{\\} + > '%s/'%s",
-                directory, directory, LineDelimitedGeoJsonConverter.EVERYTHING, directory,
-                LineDelimitedGeoJsonConverter.EVERYTHING);
-        logger.info(cat);
-        final String[] bashCommandArray = new String[] { "bash", "-c", cat };
-        RunScript.run(bashCommandArray);
-        logger.info("Concatenated to {} in {}", LineDelimitedGeoJsonConverter.EVERYTHING,
-                time.elapsedSince());
     }
 
     /**
@@ -115,32 +110,6 @@ public final class TippecanoeCommands
         // Exception or not, we can check the version and proceed either way. If tippecanoe stops
         // exiting with 1, then we will handle the same logic outside of the exception.
         return checkVersion();
-    }
-
-    private static boolean checkVersion()
-    {
-        final Optional<String> result = MONITOR.getResult();
-        if (result.isPresent())
-        {
-            final String outputString = result.get();
-            final String[] versionArray = outputString.split("\n")[0].split("tippecanoe v");
-            // Here we extract the version.
-            if (versionArray.length == 2)
-            {
-                final String versionString = versionArray[1];
-                final DefaultArtifactVersion version = new DefaultArtifactVersion(versionString);
-                if (TippecanoeSettings.MIN_VERSION.compareTo(version) <= 0)
-                {
-                    return true;
-                }
-                else
-                {
-                    logger.error("Your version of tippecanoe is too old! The minimum version is {}",
-                            TippecanoeSettings.MIN_VERSION);
-                }
-            }
-        }
-        return false;
     }
 
     /**
@@ -202,5 +171,36 @@ public final class TippecanoeCommands
 
         logger.info("tippecanoe has successfully generated vector tiles in {}", mbtiles);
         logger.info("tippecanoe took {}", time.elapsedSince());
+    }
+
+    private static boolean checkVersion()
+    {
+        final Optional<String> result = MONITOR.getResult();
+        if (result.isPresent())
+        {
+            final String outputString = result.get();
+            final String[] versionArray = outputString.split("\n")[0].split("tippecanoe v");
+            // Here we extract the version.
+            if (versionArray.length == 2)
+            {
+                final String versionString = versionArray[1];
+                final DefaultArtifactVersion version = new DefaultArtifactVersion(versionString);
+                if (TippecanoeSettings.MIN_VERSION.compareTo(version) <= 0)
+                {
+                    return true;
+                }
+                else
+                {
+                    logger.error("Your version of tippecanoe is too old! The minimum version is {}",
+                            TippecanoeSettings.MIN_VERSION);
+                }
+            }
+        }
+        return false;
+    }
+
+    private TippecanoeCommands()
+    {
+        // Utility class
     }
 }

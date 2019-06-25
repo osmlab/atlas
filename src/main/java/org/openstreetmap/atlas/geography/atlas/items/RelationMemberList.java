@@ -36,6 +36,17 @@ public class RelationMemberList extends AbstractCollection<RelationMember> imple
      */
     private final Set<RelationBeanItem> explicitlyExcluded;
 
+    /**
+     * A {@link Collectors#collectingAndThen(Collector, Function)} wrapper for
+     * {@link RelationMember}s.
+     *
+     * @return - the collector.
+     */
+    public static Collector<RelationMember, ? extends Object, RelationMemberList> collect()
+    {
+        return Collectors.collectingAndThen(Collectors.toList(), RelationMemberList::new);
+    }
+
     public RelationMemberList(final Iterable<RelationMember> members)
     {
         if (members instanceof List)
@@ -216,16 +227,5 @@ public class RelationMemberList extends AbstractCollection<RelationMember> imple
     private List<RelationMember> getMemberList()
     {
         return this.members;
-    }
-
-    /**
-     * A {@link Collectors#collectingAndThen(Collector, Function)} wrapper for
-     * {@link RelationMember}s.
-     *
-     * @return - the collector.
-     */
-    public static Collector<RelationMember, ? extends Object, RelationMemberList> collect()
-    {
-        return Collectors.collectingAndThen(Collectors.toList(), RelationMemberList::new);
     }
 }

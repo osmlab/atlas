@@ -28,15 +28,15 @@ public class RelationMember implements Comparable<RelationMember>, Located, GeoJ
     }
 
     @Override
-    public Rectangle bounds()
-    {
-        return this.entity.bounds();
-    }
-
-    @Override
     public JsonObject asGeoJsonGeometry()
     {
         return this.entity.asGeoJsonGeometry();
+    }
+
+    @Override
+    public Rectangle bounds()
+    {
+        return this.entity.bounds();
     }
 
     @Override
@@ -101,14 +101,6 @@ public class RelationMember implements Comparable<RelationMember>, Located, GeoJ
         return false;
     }
 
-    @Override
-    public JsonObject getGeoJsonProperties()
-    {
-        final JsonObject properties = this.entity.getGeoJsonProperties();
-        properties.addProperty("role", this.role);
-        return properties;
-    }
-
     /**
      * @return The {@link AtlasEntity} pointed out by this relation. null if the {@link Atlas} that
      *         created it has a sliced {@link Relation}.
@@ -116,6 +108,14 @@ public class RelationMember implements Comparable<RelationMember>, Located, GeoJ
     public AtlasEntity getEntity()
     {
         return this.entity;
+    }
+
+    @Override
+    public JsonObject getGeoJsonProperties()
+    {
+        final JsonObject properties = this.entity.getGeoJsonProperties();
+        properties.addProperty("role", this.role);
+        return properties;
     }
 
     public long getRelationIdentifier()

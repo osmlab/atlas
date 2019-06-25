@@ -104,14 +104,14 @@ public class TagDocumenter
             return this.tagKey;
         }
 
-        public String getValidationType()
-        {
-            return this.validationType;
-        }
-
         public Iterable<String> getValidTagValues()
         {
             return this.validTagValues;
+        }
+
+        public String getValidationType()
+        {
+            return this.validationType;
         }
 
         @Override
