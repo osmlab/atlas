@@ -61,17 +61,17 @@ public class ChangeBuilderTest
     }
 
     @Test
-    public void nameNull()
+    public void nameNotAvailable()
     {
-        final Change change = ChangeBuilder.newInstance().withName(null).add(newAreaFeatureChange())
-                .get();
+        final Change change = ChangeBuilder.newInstance().add(newAreaFeatureChange()).get();
         Assert.assertEquals(String.valueOf(change.getIdentifier()), change.getName());
     }
 
     @Test
-    public void nameNotAvailable()
+    public void nameNull()
     {
-        final Change change = ChangeBuilder.newInstance().add(newAreaFeatureChange()).get();
+        final Change change = ChangeBuilder.newInstance().withName(null).add(newAreaFeatureChange())
+                .get();
         Assert.assertEquals(String.valueOf(change.getIdentifier()), change.getName());
     }
 

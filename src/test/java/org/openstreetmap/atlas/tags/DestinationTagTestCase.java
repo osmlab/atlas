@@ -22,6 +22,13 @@ public class DestinationTagTestCase
     }
 
     @Test
+    public void testDestinationIntRefTag()
+    {
+        final TestTaggable taggable = new TestTaggable(DestinationIntRefTag.KEY, "E_94");
+        Assert.assertTrue(Validators.hasValuesFor(taggable, DestinationIntRefTag.class));
+    }
+
+    @Test
     public void testDestinationRefTag()
     {
         final TestTaggable taggable = new TestTaggable(DestinationRefTag.KEY, "KPE");
@@ -33,12 +40,5 @@ public class DestinationTagTestCase
     {
         final TestTaggable taggable = new TestTaggable(DestinationStreetTag.KEY, "Bendemeer Road");
         Assert.assertTrue(Validators.hasValuesFor(taggable, DestinationStreetTag.class));
-    }
-
-    @Test
-    public void testDestinationIntRefTag()
-    {
-        final TestTaggable taggable = new TestTaggable(DestinationIntRefTag.KEY, "E_94");
-        Assert.assertTrue(Validators.hasValuesFor(taggable, DestinationIntRefTag.class));
     }
 }

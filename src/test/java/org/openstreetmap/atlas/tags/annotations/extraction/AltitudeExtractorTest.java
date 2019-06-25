@@ -14,13 +14,6 @@ import org.openstreetmap.atlas.geography.Altitude;
 public class AltitudeExtractorTest
 {
     @Test
-    public void validNumberTest()
-    {
-        Assert.assertEquals(Optional.of(Altitude.meters(20.5)),
-                AltitudeExtractor.validateAndExtract("20.5"));
-    }
-
-    @Test
     public void validMetersTest()
     {
         Assert.assertEquals(Optional.of(Altitude.meters(20)),
@@ -28,10 +21,10 @@ public class AltitudeExtractorTest
     }
 
     @Test
-    public void validNegativeNumberTest()
+    public void validNegativeMetersCapsTest()
     {
-        Assert.assertEquals(Optional.of(Altitude.meters(-20.5)),
-                AltitudeExtractor.validateAndExtract("-20.5"));
+        Assert.assertEquals(Optional.of(Altitude.meters(-20)),
+                AltitudeExtractor.validateAndExtract("-20 M"));
     }
 
     @Test
@@ -42,9 +35,16 @@ public class AltitudeExtractorTest
     }
 
     @Test
-    public void validNegativeMetersCapsTest()
+    public void validNegativeNumberTest()
     {
-        Assert.assertEquals(Optional.of(Altitude.meters(-20)),
-                AltitudeExtractor.validateAndExtract("-20 M"));
+        Assert.assertEquals(Optional.of(Altitude.meters(-20.5)),
+                AltitudeExtractor.validateAndExtract("-20.5"));
+    }
+
+    @Test
+    public void validNumberTest()
+    {
+        Assert.assertEquals(Optional.of(Altitude.meters(20.5)),
+                AltitudeExtractor.validateAndExtract("20.5"));
     }
 }

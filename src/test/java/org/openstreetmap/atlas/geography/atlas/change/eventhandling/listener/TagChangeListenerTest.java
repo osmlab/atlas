@@ -53,6 +53,37 @@ public class TagChangeListenerTest<E extends CompleteEntity<E>>
     }
 
     @Test
+    public void overwriteTag()
+    {
+        allForEach(completeEntity ->
+        {
+            final TestTagChangeListenerImplementation tagChangeListener = getTagChangeListener();
+            completeEntity.addTagChangeListener(tagChangeListener);
+
+            preValidation(tagChangeListener);
+
+            final Map<String, String> tags = new HashMap<String, String>()
+            {
+                private static final long serialVersionUID = -4353511172908766690L;
+    
+                {
+                    put("aaa1", "bbb1");
+                    put("aaa2", "bbb2");
+                    put("aaa3", "bbb3");
+                }
+            };
+
+            completeEntity.withTags(tags);
+
+            final TagChangeEvent lastEvent = basicPostValidation(tagChangeListener);
+
+            Assert.assertEquals(FieldChangeOperation.OVERWRITE, lastEvent.getFieldOperation());
+            validateBasicEventFields(completeEntity, lastEvent);
+            Assert.assertEquals(tags, lastEvent.getNewValue().get());
+        });
+    }
+
+    @Test
     public void removeTag()
     {
         allForEach(completeEntity ->
@@ -96,62 +127,6 @@ public class TagChangeListenerTest<E extends CompleteEntity<E>>
         });
     }
 
-    @Test
-    public void overwriteTag()
-    {
-        allForEach(completeEntity ->
-        {
-            final TestTagChangeListenerImplementation tagChangeListener = getTagChangeListener();
-            completeEntity.addTagChangeListener(tagChangeListener);
-
-            preValidation(tagChangeListener);
-
-            final Map<String, String> tags = new HashMap<String, String>()
-            {
-                {
-                    put("aaa1", "bbb1");
-                    put("aaa2", "bbb2");
-                    put("aaa3", "bbb3");
-                }
-            };
-
-            completeEntity.withTags(tags);
-
-            final TagChangeEvent lastEvent = basicPostValidation(tagChangeListener);
-
-            Assert.assertEquals(FieldChangeOperation.OVERWRITE, lastEvent.getFieldOperation());
-            validateBasicEventFields(completeEntity, lastEvent);
-            Assert.assertEquals(tags, lastEvent.getNewValue().get());
-        });
-    }
-
-    private void preValidation(final TestTagChangeListenerImplementation tagChangeListener)
-    {
-        Assert.assertEquals(0, tagChangeListener.getCallCount());
-        Assert.assertNull(tagChangeListener.getLastEvent());
-    }
-
-    private TagChangeEvent basicPostValidation(
-            final TestTagChangeListenerImplementation tagChangeListener)
-    {
-        Assert.assertEquals(1, tagChangeListener.getCallCount());
-        final TagChangeEvent lastEvent = tagChangeListener.getLastEvent();
-        Assert.assertNotNull(lastEvent);
-        return lastEvent;
-    }
-
-    private void validateBasicEventFields(final CompleteEntity completeEntity,
-            final TagChangeEvent lastEvent)
-    {
-        Assert.assertEquals(completeEntity.completeItemType(), lastEvent.getCompleteItemType());
-        Assert.assertEquals(completeEntity.getIdentifier(), lastEvent.getIdentifier());
-    }
-
-    private TestTagChangeListenerImplementation getTagChangeListener()
-    {
-        return new TestTagChangeListenerImplementation();
-    }
-
     private List<E> all()
     {
         return (List<E>) Arrays.asList(newCompleteNode1(), newCompletePoint1(), newCompleteLine1(),
@@ -168,6 +143,35 @@ public class TagChangeListenerTest<E extends CompleteEntity<E>>
         return this.all().stream();
     }
 
+    private TagChangeEvent basicPostValidation(
+            final TestTagChangeListenerImplementation tagChangeListener)
+    {
+        Assert.assertEquals(1, tagChangeListener.getCallCount());
+        final TagChangeEvent lastEvent = tagChangeListener.getLastEvent();
+        Assert.assertNotNull(lastEvent);
+        return lastEvent;
+    }
+
+    private TestTagChangeListenerImplementation getTagChangeListener()
+    {
+        return new TestTagChangeListenerImplementation();
+    }
+
+    private CompleteArea newCompleteArea1()
+    {
+        return new CompleteArea(123L, null, null, null);
+    }
+
+    private CompleteEdge newCompleteEdge1()
+    {
+        return new CompleteEdge(123L, null, null, null, null, null);
+    }
+
+    private CompleteLine newCompleteLine1()
+    {
+        return new CompleteLine(123L, null, null, null);
+    }
+
     private CompleteNode newCompleteNode1()
     {
         return new CompleteNode(123L, null, null, null, null, null);
@@ -178,23 +182,21 @@ public class TagChangeListenerTest<E extends CompleteEntity<E>>
         return new CompletePoint(123L, null, null, null);
     }
 
-    private CompleteLine newCompleteLine1()
-    {
-        return new CompleteLine(123L, null, null, null);
-    }
-
-    private CompleteEdge newCompleteEdge1()
-    {
-        return new CompleteEdge(123L, null, null, null, null, null);
-    }
-
-    private CompleteArea newCompleteArea1()
-    {
-        return new CompleteArea(123L, null, null, null);
-    }
-
     private CompleteRelation newCompleteRelation1()
     {
         return new CompleteRelation(123L, null, null, null, null, null, null, null);
+    }
+
+    private void preValidation(final TestTagChangeListenerImplementation tagChangeListener)
+    {
+        Assert.assertEquals(0, tagChangeListener.getCallCount());
+        Assert.assertNull(tagChangeListener.getLastEvent());
+    }
+
+    private void validateBasicEventFields(final CompleteEntity completeEntity,
+            final TagChangeEvent lastEvent)
+    {
+        Assert.assertEquals(completeEntity.completeItemType(), lastEvent.getCompleteItemType());
+        Assert.assertEquals(completeEntity.getIdentifier(), lastEvent.getIdentifier());
     }
 }

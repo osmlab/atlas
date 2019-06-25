@@ -25,6 +25,38 @@ public class MultiPolygonTest
     private static final Logger logger = LoggerFactory.getLogger(MultiPolygonTest.class);
 
     @Test
+    public void testAsGeoJsonGeometry()
+    {
+        final MultiPolygon multiPolygon = MultiPolygon
+                .wkt("MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)),"
+                        + "((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),"
+                        + "(30 20, 20 15, 20 25, 30 20)))");
+        final String geoJson = "{\"type\":\"MultiPolygon\",\"coordinates\":[[[[40.0,40.0],[20.0,45.0],[45.0,30.0],[40.0,40.0]]],[[[20.0,35.0],[10.0,30.0],[10.0,10.0],[30.0,5.0],[45.0,20.0],[20.0,35.0]],[[30.0,20.0],[20.0,15.0],[20.0,25.0],[30.0,20.0]]]]}";
+        final JsonObject geometry = multiPolygon.asGeoJsonGeometry();
+        Assert.assertEquals(geoJson, geometry.toString());
+    }
+
+    @Test
+    public void testCoversPolyLine()
+    {
+        final MultiPolygon multiPolygon = MultiPolygon
+                .wkt("MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)),"
+                        + "((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),"
+                        + "(30 20, 20 15, 20 25, 30 20)))");
+        final PolyLine nonCoveredLine = new PolyLine(Location.forString("19.507134, 23.999584"),
+                Location.forString("32.062144, 32.049430"));
+        Assert.assertFalse(multiPolygon.fullyGeometricallyEncloses(nonCoveredLine));
+        final PolyLine coveredLine = new PolyLine(Location.forString("32.095270, 19.955880"),
+                Location.forString("22.175213, 36.610574"));
+        Assert.assertTrue(multiPolygon.fullyGeometricallyEncloses(coveredLine));
+        final PolyLine outside = PolyLine.TEST_POLYLINE;
+        Assert.assertFalse(multiPolygon.fullyGeometricallyEncloses(outside));
+        final PolyLine jumpyLine = new PolyLine(Location.forString("32.095270, 19.955880"),
+                Location.forString("39.927387, 32.842205"));
+        Assert.assertFalse(multiPolygon.fullyGeometricallyEncloses(jumpyLine));
+    }
+
+    @Test
     public void testCoversPolygon()
     {
         final MultiPolygon multiPolygon = MultiPolygon
@@ -62,26 +94,6 @@ public class MultiPolygonTest
         logger.info("intersectingOuterPolygon: {}", intersectingOuterPolygon.toWkt());
         Assert.assertTrue(multiPolygon.overlaps(intersectingInnerPolygon));
         Assert.assertTrue(multiPolygon.intersects(intersectingInnerPolygon));
-    }
-
-    @Test
-    public void testCoversPolyLine()
-    {
-        final MultiPolygon multiPolygon = MultiPolygon
-                .wkt("MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)),"
-                        + "((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),"
-                        + "(30 20, 20 15, 20 25, 30 20)))");
-        final PolyLine nonCoveredLine = new PolyLine(Location.forString("19.507134, 23.999584"),
-                Location.forString("32.062144, 32.049430"));
-        Assert.assertFalse(multiPolygon.fullyGeometricallyEncloses(nonCoveredLine));
-        final PolyLine coveredLine = new PolyLine(Location.forString("32.095270, 19.955880"),
-                Location.forString("22.175213, 36.610574"));
-        Assert.assertTrue(multiPolygon.fullyGeometricallyEncloses(coveredLine));
-        final PolyLine outside = PolyLine.TEST_POLYLINE;
-        Assert.assertFalse(multiPolygon.fullyGeometricallyEncloses(outside));
-        final PolyLine jumpyLine = new PolyLine(Location.forString("32.095270, 19.955880"),
-                Location.forString("39.927387, 32.842205"));
-        Assert.assertFalse(multiPolygon.fullyGeometricallyEncloses(jumpyLine));
     }
 
     @Test
@@ -191,17 +203,5 @@ public class MultiPolygonTest
                         Longitude.degrees(rectangle.upperRight().getLongitude().asDegrees() + 0.1)),
                 rectangle.lowerRight()));
         Assert.assertEquals(rectangle.surface(), tilted.surface());
-    }
-
-    @Test
-    public void testAsGeoJsonGeometry()
-    {
-        final MultiPolygon multiPolygon = MultiPolygon
-                .wkt("MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)),"
-                        + "((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),"
-                        + "(30 20, 20 15, 20 25, 30 20)))");
-        final String geoJson = "{\"type\":\"MultiPolygon\",\"coordinates\":[[[[40.0,40.0],[20.0,45.0],[45.0,30.0],[40.0,40.0]]],[[[20.0,35.0],[10.0,30.0],[10.0,10.0],[30.0,5.0],[45.0,20.0],[20.0,35.0]],[[30.0,20.0],[20.0,15.0],[20.0,25.0],[30.0,20.0]]]]}";
-        final JsonObject geometry = multiPolygon.asGeoJsonGeometry();
-        Assert.assertEquals(geoJson, geometry.toString());
     }
 }

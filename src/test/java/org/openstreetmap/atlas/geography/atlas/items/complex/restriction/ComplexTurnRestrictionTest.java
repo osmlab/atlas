@@ -192,6 +192,18 @@ public class ComplexTurnRestrictionTest
     }
 
     @Test
+    public void testTurnRestrictionWithTwoViaNodesInRelation()
+    {
+        final Atlas testAtlas = this.rule.getRelationWithTwoViaNodes();
+        logger.trace("Atlas relation with 2 via nodes: {}", testAtlas);
+        // For more than 1 via nodes in relation for restriction, TurnRestriction will always
+        // return an empty optional
+        final Optional<TurnRestriction> possibleTurnRestriction = TurnRestriction
+                .from(testAtlas.relation(1L));
+        Assert.assertEquals(Optional.empty(), possibleTurnRestriction);
+    }
+
+    @Test
     public void testTurnRestrictionsFromComplexBigNodes()
     {
         final int expectedCountOfRestrictedRoutes = 302;
@@ -215,17 +227,5 @@ public class ComplexTurnRestrictionTest
                 expectedCountOfRestrictedRoutes, restrictedRoutes.size());
         Assert.assertTrue("Verify that this explicit restricted path is returned", restrictedRoutes
                 .stream().anyMatch(route -> route.toString().equals(expectedRestrictedRoute)));
-    }
-
-    @Test
-    public void testTurnRestrictionWithTwoViaNodesInRelation()
-    {
-        final Atlas testAtlas = this.rule.getRelationWithTwoViaNodes();
-        logger.trace("Atlas relation with 2 via nodes: {}", testAtlas);
-        // For more than 1 via nodes in relation for restriction, TurnRestriction will always
-        // return an empty optional
-        final Optional<TurnRestriction> possibleTurnRestriction = TurnRestriction
-                .from(testAtlas.relation(1L));
-        Assert.assertEquals(Optional.empty(), possibleTurnRestriction);
     }
 }

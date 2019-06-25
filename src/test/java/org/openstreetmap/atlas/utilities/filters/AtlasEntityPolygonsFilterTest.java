@@ -46,6 +46,39 @@ public class AtlasEntityPolygonsFilterTest
 {
     private static final IntersectionPolicy FULL_GEOMETRIC_ENCLOSING = new IntersectionPolicy()
     {
+        private static final long serialVersionUID = -2116753295106517381L;
+    
+        // note this is the only one now used by the filter
+        @Override
+        public boolean geometricSurfaceEntityIntersecting(final GeometricSurface geometricSurface,
+                final AtlasEntity entity)
+        {
+            if (entity instanceof LineItem)
+            {
+                return geometricSurface
+                        .fullyGeometricallyEncloses(((LineItem) entity).asPolyLine());
+            }
+            if (entity instanceof LocationItem)
+            {
+                return geometricSurface
+                        .fullyGeometricallyEncloses(((LocationItem) entity).getLocation());
+            }
+            if (entity instanceof Area)
+            {
+                return geometricSurface.fullyGeometricallyEncloses(((Area) entity).asPolygon());
+            }
+            if (entity instanceof Relation)
+            {
+                return ((Relation) entity).members().stream().map(RelationMember::getEntity)
+                        .anyMatch(relationEntity -> this.geometricSurfaceEntityIntersecting(
+                                geometricSurface, relationEntity));
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         @Override
         public boolean multiPolygonEntityIntersecting(final MultiPolygon multiPolygon,
                 final AtlasEntity entity)
@@ -97,37 +130,6 @@ public class AtlasEntityPolygonsFilterTest
                 return ((Relation) entity).members().stream().map(RelationMember::getEntity)
                         .anyMatch(relationEntity -> this.polygonEntityIntersecting(polygon,
                                 relationEntity));
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        // note this is the only one now used by the filter
-        @Override
-        public boolean geometricSurfaceEntityIntersecting(final GeometricSurface geometricSurface,
-                final AtlasEntity entity)
-        {
-            if (entity instanceof LineItem)
-            {
-                return geometricSurface
-                        .fullyGeometricallyEncloses(((LineItem) entity).asPolyLine());
-            }
-            if (entity instanceof LocationItem)
-            {
-                return geometricSurface
-                        .fullyGeometricallyEncloses(((LocationItem) entity).getLocation());
-            }
-            if (entity instanceof Area)
-            {
-                return geometricSurface.fullyGeometricallyEncloses(((Area) entity).asPolygon());
-            }
-            if (entity instanceof Relation)
-            {
-                return ((Relation) entity).members().stream().map(RelationMember::getEntity)
-                        .anyMatch(relationEntity -> this.geometricSurfaceEntityIntersecting(
-                                geometricSurface, relationEntity));
             }
             else
             {
@@ -304,6 +306,7 @@ public class AtlasEntityPolygonsFilterTest
         final long totalRelationCount = testCountsAtlas.numberOfRelations();
         final IntersectionPolicy dudIntersectionPolicy = new IntersectionPolicy()
         {
+            private static final long serialVersionUID = 7127929164076173373L;
             // uses all false defaults
         };
 
