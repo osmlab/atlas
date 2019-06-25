@@ -101,6 +101,17 @@ public class CompleteLineTest
     }
 
     @Test
+    public void testToWkt()
+    {
+        final CompleteLine line1 = new CompleteLine(123L);
+        line1.withPolyLine(new PolyLine(Location.forString("0,0"), Location.forString("1,1")));
+        Assert.assertEquals("LINESTRING (0 0, 1 1)", line1.toWkt());
+
+        final CompleteLine line2 = new CompleteLine(123L);
+        Assert.assertNull(line2.toWkt());
+    }
+
+    @Test
     public void testWithGeometry()
     {
         final CompleteLine line = new CompleteLine(1L);

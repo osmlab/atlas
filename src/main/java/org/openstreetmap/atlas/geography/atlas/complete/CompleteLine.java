@@ -223,6 +223,16 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
                 + this.relationIdentifiers + "]";
     }
 
+    @Override
+    public String toWkt()
+    {
+        if (this.polyLine == null)
+        {
+            return null;
+        }
+        return this.polyLine.toWkt();
+    }
+
     public CompleteLine withBoundsExtendedBy(final Rectangle bounds)
     {
         if (this.bounds == null)

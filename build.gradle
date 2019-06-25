@@ -64,10 +64,13 @@ dependencies
     compile packages.protoc
     compile packages.artifact
     compile packages.groovy
+    compile packages.checkstyle
 
-    checkstyle packages.checkstyle
+    testCompile packages.checkstyle_tests
+
+	checkstyle packages.checkstyle
     checkstyle packages.atlas_checkstyle
-    
+
     shaded project.configurations.getByName('compile')
     shaded packages.slf4j.log4j12
     shaded packages.log4j
