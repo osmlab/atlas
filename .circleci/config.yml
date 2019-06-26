@@ -46,4 +46,3 @@ jobs:
       # build
       - run: ./gradlew check -x test -x integrationTest
       - run: ./gradlew check
-      - run: ./gradlew cleanPyatlas buildPyatlas
