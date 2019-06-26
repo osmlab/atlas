@@ -449,9 +449,24 @@ public class ComplexRoundaboutTestRule extends CoreTestRule
         return this.clockwiseRoundaboutLeftDrivingAtlas;
     }
 
+    public Atlas clockwiseRoundaboutLeftDrivingMissingTagAtlas()
+    {
+        return this.clockwiseRoundaboutLeftDrivingMissingTagAtlas;
+    }
+
     public Atlas clockwiseRoundaboutRightDrivingAtlas()
     {
         return this.clockwiseRoundaboutRightDrivingAtlas;
+    }
+
+    public Atlas clockwiseRoundaboutRightDrivingIncompleteAtlas()
+    {
+        return this.clockwiseRoundaboutRightDrivingIncompleteAtlas;
+    }
+
+    public Atlas counterClockwiseConnectedDoubleRoundaboutRightDrivingAtlas()
+    {
+        return this.counterClockwiseConnectedDoubleRoundaboutRightDrivingAtlas;
     }
 
     public Atlas counterClockwiseRoundaboutLeftDrivingAtlas()
@@ -464,24 +479,9 @@ public class ComplexRoundaboutTestRule extends CoreTestRule
         return this.counterClockwiseRoundaboutRightDrivingAtlas;
     }
 
-    public Atlas multiDirectionalRoundaboutAtlas()
+    public Atlas counterClockwiseRoundaboutRightDrivingNonCarNavigableAtlas()
     {
-        return this.multiDirectionalRoundaboutAtlas;
-    }
-
-    public Atlas clockwiseRoundaboutLeftDrivingMissingTagAtlas()
-    {
-        return this.clockwiseRoundaboutLeftDrivingMissingTagAtlas;
-    }
-
-    public Atlas counterClockwiseConnectedDoubleRoundaboutRightDrivingAtlas()
-    {
-        return this.counterClockwiseConnectedDoubleRoundaboutRightDrivingAtlas;
-    }
-
-    public Atlas counterClockwiseRoundaboutRightDrivingOutsideConnectionAtlas()
-    {
-        return this.counterClockwiseRoundaboutRightDrivingOutsideConnectionAtlas;
+        return this.counterClockwiseRoundaboutRightDrivingNonCarNavigableAtlas;
     }
 
     public Atlas counterClockwiseRoundaboutRightDrivingOneWayNoAtlas()
@@ -489,13 +489,13 @@ public class ComplexRoundaboutTestRule extends CoreTestRule
         return this.counterClockwiseRoundaboutRightDrivingOneWayNoAtlas;
     }
 
-    public Atlas counterClockwiseRoundaboutRightDrivingNonCarNavigableAtlas()
+    public Atlas counterClockwiseRoundaboutRightDrivingOutsideConnectionAtlas()
     {
-        return this.counterClockwiseRoundaboutRightDrivingNonCarNavigableAtlas;
+        return this.counterClockwiseRoundaboutRightDrivingOutsideConnectionAtlas;
     }
 
-    public Atlas clockwiseRoundaboutRightDrivingIncompleteAtlas()
+    public Atlas multiDirectionalRoundaboutAtlas()
     {
-        return this.clockwiseRoundaboutRightDrivingIncompleteAtlas;
+        return this.multiDirectionalRoundaboutAtlas;
     }
 }
