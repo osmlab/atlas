@@ -28,33 +28,6 @@ public class ArrangementCheck extends AbstractCheck
     /**
      * @author matthieun
      */
-    private enum Visibility
-    {
-        PUBLIC,
-        PROTECTED,
-        PACKAGE_PRIVATE,
-        PRIVATE;
-
-        public static Visibility forName(final String name)
-        {
-            for (final Visibility visibility : Visibility.values())
-            {
-                if (visibility.name().equalsIgnoreCase(name))
-                {
-                    return visibility;
-                }
-            }
-            if (name.isEmpty())
-            {
-                return Visibility.PACKAGE_PRIVATE;
-            }
-            throw new CoreException("Invalid name \"{}\"", name);
-        }
-    }
-
-    /**
-     * @author matthieun
-     */
     private enum Type
     {
         INTERFACE(TokenTypes.INTERFACE_DEF),
@@ -95,6 +68,33 @@ public class ArrangementCheck extends AbstractCheck
         Type(final int tokenType)
         {
             this.tokenType = tokenType;
+        }
+    }
+
+    /**
+     * @author matthieun
+     */
+    private enum Visibility
+    {
+        PUBLIC,
+        PROTECTED,
+        PACKAGE_PRIVATE,
+        PRIVATE;
+
+        public static Visibility forName(final String name)
+        {
+            for (final Visibility visibility : Visibility.values())
+            {
+                if (visibility.name().equalsIgnoreCase(name))
+                {
+                    return visibility;
+                }
+            }
+            if (name.isEmpty())
+            {
+                return Visibility.PACKAGE_PRIVATE;
+            }
+            throw new CoreException("Invalid name \"{}\"", name);
         }
     }
 

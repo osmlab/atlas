@@ -37,6 +37,31 @@ public class GeoJsonUtilsTest
     private static final String COORDINATE = "[-77.7951565,-1.4317173]";
 
     @Test
+    public void testBoundsToPolygonGeometry()
+    {
+        final Rectangle rectangle = Rectangle.TEST_RECTANGLE;
+        final JsonObject polygonGeometry = GeoJsonUtils.boundsToPolygonGeometry(rectangle);
+        Assert.assertEquals(BOUNDS_POLYGON_GEOJSON, polygonGeometry.toString());
+    }
+
+    @Test
+    public void testCoordinate()
+    {
+        final JsonArray coordinate = GeoJsonUtils.coordinate(LONGITUDE, LATITUDE);
+        Assert.assertEquals(COORDINATE, coordinate.toString());
+    }
+
+    @Test
+    public void testFeature()
+    {
+        final JsonParser parser = new JsonParser();
+        final JsonObject geometry = parser.parse(GEOMETRY).getAsJsonObject();
+        final JsonObject properties = parser.parse(PROPERTIES).getAsJsonObject();
+        final JsonObject feature = GeoJsonUtils.feature(geometry, properties);
+        Assert.assertEquals(FEATURE, feature.toString());
+    }
+
+    @Test
     public void testFeatureCollection()
     {
         final Edge edge = new CompleteEdge(1L, EDGE_POLYLINE,
@@ -94,30 +119,5 @@ public class GeoJsonUtilsTest
 
         Assert.assertEquals(GEOMETRY_COLLECTION_STRING, geometryCollection.toString());
         Assert.assertEquals(GEOMETRY_COLLECTION_STRING, geometryCollectionFromEdges.toString());
-    }
-
-    @Test
-    public void testFeature()
-    {
-        final JsonParser parser = new JsonParser();
-        final JsonObject geometry = parser.parse(GEOMETRY).getAsJsonObject();
-        final JsonObject properties = parser.parse(PROPERTIES).getAsJsonObject();
-        final JsonObject feature = GeoJsonUtils.feature(geometry, properties);
-        Assert.assertEquals(FEATURE, feature.toString());
-    }
-
-    @Test
-    public void testBoundsToPolygonGeometry()
-    {
-        final Rectangle rectangle = Rectangle.TEST_RECTANGLE;
-        final JsonObject polygonGeometry = GeoJsonUtils.boundsToPolygonGeometry(rectangle);
-        Assert.assertEquals(BOUNDS_POLYGON_GEOJSON, polygonGeometry.toString());
-    }
-
-    @Test
-    public void testCoordinate()
-    {
-        final JsonArray coordinate = GeoJsonUtils.coordinate(LONGITUDE, LATITUDE);
-        Assert.assertEquals(COORDINATE, coordinate.toString());
     }
 }

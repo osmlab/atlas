@@ -30,13 +30,60 @@ import com.google.gson.JsonPrimitive;
  */
 public final class GeoJsonUtils
 {
-    private static final Logger logger = LoggerFactory.getLogger(GeoJsonUtils.class);
     public static final String IDENTIFIER = "identifier";
     public static final String OSM_IDENTIFIER = "osmIdentifier";
     public static final String ITEM_TYPE = "itemType";
+    private static final Logger logger = LoggerFactory.getLogger(GeoJsonUtils.class);
 
-    private GeoJsonUtils()
+    /**
+     * Creates a GeoJSON Polygon geometry from a bounds.
+     *
+     * @param bounds
+     *            A bounds.
+     * @return A GeoJSON Polygon geometry JsonObject.
+     */
+    public static JsonObject boundsToPolygonGeometry(final Rectangle bounds)
     {
+        final JsonArray outerRing = new JsonArray();
+        final Iterable<Location> locations = bounds.closedLoop();
+        for (final Location location : locations)
+        {
+            outerRing.add(coordinate(location));
+        }
+
+        final JsonArray coordinates = new JsonArray();
+        coordinates.add(outerRing);
+
+        return geometry(POLYGON, coordinates);
+    }
+
+    /**
+     * From a location, we get a Latitude / Longitude Json Array [ latitude, longitude ]
+     *
+     * @param location
+     *            An atlas location
+     * @return JsonArray [ longitude, latitude ] coordinate.
+     */
+    public static JsonArray coordinate(final Location location)
+    {
+        return coordinate(location.getLongitude().asDegrees(), location.getLatitude().asDegrees());
+    }
+
+    /**
+     * Slightly more explicit, you provide a double longitude and latitude.
+     *
+     * @param longitude
+     *            The longitude (x).
+     * @param latitude
+     *            The latitude (y).
+     * @return JsonArray [ longitude, latitude ] coordinate.
+     */
+    public static JsonArray coordinate(final double longitude, final double latitude)
+    {
+        final JsonArray coordinate = new JsonArray();
+        coordinate.add(new JsonPrimitive(longitude));
+        coordinate.add(new JsonPrimitive(latitude));
+        return coordinate;
     }
 
     public static JsonObject feature(final GeoJsonFeature geoJsonFeature)
@@ -94,28 +141,6 @@ public final class GeoJsonUtils
         return featureCollection;
     }
 
-    /**
-     * Creates a GeoJSON Polygon geometry from a bounds.
-     *
-     * @param bounds
-     *            A bounds.
-     * @return A GeoJSON Polygon geometry JsonObject.
-     */
-    public static JsonObject boundsToPolygonGeometry(final Rectangle bounds)
-    {
-        final JsonArray outerRing = new JsonArray();
-        final Iterable<Location> locations = bounds.closedLoop();
-        for (final Location location : locations)
-        {
-            outerRing.add(coordinate(location));
-        }
-
-        final JsonArray coordinates = new JsonArray();
-        coordinates.add(outerRing);
-
-        return geometry(POLYGON, coordinates);
-    }
-
     public static JsonObject geometry(
             final GeojsonGeometryCollection<? extends GeoJsonGeometry> geojsonGeometryCollection)
     {
@@ -146,8 +171,25 @@ public final class GeoJsonUtils
     }
 
     /**
+     * An iterable of locations will turn into a JsonArray of Longitude, Latitude coordinates.
+     *
+     * @param locations
+     *            An iterable of locations
+     * @return A JsonArray of Longitude, Latitude coordinates.
+     */
+    public static JsonArray locationsToCoordinates(final Iterable<Location> locations)
+    {
+        final JsonArray coordinates = new JsonArray();
+        for (final Location point : locations)
+        {
+            coordinates.add(coordinate(point));
+        }
+        return coordinates;
+    }
+
+    /**
      * Convert an atlas {@link MultiPolygon} into it's geojson coordinate representation
-     * 
+     *
      * @param multiPolygon
      *            the multiPolygon
      * @return the coordinate array
@@ -162,7 +204,7 @@ public final class GeoJsonUtils
 
     /**
      * Convert an atlas {@link Polygon} into it's geojson coordinate representation
-     * 
+     *
      * @param polygon
      *            the polygon
      * @return the coordinate array
@@ -182,49 +224,7 @@ public final class GeoJsonUtils
         return polygon;
     }
 
-    /**
-     * An iterable of locations will turn into a JsonArray of Longitude, Latitude coordinates.
-     *
-     * @param locations
-     *            An iterable of locations
-     * @return A JsonArray of Longitude, Latitude coordinates.
-     */
-    public static JsonArray locationsToCoordinates(final Iterable<Location> locations)
+    private GeoJsonUtils()
     {
-        final JsonArray coordinates = new JsonArray();
-        for (final Location point : locations)
-        {
-            coordinates.add(coordinate(point));
-        }
-        return coordinates;
-    }
-
-    /**
-     * From a location, we get a Latitude / Longitude Json Array [ latitude, longitude ]
-     *
-     * @param location
-     *            An atlas location
-     * @return JsonArray [ longitude, latitude ] coordinate.
-     */
-    public static JsonArray coordinate(final Location location)
-    {
-        return coordinate(location.getLongitude().asDegrees(), location.getLatitude().asDegrees());
-    }
-
-    /**
-     * Slightly more explicit, you provide a double longitude and latitude.
-     *
-     * @param longitude
-     *            The longitude (x).
-     * @param latitude
-     *            The latitude (y).
-     * @return JsonArray [ longitude, latitude ] coordinate.
-     */
-    public static JsonArray coordinate(final double longitude, final double latitude)
-    {
-        final JsonArray coordinate = new JsonArray();
-        coordinate.add(new JsonPrimitive(longitude));
-        coordinate.add(new JsonPrimitive(latitude));
-        return coordinate;
     }
 }

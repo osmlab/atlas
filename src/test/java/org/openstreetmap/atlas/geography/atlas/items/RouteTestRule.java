@@ -244,13 +244,13 @@ public class RouteTestRule extends CoreTestRule
         return this.routeHashCodeAtlas;
     }
 
-    public Atlas getUniDirectionalEdgeAtlas()
-    {
-        return this.uniDirectionalEdgeAtlas;
-    }
-
     public Atlas getUTurnAtlas()
     {
         return this.uTurnAtlas;
+    }
+
+    public Atlas getUniDirectionalEdgeAtlas()
+    {
+        return this.uniDirectionalEdgeAtlas;
     }
 }

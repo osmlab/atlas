@@ -222,6 +222,11 @@ public class PolygonCoveringPolygonTestRule extends CoreTestRule
         return this.nonOverlappingNonTouchingPolygons;
     }
 
+    public Atlas getPolygonWithinPolygonAtlas()
+    {
+        return this.polygonWithinPolygon;
+    }
+
     public Atlas getPolygonsOverlappingAtCornerAtlas()
     {
         return this.polygonsOverlappingAtCorner;
@@ -245,11 +250,6 @@ public class PolygonCoveringPolygonTestRule extends CoreTestRule
     public Atlas getPolygonsTouchingAtVertexAtlas()
     {
         return this.polygonsTouchingAtVertex;
-    }
-
-    public Atlas getPolygonWithinPolygonAtlas()
-    {
-        return this.polygonWithinPolygon;
     }
 
 }

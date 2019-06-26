@@ -49,10 +49,10 @@ public class PackedAtlasTest
 {
     private static final Logger logger = LoggerFactory.getLogger(PackedAtlasTest.class);
 
-    private PackedAtlas atlas;
-
     @Rule
     public PackedAtlasTestRule setup = new PackedAtlasTestRule();
+
+    private PackedAtlas atlas;
 
     @Before
     public void setup()

@@ -80,11 +80,6 @@ public class Change implements Located, Serializable
         this.identifier = CHANGE_IDENTIFIER_FACTORY.getAndIncrement();
     }
 
-    List<FeatureChange> getFeatureChanges()
-    {
-        return this.featureChanges;
-    }
-
     public Map<AtlasEntityKey, FeatureChange> allChangesMappedByAtlasEntityKey()
     {
         return changes()
@@ -302,5 +297,10 @@ public class Change implements Located, Serializable
     {
         Arrays.stream(featureChanges).forEach(this::add);
         return this;
+    }
+
+    List<FeatureChange> getFeatureChanges()
+    {
+        return this.featureChanges;
     }
 }

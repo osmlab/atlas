@@ -35,7 +35,7 @@ public class Diff implements Comparable<Diff>, Serializable
         TAGS,
         GEOMETRY_OR_TOPOLOGY,
         RELATION_MEMBER,
-        RELATION_TOPOLOGY;
+        RELATION_TOPOLOGY
     }
 
     /**
@@ -45,7 +45,7 @@ public class Diff implements Comparable<Diff>, Serializable
     {
         ADDED,
         CHANGED,
-        REMOVED;
+        REMOVED
     }
 
     private static final long serialVersionUID = -1798331824716201841L;
@@ -106,43 +106,6 @@ public class Diff implements Comparable<Diff>, Serializable
                 .jsonObject().toString();
     }
 
-    private static List<LocationIterableProperties> processDiff(final Diff diff)
-    {
-        final List<LocationIterableProperties> items = new ArrayList<>();
-
-        // Process the BEFORE entity. Note that it is null if it is ADDED.
-        final AtlasEntity beforeEntity = diff.getBeforeEntity();
-        processDiffEntity(diff, beforeEntity, items, "BEFORE");
-
-        // Process the AFTER entity. Note that it is null if it is REMOVED.
-        final AtlasEntity afterEntity = diff.getAfterEntity();
-        processDiffEntity(diff, afterEntity, items, "AFTER");
-
-        return items;
-    }
-
-    private static void processDiffEntity(final Diff diff, final AtlasEntity entity,
-            final List<LocationIterableProperties> items, final String diffStage)
-    {
-        // Depending on if it is a before or after for a given diff type, an entity may be null.
-        if (entity != null)
-        {
-            final Map<String, String> tags = entity.getTags();
-            tags.put("diff", diffStage);
-            tags.put("diff:type", diff.getDiffType().name());
-            tags.put("diff:reason", diff.getDiffReason().name());
-            if (diff.getItemType() == ItemType.RELATION)
-            {
-                items.addAll(processRelationForGeoJson((Relation) entity, tags));
-            }
-            else
-            {
-                items.add(new LocationIterableProperties(((AtlasItem) entity).getRawGeometry(),
-                        tags));
-            }
-        }
-    }
-
     /**
      * @param diffs
      *            An {@link Iterable} of {@link Diff}
@@ -188,6 +151,43 @@ public class Diff implements Comparable<Diff>, Serializable
         builder.append(list.join(", "));
         builder.append("\n]");
         return builder.toString();
+    }
+
+    private static List<LocationIterableProperties> processDiff(final Diff diff)
+    {
+        final List<LocationIterableProperties> items = new ArrayList<>();
+
+        // Process the BEFORE entity. Note that it is null if it is ADDED.
+        final AtlasEntity beforeEntity = diff.getBeforeEntity();
+        processDiffEntity(diff, beforeEntity, items, "BEFORE");
+
+        // Process the AFTER entity. Note that it is null if it is REMOVED.
+        final AtlasEntity afterEntity = diff.getAfterEntity();
+        processDiffEntity(diff, afterEntity, items, "AFTER");
+
+        return items;
+    }
+
+    private static void processDiffEntity(final Diff diff, final AtlasEntity entity,
+            final List<LocationIterableProperties> items, final String diffStage)
+    {
+        // Depending on if it is a before or after for a given diff type, an entity may be null.
+        if (entity != null)
+        {
+            final Map<String, String> tags = entity.getTags();
+            tags.put("diff", diffStage);
+            tags.put("diff:type", diff.getDiffType().name());
+            tags.put("diff:reason", diff.getDiffReason().name());
+            if (diff.getItemType() == ItemType.RELATION)
+            {
+                items.addAll(processRelationForGeoJson((Relation) entity, tags));
+            }
+            else
+            {
+                items.add(new LocationIterableProperties(((AtlasItem) entity).getRawGeometry(),
+                        tags));
+            }
+        }
     }
 
     private static List<LocationIterableProperties> processRelationForGeoJson(

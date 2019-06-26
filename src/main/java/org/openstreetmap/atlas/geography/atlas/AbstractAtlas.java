@@ -44,11 +44,11 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractAtlas extends BareAtlas
 {
-    private static final long serialVersionUID = -1408393006815178776L;
-    private static final Logger logger = LoggerFactory.getLogger(AbstractAtlas.class);
-
     protected static final long DEFAULT_NUMBER_OF_ITEMS = 1024;
     protected static final int HASH_MODULO_RATIO = 10;
+
+    private static final long serialVersionUID = -1408393006815178776L;
+    private static final Logger logger = LoggerFactory.getLogger(AbstractAtlas.class);
 
     // Spatial index lock objects for thread protection. Even though it looks not necessary, those
     // locks are static to avoid issues when deserializing Atlas files. If non static, they might

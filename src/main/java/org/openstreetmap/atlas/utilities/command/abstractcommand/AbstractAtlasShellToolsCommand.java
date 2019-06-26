@@ -37,10 +37,8 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsMarkerInterface
 {
-    private static final String LINE_SEPARATOR = "line.separator";
-
-    private static final Logger logger = LoggerFactory
-            .getLogger(AbstractAtlasShellToolsCommand.class);
+    public static final int DEFAULT_CONTEXT = 3;
+    public static final String DESCRIPTION = "DESCRIPTION";
 
     /*
      * Until Java supports the ability to do granular TTY configuration checking thru an interface
@@ -50,6 +48,10 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      * checking has been open for years, with no avail:
      * https://bugs.java.com/bugdatabase/view_bug.do?bug_id=4099017
      */
+    public static final String EXAMPLES = "EXAMPLES";
+    private static final String LINE_SEPARATOR = "line.separator";
+    private static final Logger logger = LoggerFactory
+            .getLogger(AbstractAtlasShellToolsCommand.class);
     /**
      * In addition to the tail arguments declared here, this command also expects a TTY maximum
      * column value (a single integer). See
@@ -68,7 +70,6 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     private static final int STDERR_COLOR_OFFSET = 4;
     private static final int PAGER_OFFSET = 3;
     private static final int TERMINAL_COLUMN_OFFSET = 2;
-
     private static final String VERBOSE_OPTION_LONG = "verbose";
     private static final Character VERBOSE_OPTION_SHORT = 'v';
     private static final String VERBOSE_OPTION_DESCRIPTION = "Show verbose output messages.";
@@ -78,13 +79,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     private static final String VERSION_OPTION_LONG = "version";
     private static final Character VERSION_OPTION_SHORT = 'V';
     private static final String VERSION_OPTION_DESCRIPTION = "Print the command version and exit.";
-
     private static final int HELP_OPTION_CONTEXT = 1;
     private static final int VERSION_OPTION_CONTEXT = 2;
-    public static final int DEFAULT_CONTEXT = 3;
-    public static final String DESCRIPTION = "DESCRIPTION";
-    public static final String EXAMPLES = "EXAMPLES";
-
     /*
      * Maximum allowed column width. If the user's terminal is very wide, we don't want to display
      * documentation all the way to the max column, since it may become hard to read.
@@ -99,109 +95,6 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     private boolean usePager = false;
     private int maximumColumn = DocumentationFormatter.DEFAULT_MAXIMUM_COLUMN;
     private String version = "default_version_value";
-
-    SortedSet<Integer> getFilteredRegisteredContexts()
-    {
-        // filter out the default, hardcoded '--help' and '--version' contexts
-        final Set<Integer> set = this.parser.getRegisteredContexts().stream().filter(
-                context -> context != HELP_OPTION_CONTEXT && context != VERSION_OPTION_CONTEXT)
-                .collect(Collectors.toSet());
-
-        return new TreeSet<>(set);
-    }
-
-    Optional<String> getOptionArgument(final String longForm)
-    {
-        return this.parser.getOptionArgument(longForm);
-    }
-
-    <T> Optional<T> getOptionArgument(final String longForm, final StringConverter<T> converter)
-    {
-        return this.parser.getOptionArgument(longForm, converter);
-    }
-
-    int getParserContext()
-    {
-        return this.parser.getContext();
-    }
-
-    TTYStringBuilder getTTYStringBuilderForStderr()
-    {
-        return new TTYStringBuilder(this.useColorStderr);
-    }
-
-    TTYStringBuilder getTTYStringBuilderForStdout()
-    {
-        return new TTYStringBuilder(this.useColorStdout);
-    }
-
-    Optional<String> getUnaryArgument(final String hint)
-    {
-        return this.parser.getUnaryArgument(hint);
-    }
-
-    List<String> getVariadicArgument(final String hint)
-    {
-        return this.parser.getVariadicArgument(hint);
-    }
-
-    boolean hasOption(final String longForm)
-    {
-        return this.parser.hasOption(longForm);
-    }
-
-    boolean hasVerboseOption()
-    {
-        return this.parser.hasOption(VERBOSE_OPTION_LONG);
-    }
-
-    void printlnCommandMessage(final String message)
-    {
-        printStderr(this.getCommandName() + ": ");
-        printStderr(message + System.getProperty(LINE_SEPARATOR));
-    }
-
-    void printlnErrorMessage(final String message)
-    {
-        printStderr(this.getCommandName() + ": ");
-        printStderr("error: ", TTYAttribute.BOLD, TTYAttribute.RED);
-        printStderr(message + System.getProperty(LINE_SEPARATOR));
-    }
-
-    void printlnStderr(final String string, final TTYAttribute... attributes)
-    {
-        final TTYStringBuilder builder = this.getTTYStringBuilderForStderr();
-        builder.append(string, attributes);
-        System.err.println(builder.toString()); // NOSONAR
-    }
-
-    void printlnStdout(final String string, final TTYAttribute... attributes)
-    {
-        final TTYStringBuilder builder = this.getTTYStringBuilderForStdout();
-        builder.append(string, attributes);
-        System.out.println(builder.toString()); // NOSONAR
-    }
-
-    void printlnWarnMessage(final String message)
-    {
-        printStderr(this.getCommandName() + ": ");
-        printStderr("warn: ", TTYAttribute.BOLD, TTYAttribute.MAGENTA);
-        printStderr(message + System.getProperty(LINE_SEPARATOR));
-    }
-
-    void printStderr(final String string, final TTYAttribute... attributes)
-    {
-        final TTYStringBuilder builder = this.getTTYStringBuilderForStderr();
-        builder.append(string, attributes);
-        System.err.print(builder.toString()); // NOSONAR
-    }
-
-    void printStdout(final String string, final TTYAttribute... attributes)
-    {
-        final TTYStringBuilder builder = this.getTTYStringBuilderForStdout();
-        builder.append(string, attributes);
-        System.out.print(builder.toString()); // NOSONAR
-    }
 
     /**
      * Execute the command logic. Subclasses of {@link AbstractAtlasShellToolsCommand} must
@@ -255,6 +148,97 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         final Integer[] contexts = this.getFilteredRegisteredContexts().toArray(new Integer[0]);
         registerOption(VERBOSE_OPTION_LONG, VERBOSE_OPTION_SHORT, VERBOSE_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, contexts);
+    }
+
+    /**
+     * Run this subcommand using all the special setup and teardown semantics provided by
+     * {@link AbstractAtlasShellToolsCommand}. It automatically registers some default standard
+     * arguments: (help,h) and (verbose,v).
+     *
+     * @param args
+     *            the command arguments
+     * @return an {@code int} that can be used as a system return code
+     */
+    public int runSubcommand(final String... args)
+    {
+        throwIfInvalidNameOrDescription();
+
+        String[] argsCopy = unpackTailSentinelArguments(args);
+        if (argsCopy == null)
+        {
+            argsCopy = args;
+        }
+
+        // fill out appropriate data structures so the execute() implementation can query
+        registerOptionsAndArguments();
+        registerManualPageSections();
+
+        // parse the options and arguments, throwing exceptions on bad input
+        try
+        {
+            this.parser.parse(Arrays.asList(argsCopy));
+        }
+        catch (final AmbiguousAbbreviationException | UnknownOptionException
+                | UnparsableContextException exception)
+        {
+            printlnErrorMessage(exception.getMessage());
+            printSimpleUsageMenu();
+            printStderr("Try the \'");
+            printStderr("--help", TTYAttribute.BOLD);
+            printStderr("\' option (e.g. ");
+            printStderr("atlas " + this.getCommandName() + " --help", TTYAttribute.BOLD);
+            printlnStderr(") for more info");
+            System.exit(1);
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException("unhandled exception", exception);
+        }
+
+        logger.debug("Command using context {}", this.parser.getContext());
+
+        // handle the hardcoded --help and --version options
+        if (this.parser.hasOption(HELP_OPTION_LONG))
+        {
+            if (this.usePager)
+            {
+                final PagerHelper helper = new PagerHelper();
+                helper.pageString(this.getHelpMenu());
+            }
+            else
+            {
+                printlnStdout(this.getHelpMenu());
+            }
+            return 0;
+        }
+
+        if (this.parser.hasOption(VERSION_OPTION_LONG))
+        {
+            printlnStdout(String.format("%s version %s", getCommandName(), this.version));
+            return 0;
+        }
+
+        // run the command
+        return execute();
+    }
+
+    /**
+     * Run this subcommand and exit the JVM. An example of how this method should be called to make
+     * the command functional with an external wrapper:
+     *
+     * <pre>
+     * public static void main(final String[] args)
+     * {
+     *     new MySubclassSubcommand().runSubcommandAndExit(args);
+     * }
+     * </pre>
+     *
+     * @param args
+     *            the command arguments
+     */
+    public void runSubcommandAndExit(final String... args)
+    {
+        System.exit(this.runSubcommand(args));
     }
 
     /**
@@ -622,97 +606,6 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     }
 
     /**
-     * Run this subcommand using all the special setup and teardown semantics provided by
-     * {@link AbstractAtlasShellToolsCommand}. It automatically registers some default standard
-     * arguments: (help,h) and (verbose,v).
-     *
-     * @param args
-     *            the command arguments
-     * @return an {@code int} that can be used as a system return code
-     */
-    public int runSubcommand(final String... args)
-    {
-        throwIfInvalidNameOrDescription();
-
-        String[] argsCopy = unpackTailSentinelArguments(args);
-        if (argsCopy == null)
-        {
-            argsCopy = args;
-        }
-
-        // fill out appropriate data structures so the execute() implementation can query
-        registerOptionsAndArguments();
-        registerManualPageSections();
-
-        // parse the options and arguments, throwing exceptions on bad input
-        try
-        {
-            this.parser.parse(Arrays.asList(argsCopy));
-        }
-        catch (final AmbiguousAbbreviationException | UnknownOptionException
-                | UnparsableContextException exception)
-        {
-            printlnErrorMessage(exception.getMessage());
-            printSimpleUsageMenu();
-            printStderr("Try the \'");
-            printStderr("--help", TTYAttribute.BOLD);
-            printStderr("\' option (e.g. ");
-            printStderr("atlas " + this.getCommandName() + " --help", TTYAttribute.BOLD);
-            printlnStderr(") for more info");
-            System.exit(1);
-        }
-        catch (final Exception exception)
-        {
-            throw new CoreException("unhandled exception", exception);
-        }
-
-        logger.debug("Command using context {}", this.parser.getContext());
-
-        // handle the hardcoded --help and --version options
-        if (this.parser.hasOption(HELP_OPTION_LONG))
-        {
-            if (this.usePager)
-            {
-                final PagerHelper helper = new PagerHelper();
-                helper.pageString(this.getHelpMenu());
-            }
-            else
-            {
-                printlnStdout(this.getHelpMenu());
-            }
-            return 0;
-        }
-
-        if (this.parser.hasOption(VERSION_OPTION_LONG))
-        {
-            printlnStdout(String.format("%s version %s", getCommandName(), this.version));
-            return 0;
-        }
-
-        // run the command
-        return execute();
-    }
-
-    /**
-     * Run this subcommand and exit the JVM. An example of how this method should be called to make
-     * the command functional with an external wrapper:
-     *
-     * <pre>
-     * public static void main(final String[] args)
-     * {
-     *     new MySubclassSubcommand().runSubcommandAndExit(args);
-     * }
-     * </pre>
-     *
-     * @param args
-     *            the command arguments
-     */
-    public void runSubcommandAndExit(final String... args)
-    {
-        System.exit(this.runSubcommand(args));
-    }
-
-    /**
      * Set the version of this command.
      *
      * @param version
@@ -721,6 +614,109 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     protected void setVersion(final String version)
     {
         this.version = version;
+    }
+
+    SortedSet<Integer> getFilteredRegisteredContexts()
+    {
+        // filter out the default, hardcoded '--help' and '--version' contexts
+        final Set<Integer> set = this.parser.getRegisteredContexts().stream().filter(
+                context -> context != HELP_OPTION_CONTEXT && context != VERSION_OPTION_CONTEXT)
+                .collect(Collectors.toSet());
+
+        return new TreeSet<>(set);
+    }
+
+    Optional<String> getOptionArgument(final String longForm)
+    {
+        return this.parser.getOptionArgument(longForm);
+    }
+
+    <T> Optional<T> getOptionArgument(final String longForm, final StringConverter<T> converter)
+    {
+        return this.parser.getOptionArgument(longForm, converter);
+    }
+
+    int getParserContext()
+    {
+        return this.parser.getContext();
+    }
+
+    TTYStringBuilder getTTYStringBuilderForStderr()
+    {
+        return new TTYStringBuilder(this.useColorStderr);
+    }
+
+    TTYStringBuilder getTTYStringBuilderForStdout()
+    {
+        return new TTYStringBuilder(this.useColorStdout);
+    }
+
+    Optional<String> getUnaryArgument(final String hint)
+    {
+        return this.parser.getUnaryArgument(hint);
+    }
+
+    List<String> getVariadicArgument(final String hint)
+    {
+        return this.parser.getVariadicArgument(hint);
+    }
+
+    boolean hasOption(final String longForm)
+    {
+        return this.parser.hasOption(longForm);
+    }
+
+    boolean hasVerboseOption()
+    {
+        return this.parser.hasOption(VERBOSE_OPTION_LONG);
+    }
+
+    void printStderr(final String string, final TTYAttribute... attributes)
+    {
+        final TTYStringBuilder builder = this.getTTYStringBuilderForStderr();
+        builder.append(string, attributes);
+        System.err.print(builder.toString()); // NOSONAR
+    }
+
+    void printStdout(final String string, final TTYAttribute... attributes)
+    {
+        final TTYStringBuilder builder = this.getTTYStringBuilderForStdout();
+        builder.append(string, attributes);
+        System.out.print(builder.toString()); // NOSONAR
+    }
+
+    void printlnCommandMessage(final String message)
+    {
+        printStderr(this.getCommandName() + ": ");
+        printStderr(message + System.getProperty(LINE_SEPARATOR));
+    }
+
+    void printlnErrorMessage(final String message)
+    {
+        printStderr(this.getCommandName() + ": ");
+        printStderr("error: ", TTYAttribute.BOLD, TTYAttribute.RED);
+        printStderr(message + System.getProperty(LINE_SEPARATOR));
+    }
+
+    void printlnStderr(final String string, final TTYAttribute... attributes)
+    {
+        final TTYStringBuilder builder = this.getTTYStringBuilderForStderr();
+        builder.append(string, attributes);
+        System.err.println(builder.toString()); // NOSONAR
+    }
+
+    void printlnStdout(final String string, final TTYAttribute... attributes)
+    {
+        final TTYStringBuilder builder = this.getTTYStringBuilderForStdout();
+        builder.append(string, attributes);
+        System.out.println(builder.toString()); // NOSONAR
+    }
+
+    void printlnWarnMessage(final String message)
+    {
+        printStderr(this.getCommandName() + ": ");
+        printStderr("warn: ", TTYAttribute.BOLD, TTYAttribute.MAGENTA);
+        printStderr(message + System.getProperty(LINE_SEPARATOR));
     }
 
     private String getHelpMenu()

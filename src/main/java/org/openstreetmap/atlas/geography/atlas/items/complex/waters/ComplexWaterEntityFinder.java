@@ -29,18 +29,15 @@ import org.slf4j.LoggerFactory;
  */
 public class ComplexWaterEntityFinder implements Finder<ComplexWaterEntity>
 {
-    private static final Predicate<Relation> RELATION_FILTER = relation -> Validators.isOfType(
-            relation, RelationTypeTag.class, RelationTypeTag.MULTIPOLYGON, RelationTypeTag.BOUNDARY,
-            RelationTypeTag.WATERWAY);
-
     /**
      * Default water handler configuration from the resources
      */
     public static final String WATER_RESOURCE = "water-handlers.json";
-
-    private final WaterConfigurationHandler waterConfigurationHandler;
-
+    private static final Predicate<Relation> RELATION_FILTER = relation -> Validators.isOfType(
+            relation, RelationTypeTag.class, RelationTypeTag.MULTIPOLYGON, RelationTypeTag.BOUNDARY,
+            RelationTypeTag.WATERWAY);
     private static final Logger logger = LoggerFactory.getLogger(ComplexWaterEntityFinder.class);
+    private final WaterConfigurationHandler waterConfigurationHandler;
 
     public ComplexWaterEntityFinder()
     {
@@ -53,11 +50,6 @@ public class ComplexWaterEntityFinder implements Finder<ComplexWaterEntity>
         this.waterConfigurationHandler = new WaterConfigurationHandler(resource);
     }
 
-    public WaterConfigurationHandler getWaterConfigurationHandler()
-    {
-        return this.waterConfigurationHandler;
-    }
-
     @Override
     public Iterable<ComplexWaterEntity> find(final Atlas atlas)
     {
@@ -68,6 +60,11 @@ public class ComplexWaterEntityFinder implements Finder<ComplexWaterEntity>
         final Iterable<ComplexWaterEntity> relationEntities = Iterables
                 .translateMulti(atlas.relations(RELATION_FILTER), this::processEntity);
         return new MultiIterable<>(areaEntities, lineEntities, relationEntities);
+    }
+
+    public WaterConfigurationHandler getWaterConfigurationHandler()
+    {
+        return this.waterConfigurationHandler;
     }
 
     /**

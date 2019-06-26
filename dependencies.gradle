@@ -26,7 +26,8 @@ project.ext.versions = [
     protobuf_java:'2.6.1',
     protoc:'2.6.1',
     artifact:'3.5.4',
-    groovy: '2.5.4'
+    groovy: '2.5.4',
+    atlas_checkstyle: '5.6.9',
 ]
 
 project.ext.packages = [
@@ -71,4 +72,5 @@ project.ext.packages = [
     groovy: "org.codehaus.groovy:groovy:${versions.groovy}",
     checkstyle: "com.puppycrawl.tools:checkstyle:${versions.checkstyle}",
     checkstyle_tests: "com.puppycrawl.tools:checkstyle:${versions.checkstyle}:tests",
+    atlas_checkstyle: "org.openstreetmap.atlas:atlas:${versions.atlas_checkstyle}",
 ]

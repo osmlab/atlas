@@ -14,38 +14,15 @@ import org.openstreetmap.atlas.utilities.scalars.Distance;
 public class LengthExtractorTest
 {
     @Test
-    public void validNumberTest()
+    public void invalidMetersTest()
     {
-        Assert.assertEquals(Optional.of(Distance.meters(20.5)),
-                LengthExtractor.validateAndExtract("20.5"));
+        Assert.assertEquals(Optional.empty(), LengthExtractor.validateAndExtract("20m"));
     }
 
     @Test
-    public void validMetersTest()
+    public void invalidNumberTest()
     {
-        Assert.assertEquals(Optional.of(Distance.meters(20)),
-                LengthExtractor.validateAndExtract("20 m"));
-    }
-
-    @Test
-    public void validKilometersTest()
-    {
-        Assert.assertEquals(Optional.of(Distance.kilometers(20.5)),
-                LengthExtractor.validateAndExtract("20.5 km"));
-    }
-
-    @Test
-    public void validMilesTest()
-    {
-        Assert.assertEquals(Optional.of(Distance.miles(20.54)),
-                LengthExtractor.validateAndExtract("20.54 mi"));
-    }
-
-    @Test
-    public void validNauticalMilesTest()
-    {
-        Assert.assertEquals(Optional.of(Distance.nauticalMiles(20.543)),
-                LengthExtractor.validateAndExtract("20.543 nmi"));
+        Assert.assertEquals(Optional.empty(), LengthExtractor.validateAndExtract("20.s"));
     }
 
     @Test
@@ -70,15 +47,10 @@ public class LengthExtractorTest
     }
 
     @Test
-    public void invalidMetersTest()
+    public void validKilometersTest()
     {
-        Assert.assertEquals(Optional.empty(), LengthExtractor.validateAndExtract("20m"));
-    }
-
-    @Test
-    public void invalidNumberTest()
-    {
-        Assert.assertEquals(Optional.empty(), LengthExtractor.validateAndExtract("20.s"));
+        Assert.assertEquals(Optional.of(Distance.kilometers(20.5)),
+                LengthExtractor.validateAndExtract("20.5 km"));
     }
 
     @Test
@@ -89,9 +61,37 @@ public class LengthExtractorTest
     }
 
     @Test
+    public void validMetersTest()
+    {
+        Assert.assertEquals(Optional.of(Distance.meters(20)),
+                LengthExtractor.validateAndExtract("20 m"));
+    }
+
+    @Test
+    public void validMilesTest()
+    {
+        Assert.assertEquals(Optional.of(Distance.miles(20.54)),
+                LengthExtractor.validateAndExtract("20.54 mi"));
+    }
+
+    @Test
     public void validNauticalMilesMixedCapsTest()
     {
         Assert.assertEquals(Optional.of(Distance.nauticalMiles(20.543)),
                 LengthExtractor.validateAndExtract("20.543 nMI"));
+    }
+
+    @Test
+    public void validNauticalMilesTest()
+    {
+        Assert.assertEquals(Optional.of(Distance.nauticalMiles(20.543)),
+                LengthExtractor.validateAndExtract("20.543 nmi"));
+    }
+
+    @Test
+    public void validNumberTest()
+    {
+        Assert.assertEquals(Optional.of(Distance.meters(20.5)),
+                LengthExtractor.validateAndExtract("20.5"));
     }
 }

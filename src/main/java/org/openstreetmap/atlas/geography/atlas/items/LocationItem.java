@@ -106,12 +106,6 @@ public abstract class LocationItem extends AtlasItem
     }
 
     @Override
-    public boolean within(final GeometricSurface surface)
-    {
-        return this.getLocation().within(surface);
-    }
-
-    @Override
     public byte[] toWkb()
     {
         return this.getLocation().toWkb();
@@ -121,5 +115,11 @@ public abstract class LocationItem extends AtlasItem
     public String toWkt()
     {
         return this.getLocation().toWkt();
+    }
+
+    @Override
+    public boolean within(final GeometricSurface surface)
+    {
+        return this.getLocation().within(surface);
     }
 }

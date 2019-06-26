@@ -35,6 +35,28 @@ public abstract class Node extends LocationItem
         return this.connectedEdges().size();
     }
 
+    public SortedSet<Edge> connectedEdges()
+    {
+        final SortedSet<Edge> result = new TreeSet<>();
+        result.addAll(inEdges());
+        result.addAll(outEdges());
+        return result;
+    }
+
+    /**
+     * Get the appropriate set {@link Edge}s of {@link ConnectedEdgeType}.
+     *
+     * @param connectedEdgeType
+     *            - The type of {@link Edge}-{@link Node} connection.
+     * @return - A set of {@link Edge}s connected to the {@link Node} of {@link ConnectedEdgeType}.
+     */
+    public SortedSet<Edge> connectedEdges(final ConnectedEdgeType connectedEdgeType)
+    {
+        Validate.notNull(connectedEdgeType);
+        final SortedSet<Edge> connectedEdges = connectedEdgeType.getAccessFunction().apply(this);
+        return connectedEdges;
+    }
+
     @Override
     public JsonObject getGeoJsonProperties()
     {
@@ -60,28 +82,6 @@ public abstract class Node extends LocationItem
         properties.add(ConnectedEdgeType.OUT.getPropertyName(), outEdgesArray);
 
         return properties;
-    }
-
-    public SortedSet<Edge> connectedEdges()
-    {
-        final SortedSet<Edge> result = new TreeSet<>();
-        result.addAll(inEdges());
-        result.addAll(outEdges());
-        return result;
-    }
-
-    /**
-     * Get the appropriate set {@link Edge}s of {@link ConnectedEdgeType}.
-     *
-     * @param connectedEdgeType
-     *            - The type of {@link Edge}-{@link Node} connection.
-     * @return - A set of {@link Edge}s connected to the {@link Node} of {@link ConnectedEdgeType}.
-     */
-    public SortedSet<Edge> connectedEdges(final ConnectedEdgeType connectedEdgeType)
-    {
-        Validate.notNull(connectedEdgeType);
-        final SortedSet<Edge> connectedEdges = connectedEdgeType.getAccessFunction().apply(this);
-        return connectedEdges;
     }
 
     @Override

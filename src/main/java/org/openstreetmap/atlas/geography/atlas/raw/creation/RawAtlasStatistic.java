@@ -77,14 +77,14 @@ public class RawAtlasStatistic
         this.relations.increment();
     }
 
-    public void recordDroppedWay()
-    {
-        this.droppedWays.increment();
-    }
-
     public void recordDroppedRelation()
     {
         this.droppedRelations.increment();
+    }
+
+    public void recordDroppedWay()
+    {
+        this.droppedWays.increment();
     }
 
     public void recordFilteredNode()

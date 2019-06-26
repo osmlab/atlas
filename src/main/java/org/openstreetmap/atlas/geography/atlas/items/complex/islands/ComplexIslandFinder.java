@@ -19,10 +19,9 @@ import org.openstreetmap.atlas.utilities.collections.Sets;
  */
 public class ComplexIslandFinder implements Finder<ComplexIsland>
 {
-    private final WaterConfigurationHandler waterConfigurationHandler;
-
     private static final Set<String> ACCEPTABLE_WATER_FEATURES = Sets.hashSet("lake", "river",
             "reservoir");
+    private final WaterConfigurationHandler waterConfigurationHandler;
 
     public ComplexIslandFinder()
     {
@@ -35,6 +34,14 @@ public class ComplexIslandFinder implements Finder<ComplexIsland>
         this.waterConfigurationHandler = new WaterConfigurationHandler(resource);
     }
 
+    @Override
+    public Iterable<ComplexIsland> find(final Atlas atlas)
+    {
+        final Iterable<Relation> relations = atlas.relations(relation -> relation.isMultiPolygon()
+                && relation.hasMultiPolygonMembers(Ring.INNER) && testWaterType(relation));
+        return Iterables.translate(relations, ComplexIsland::new);
+    }
+
     private boolean testWaterType(final Relation relation)
     {
         return this.waterConfigurationHandler.getWaterHandlers().entrySet().stream()
@@ -43,13 +50,5 @@ public class ComplexIslandFinder implements Finder<ComplexIsland>
                 {
                     return entry.getValue().test(relation);
                 });
-    }
-
-    @Override
-    public Iterable<ComplexIsland> find(final Atlas atlas)
-    {
-        final Iterable<Relation> relations = atlas.relations(relation -> relation.isMultiPolygon()
-                && relation.hasMultiPolygonMembers(Ring.INNER) && testWaterType(relation));
-        return Iterables.translate(relations, ComplexIsland::new);
     }
 }

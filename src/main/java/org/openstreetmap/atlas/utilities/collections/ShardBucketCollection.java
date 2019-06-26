@@ -76,7 +76,7 @@ public abstract class ShardBucketCollection<LocatedType extends Located & Serial
     private final CollectionType[] collectionBuckets;
     private final RTree<ShardToCollectionIndex> collectionIndex;
     private final HashMap<Shard, ShardToCollectionIndex> initializedShards = new HashMap<>();
-    private Rectangle maximumBounds;
+    private final Rectangle maximumBounds;
 
     public ShardBucketCollection(final Rectangle maximumBounds, final Integer zoomLevel)
     {
@@ -404,6 +404,19 @@ public abstract class ShardBucketCollection<LocatedType extends Located & Serial
                 "Implement this method when not allowing multiple bucket insertion");
     }
 
+    @SuppressWarnings("unchecked")
+    private Optional<LocatedType> castToLocatedType(final Object object)
+    {
+        try
+        {
+            return Optional.ofNullable(object).map(cast -> (LocatedType) cast);
+        }
+        catch (final ClassCastException e)
+        {
+            return Optional.empty();
+        }
+    }
+
     private void createBucketCollectionAt(final ShardToCollectionIndex index)
     {
         synchronized (this.collectionBuckets)
@@ -435,19 +448,6 @@ public abstract class ShardBucketCollection<LocatedType extends Located & Serial
         else
         {
             return collection;
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private Optional<LocatedType> castToLocatedType(final Object object)
-    {
-        try
-        {
-            return Optional.ofNullable(object).map(cast -> (LocatedType) cast);
-        }
-        catch (final ClassCastException e)
-        {
-            return Optional.empty();
         }
     }
 

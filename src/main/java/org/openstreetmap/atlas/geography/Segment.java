@@ -237,89 +237,6 @@ public class Segment extends PolyLine
     }
 
     /**
-     * Implements the same function as intersects but with doubles to avoid overlflow issues. Should
-     * only happen for cross world intersection.
-     * 
-     * @param that
-     * @return
-     */
-    private boolean intersectsApproximate(final Segment that)
-    {
-        final double xAxis1 = this.start().getLongitude().asDegrees();
-        final double yAxis1 = this.start().getLatitude().asDegrees();
-        final double xAxis2 = this.end().getLongitude().asDegrees();
-        final double yAxis2 = this.end().getLatitude().asDegrees();
-        final double xAxis3 = that.start().getLongitude().asDegrees();
-        final double yAxis3 = that.start().getLatitude().asDegrees();
-        final double xAxis4 = that.end().getLongitude().asDegrees();
-        final double yAxis4 = that.end().getLatitude().asDegrees();
-
-        // Return false if either of the lines have zero length
-        if (xAxis1 == xAxis2 && yAxis1 == yAxis2 || xAxis3 == xAxis4 && yAxis3 == yAxis4)
-        {
-            return false;
-        }
-        // Fastest method, based on Franklin Antonio's "Faster Line Segment Intersection" topic
-        // "in Graphics Gems III" book (http://www.graphicsgems.org/)
-        final double axAxis = xAxis2 - xAxis1;
-        final double ayAxis = yAxis2 - yAxis1;
-        final double bxAxis = xAxis3 - xAxis4;
-        final double byAxis = yAxis3 - yAxis4;
-        final double cxAxis = xAxis1 - xAxis3;
-        final double cyAxis = yAxis1 - yAxis3;
-
-        final double alphaNumerator = byAxis * cxAxis - bxAxis * cyAxis;
-        final double commonDenominator = ayAxis * bxAxis - axAxis * byAxis;
-        // ensures that alpha is within the range [0,1] without doing the division
-        if ((commonDenominator > 0 && (alphaNumerator < 0 || alphaNumerator > commonDenominator))
-                || (commonDenominator < 0
-                        && (alphaNumerator > 0 || alphaNumerator < commonDenominator)))
-        {
-            return false;
-
-        }
-        final double betaNumerator = axAxis * cyAxis - ayAxis * cxAxis;
-        // ensures that beta is within the range [0,1] without doing the division
-        if ((commonDenominator > 0 && (betaNumerator < 0 || betaNumerator > commonDenominator))
-                || (commonDenominator < 0
-                        && (betaNumerator > 0 || betaNumerator < commonDenominator)))
-        {
-            return false;
-        }
-
-        if (commonDenominator == 0)
-        {
-            // This code wasn't in Franklin Antonio's method. It was added by Keith Woodward. The
-            // lines are parallel. Check if they're collinear.
-            // see "http://mathworld.wolfram.com/Collinear.html"
-            final double collinearityTestForP3 = xAxis1 * (yAxis2 - yAxis3)
-                    + xAxis2 * (yAxis3 - yAxis1) + xAxis3 * (yAxis1 - yAxis2);
-            // If p3 is collinear with p1 and p2 then p4 will also be collinear, since p1-p2 is
-            // parallel with p3-p4
-            if (collinearityTestForP3 == 0)
-            {
-                // The lines are collinear. Now check if they overlap.
-                if ((xAxis1 >= xAxis3 && xAxis1 <= xAxis4 || xAxis1 <= xAxis3 && xAxis1 >= xAxis4
-                        || xAxis2 >= xAxis3 && xAxis2 <= xAxis4
-                        || xAxis2 <= xAxis3 && xAxis2 >= xAxis4
-                        || xAxis3 >= xAxis1 && xAxis3 <= xAxis2
-                        || xAxis3 <= xAxis1 && xAxis3 >= xAxis2)
-                        && (yAxis1 >= yAxis3 && yAxis1 <= yAxis4
-                                || yAxis1 <= yAxis3 && yAxis1 >= yAxis4
-                                || yAxis2 >= yAxis3 && yAxis2 <= yAxis4
-                                || yAxis2 <= yAxis3 && yAxis2 >= yAxis4
-                                || yAxis3 >= yAxis1 && yAxis3 <= yAxis2
-                                || yAxis3 <= yAxis1 && yAxis3 >= yAxis2))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-        return true;
-    }
-
-    /**
      * @return True if this segment is exactly east west (the two latitudes are the same)
      */
     public boolean isEastWest()
@@ -425,5 +342,88 @@ public class Segment extends PolyLine
     protected long longitudeSpan()
     {
         return this.end().getLongitude().asDm7() - this.start().getLongitude().asDm7();
+    }
+
+    /**
+     * Implements the same function as intersects but with doubles to avoid overlflow issues. Should
+     * only happen for cross world intersection.
+     *
+     * @param that
+     * @return
+     */
+    private boolean intersectsApproximate(final Segment that)
+    {
+        final double xAxis1 = this.start().getLongitude().asDegrees();
+        final double yAxis1 = this.start().getLatitude().asDegrees();
+        final double xAxis2 = this.end().getLongitude().asDegrees();
+        final double yAxis2 = this.end().getLatitude().asDegrees();
+        final double xAxis3 = that.start().getLongitude().asDegrees();
+        final double yAxis3 = that.start().getLatitude().asDegrees();
+        final double xAxis4 = that.end().getLongitude().asDegrees();
+        final double yAxis4 = that.end().getLatitude().asDegrees();
+
+        // Return false if either of the lines have zero length
+        if (xAxis1 == xAxis2 && yAxis1 == yAxis2 || xAxis3 == xAxis4 && yAxis3 == yAxis4)
+        {
+            return false;
+        }
+        // Fastest method, based on Franklin Antonio's "Faster Line Segment Intersection" topic
+        // "in Graphics Gems III" book (http://www.graphicsgems.org/)
+        final double axAxis = xAxis2 - xAxis1;
+        final double ayAxis = yAxis2 - yAxis1;
+        final double bxAxis = xAxis3 - xAxis4;
+        final double byAxis = yAxis3 - yAxis4;
+        final double cxAxis = xAxis1 - xAxis3;
+        final double cyAxis = yAxis1 - yAxis3;
+
+        final double alphaNumerator = byAxis * cxAxis - bxAxis * cyAxis;
+        final double commonDenominator = ayAxis * bxAxis - axAxis * byAxis;
+        // ensures that alpha is within the range [0,1] without doing the division
+        if ((commonDenominator > 0 && (alphaNumerator < 0 || alphaNumerator > commonDenominator))
+                || (commonDenominator < 0
+                        && (alphaNumerator > 0 || alphaNumerator < commonDenominator)))
+        {
+            return false;
+
+        }
+        final double betaNumerator = axAxis * cyAxis - ayAxis * cxAxis;
+        // ensures that beta is within the range [0,1] without doing the division
+        if ((commonDenominator > 0 && (betaNumerator < 0 || betaNumerator > commonDenominator))
+                || (commonDenominator < 0
+                        && (betaNumerator > 0 || betaNumerator < commonDenominator)))
+        {
+            return false;
+        }
+
+        if (commonDenominator == 0)
+        {
+            // This code wasn't in Franklin Antonio's method. It was added by Keith Woodward. The
+            // lines are parallel. Check if they're collinear.
+            // see "http://mathworld.wolfram.com/Collinear.html"
+            final double collinearityTestForP3 = xAxis1 * (yAxis2 - yAxis3)
+                    + xAxis2 * (yAxis3 - yAxis1) + xAxis3 * (yAxis1 - yAxis2);
+            // If p3 is collinear with p1 and p2 then p4 will also be collinear, since p1-p2 is
+            // parallel with p3-p4
+            if (collinearityTestForP3 == 0)
+            {
+                // The lines are collinear. Now check if they overlap.
+                if ((xAxis1 >= xAxis3 && xAxis1 <= xAxis4 || xAxis1 <= xAxis3 && xAxis1 >= xAxis4
+                        || xAxis2 >= xAxis3 && xAxis2 <= xAxis4
+                        || xAxis2 <= xAxis3 && xAxis2 >= xAxis4
+                        || xAxis3 >= xAxis1 && xAxis3 <= xAxis2
+                        || xAxis3 <= xAxis1 && xAxis3 >= xAxis2)
+                        && (yAxis1 >= yAxis3 && yAxis1 <= yAxis4
+                                || yAxis1 <= yAxis3 && yAxis1 >= yAxis4
+                                || yAxis2 >= yAxis3 && yAxis2 <= yAxis4
+                                || yAxis2 <= yAxis3 && yAxis2 >= yAxis4
+                                || yAxis3 >= yAxis1 && yAxis3 <= yAxis2
+                                || yAxis3 <= yAxis1 && yAxis3 >= yAxis2))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return true;
     }
 }
