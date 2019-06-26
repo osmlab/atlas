@@ -48,6 +48,11 @@ public abstract class AbstractIdentifierFactory
         return this.delta;
     }
 
+    public long getIdentifierScale()
+    {
+        return this.identifierScale;
+    }
+
     public long getReferenceIdentifier()
     {
         return this.referenceIdentifiers[this.index];
@@ -78,10 +83,5 @@ public abstract class AbstractIdentifierFactory
                         this.referenceIdentifiers);
             }
         }
-    }
-
-    public long getIdentifierScale()
-    {
-        return this.identifierScale;
     }
 }

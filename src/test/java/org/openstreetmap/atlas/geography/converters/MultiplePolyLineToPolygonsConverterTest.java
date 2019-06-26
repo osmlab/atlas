@@ -179,14 +179,6 @@ public class MultiplePolyLineToPolygonsConverterTest
     }
 
     @Test
-    public void testSingleClosedPolygon()
-    {
-        final List<PolyLine> list = new ArrayList<>();
-        list.add(POLYGON_LOOP);
-        CONVERTER.convert(list);
-    }
-
-    @Test
     public void testSingleClosedPolyLine()
     {
         final List<PolyLine> list = new ArrayList<>();
@@ -208,6 +200,14 @@ public class MultiplePolyLineToPolygonsConverterTest
                                 .map(WKT_POLYGON_CONVERTER::backwardConvert)
                                 .collect(Collectors.toList());
         Assert.assertEquals(expected, Iterables.asList(CONVERTER.convert(input)));
+    }
+
+    @Test
+    public void testSingleClosedPolygon()
+    {
+        final List<PolyLine> list = new ArrayList<>();
+        list.add(POLYGON_LOOP);
+        CONVERTER.convert(list);
     }
 
     @Test(expected = OpenPolygonException.class)

@@ -15,9 +15,9 @@ public enum ConnectedEdgeType implements ConnectedEntityType<Node, SortedSet<Edg
 
     OUT("outEdges", Node::outEdges);
 
-    private String propertyName;
+    private final String propertyName;
 
-    private Function<Node, SortedSet<Edge>> accessFunction;
+    private final Function<Node, SortedSet<Edge>> accessFunction;
 
     ConnectedEdgeType(final String propertyName,
             final Function<Node, SortedSet<Edge>> accessFunction)
@@ -27,14 +27,14 @@ public enum ConnectedEdgeType implements ConnectedEntityType<Node, SortedSet<Edg
     }
 
     @Override
-    public String getPropertyName()
-    {
-        return this.propertyName;
-    }
-
-    @Override
     public Function<Node, SortedSet<Edge>> getAccessFunction()
     {
         return this.accessFunction;
+    }
+
+    @Override
+    public String getPropertyName()
+    {
+        return this.propertyName;
     }
 }

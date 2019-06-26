@@ -29,6 +29,18 @@ import org.openstreetmap.atlas.tags.JunctionTag;
  */
 public class ComplexRoundabout extends ComplexEntity
 {
+    /**
+     * An enum of RoundaboutDirections
+     */
+    public enum RoundaboutDirection
+    {
+        CLOCKWISE,
+        COUNTERCLOCKWISE,
+        // Handles the case where we were unable to get any information about the roundabout's
+        // direction.
+        UNKNOWN
+    }
+
     protected static final String WRONG_WAY_INVALIDATION = "This roundabout is going the wrong direction, or has been improperly tagged as a roundabout.";
     protected static final String INCOMPLETE_ROUTE_INVALIDATION = "This roundabout does not form a single, one-way, complete, car navigable route.";
     private static final String EXCEPTION_MESSAGE = "Exception thrown while trying to build a ComplexRoundabout";
@@ -42,22 +54,10 @@ public class ComplexRoundabout extends ComplexEntity
             "PAK", "PCN", "PNG", "SGP", "SGS", "SHN", "SLB", "SUR", "SWZ", "SYC", "TCA", "THA",
             "TKL", "TLS", "TON", "TTO", "TUV", "TZA", "UGA", "VCT", "VGB", "VIR", "WSM", "ZAF",
             "ZMB", "ZWE");
-
+    private static final long serialVersionUID = 2512054399729675784L;
     private final List<ComplexEntityError> invalidationReasons = new ArrayList<>();
     private Set<Edge> roundaboutEdgeSet;
     private Route roundaboutRoute;
-
-    /**
-     * An enum of RoundaboutDirections
-     */
-    public enum RoundaboutDirection
-    {
-        CLOCKWISE,
-        COUNTERCLOCKWISE,
-        // Handles the case where we were unable to get any information about the roundabout's
-        // direction.
-        UNKNOWN
-    }
 
     /**
      * This method returns a RoundaboutDirection enum which indicates direction of the flow of
@@ -243,39 +243,6 @@ public class ComplexRoundabout extends ComplexEntity
         }
     }
 
-    /**
-     * Function for {@link SimpleEdgeWalker} that gathers connected edges that are part of a
-     * roundabout.
-     *
-     * @return {@link Function} for {@link SimpleEdgeWalker}
-     */
-    private Function<Edge, Stream<Edge>> isRoundaboutEdge()
-    {
-        return edge -> edge.connectedEdges().stream().filter(JunctionTag::isRoundabout);
-    }
-
-    public Set<Edge> getRoundaboutEdgeSet()
-    {
-        return this.roundaboutEdgeSet;
-    }
-
-    public Route getRoundaboutRoute()
-    {
-        return this.roundaboutRoute;
-    }
-
-    @Override
-    public List<ComplexEntityError> getAllInvalidations()
-    {
-        return this.invalidationReasons;
-    }
-
-    @Override
-    public String toString()
-    {
-        return String.format("Roundabout of Edges: %s", this.roundaboutEdgeSet);
-    }
-
     @Override
     public Rectangle bounds()
     {
@@ -294,8 +261,41 @@ public class ComplexRoundabout extends ComplexEntity
     }
 
     @Override
+    public List<ComplexEntityError> getAllInvalidations()
+    {
+        return this.invalidationReasons;
+    }
+
+    public Set<Edge> getRoundaboutEdgeSet()
+    {
+        return this.roundaboutEdgeSet;
+    }
+
+    public Route getRoundaboutRoute()
+    {
+        return this.roundaboutRoute;
+    }
+
+    @Override
     public int hashCode()
     {
         return super.hashCode();
+    }
+
+    @Override
+    public String toString()
+    {
+        return String.format("Roundabout of Edges: %s", this.roundaboutEdgeSet);
+    }
+
+    /**
+     * Function for {@link SimpleEdgeWalker} that gathers connected edges that are part of a
+     * roundabout.
+     *
+     * @return {@link Function} for {@link SimpleEdgeWalker}
+     */
+    private Function<Edge, Stream<Edge>> isRoundaboutEdge()
+    {
+        return edge -> edge.connectedEdges().stream().filter(JunctionTag::isRoundabout);
     }
 }

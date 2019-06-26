@@ -19,18 +19,8 @@ import org.openstreetmap.atlas.utilities.scalars.Ratio;
 public class StatisticUtilsTest
 {
     private static final double DELTA = 0.1;
-    private static double STRICT_DELTA = 0.00000001;
+    private static final double STRICT_DELTA = 0.00000001;
     private List<Double> randomBetween1And99;
-
-    double[] toDoubleArray(final List<Double> list)
-    {
-        final double[] ret = new double[list.size()];
-        for (int i = 0; i < ret.length; i++)
-        {
-            ret[i] = list.get(i);
-        }
-        return ret;
-    }
 
     @Before
     public void loadData()
@@ -59,5 +49,15 @@ public class StatisticUtilsTest
         // Apache percentile
         assertEquals(50, StatisticUtils.percentile(this.randomBetween1And99, Ratio.percentage(50)),
                 1);
+    }
+
+    double[] toDoubleArray(final List<Double> list)
+    {
+        final double[] ret = new double[list.size()];
+        for (int i = 0; i < ret.length; i++)
+        {
+            ret[i] = list.get(i);
+        }
+        return ret;
     }
 }

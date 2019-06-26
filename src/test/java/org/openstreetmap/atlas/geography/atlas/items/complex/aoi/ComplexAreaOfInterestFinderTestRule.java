@@ -195,16 +195,6 @@ public class ComplexAreaOfInterestFinderTestRule extends CoreTestRule
                                                             "landuse=VINEYARD" }) })
     private Atlas complexAOIWithRelationsAndAreas;
 
-    public Atlas getMultipolygonAOIRelationAtlas()
-    {
-        return this.multipolygonAOIRelationAtlas;
-    }
-
-    public Atlas getNonMultipolygonAOIRelationAtlas()
-    {
-        return this.nonMultipolygonAOIRelationAtlas;
-    }
-
     public Atlas getAoiAreaAtlas()
     {
         return this.aoiAreaAtlas;
@@ -213,5 +203,15 @@ public class ComplexAreaOfInterestFinderTestRule extends CoreTestRule
     public Atlas getComplexAOIWithRelationsAndAreas()
     {
         return this.complexAOIWithRelationsAndAreas;
+    }
+
+    public Atlas getMultipolygonAOIRelationAtlas()
+    {
+        return this.multipolygonAOIRelationAtlas;
+    }
+
+    public Atlas getNonMultipolygonAOIRelationAtlas()
+    {
+        return this.nonMultipolygonAOIRelationAtlas;
     }
 }

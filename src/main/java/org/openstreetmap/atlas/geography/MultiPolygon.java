@@ -44,12 +44,12 @@ import com.google.gson.JsonObject;
 public class MultiPolygon
         implements Iterable<Polygon>, GeometricSurface, Serializable, GeoJsonGeometry
 {
+    public static final MultiPolygon MAXIMUM = forPolygon(Rectangle.MAXIMUM);
+    public static final MultiPolygon TEST_MULTI_POLYGON;
     private static final Logger logger = LoggerFactory.getLogger(MultiPolygon.class);
     private static final long serialVersionUID = 4198234682870043547L;
     private static final int SIMPLE_STRING_LENGTH = 200;
 
-    public static final MultiPolygon MAXIMUM = forPolygon(Rectangle.MAXIMUM);
-    public static final MultiPolygon TEST_MULTI_POLYGON;
     static
     {
         final MultiMap<Polygon, Polygon> outerToInners = new MultiMap<>();
@@ -329,6 +329,11 @@ public class MultiPolygon
         return GeoJsonType.MULTI_POLYGON;
     }
 
+    public MultiMap<Polygon, Polygon> getOuterToInners()
+    {
+        return this.outerToInners;
+    }
+
     @Override
     public int hashCode()
     {
@@ -516,11 +521,6 @@ public class MultiPolygon
     public String toWkt()
     {
         return new WktMultiPolygonConverter().convert(this);
-    }
-
-    public MultiMap<Polygon, Polygon> getOuterToInners()
-    {
-        return this.outerToInners;
     }
 
     private boolean overlapsInternal(final PolyLine polyLine, final boolean runReverseCheck)

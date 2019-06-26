@@ -15,14 +15,6 @@ import org.junit.Test;
  */
 public class MinimumZoomTest
 {
-
-    @Test
-    public void testLoadingMinimumZoomConfig()
-    {
-        final MinimumZoom minimumZoom = MinimumZoom.INSTANCE;
-        Assert.assertNotNull(minimumZoom);
-    }
-
     @Test
     public void testGettingAMinimumZoomForTags()
     {
@@ -30,5 +22,12 @@ public class MinimumZoomTest
         tags.put("weird", "tag");
         final int zoom = MinimumZoom.INSTANCE.get(tags);
         Assert.assertEquals(14, zoom);
+    }
+
+    @Test
+    public void testLoadingMinimumZoomConfig()
+    {
+        final MinimumZoom minimumZoom = MinimumZoom.INSTANCE;
+        Assert.assertNotNull(minimumZoom);
     }
 }

@@ -28,6 +28,34 @@ public class ValidatorsHasValuesForTestCase
     }
 
     @Test
+    public void keyPresentDifferentValues()
+    {
+        Assert.assertFalse(Validators.isOfSameType(new TestTaggable(HighwayTag.BUS_STOP),
+                new TestTaggable(HighwayTag.CYCLEWAY), HighwayTag.class));
+    }
+
+    @Test
+    public void keyPresentSameValue()
+    {
+        Assert.assertTrue(Validators.isOfSameType(new TestTaggable(WaterTag.LAKE),
+                new TestTaggable(WaterTag.LAKE), WaterTag.class));
+    }
+
+    @Test
+    public void oneEnumeratedTagOneNonEnumeratedTag()
+    {
+        Assert.assertFalse(Validators.isOfSameType(new TestTaggable(WaterwayTag.CANAL),
+                new TestTaggable(LastEditTimeTag.KEY, "invalid"), WaterTag.class));
+    }
+
+    @Test
+    public void oneMissingKey()
+    {
+        Assert.assertFalse(Validators.isOfSameType(new TestTaggable(WaterTag.CANAL),
+                new TestTaggable(WaterwayTag.CANAL), WaterTag.class));
+    }
+
+    @Test
     public void oneOfOne()
     {
         Assert.assertTrue(
@@ -101,46 +129,10 @@ public class ValidatorsHasValuesForTestCase
     }
 
     @Test
-    public void twoOfThreeEnums()
-    {
-        Assert.assertFalse(
-                Validators.hasValuesFor(new TestTaggable(WaterTag.CANAL, NaturalTag.WATER),
-                        NaturalTag.class, HighwayTag.class, WaterTag.class));
-    }
-
-    @Test
-    public void keyPresentDifferentValues()
-    {
-        Assert.assertFalse(Validators.isOfSameType(new TestTaggable(HighwayTag.BUS_STOP),
-                new TestTaggable(HighwayTag.CYCLEWAY), HighwayTag.class));
-    }
-
-    @Test
-    public void keyPresentSameValue()
-    {
-        Assert.assertTrue(Validators.isOfSameType(new TestTaggable(WaterTag.LAKE),
-                new TestTaggable(WaterTag.LAKE), WaterTag.class));
-    }
-
-    @Test
-    public void oneMissingKey()
-    {
-        Assert.assertFalse(Validators.isOfSameType(new TestTaggable(WaterTag.CANAL),
-                new TestTaggable(WaterwayTag.CANAL), WaterTag.class));
-    }
-
-    @Test
     public void twoMissingKeys()
     {
         Assert.assertFalse(Validators.isOfSameType(new TestTaggable(WaterwayTag.CANAL),
                 new TestTaggable(WaterwayTag.CANAL), WaterTag.class));
-    }
-
-    @Test
-    public void twoNonEnumeratedTagsSameKeySameValue()
-    {
-        Assert.assertTrue(Validators.isOfSameType(new TestTaggable(LastEditTimeTag.KEY, "06June19"),
-                new TestTaggable(LastEditTimeTag.KEY, "06June19"), LastEditTimeTag.class));
     }
 
     @Test
@@ -151,9 +143,17 @@ public class ValidatorsHasValuesForTestCase
     }
 
     @Test
-    public void oneEnumeratedTagOneNonEnumeratedTag()
+    public void twoNonEnumeratedTagsSameKeySameValue()
     {
-        Assert.assertFalse(Validators.isOfSameType(new TestTaggable(WaterwayTag.CANAL),
-                new TestTaggable(LastEditTimeTag.KEY, "invalid"), WaterTag.class));
+        Assert.assertTrue(Validators.isOfSameType(new TestTaggable(LastEditTimeTag.KEY, "06June19"),
+                new TestTaggable(LastEditTimeTag.KEY, "06June19"), LastEditTimeTag.class));
+    }
+
+    @Test
+    public void twoOfThreeEnums()
+    {
+        Assert.assertFalse(
+                Validators.hasValuesFor(new TestTaggable(WaterTag.CANAL, NaturalTag.WATER),
+                        NaturalTag.class, HighwayTag.class, WaterTag.class));
     }
 }

@@ -14,11 +14,11 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas.Node;
  */
 public class RouteTest
 {
-    private Atlas atlas;
-    private Route route;
-
     @Rule
     public final RouteTestRule rule = new RouteTestRule();
+
+    private Atlas atlas;
+    private Route route;
 
     @Before
     public void init()

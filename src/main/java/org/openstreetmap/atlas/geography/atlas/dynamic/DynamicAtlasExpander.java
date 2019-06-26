@@ -425,15 +425,15 @@ class DynamicAtlasExpander
                 .allMatch(this.loadedShards::containsKey);
     }
 
-    private boolean loadedShardsfullyGeometricallyEnclosePolygon(final Polygon polygon)
-    {
-        return Iterables.stream(this.sharding.shards(polygon))
-                .allMatch(this.loadedShards::containsKey);
-    }
-
     private boolean loadedShardsfullyGeometricallyEnclosePolyLine(final PolyLine polyLine)
     {
         return Iterables.stream(this.sharding.shardsIntersecting(polyLine))
+                .allMatch(this.loadedShards::containsKey);
+    }
+
+    private boolean loadedShardsfullyGeometricallyEnclosePolygon(final Polygon polygon)
+    {
+        return Iterables.stream(this.sharding.shards(polygon))
                 .allMatch(this.loadedShards::containsKey);
     }
 
@@ -492,21 +492,21 @@ class DynamicAtlasExpander
         }
     }
 
-    private void newPolygon(final Polygon polygon, final AtlasEntity... source)
-    {
-        if (!loadedShardsfullyGeometricallyEnclosePolygon(polygon))
-        {
-            newShapeLog(polygon, source);
-            addNewShards(this.sharding.shards(polygon));
-        }
-    }
-
     private void newPolyLine(final PolyLine polyLine, final LineItem... source)
     {
         if (!loadedShardsfullyGeometricallyEnclosePolyLine(polyLine))
         {
             newShapeLog(polyLine, source);
             addNewShards(this.sharding.shardsIntersecting(polyLine));
+        }
+    }
+
+    private void newPolygon(final Polygon polygon, final AtlasEntity... source)
+    {
+        if (!loadedShardsfullyGeometricallyEnclosePolygon(polygon))
+        {
+            newShapeLog(polygon, source);
+            addNewShards(this.sharding.shards(polygon));
         }
     }
 

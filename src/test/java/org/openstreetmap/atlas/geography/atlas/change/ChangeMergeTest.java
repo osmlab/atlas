@@ -13,14 +13,13 @@ import org.junit.Test;
 public class ChangeMergeTest extends AbstractChangeTest
 {
     @Test
-    public void testNoMerge()
+    public void testMergeDifferentItemTypes()
     {
-        final Change changeWithAreaAndLine1 = newChangeWithAreaAndLine();
-        final Change merged = Change.merge(changeWithAreaAndLine1);
+        final Change changeWithAreaAndLine1 = newChangeWithAreaAndLine(1, 2);
+        final Change changeWithAreaAndLine2 = newChangeWith2Areas(1, 2, "key1", "value1");
+        final Change merged = Change.merge(changeWithAreaAndLine1, changeWithAreaAndLine2);
         log.info("merged: {}", merged);
-        log.info("changeWithAreaAndLine1: {}", changeWithAreaAndLine1);
-        // Ensures order.
-        Assert.assertEquals(changeWithAreaAndLine1, merged);
+        Assert.assertEquals(3, merged.changes().count());
     }
 
     @Test
@@ -32,26 +31,6 @@ public class ChangeMergeTest extends AbstractChangeTest
         log.info("changeWithAreaAndLine1: {}", changeWithAreaAndLine1);
         // Ensures order.
         Assert.assertEquals(changeWithAreaAndLine1, merged);
-    }
-
-    @Test
-    public void testMergeSameEmpty()
-    {
-        final Change changeWithAreaAndLine1 = newChangeWithAreaAndLine();
-        final Change changeWithAreaAndLine2 = newChangeWithAreaAndLine();
-        final Change merged = Change.merge(changeWithAreaAndLine1, changeWithAreaAndLine2);
-        Assert.assertEquals(changeWithAreaAndLine1, merged);
-        Assert.assertEquals(changeWithAreaAndLine2, merged);
-    }
-
-    @Test
-    public void testMergeDifferentItemTypes()
-    {
-        final Change changeWithAreaAndLine1 = newChangeWithAreaAndLine(1, 2);
-        final Change changeWithAreaAndLine2 = newChangeWith2Areas(1, 2, "key1", "value1");
-        final Change merged = Change.merge(changeWithAreaAndLine1, changeWithAreaAndLine2);
-        log.info("merged: {}", merged);
-        Assert.assertEquals(3, merged.changes().count());
     }
 
     @Test
@@ -70,5 +49,26 @@ public class ChangeMergeTest extends AbstractChangeTest
 
         Assert.assertEquals(identifier1, mergedFeatureChanges[0].getIdentifier());
         Assert.assertEquals(3, mergedFeatureChanges[0].getTags().size());
+    }
+
+    @Test
+    public void testMergeSameEmpty()
+    {
+        final Change changeWithAreaAndLine1 = newChangeWithAreaAndLine();
+        final Change changeWithAreaAndLine2 = newChangeWithAreaAndLine();
+        final Change merged = Change.merge(changeWithAreaAndLine1, changeWithAreaAndLine2);
+        Assert.assertEquals(changeWithAreaAndLine1, merged);
+        Assert.assertEquals(changeWithAreaAndLine2, merged);
+    }
+
+    @Test
+    public void testNoMerge()
+    {
+        final Change changeWithAreaAndLine1 = newChangeWithAreaAndLine();
+        final Change merged = Change.merge(changeWithAreaAndLine1);
+        log.info("merged: {}", merged);
+        log.info("changeWithAreaAndLine1: {}", changeWithAreaAndLine1);
+        // Ensures order.
+        Assert.assertEquals(changeWithAreaAndLine1, merged);
     }
 }
