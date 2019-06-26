@@ -11,9 +11,9 @@ public enum ConnectedNodeType implements ConnectedEntityType<Edge, Node>
 
     END("endNode", Edge::end);
 
-    private String propertyName;
+    private final String propertyName;
 
-    private Function<Edge, Node> accessFunction;
+    private final Function<Edge, Node> accessFunction;
 
     ConnectedNodeType(final String propertyName, final Function<Edge, Node> accessFunction)
     {
@@ -22,14 +22,14 @@ public enum ConnectedNodeType implements ConnectedEntityType<Edge, Node>
     }
 
     @Override
-    public String getPropertyName()
-    {
-        return this.propertyName;
-    }
-
-    @Override
     public Function<Edge, Node> getAccessFunction()
     {
         return this.accessFunction;
+    }
+
+    @Override
+    public String getPropertyName()
+    {
+        return this.propertyName;
     }
 }

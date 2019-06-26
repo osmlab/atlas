@@ -48,19 +48,6 @@ public class MultiPolyLineTest
     }
 
     @Test
-    public void testConvertMultiPloyLineToJson()
-    {
-        final String wkt = "MULTILINESTRING ((113.9980787038803 7.3216002915048872, "
-                + "113.99803847074506 7.3215225281339456))";
-        final MultiPolyLine multiPolyLine = MultiPolyLine.wkt(wkt);
-        final Set<Location> locations = Sets.newHashSet();
-        locations.add(Location.forString("7.3216002915048872, 113.9980787038803"));
-        locations.add(Location.forString("7.3215225281339456, 113.99803847074506"));
-        multiPolyLine.asLocationIterableProperties().forEach(property -> property.getLocations()
-                .forEach(location -> Assert.assertTrue(locations.contains(location))));
-    }
-
-    @Test
     public void testConvertMultiPloyLineToGeoJson()
     {
         final String wkt = "MULTILINESTRING ((113.9980787038803 7.3216002915048872, "
@@ -72,6 +59,19 @@ public class MultiPolyLineTest
                 new PointCoordinateConverter().revert()
                         .apply(geojson.get(GeoJsonConstants.COORDINATES).getAsJsonArray().get(0)
                                 .getAsJsonArray().get(0).getAsJsonArray()));
+    }
+
+    @Test
+    public void testConvertMultiPloyLineToJson()
+    {
+        final String wkt = "MULTILINESTRING ((113.9980787038803 7.3216002915048872, "
+                + "113.99803847074506 7.3215225281339456))";
+        final MultiPolyLine multiPolyLine = MultiPolyLine.wkt(wkt);
+        final Set<Location> locations = Sets.newHashSet();
+        locations.add(Location.forString("7.3216002915048872, 113.9980787038803"));
+        locations.add(Location.forString("7.3215225281339456, 113.99803847074506"));
+        multiPolyLine.asLocationIterableProperties().forEach(property -> property.getLocations()
+                .forEach(location -> Assert.assertTrue(locations.contains(location))));
     }
 
     @Test

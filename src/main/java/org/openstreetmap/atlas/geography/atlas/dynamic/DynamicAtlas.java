@@ -53,11 +53,6 @@ public class DynamicAtlas extends BareAtlas // NOSONAR
         this.expander = new DynamicAtlasExpander(this, dynamicAtlasExpansionPolicy);
     }
 
-    synchronized void swapCurrentAtlas(final Atlas current)
-    {
-        this.current = current;
-    }
-
     @Override
     public Area area(final long identifier)
     {
@@ -472,6 +467,11 @@ public class DynamicAtlas extends BareAtlas // NOSONAR
     protected Relation subRelation(final long identifier)
     {
         return this.current.relation(identifier);
+    }
+
+    synchronized void swapCurrentAtlas(final Atlas current)
+    {
+        this.current = current;
     }
 
     private DynamicArea newArea(final Area area)

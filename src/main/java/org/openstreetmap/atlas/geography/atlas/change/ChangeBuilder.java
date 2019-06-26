@@ -18,12 +18,6 @@ public class ChangeBuilder
     private final Change change;
     private boolean open;
 
-    public ChangeBuilder()
-    {
-        this.change = new Change();
-        this.open = true;
-    }
-
     /**
      * A factory-method to construct a new {@link ChangeBuilder}. Constructs a {@code new}
      * {@link ChangeBuilder} with default values.
@@ -35,17 +29,10 @@ public class ChangeBuilder
         return new ChangeBuilder();
     }
 
-    /**
-     * Assign a name to the change being constructed.
-     *
-     * @param name
-     *            - a name for the change.
-     * @return ChangeBuilder - returns itself to allow fluency in calls.
-     */
-    public ChangeBuilder withName(final String name)
+    public ChangeBuilder()
     {
-        this.change.withName(name);
-        return this;
+        this.change = new Change();
+        this.open = true;
     }
 
     /**
@@ -110,5 +97,18 @@ public class ChangeBuilder
     public synchronized int peekNumberOfChanges()
     {
         return this.change.changeCount();
+    }
+
+    /**
+     * Assign a name to the change being constructed.
+     *
+     * @param name
+     *            - a name for the change.
+     * @return ChangeBuilder - returns itself to allow fluency in calls.
+     */
+    public ChangeBuilder withName(final String name)
+    {
+        this.change.withName(name);
+        return this;
     }
 }

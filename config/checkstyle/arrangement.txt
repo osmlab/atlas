@@ -1,0 +1,46 @@
+interface,public,non_static
+interface,protected,non_static
+interface,package_private,non_static
+interface,private,non_static
+
+enum,public,non_static
+enum,protected,non_static
+enum,package_private,non_static
+enum,private,non_static
+
+class,public,non_static
+class,protected,non_static
+class,package_private,non_static
+class,private,non_static
+
+# Here do not force order on static variables
+# as they might have dependencies on each other
+# field,public,static
+# field,protected,static
+# field,package_private,static
+# field,private,static
+
+static_initializer_block,,non_static
+
+field,public,non_static
+field,protected,non_static
+field,package_private,non_static
+field,private,non_static
+
+method,public,static
+method,protected,static
+method,package_private,static
+method,private,static
+
+initializer_block,,non_static
+
+constructor,public,non_static
+constructor,protected,non_static
+constructor,package_private,non_static
+constructor,private,non_static
+
+method,public,non_static
+method,protected,non_static
+method,package_private,non_static
+method,private,non_static
+

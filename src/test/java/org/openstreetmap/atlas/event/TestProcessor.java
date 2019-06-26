@@ -15,21 +15,6 @@ public class TestProcessor implements Processor<TestEvent>
     private final AtomicInteger completeCount = new AtomicInteger(0);
     private final AtomicInteger processCount = new AtomicInteger(0);
 
-    int getCompleteCount()
-    {
-        return this.completeCount.get();
-    }
-
-    String getLastEventMessage()
-    {
-        return this.lastMessage;
-    }
-
-    int getProcessCount()
-    {
-        return this.processCount.get();
-    }
-
     @Override
     @Subscribe
     public void process(final ShutdownEvent event)
@@ -43,5 +28,20 @@ public class TestProcessor implements Processor<TestEvent>
     {
         this.lastMessage = event.getMessage();
         this.processCount.incrementAndGet();
+    }
+
+    int getCompleteCount()
+    {
+        return this.completeCount.get();
+    }
+
+    String getLastEventMessage()
+    {
+        return this.lastMessage;
+    }
+
+    int getProcessCount()
+    {
+        return this.processCount.get();
     }
 }

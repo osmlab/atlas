@@ -391,44 +391,6 @@ public class MemberMergeStrategiesTest
     }
 
     @Test
-    public void testDiffBasedPolygonMergeADDADDConflictFail()
-    {
-        final Polygon before = Polygon.CENTER;
-        final Polygon afterLeft = Polygon.SILICON_VALLEY;
-        final Polygon afterRight = Polygon.SILICON_VALLEY_2;
-
-        this.expectedException.expect(CoreException.class);
-        this.expectedException
-                .expectMessage("diffBasedMutuallyExclusiveMerger failed due to ADD/ADD conflict");
-        MemberMergeStrategies.diffBasedPolygonMerger.apply(before, afterLeft, afterRight);
-    }
-
-    @Test
-    public void testDiffBasedPolygonMergeSuccess()
-    {
-        final Polygon before1 = Polygon.CENTER;
-        final Polygon afterLeft1 = Polygon.CENTER;
-        final Polygon afterRight1 = Polygon.SILICON_VALLEY;
-
-        Assert.assertEquals(Polygon.SILICON_VALLEY, MemberMergeStrategies.diffBasedPolygonMerger
-                .apply(before1, afterLeft1, afterRight1));
-
-        final Polygon before2 = Polygon.CENTER;
-        final Polygon afterLeft2 = Polygon.SILICON_VALLEY;
-        final Polygon afterRight2 = Polygon.CENTER;
-
-        Assert.assertEquals(Polygon.SILICON_VALLEY, MemberMergeStrategies.diffBasedPolygonMerger
-                .apply(before2, afterLeft2, afterRight2));
-
-        final Polygon before3 = Polygon.CENTER;
-        final Polygon afterLeft3 = Polygon.SILICON_VALLEY;
-        final Polygon afterRight3 = Polygon.SILICON_VALLEY;
-
-        Assert.assertEquals(Polygon.SILICON_VALLEY, MemberMergeStrategies.diffBasedPolygonMerger
-                .apply(before3, afterLeft3, afterRight3));
-    }
-
-    @Test
     public void testDiffBasedPolyLineMergeADDADDConflictFail()
     {
         final PolyLine before = PolyLine.TEST_POLYLINE;
@@ -463,6 +425,44 @@ public class MemberMergeStrategiesTest
         final PolyLine afterRight3 = PolyLine.TEST_POLYLINE;
 
         Assert.assertEquals(PolyLine.TEST_POLYLINE, MemberMergeStrategies.diffBasedPolyLineMerger
+                .apply(before3, afterLeft3, afterRight3));
+    }
+
+    @Test
+    public void testDiffBasedPolygonMergeADDADDConflictFail()
+    {
+        final Polygon before = Polygon.CENTER;
+        final Polygon afterLeft = Polygon.SILICON_VALLEY;
+        final Polygon afterRight = Polygon.SILICON_VALLEY_2;
+
+        this.expectedException.expect(CoreException.class);
+        this.expectedException
+                .expectMessage("diffBasedMutuallyExclusiveMerger failed due to ADD/ADD conflict");
+        MemberMergeStrategies.diffBasedPolygonMerger.apply(before, afterLeft, afterRight);
+    }
+
+    @Test
+    public void testDiffBasedPolygonMergeSuccess()
+    {
+        final Polygon before1 = Polygon.CENTER;
+        final Polygon afterLeft1 = Polygon.CENTER;
+        final Polygon afterRight1 = Polygon.SILICON_VALLEY;
+
+        Assert.assertEquals(Polygon.SILICON_VALLEY, MemberMergeStrategies.diffBasedPolygonMerger
+                .apply(before1, afterLeft1, afterRight1));
+
+        final Polygon before2 = Polygon.CENTER;
+        final Polygon afterLeft2 = Polygon.SILICON_VALLEY;
+        final Polygon afterRight2 = Polygon.CENTER;
+
+        Assert.assertEquals(Polygon.SILICON_VALLEY, MemberMergeStrategies.diffBasedPolygonMerger
+                .apply(before2, afterLeft2, afterRight2));
+
+        final Polygon before3 = Polygon.CENTER;
+        final Polygon afterLeft3 = Polygon.SILICON_VALLEY;
+        final Polygon afterRight3 = Polygon.SILICON_VALLEY;
+
+        Assert.assertEquals(Polygon.SILICON_VALLEY, MemberMergeStrategies.diffBasedPolygonMerger
                 .apply(before3, afterLeft3, afterRight3));
     }
 

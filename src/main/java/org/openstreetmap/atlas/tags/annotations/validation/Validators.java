@@ -374,6 +374,30 @@ public class Validators
     }
 
     /**
+     * Use this method to check if a tag exists in two {@link Taggable} objects, and those values
+     * are the same.
+     *
+     * @param <T>
+     *            the enum-type tag's class object
+     * @param firstTaggable
+     *            one taggable we are comparing
+     * @param secondTaggable
+     *            the other taggable we are comparing against
+     * @param type
+     *            the class of the enum-type tag we are looking for
+     * @return true if the tag exists in firstTaggable AND secondTaggable, AND the value of
+     *         firstTaggable is equal to the value of secondTaggable.
+     */
+    public static <T> boolean isOfSameType(final Taggable firstTaggable,
+            final Taggable secondTaggable, final Class<T> type)
+    {
+        final String key = findTagNameIn(type);
+
+        return firstTaggable.getTag(key)
+                .flatMap(oneTag -> secondTaggable.getTag(key).map(oneTag::equals)).orElse(false);
+    }
+
+    /**
      * Use this method to check if a tag exists in a {@link Taggable} object _and_ is one of several
      * expected values. While we could do the same with an EnumSet, this makes calling code cleaner
      * since they only need a single line to check for the existence of at least one item in a set
@@ -408,30 +432,6 @@ public class Validators
             }
         }
         return false;
-    }
-
-    /**
-     * Use this method to check if a tag exists in two {@link Taggable} objects, and those values
-     * are the same.
-     *
-     * @param <T>
-     *            the enum-type tag's class object
-     * @param firstTaggable
-     *            one taggable we are comparing
-     * @param secondTaggable
-     *            the other taggable we are comparing against
-     * @param type
-     *            the class of the enum-type tag we are looking for
-     * @return true if the tag exists in firstTaggable AND secondTaggable, AND the value of
-     *         firstTaggable is equal to the value of secondTaggable.
-     */
-    public static <T> boolean isOfSameType(final Taggable firstTaggable,
-            final Taggable secondTaggable, final Class<T> type)
-    {
-        final String key = findTagNameIn(type);
-
-        return firstTaggable.getTag(key)
-                .flatMap(oneTag -> secondTaggable.getTag(key).map(oneTag::equals)).orElse(false);
     }
 
     /**

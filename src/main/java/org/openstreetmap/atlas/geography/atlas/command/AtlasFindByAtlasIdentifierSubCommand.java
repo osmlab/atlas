@@ -58,26 +58,6 @@ public class AtlasFindByAtlasIdentifierSubCommand extends AbstractAtlasSubComman
     }
 
     @Override
-    protected void start(final CommandMap command)
-    {
-        // Collect ids
-        this.identifiers.addAll((Set) command.get(ATLAS_ID_PARAMETER));
-    }
-
-    @Override
-    protected void handle(final Atlas atlas, final CommandMap command)
-    {
-        // Get all atlas entities with ids matching the input list
-        atlas.entities(identifierCheck()).forEach(item ->
-        {
-            // Print atlas and item information
-            System.out.print(formatAtlasObject(item));
-            // Record shard name
-            this.shardNames.add(atlas.getName());
-        });
-    }
-
-    @Override
     protected int finish(final CommandMap command)
     {
         final Optional output = command.getOption(JOINED_OUTPUT_PARAMETER);
@@ -94,16 +74,24 @@ public class AtlasFindByAtlasIdentifierSubCommand extends AbstractAtlasSubComman
         return 0;
     }
 
-    /**
-     * Predicate to check an {@link AtlasObject} against the list of ids.
-     *
-     * @param <T>
-     *            Object type
-     * @return {@link Predicate}
-     */
-    private <T extends AtlasObject> Predicate<T> identifierCheck()
+    @Override
+    protected void handle(final Atlas atlas, final CommandMap command)
     {
-        return object -> this.identifiers.contains(object.getIdentifier());
+        // Get all atlas entities with ids matching the input list
+        atlas.entities(identifierCheck()).forEach(item ->
+        {
+            // Print atlas and item information
+            System.out.print(formatAtlasObject(item));
+            // Record shard name
+            this.shardNames.add(atlas.getName());
+        });
+    }
+
+    @Override
+    protected void start(final CommandMap command)
+    {
+        // Collect ids
+        this.identifiers.addAll((Set) command.get(ATLAS_ID_PARAMETER));
     }
 
     /**
@@ -120,5 +108,17 @@ public class AtlasFindByAtlasIdentifierSubCommand extends AbstractAtlasSubComman
         return String.format("[%s] [%d] [%d] --> [%s:%s] Tags: [%s]%n", entity.getType(),
                 entity.getOsmIdentifier(), entity.getIdentifier(), shardName,
                 entity.getAtlas().getName(), entity.getTags());
+    }
+
+    /**
+     * Predicate to check an {@link AtlasObject} against the list of ids.
+     *
+     * @param <T>
+     *            Object type
+     * @return {@link Predicate}
+     */
+    private <T extends AtlasObject> Predicate<T> identifierCheck()
+    {
+        return object -> this.identifiers.contains(object.getIdentifier());
     }
 }

@@ -30,8 +30,6 @@ import com.google.gson.JsonObject;
 public class Location
         implements Located, Iterable<Location>, Serializable, GeometryPrintable, GeoJsonGeometry
 {
-    private static final long serialVersionUID = 3770424147251047128L;
-
     public static final String TEST_1_COORDINATES = "37.335310,-122.009566";
     public static final String TEST_2_COORDINATES = "37.321628,-122.028464";
     public static final String TEST_3_COORDINATES = "37.317585,-122.052138";
@@ -40,7 +38,6 @@ public class Location
     public static final String TEST_6_COORDINATES = "37.325440,-122.033948";
     public static final String TEST_7_COORDINATES = "37.3314171,-122.0304871";
     public static final String TEST_8_COORDINATES = "37.3214159,-122.0303831";
-
     // Quick-access locations, mostly used for testing.
     public static final Location TEST_1 = Location.forString(TEST_1_COORDINATES);
     public static final Location TEST_2 = Location.forString(TEST_2_COORDINATES);
@@ -56,7 +53,7 @@ public class Location
     public static final Location EIFFEL_TOWER = Location.forString("48.858241,2.294495");
     public static final Location COLOSSEUM = Location.forString("41.890224,12.492340");
     public static final Location CENTER = new Location(0L);
-
+    private static final long serialVersionUID = 3770424147251047128L;
     private static final int INT_FULL_MASK = 0xFFFFFFFF;
     private static final long INT_FULL_MASK_AS_LONG = 0xFFFFFFFFL;
     private static final int INT_SIZE = 32;
@@ -294,16 +291,6 @@ public class Location
         return this.longitude;
     }
 
-    @Override
-    public int hashCode()
-    {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + (this.latitude == null ? 0 : this.latitude.hashCode());
-        result = prime * result + (this.longitude == null ? 0 : this.longitude.hashCode());
-        return result;
-    }
-
     /**
      * @param other
      *            The other {@link Location} to test
@@ -324,6 +311,16 @@ public class Location
     public boolean hasSameLongitudeAs(final Location other)
     {
         return this.getLongitude().equals(other.getLongitude());
+    }
+
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + (this.latitude == null ? 0 : this.latitude.hashCode());
+        result = prime * result + (this.longitude == null ? 0 : this.longitude.hashCode());
+        return result;
     }
 
     /**

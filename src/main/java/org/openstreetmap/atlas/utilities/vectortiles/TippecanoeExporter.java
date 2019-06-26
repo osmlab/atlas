@@ -28,14 +28,14 @@ public final class TippecanoeExporter extends LineDelimitedGeoJsonConverter
             "The MBTiles file to which tippecanoe will write vector tiles.", Paths::get,
             Optionality.REQUIRED);
 
-    private TippecanoeExporter()
-    {
-        this.setJsonMutator(TippecanoeSettings.JSON_MUTATOR);
-    }
-
     public static void main(final String[] args)
     {
         new TippecanoeExporter().run(args);
+    }
+
+    private TippecanoeExporter()
+    {
+        this.setJsonMutator(TippecanoeSettings.JSON_MUTATOR);
     }
 
     @Override

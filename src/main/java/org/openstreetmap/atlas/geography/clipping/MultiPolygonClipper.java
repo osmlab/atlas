@@ -150,18 +150,6 @@ public class MultiPolygonClipper
         return result;
     }
 
-    private MultiPolygon runPolygonClipping(final Polygon subject,
-            final BiFunction<Geometry, Geometry, Geometry> application)
-    {
-        MultiPolygon result = new MultiPolygon(new MultiMap<>());
-        for (final org.locationtech.jts.geom.Polygon jtsClipping : this.jtsClippings)
-        {
-            result = result.merge(processMultiPolygon(
-                    application.apply(PolygonClipper.getJts(subject), jtsClipping)));
-        }
-        return result;
-    }
-
     private List<PolyLine> runPolyLineClipping(final PolyLine subject,
             final BiFunction<Geometry, Geometry, Geometry> application)
     {
@@ -169,6 +157,18 @@ public class MultiPolygonClipper
         for (final org.locationtech.jts.geom.Polygon jtsClipping : this.jtsClippings)
         {
             result.addAll(processPolyLine(
+                    application.apply(PolygonClipper.getJts(subject), jtsClipping)));
+        }
+        return result;
+    }
+
+    private MultiPolygon runPolygonClipping(final Polygon subject,
+            final BiFunction<Geometry, Geometry, Geometry> application)
+    {
+        MultiPolygon result = new MultiPolygon(new MultiMap<>());
+        for (final org.locationtech.jts.geom.Polygon jtsClipping : this.jtsClippings)
+        {
+            result = result.merge(processMultiPolygon(
                     application.apply(PolygonClipper.getJts(subject), jtsClipping)));
         }
         return result;

@@ -14,31 +14,28 @@ import org.openstreetmap.atlas.utilities.scalars.Speed;
 public class SpeedExtractorTest
 {
     @Test
-    public void validNumberTest()
+    public void invalidImplicitDelimitedTest()
     {
-        Assert.assertEquals(Optional.of(Speed.kilometersPerHour(60)),
-                SpeedExtractor.validateAndExtract("60"));
+        Assert.assertEquals(Optional.empty(),
+                SpeedExtractor.validateAndExtract("RO:urban; RO:rural"));
     }
 
     @Test
-    public void validNumberKPHTest()
+    public void invalidNoneTest()
     {
-        Assert.assertEquals(Optional.of(Speed.kilometersPerHour(60)),
-                SpeedExtractor.validateAndExtract("60 kph"));
+        Assert.assertEquals(Optional.empty(), SpeedExtractor.validateAndExtract("none"));
     }
 
     @Test
-    public void validNumberMPHTest()
+    public void invalidNumberDelimitedTest()
     {
-        Assert.assertEquals(Optional.of(Speed.milesPerHour(60)),
-                SpeedExtractor.validateAndExtract("60 mph"));
+        Assert.assertEquals(Optional.empty(), SpeedExtractor.validateAndExtract("60; 50"));
     }
 
     @Test
-    public void validNumberKnotsTest()
+    public void invalidNumberMPHTest()
     {
-        Assert.assertEquals(Optional.of(Speed.knots(60)),
-                SpeedExtractor.validateAndExtract("60 knots"));
+        Assert.assertEquals(Optional.empty(), SpeedExtractor.validateAndExtract("60mph"));
     }
 
     @Test
@@ -49,27 +46,30 @@ public class SpeedExtractorTest
     }
 
     @Test
-    public void invalidNoneTest()
+    public void validNumberKPHTest()
     {
-        Assert.assertEquals(Optional.empty(), SpeedExtractor.validateAndExtract("none"));
+        Assert.assertEquals(Optional.of(Speed.kilometersPerHour(60)),
+                SpeedExtractor.validateAndExtract("60 kph"));
     }
 
     @Test
-    public void invalidNumberMPHTest()
+    public void validNumberKnotsTest()
     {
-        Assert.assertEquals(Optional.empty(), SpeedExtractor.validateAndExtract("60mph"));
+        Assert.assertEquals(Optional.of(Speed.knots(60)),
+                SpeedExtractor.validateAndExtract("60 knots"));
     }
 
     @Test
-    public void invalidNumberDelimitedTest()
+    public void validNumberMPHTest()
     {
-        Assert.assertEquals(Optional.empty(), SpeedExtractor.validateAndExtract("60; 50"));
+        Assert.assertEquals(Optional.of(Speed.milesPerHour(60)),
+                SpeedExtractor.validateAndExtract("60 mph"));
     }
 
     @Test
-    public void invalidImplicitDelimitedTest()
+    public void validNumberTest()
     {
-        Assert.assertEquals(Optional.empty(),
-                SpeedExtractor.validateAndExtract("RO:urban; RO:rural"));
+        Assert.assertEquals(Optional.of(Speed.kilometersPerHour(60)),
+                SpeedExtractor.validateAndExtract("60"));
     }
 }

@@ -25,6 +25,30 @@ public class WithinTest
     public WithinTestRule containableTestRule = new WithinTestRule();
 
     @Test
+    public void testAtlasEntities()
+    {
+        final long identifier = WithinTestRule.ID;
+
+        final Atlas atlas = this.containableTestRule.getAtlas();
+
+        Assert.assertTrue(atlas.node(identifier).within(rectThree()));
+        Assert.assertTrue(atlas.edge(identifier).within(rectThree()));
+        Assert.assertTrue(atlas.area(identifier).within(rectThree()));
+        Assert.assertTrue(atlas.relation(identifier).within(rectThree()));
+
+        Assert.assertFalse(atlas.node(identifier).within(rectTwo()));
+        Assert.assertFalse(atlas.edge(identifier).within(rectTwo()));
+        Assert.assertFalse(atlas.area(identifier).within(rectTwo()));
+        Assert.assertFalse(atlas.relation(identifier).within(rectTwo()));
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void testDefaultBehavior()
+    {
+        ((Located) () -> null).within(null);
+    }
+
+    @Test
     public void testLocationIsWithin()
     {
         final GeometricSurface surface = rectOne();
@@ -75,34 +99,18 @@ public class WithinTest
         Assert.assertFalse(polygon2.within(surface1));
     }
 
-    @Test
-    public void testAtlasEntities()
-    {
-        final long identifier = WithinTestRule.ID;
-
-        final Atlas atlas = this.containableTestRule.getAtlas();
-
-        Assert.assertTrue(atlas.node(identifier).within(rectThree()));
-        Assert.assertTrue(atlas.edge(identifier).within(rectThree()));
-        Assert.assertTrue(atlas.area(identifier).within(rectThree()));
-        Assert.assertTrue(atlas.relation(identifier).within(rectThree()));
-
-        Assert.assertFalse(atlas.node(identifier).within(rectTwo()));
-        Assert.assertFalse(atlas.edge(identifier).within(rectTwo()));
-        Assert.assertFalse(atlas.area(identifier).within(rectTwo()));
-        Assert.assertFalse(atlas.relation(identifier).within(rectTwo()));
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testDefaultBehavior()
-    {
-        ((Located) () -> null).within(null);
-    }
-
     private GeometricSurface rectOne()
     {
         final Location lowerLeft = new Location(Latitude.degrees(10), Longitude.degrees(10));
         final Location upperRight = new Location(Latitude.degrees(20), Longitude.degrees(20));
+
+        return Rectangle.forCorners(lowerLeft, upperRight);
+    }
+
+    private GeometricSurface rectThree()
+    {
+        final Location lowerLeft = new Location(Latitude.degrees(10), Longitude.degrees(100));
+        final Location upperRight = new Location(Latitude.degrees(20), Longitude.degrees(150));
 
         return Rectangle.forCorners(lowerLeft, upperRight);
     }
@@ -113,13 +121,5 @@ public class WithinTest
         final Location upperRight2 = new Location(Latitude.degrees(-10), Longitude.degrees(-10));
 
         return Rectangle.forCorners(lowerLeft2, upperRight2);
-    }
-
-    private GeometricSurface rectThree()
-    {
-        final Location lowerLeft = new Location(Latitude.degrees(10), Longitude.degrees(100));
-        final Location upperRight = new Location(Latitude.degrees(20), Longitude.degrees(150));
-
-        return Rectangle.forCorners(lowerLeft, upperRight);
     }
 }

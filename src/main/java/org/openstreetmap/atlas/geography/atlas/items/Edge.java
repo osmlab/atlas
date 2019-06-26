@@ -90,19 +90,19 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
         return result;
     }
 
+    public Node connectedNode(final ConnectedNodeType connectedNodeType)
+    {
+        Validate.notNull(connectedNodeType);
+        final Node connectedNode = connectedNodeType.getAccessFunction().apply(this);
+        return connectedNode;
+    }
+
     public Set<Node> connectedNodes()
     {
         final Set<Node> result = new HashSet<>();
         result.add(this.start());
         result.add(this.end());
         return result;
-    }
-
-    public Node connectedNode(final ConnectedNodeType connectedNodeType)
-    {
-        Validate.notNull(connectedNodeType);
-        final Node connectedNode = connectedNodeType.getAccessFunction().apply(this);
-        return connectedNode;
     }
 
     /**

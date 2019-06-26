@@ -19,6 +19,25 @@ public class ComplexAreaOfInterestFinderTest
     public ComplexAreaOfInterestFinderTestRule rule = new ComplexAreaOfInterestFinderTestRule();
 
     @Test
+    public void testAOIArea()
+    {
+        final Atlas atlas = this.rule.getAoiAreaAtlas();
+        final ComplexAreaOfInterestFinder aoiRelationFinder = new ComplexAreaOfInterestFinder();
+        final Iterable<ComplexAreaOfInterest> complexAOIAreas = aoiRelationFinder.find(atlas);
+        Assert.assertEquals(2, StreamSupport.stream(complexAOIAreas.spliterator(), false).count());
+    }
+
+    @Test
+    public void testComplexAOIWithCustomFilter()
+    {
+        final Atlas atlas = this.rule.getComplexAOIWithRelationsAndAreas();
+        final ComplexAreaOfInterestFinder aoiRelationFinder = new ComplexAreaOfInterestFinder();
+        final Iterable<ComplexAreaOfInterest> complexAOIs = aoiRelationFinder.find(atlas,
+                TaggableFilter.forDefinition("landuse->VINEYARD|amenity->SCHOOL"));
+        Assert.assertEquals(3, StreamSupport.stream(complexAOIs.spliterator(), false).count());
+    }
+
+    @Test
     public void testMultipolygonAOIRelation()
     {
         final Atlas atlas = this.rule.getMultipolygonAOIRelationAtlas();
@@ -37,24 +56,5 @@ public class ComplexAreaOfInterestFinderTest
         Assert.assertFalse(complexAOIRelations.iterator().hasNext());
         Assert.assertEquals(0,
                 StreamSupport.stream(complexAOIRelations.spliterator(), false).count());
-    }
-
-    @Test
-    public void testAOIArea()
-    {
-        final Atlas atlas = this.rule.getAoiAreaAtlas();
-        final ComplexAreaOfInterestFinder aoiRelationFinder = new ComplexAreaOfInterestFinder();
-        final Iterable<ComplexAreaOfInterest> complexAOIAreas = aoiRelationFinder.find(atlas);
-        Assert.assertEquals(2, StreamSupport.stream(complexAOIAreas.spliterator(), false).count());
-    }
-
-    @Test
-    public void testComplexAOIWithCustomFilter()
-    {
-        final Atlas atlas = this.rule.getComplexAOIWithRelationsAndAreas();
-        final ComplexAreaOfInterestFinder aoiRelationFinder = new ComplexAreaOfInterestFinder();
-        final Iterable<ComplexAreaOfInterest> complexAOIs = aoiRelationFinder.find(atlas,
-                TaggableFilter.forDefinition("landuse->VINEYARD|amenity->SCHOOL"));
-        Assert.assertEquals(3, StreamSupport.stream(complexAOIs.spliterator(), false).count());
     }
 }
