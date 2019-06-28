@@ -1046,7 +1046,7 @@ public class CountryBoundaryMap implements Serializable
             {
                 logger.error(
                         "Error while using regular intersection for line {}, attempting again with reduced precision",
-                        identifier);
+                        identifier, exc);
                 try
                 {
                     final GeometryPrecisionReducer precisionReducer = new GeometryPrecisionReducer(
