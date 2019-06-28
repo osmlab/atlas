@@ -35,6 +35,7 @@ import org.locationtech.jts.geom.GeometryCollection;
 import org.locationtech.jts.geom.IntersectionMatrix;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.geom.TopologyException;
 import org.locationtech.jts.index.strtree.AbstractNode;
 import org.locationtech.jts.index.strtree.GeometryItemDistance;
@@ -127,6 +128,8 @@ public class CountryBoundaryMap implements Serializable
     private static final int MAXIMUM_EXPECTED_COUNTRIES_TO_SLICE_WITH = 3;
     private static final int DEFAULT_MAXIMUM_POLYGONS_TO_SLICE_WITH = 2000;
     private static final int EXPANDED_MAXIMUM_POLYGONS_TO_SLICE_WITH = 25000;
+
+    private static final int PRECISION_MODEL = 100_000_000;
 
     // Converters
     private static final JtsMultiPolygonConverter JTS_MULTI_POLYGON_TO_POLYGON_CONVERTER = new JtsMultiPolygonConverter();
@@ -1034,7 +1037,34 @@ public class CountryBoundaryMap implements Serializable
         for (final Polygon candidate : candidates)
         {
             RuntimeCounter.geometryCheckedIntersect();
-            final Geometry clipped = target.intersection(candidate);
+            Geometry clipped;
+            try
+            {
+                clipped = target.intersection(candidate);
+            }
+            catch (final TopologyException exc)
+            {
+                logger.error(
+                        "Error while using regular intersection for line {}, attempting again with reduced precision",
+                        identifier, exc);
+                try
+                {
+                    final GeometryPrecisionReducer precisionReducer = new GeometryPrecisionReducer(
+                            new PrecisionModel(PRECISION_MODEL));
+                    precisionReducer.setPointwise(true);
+                    precisionReducer.setChangePrecisionModel(false);
+                    target = precisionReducer.reduce(target);
+                    clipped = target.intersection(candidate);
+                }
+                catch (final Exception newExc)
+                {
+                    logger.error(
+                            "Reduced precision still failed for line {}, rethrowing original exception",
+                            identifier, newExc);
+                    throw exc;
+                }
+
+            }
 
             // We don't want single point pieces
             if (clipped.getNumPoints() < 2)
