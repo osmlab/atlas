@@ -1060,7 +1060,7 @@ public class CountryBoundaryMap implements Serializable
                 {
                     logger.error(
                             "Reduced precision still failed for line {}, rethrowing original exception",
-                            identifier);
+                            identifier, newExc);
                     throw exc;
                 }
 
