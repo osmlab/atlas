@@ -26,4 +26,4 @@ jobs:
       - run: ./gradlew check -x test -x integrationTest
       - run:
           command: ./gradlew check
-          no_output_timeout: 20m
+          no_output_timeout: 30m
