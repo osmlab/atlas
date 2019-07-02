@@ -70,7 +70,7 @@ public class EntityIdentifierGenerator
     String getBasicPropertyString(final CompleteEntity<?> entity)
     {
         final String wkt = entity.toWkt();
-        if (wkt == null)
+        if (wkt == null && !(entity instanceof CompleteRelation))
         {
             throw new CoreException("Geometry must be set for entity {}", entity.prettify());
         }
