@@ -47,7 +47,8 @@ public enum BarrierTag
     DOOR,
     HAMPSHIRE_GATE,
     WOOD_FENCE,
-    BUMP_GATE;
+    BUMP_GATE,
+    BUS_TRAP;
 
     @TagKey
     public static final String KEY = "barrier";
@@ -56,7 +57,7 @@ public enum BarrierTag
             BOLLARD, LIFT_GATE, RETAINING_WALL, STILE, CYCLE_BARRIER, KERB, YES, ENTRANCE, BLOCK,
             TOLL_BOOTH, CATTLE_GRID, DITCH, KISSING_GATE, CITY_WALL, GUARD_RAIL, HEDGE_BANK,
             WIRE_FENCE, LINE, SWING_GATE, CHAIN, TURNSTILE, EMBANKMENT, FIELD_BOUNDARY,
-            BORDER_CONTROL, SALLY_PORT, DOOR, HAMPSHIRE_GATE, WOOD_FENCE, BUMP_GATE);
+            BORDER_CONTROL, SALLY_PORT, DOOR, HAMPSHIRE_GATE, WOOD_FENCE, BUMP_GATE, BUS_TRAP);
 
     public static boolean isBarrier(final Taggable taggable)
     {
