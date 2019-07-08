@@ -30,7 +30,7 @@ dependencies
 
 **With Atlas 5.6.9+, the versions of checkstyle that are supported are up to `8.20`.**
 
-Checkstyle `8.21` and `8.22`+ contain a breaking change that is not yet supported by `ArrangementCheck`.
+Checkstyle `8.21` and `8.22`+ contain [a breaking change](https://github.com/checkstyle/checkstyle/compare/checkstyle-8.20...checkstyle-8.21#diff-2ecb5f79d7dcce6cfd4fa27ef2ec99d1R29) that is not yet supported by `ArrangementCheck`.
 
 ## Ordering definition
 
