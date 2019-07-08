@@ -7,7 +7,7 @@ then
 	echo "sonar.pullrequest.key=$TRAVIS_PULL_REQUEST"
 	echo "sonar.pullrequest.branch=$SONAR_PULLREQUEST_BRANCH"
 	echo "sonar.pullrequest.base=$TRAVIS_BRANCH"
-	./gradlew sonarqube \
+	./gradlew jacocoTestReport sonarqube \
 		-Dsonar.organization=osmlab \
 		-Dsonar.host.url=https://sonarcloud.io \
 		-Dsonar.login=$SONAR_TOKEN \
@@ -22,7 +22,7 @@ then
 		-Dsonar.pullrequest.github.token.secured=$SONAR_PR_DECORATION_GITHUB_TOKEN
 else
 	echo "Running sonarqube in a regular build"
-	./gradlew sonarqube \
+	./gradlew jacocoTestReport sonarqube \
 		-Dsonar.branch.name=$TRAVIS_BRANCH \
 		-Dsonar.organization=osmlab \
 		-Dsonar.host.url=https://sonarcloud.io \

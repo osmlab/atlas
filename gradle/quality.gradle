@@ -43,7 +43,7 @@ task integrationTest(type: Test) {
     }
 }
 
-// Those 3 for atlas only here because ArrangementCheck is already in Atlas and 
+// Those 3 for atlas only here because ArrangementCheck is already in Atlas and
 // Gradle does not allow third party dependency of itself.
 checkstyleMain.dependsOn jar
 checkstyleTest.dependsOn jar
@@ -52,7 +52,7 @@ checkstyleIntegrationTest.dependsOn jar
 check.dependsOn integrationTest
 integrationTest.mustRunAfter test
 
-sonarqube.dependsOn jacocoTestReport
+check.dependsOn jacocoTestReport
 
 tasks.withType(Test) {
     reports.html.destination = file("${reporting.baseDir}/${name}")
