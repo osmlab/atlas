@@ -28,6 +28,10 @@ dependencies
 }
 ```
 
+**With Atlas 5.6.9+, the versions of checkstyle that are supported are up to `8.20`.**
+
+Checkstyle `8.21` and `8.22`+ contain a breaking change that is not yet supported by `ArrangementCheck`.
+
 ## Ordering definition
 
 The ordering can be defined in a text file which has the following format:
