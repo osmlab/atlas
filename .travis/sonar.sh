@@ -12,7 +12,7 @@ then
 		-Dsonar.host.url=https://sonarcloud.io \
 		-Dsonar.login=$SONAR_TOKEN \
 		-Dsonar.junit.reportPaths=build/test-results/test \
-		-Dsonar.jacoco.reportPaths=build/jacoco/test.exec \
+		-Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml \
 		-Dsonar.pullrequest.key=$TRAVIS_PULL_REQUEST \
 		-Dsonar.pullrequest.branch=$SONAR_PULLREQUEST_BRANCH \
 		-Dsonar.pullrequest.base=$TRAVIS_BRANCH \
@@ -28,5 +28,5 @@ else
 		-Dsonar.host.url=https://sonarcloud.io \
 		-Dsonar.login=$SONAR_TOKEN \
 		-Dsonar.junit.reportPaths=build/test-results/test \
-		-Dsonar.jacoco.reportPaths=build/jacoco/test.exec
+		-Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
 fi
