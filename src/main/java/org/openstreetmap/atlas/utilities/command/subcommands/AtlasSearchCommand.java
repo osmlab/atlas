@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
@@ -33,6 +35,10 @@ import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
  */
 public class AtlasSearchCommand extends AtlasLoaderCommand
 {
+    private static final String GEOMETRY_OPTION_LONG = "geometry";
+    private static final String GEOMETRY_OPTION_DESCRIPTION = "A colon separated list of geometry WKTs for which to search.";
+    private static final String GEOMETRY_OPTION_HINT = "wkt-geometry";
+
     private static final String ID_OPTION_LONG = "id";
     private static final String ID_OPTION_DESCRIPTION = "A comma separated list of Atlas ids for which to search.";
     private static final String ID_OPTION_HINT = "ids";
@@ -54,6 +60,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
 
     private Set<Long> ids;
     private Set<Long> osmIds;
+    private Set<String> wkts;
     private Set<ItemType> typesToCheck;
     private Set<Atlas> matchingAtlases;
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
@@ -100,7 +107,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     @Override
     public String getSimpleDescription()
     {
-        return "find features with given identifier(s) or properties in given atlas(es)";
+        return "find features with given identifiers or properties in given atlas(es)";
     }
 
     @Override
@@ -116,6 +123,8 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     @Override
     public void registerOptionsAndArguments()
     {
+        registerOptionWithRequiredArgument(GEOMETRY_OPTION_LONG, GEOMETRY_OPTION_DESCRIPTION,
+                OptionOptionality.OPTIONAL, GEOMETRY_OPTION_HINT);
         registerOptionWithRequiredArgument(ID_OPTION_LONG, ID_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, ID_OPTION_HINT);
         registerOptionWithRequiredArgument(OSMID_OPTION_LONG, OSMID_OPTION_DESCRIPTION,
@@ -133,6 +142,8 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                 .orElse(new HashSet<>());
         this.osmIds = this.optionAndArgumentDelegate
                 .getOptionArgument(OSMID_OPTION_LONG, this::parseIds).orElse(new HashSet<>());
+        this.wkts = this.optionAndArgumentDelegate
+                .getOptionArgument(GEOMETRY_OPTION_LONG, this::parseWkts).orElse(new HashSet<>());
         this.typesToCheck = this.optionAndArgumentDelegate
                 .getOptionArgument(TYPES_OPTION_LONG, this::parseItemTypes)
                 .orElse(Sets.hashSet(ItemType.values()));
@@ -144,9 +155,10 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             return 1;
         }
 
-        if (this.ids.isEmpty() && this.osmIds.isEmpty())
+        if (this.ids.isEmpty() && this.osmIds.isEmpty() && this.wkts.isEmpty())
         {
-            this.outputDelegate.printlnErrorMessage("no ids were successfully parsed");
+            this.outputDelegate
+                    .printlnErrorMessage("no ids or properties were successfully parsed");
             return 1;
         }
 
@@ -193,6 +205,18 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                     this.matchingAtlases.add(atlas);
                 }
             }
+            for (final String wkt : this.wkts)
+            {
+                if (wkt.equals(entity.toWkt()) && this.typesToCheck.contains(entity.getType()))
+                {
+                    this.outputDelegate.printlnStdout("Found entity with geometry " + wkt + " in "
+                            + atlasResource.getPath() + ":", TTYAttribute.BOLD);
+                    this.outputDelegate.printlnStdout(entity.toDiffViewFriendlyString(),
+                            TTYAttribute.GREEN);
+                    this.outputDelegate.printlnStdout("");
+                    this.matchingAtlases.add(atlas);
+                }
+            }
         }
     }
 
@@ -216,8 +240,8 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             }
             catch (final NumberFormatException exception)
             {
-                this.outputDelegate
-                        .printlnWarnMessage("could not parse id " + idElement + ": skipping...");
+                this.outputDelegate.printlnWarnMessage(
+                        "could not parse id \'" + idElement + "\': skipping...");
             }
         }
         return idSet;
@@ -244,9 +268,35 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             catch (final IllegalArgumentException exception)
             {
                 this.outputDelegate.printlnWarnMessage(
-                        "could not parse ItemType " + typeElement + ": skipping...");
+                        "could not parse ItemType \'" + typeElement + "\': skipping...");
             }
         }
         return typeSet;
+    }
+
+    private Set<String> parseWkts(final String wktString)
+    {
+        final Set<String> wktSet = new HashSet<>();
+
+        if (wktString.isEmpty())
+        {
+            return wktSet;
+        }
+
+        final WKTReader reader = new WKTReader();
+        Arrays.stream(wktString.split(":")).forEach(wkt ->
+        {
+            try
+            {
+                reader.read(wkt);
+                wktSet.add(wkt);
+            }
+            catch (final ParseException exception)
+            {
+                this.outputDelegate
+                        .printlnWarnMessage("could not parse wkt \'" + wkt + "\': skipping...");
+            }
+        });
+        return wktSet;
     }
 }
