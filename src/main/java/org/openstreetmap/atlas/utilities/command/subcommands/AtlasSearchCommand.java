@@ -23,14 +23,15 @@ import org.openstreetmap.atlas.utilities.command.subcommands.templates.AtlasLoad
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 
 /**
- * Search atlases for some given feature identifiers, with various options and restrictions. Based
- * on similar identifier locater commands by cstaylor and bbreithaupt.
+ * Search atlases for some given feature identifiers or properties, with various options and
+ * restrictions. Draws some inspiration from similar identifier locater commands by cstaylor and
+ * bbreithaupt.
  *
  * @author lcram
  * @author cstaylor
  * @author bbreithaupt
  */
-public class IdentifierSearchCommand extends AtlasLoaderCommand
+public class AtlasSearchCommand extends AtlasLoaderCommand
 {
     private static final String ID_OPTION_LONG = "id";
     private static final String ID_OPTION_DESCRIPTION = "A comma separated list of Atlas ids for which to search.";
@@ -60,10 +61,10 @@ public class IdentifierSearchCommand extends AtlasLoaderCommand
 
     public static void main(final String[] args)
     {
-        new IdentifierSearchCommand().runSubcommandAndExit(args);
+        new AtlasSearchCommand().runSubcommandAndExit(args);
     }
 
-    public IdentifierSearchCommand()
+    public AtlasSearchCommand()
     {
         this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
@@ -93,22 +94,22 @@ public class IdentifierSearchCommand extends AtlasLoaderCommand
     @Override
     public String getCommandName()
     {
-        return "find-id";
+        return "find";
     }
 
     @Override
     public String getSimpleDescription()
     {
-        return "find features with given identifier(s) in given atlas(es)";
+        return "find features with given identifier(s) or properties in given atlas(es)";
     }
 
     @Override
     public void registerManualPageSections()
     {
-        addManualPageSection("DESCRIPTION", IdentifierSearchCommand.class
-                .getResourceAsStream("IdentifierSearchCommandDescriptionSection.txt"));
-        addManualPageSection("EXAMPLES", IdentifierSearchCommand.class
-                .getResourceAsStream("IdentifierSearchCommandExamplesSection.txt"));
+        addManualPageSection("DESCRIPTION", AtlasSearchCommand.class
+                .getResourceAsStream("AtlasSearchCommandDescriptionSection.txt"));
+        addManualPageSection("EXAMPLES", AtlasSearchCommand.class
+                .getResourceAsStream("AtlasSearchCommandExamplesSection.txt"));
         super.registerManualPageSections();
     }
 
