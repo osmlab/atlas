@@ -7,12 +7,12 @@ then
 	echo "sonar.pullrequest.key=$TRAVIS_PULL_REQUEST"
 	echo "sonar.pullrequest.branch=$SONAR_PULLREQUEST_BRANCH"
 	echo "sonar.pullrequest.base=$TRAVIS_BRANCH"
-	./gradlew sonarqube \
+	./gradlew jacocoTestReport sonarqube \
 		-Dsonar.organization=osmlab \
 		-Dsonar.host.url=https://sonarcloud.io \
 		-Dsonar.login=$SONAR_TOKEN \
 		-Dsonar.junit.reportPaths=build/test-results/test \
-		-Dsonar.jacoco.reportPaths=build/jacoco/test.exec \
+		-Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml \
 		-Dsonar.pullrequest.key=$TRAVIS_PULL_REQUEST \
 		-Dsonar.pullrequest.branch=$SONAR_PULLREQUEST_BRANCH \
 		-Dsonar.pullrequest.base=$TRAVIS_BRANCH \
@@ -22,11 +22,11 @@ then
 		-Dsonar.pullrequest.github.token.secured=$SONAR_PR_DECORATION_GITHUB_TOKEN
 else
 	echo "Running sonarqube in a regular build"
-	./gradlew sonarqube \
+	./gradlew jacocoTestReport sonarqube \
 		-Dsonar.branch.name=$TRAVIS_BRANCH \
 		-Dsonar.organization=osmlab \
 		-Dsonar.host.url=https://sonarcloud.io \
 		-Dsonar.login=$SONAR_TOKEN \
 		-Dsonar.junit.reportPaths=build/test-results/test \
-		-Dsonar.jacoco.reportPaths=build/jacoco/test.exec
+		-Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
 fi
