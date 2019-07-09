@@ -99,6 +99,8 @@ jacocoTestReport {
             fileTree(dir: it, exclude: 'org/openstreetmap/atlas/proto/**')
         })
     }
+    sourceSets sourceSets.main
+    executionData fileTree(project.rootDir.absolutePath).include("**/jacoco/*.exec")
 }
 
 sonarqube {
