@@ -27,3 +27,5 @@ jobs:
       - run:
           command: ./gradlew check
           no_output_timeout: 30m
+      - run: .circleci/sonar.sh
+      - run: ./gradlew cleanPyatlas buildPyatlas
