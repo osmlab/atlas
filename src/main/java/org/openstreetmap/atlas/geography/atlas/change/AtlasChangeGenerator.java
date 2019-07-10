@@ -76,8 +76,13 @@ public interface AtlasChangeGenerator extends Converter<Atlas, Set<FeatureChange
                     newBounds = newBounds.combine(bounds);
                 }
             }
+            CompleteNode newCompleteNode = originalCompleteNode.withBoundsExtendedBy(newBounds);
+            if (originalCompleteNode.getLocation() == null && originalNode != null)
+            {
+                newCompleteNode = newCompleteNode.withLocation(originalNode.getLocation());
+            }
             final FeatureChange newFeatureChange = new FeatureChange(featureChange.getChangeType(),
-                    originalCompleteNode.withBoundsExtendedBy(newBounds));
+                    newCompleteNode);
             result.add(newFeatureChange);
         }
         return result;
