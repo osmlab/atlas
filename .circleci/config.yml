@@ -21,13 +21,15 @@ jobs:
 
     steps:
       - checkout
-      - run: if [ -z "$SONAR_TOKEN" ]; then echo "SONAR_TOKEN missing"; else echo "SONAR_TOKEN is here"; fi
-      - run: echo $SONAR_TOKEN
+      # - run: if [ -z "$SONAR_TOKEN" ]; then echo "SONAR_TOKEN missing"; else echo "SONAR_TOKEN is here"; fi
+      # - run: echo $SONAR_TOKEN
       # Run jar first, as the checkstyle plugin depends on atlas itself here.
-      - run: ./gradlew jar
-      - run: ./gradlew check -x test -x integrationTest
       - run:
+          name: Quality checks (No tests)
+          command: ./gradlew jar check -x test -x integrationTest
+      - run:
+          name: Tests
           command: ./gradlew check
           no_output_timeout: 30m
-      - run: .circleci/sonar.sh
+      # - run: .circleci/sonar.sh
       # - run: ./gradlew cleanPyatlas buildPyatlas
