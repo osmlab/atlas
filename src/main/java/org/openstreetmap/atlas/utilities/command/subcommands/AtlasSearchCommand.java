@@ -16,6 +16,7 @@ import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
 import org.openstreetmap.atlas.streaming.resource.File;
+import org.openstreetmap.atlas.tags.filters.TaggableFilter;
 import org.openstreetmap.atlas.utilities.collections.Sets;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
@@ -39,6 +40,10 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     private static final String GEOMETRY_OPTION_DESCRIPTION = "A colon separated list of geometry WKTs for which to search.";
     private static final String GEOMETRY_OPTION_HINT = "wkt-geometry";
 
+    private static final String TAGGABLEFILTER_OPTION_LONG = "taggableFilter";
+    private static final String TAGGABLEFILTER_OPTION_DESCRIPTION = "A TaggableFilter by which to filter the search space.";
+    private static final String TAGGABLEFILTER_OPTION_HINT = "filter";
+
     private static final String ID_OPTION_LONG = "id";
     private static final String ID_OPTION_DESCRIPTION = "A comma separated list of Atlas ids for which to search.";
     private static final String ID_OPTION_HINT = "ids";
@@ -47,10 +52,6 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     private static final String OSMID_OPTION_DESCRIPTION = "A comma separated list of OSM ids for which to search.";
     private static final String OSMID_OPTION_HINT = "osmids";
 
-    private static final String OUTPUT_ATLAS = "collected-multi.atlas";
-    private static final String COLLECT_OPTION_LONG = "collect-matching";
-    private static final String COLLECT_OPTION_DESCRIPTION = "Collect all matching atlas files and save to a file using the MultiAtlas.";
-
     private static final List<String> ITEM_TYPE_STRINGS = Arrays.stream(ItemType.values())
             .map(ItemType::toString).collect(Collectors.toList());
     private static final String TYPES_OPTION_LONG = "types";
@@ -58,11 +59,19 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             + new StringList(ITEM_TYPE_STRINGS).join(", ") + ". Defaults to including all values.";
     private static final String TYPES_OPTION_HINT = "types";
 
+    private static final String OUTPUT_ATLAS = "collected-multi.atlas";
+    private static final String COLLECT_OPTION_LONG = "collect-matching";
+    private static final String COLLECT_OPTION_DESCRIPTION = "Collect all matching atlas files and save to a file using the MultiAtlas.";
+
+    private Set<String> wkts;
+    private TaggableFilter taggableFilter;
+
     private Set<Long> ids;
     private Set<Long> osmIds;
-    private Set<String> wkts;
     private Set<ItemType> typesToCheck;
+
     private Set<Atlas> matchingAtlases;
+
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
 
@@ -125,12 +134,17 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     {
         registerOptionWithRequiredArgument(GEOMETRY_OPTION_LONG, GEOMETRY_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, GEOMETRY_OPTION_HINT);
+        registerOptionWithRequiredArgument(TAGGABLEFILTER_OPTION_LONG,
+                TAGGABLEFILTER_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
+                TAGGABLEFILTER_OPTION_HINT);
+
         registerOptionWithRequiredArgument(ID_OPTION_LONG, ID_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, ID_OPTION_HINT);
         registerOptionWithRequiredArgument(OSMID_OPTION_LONG, OSMID_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, OSMID_OPTION_HINT);
         registerOptionWithRequiredArgument(TYPES_OPTION_LONG, TYPES_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, TYPES_OPTION_HINT);
+
         registerOption(COLLECT_OPTION_LONG, COLLECT_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL);
         super.registerOptionsAndArguments();
     }
@@ -138,15 +152,34 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     @Override
     public int start()
     {
-        this.ids = this.optionAndArgumentDelegate.getOptionArgument(ID_OPTION_LONG, this::parseIds)
+        /*
+         * Parse typesToCheck first. We will overwrite this if necessary in the case that the user
+         * provides a type specific search criteria (e.g. --startNode).
+         */
+        this.typesToCheck = this.optionAndArgumentDelegate
+                .getOptionArgument(TYPES_OPTION_LONG, this::parseCommaSeparatedItemTypes)
+                .orElse(Sets.hashSet(ItemType.values()));
+
+        /*
+         * Handle the various search properties.
+         */
+        this.wkts = this.optionAndArgumentDelegate
+                .getOptionArgument(GEOMETRY_OPTION_LONG, this::parseColonSeparatedWkts)
+                .orElse(new HashSet<>());
+        this.taggableFilter = this.optionAndArgumentDelegate
+                .getOptionArgument(TAGGABLEFILTER_OPTION_LONG, TaggableFilter::forDefinition)
+                .orElse(null);
+
+        /*
+         * Handle identifier searches.
+         */
+        this.ids = this.optionAndArgumentDelegate
+                .getOptionArgument(ID_OPTION_LONG, this::parseCommaSeparatedLongs)
                 .orElse(new HashSet<>());
         this.osmIds = this.optionAndArgumentDelegate
-                .getOptionArgument(OSMID_OPTION_LONG, this::parseIds).orElse(new HashSet<>());
-        this.wkts = this.optionAndArgumentDelegate
-                .getOptionArgument(GEOMETRY_OPTION_LONG, this::parseWkts).orElse(new HashSet<>());
-        this.typesToCheck = this.optionAndArgumentDelegate
-                .getOptionArgument(TYPES_OPTION_LONG, this::parseItemTypes)
-                .orElse(Sets.hashSet(ItemType.values()));
+                .getOptionArgument(OSMID_OPTION_LONG, this::parseCommaSeparatedLongs)
+                .orElse(new HashSet<>());
+
         this.matchingAtlases = new HashSet<>();
 
         if (this.typesToCheck.isEmpty())
@@ -155,7 +188,8 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             return 1;
         }
 
-        if (this.ids.isEmpty() && this.osmIds.isEmpty() && this.wkts.isEmpty())
+        if (this.ids.isEmpty() && this.osmIds.isEmpty() && this.wkts.isEmpty()
+                && this.taggableFilter == null)
         {
             this.outputDelegate
                     .printlnErrorMessage("no ids or properties were successfully parsed");
@@ -169,85 +203,83 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     protected void processAtlas(final Atlas atlas, final String atlasFileName,
             final File atlasResource)
     {
-        for (final Long atlasId : this.ids)
-        {
-            for (final ItemType type : this.typesToCheck)
-            {
-                final AtlasEntity entity = atlas.entity(atlasId, type);
-                if (entity != null)
-                {
-                    this.outputDelegate.printlnStdout("Found entity with atlas ID " + atlasId
-                            + " in " + atlasResource.getPath() + ":", TTYAttribute.BOLD);
-                    this.outputDelegate.printlnStdout(entity.toDiffViewFriendlyString(),
-                            TTYAttribute.GREEN);
-                    this.outputDelegate.printlnStdout("");
-                    this.matchingAtlases.add(atlas);
-                }
-            }
-        }
-
         /*
-         * This loop is O(N) (where N is the number of atlas entities), assuming the list of osmIds
-         * is much smaller than the size of of the entity set.
+         * This loop is O(N) (where N is the number of atlas entities), assuming the lists of
+         * provided evaluation properties are much smaller than the size of the entity set.
          */
         for (final AtlasEntity entity : atlas.entities())
         {
-            for (final Long osmId : this.osmIds)
+            boolean entityMatchesAllCriteriaSoFar = true;
+            if (!this.typesToCheck.contains(entity.getType()))
             {
-                if (osmId.longValue() == entity.getOsmIdentifier()
-                        && this.typesToCheck.contains(entity.getType()))
-                {
-                    this.outputDelegate.printlnStdout("Found entity with OSM ID " + osmId + " in "
-                            + atlasResource.getPath() + ":", TTYAttribute.BOLD);
-                    this.outputDelegate.printlnStdout(entity.toDiffViewFriendlyString(),
-                            TTYAttribute.GREEN);
-                    this.outputDelegate.printlnStdout("");
-                    this.matchingAtlases.add(atlas);
-                }
+                continue;
             }
-            for (final String wkt : this.wkts)
+            if (this.taggableFilter != null && !this.taggableFilter.test(entity))
             {
-                if (wkt.equals(entity.toWkt()) && this.typesToCheck.contains(entity.getType()))
-                {
-                    this.outputDelegate.printlnStdout("Found entity with geometry " + wkt + " in "
-                            + atlasResource.getPath() + ":", TTYAttribute.BOLD);
-                    this.outputDelegate.printlnStdout(entity.toDiffViewFriendlyString(),
-                            TTYAttribute.GREEN);
-                    this.outputDelegate.printlnStdout("");
-                    this.matchingAtlases.add(atlas);
-                }
+                continue;
+            }
+
+            if (!this.ids.isEmpty() && !this.ids.contains(entity.getIdentifier()))
+            {
+                entityMatchesAllCriteriaSoFar = false;
+            }
+
+            if (entityMatchesAllCriteriaSoFar && !this.osmIds.isEmpty()
+                    && !this.osmIds.contains(entity.getOsmIdentifier()))
+            {
+                entityMatchesAllCriteriaSoFar = false;
+            }
+
+            if (entityMatchesAllCriteriaSoFar && !this.wkts.isEmpty()
+                    && !this.wkts.contains(entity.toWkt()))
+            {
+                entityMatchesAllCriteriaSoFar = false;
+            }
+
+            /*
+             * If we made it here while matching all criteria, then we can print a diagnostic
+             * detailing the find.
+             */
+            if (entityMatchesAllCriteriaSoFar)
+            {
+                this.outputDelegate.printlnStdout(
+                        "Found entity matching criteria in " + atlasResource.getPath() + ":",
+                        TTYAttribute.BOLD);
+                this.outputDelegate.printlnStdout(entity.toDiffViewFriendlyString(),
+                        TTYAttribute.GREEN);
+                this.outputDelegate.printlnStdout("");
+                this.matchingAtlases.add(atlas);
             }
         }
     }
 
-    private Set<Long> parseIds(final String idString)
+    private Set<String> parseColonSeparatedWkts(final String wktString)
     {
-        final Set<Long> idSet = new HashSet<>();
+        final Set<String> wktSet = new HashSet<>();
 
-        if (idString.isEmpty())
+        if (wktString.isEmpty())
         {
-            return idSet;
+            return wktSet;
         }
 
-        final String[] idStringSplit = idString.split(",");
-        for (final String idElement : idStringSplit)
+        final WKTReader reader = new WKTReader();
+        Arrays.stream(wktString.split(":")).forEach(wkt ->
         {
-            final Long identifier;
             try
             {
-                identifier = Long.parseLong(idElement);
-                idSet.add(identifier);
+                reader.read(wkt);
+                wktSet.add(wkt);
             }
-            catch (final NumberFormatException exception)
+            catch (final ParseException exception)
             {
-                this.outputDelegate.printlnWarnMessage(
-                        "could not parse id \'" + idElement + "\': skipping...");
+                this.outputDelegate
+                        .printlnWarnMessage("could not parse wkt \'" + wkt + "\': skipping...");
             }
-        }
-        return idSet;
+        });
+        return wktSet;
     }
 
-    private Set<ItemType> parseItemTypes(final String typeString)
+    private Set<ItemType> parseCommaSeparatedItemTypes(final String typeString)
     {
         final Set<ItemType> typeSet = new HashSet<>();
 
@@ -274,29 +306,44 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         return typeSet;
     }
 
-    private Set<String> parseWkts(final String wktString)
+    private Set<Long> parseCommaSeparatedLongs(final String idString)
     {
-        final Set<String> wktSet = new HashSet<>();
+        final Set<Long> idSet = new HashSet<>();
 
-        if (wktString.isEmpty())
+        if (idString.isEmpty())
         {
-            return wktSet;
+            return idSet;
         }
 
-        final WKTReader reader = new WKTReader();
-        Arrays.stream(wktString.split(":")).forEach(wkt ->
+        final String[] idStringSplit = idString.split(",");
+        for (final String idElement : idStringSplit)
         {
+            final Long identifier;
             try
             {
-                reader.read(wkt);
-                wktSet.add(wkt);
+                identifier = Long.parseLong(idElement);
+                idSet.add(identifier);
             }
-            catch (final ParseException exception)
+            catch (final NumberFormatException exception)
             {
-                this.outputDelegate
-                        .printlnWarnMessage("could not parse wkt \'" + wkt + "\': skipping...");
+                this.outputDelegate.printlnWarnMessage(
+                        "could not parse id \'" + idElement + "\': skipping...");
             }
-        });
-        return wktSet;
+        }
+        return idSet;
+    }
+
+    private Set<String> parseCommaSeparatedStrings(final String string)
+    {
+        final Set<String> stringSet = new HashSet<>();
+
+        if (string.isEmpty())
+        {
+            return stringSet;
+        }
+
+        final String[] stringSplit = string.split(",");
+        Arrays.stream(stringSplit).forEach(stringSet::add);
+        return stringSet;
     }
 }
