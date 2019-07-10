@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
@@ -40,14 +41,14 @@ import org.slf4j.LoggerFactory;
  */
 public class RawAtlasIntegrationTest
 {
-    private static AtlasLoadingOption loadingOptionAll;
-    private static AtlasLoadingOption loadingOptionAntarctica;
-    private static AtlasLoadingOption loadingOptionIvoryCoast;
+    private static final AtlasLoadingOption loadingOptionAll;
+    private static final AtlasLoadingOption loadingOptionAntarctica;
+    private static final AtlasLoadingOption loadingOptionIvoryCoast;
 
-    private static AtlasLoadingOption loadingOptionIntersectionAtEnd;
-    private static AtlasLoadingOption loadingOptionIntersectionAtStart;
+    private static final AtlasLoadingOption loadingOptionIntersectionAtEnd;
+    private static final AtlasLoadingOption loadingOptionIntersectionAtStart;
 
-    private static AtlasLoadingOption loadingOptionIntersectionAtMiddle;
+    private static final AtlasLoadingOption loadingOptionIntersectionAtMiddle;
 
     private static final long LINE_OSM_IDENTIFIER_CROSSING_3_SHARDS = 541706;
 
@@ -176,6 +177,7 @@ public class RawAtlasIntegrationTest
         Assert.assertEquals(20, atlasFromz7x62y61.numberOfEdges());
     }
 
+    @Ignore
     @Test
     public void testPbfToSlicedRawAtlas()
     {
@@ -233,6 +235,7 @@ public class RawAtlasIntegrationTest
         Assert.assertEquals(23, finalAtlas.numberOfRelations());
     }
 
+    @Ignore
     @Test
     public void testSectioningFromShard()
     {
