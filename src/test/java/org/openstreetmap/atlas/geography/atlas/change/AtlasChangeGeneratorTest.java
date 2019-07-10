@@ -45,6 +45,10 @@ public class AtlasChangeGeneratorTest
             {
                 Assert.assertEquals(Location.forWkt("POINT (4.2194855 38.8231656)"),
                         ((CompleteNode) featureChange.getAfterView()).getLocation());
+                Assert.assertEquals(
+                        "POLYGON ((4.2177433 38.8228217, 4.2177433 38.8235147, 4.2197697 38.8235147,"
+                                + " 4.2197697 38.8228217, 4.2177433 38.8228217))",
+                        featureChange.bounds().toWkt());
             }
         }
     }
