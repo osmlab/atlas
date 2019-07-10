@@ -36,6 +36,13 @@ import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
  */
 public class AtlasSearchCommand extends AtlasLoaderCommand
 {
+    private static final List<String> ITEM_TYPE_STRINGS = Arrays.stream(ItemType.values())
+            .map(ItemType::toString).collect(Collectors.toList());
+    private static final String TYPES_OPTION_LONG = "types";
+    private static final String TYPES_OPTION_DESCRIPTION = "A comma separated list of ItemTypes by which to narrow the search. Valid types are: "
+            + new StringList(ITEM_TYPE_STRINGS).join(", ") + ". Defaults to including all values.";
+    private static final String TYPES_OPTION_HINT = "types";
+
     private static final String GEOMETRY_OPTION_LONG = "geometry";
     private static final String GEOMETRY_OPTION_DESCRIPTION = "A colon separated list of geometry WKTs for which to search.";
     private static final String GEOMETRY_OPTION_HINT = "wkt-geometry";
@@ -43,6 +50,14 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     private static final String TAGGABLEFILTER_OPTION_LONG = "taggableFilter";
     private static final String TAGGABLEFILTER_OPTION_DESCRIPTION = "A TaggableFilter by which to filter the search space.";
     private static final String TAGGABLEFILTER_OPTION_HINT = "filter";
+
+    private static final String STARTNODE_OPTION_LONG = "startNode";
+    private static final String STARTNODE_OPTION_DESCRIPTION = "A comma separated list of start node identifiers for which to search.";
+    private static final String STARTNODE_OPTION_HINT = "ids";
+
+    private static final String ENDNODE_OPTION_LONG = "endNode";
+    private static final String ENDNODE_OPTION_DESCRIPTION = "A comma separated list of end node identifiers for which to search.";
+    private static final String ENDNODE_OPTION_HINT = "ids";
 
     private static final String ID_OPTION_LONG = "id";
     private static final String ID_OPTION_DESCRIPTION = "A comma separated list of Atlas ids for which to search.";
@@ -52,19 +67,14 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     private static final String OSMID_OPTION_DESCRIPTION = "A comma separated list of OSM ids for which to search.";
     private static final String OSMID_OPTION_HINT = "osmids";
 
-    private static final List<String> ITEM_TYPE_STRINGS = Arrays.stream(ItemType.values())
-            .map(ItemType::toString).collect(Collectors.toList());
-    private static final String TYPES_OPTION_LONG = "types";
-    private static final String TYPES_OPTION_DESCRIPTION = "A comma separated list of ItemTypes by which to narrow the search. Valid types are: "
-            + new StringList(ITEM_TYPE_STRINGS).join(", ") + ". Defaults to including all values.";
-    private static final String TYPES_OPTION_HINT = "types";
-
     private static final String OUTPUT_ATLAS = "collected-multi.atlas";
     private static final String COLLECT_OPTION_LONG = "collect-matching";
     private static final String COLLECT_OPTION_DESCRIPTION = "Collect all matching atlas files and save to a file using the MultiAtlas.";
 
     private Set<String> wkts;
     private TaggableFilter taggableFilter;
+    private Set<Long> startNodeIds;
+    private Set<Long> endNodeIds;
 
     private Set<Long> ids;
     private Set<Long> osmIds;
@@ -132,18 +142,23 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     @Override
     public void registerOptionsAndArguments()
     {
+        registerOptionWithRequiredArgument(TYPES_OPTION_LONG, TYPES_OPTION_DESCRIPTION,
+                OptionOptionality.OPTIONAL, TYPES_OPTION_HINT);
+
         registerOptionWithRequiredArgument(GEOMETRY_OPTION_LONG, GEOMETRY_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, GEOMETRY_OPTION_HINT);
         registerOptionWithRequiredArgument(TAGGABLEFILTER_OPTION_LONG,
                 TAGGABLEFILTER_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
                 TAGGABLEFILTER_OPTION_HINT);
+        registerOptionWithRequiredArgument(STARTNODE_OPTION_LONG, STARTNODE_OPTION_DESCRIPTION,
+                OptionOptionality.OPTIONAL, STARTNODE_OPTION_HINT);
+        registerOptionWithRequiredArgument(ENDNODE_OPTION_LONG, ENDNODE_OPTION_DESCRIPTION,
+                OptionOptionality.OPTIONAL, ENDNODE_OPTION_HINT);
 
         registerOptionWithRequiredArgument(ID_OPTION_LONG, ID_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, ID_OPTION_HINT);
         registerOptionWithRequiredArgument(OSMID_OPTION_LONG, OSMID_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, OSMID_OPTION_HINT);
-        registerOptionWithRequiredArgument(TYPES_OPTION_LONG, TYPES_OPTION_DESCRIPTION,
-                OptionOptionality.OPTIONAL, TYPES_OPTION_HINT);
 
         registerOption(COLLECT_OPTION_LONG, COLLECT_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL);
         super.registerOptionsAndArguments();
@@ -169,6 +184,12 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         this.taggableFilter = this.optionAndArgumentDelegate
                 .getOptionArgument(TAGGABLEFILTER_OPTION_LONG, TaggableFilter::forDefinition)
                 .orElse(null);
+        this.startNodeIds = this.optionAndArgumentDelegate
+                .getOptionArgument(STARTNODE_OPTION_LONG, this::parseCommaSeparatedLongs)
+                .orElse(new HashSet<>());
+        this.endNodeIds = this.optionAndArgumentDelegate
+                .getOptionArgument(ENDNODE_OPTION_LONG, this::parseCommaSeparatedLongs)
+                .orElse(new HashSet<>());
 
         /*
          * Handle identifier searches.
@@ -188,8 +209,8 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             return 1;
         }
 
-        if (this.ids.isEmpty() && this.osmIds.isEmpty() && this.wkts.isEmpty()
-                && this.taggableFilter == null)
+        if (this.wkts.isEmpty() && this.taggableFilter == null && this.startNodeIds.isEmpty()
+                && this.endNodeIds.isEmpty() && this.ids.isEmpty() && this.osmIds.isEmpty())
         {
             this.outputDelegate
                     .printlnErrorMessage("no ids or properties were successfully parsed");
