@@ -21,6 +21,7 @@ jobs:
 
     steps:
       - checkout
+      - run: if [ -z "$SONAR_TOKEN" ]; then echo "SONAR_TOKEN missing"; else echo "SONAR_TOKEN is here"; fi
       # Run jar first, as the checkstyle plugin depends on atlas itself here.
       - run: ./gradlew jar
       - run: ./gradlew check -x test -x integrationTest
