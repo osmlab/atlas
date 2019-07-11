@@ -38,9 +38,10 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
 {
     private static final List<String> ITEM_TYPE_STRINGS = Arrays.stream(ItemType.values())
             .map(ItemType::toString).collect(Collectors.toList());
-    private static final String TYPES_OPTION_LONG = "types";
+    private static final String TYPES_OPTION_LONG = "type";
     private static final String TYPES_OPTION_DESCRIPTION = "A comma separated list of ItemTypes by which to narrow the search. Valid types are: "
-            + new StringList(ITEM_TYPE_STRINGS).join(", ") + ". Defaults to including all values.";
+            + new StringList(ITEM_TYPE_STRINGS).join(", ")
+            + ". Defaults to including all values, unless another option (e.g. --startNode) automatically narrows the search space.";
     private static final String TYPES_OPTION_HINT = "types";
 
     private static final String GEOMETRY_OPTION_LONG = "geometry";
@@ -59,6 +60,18 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     private static final String ENDNODE_OPTION_DESCRIPTION = "A comma separated list of end node identifiers for which to search.";
     private static final String ENDNODE_OPTION_HINT = "ids";
 
+    private static final String INEDGE_OPTION_LONG = "inEdge";
+    private static final String INEDGE_OPTION_DESCRIPTION = "A comma separated list of in edge identifiers for which to search.";
+    private static final String INEDGE_OPTION_HINT = "ids";
+
+    private static final String OUTEDGE_OPTION_LONG = "outEdge";
+    private static final String OUTEDGE_OPTION_DESCRIPTION = "A comma separated list of out edge identifiers for which to search.";
+    private static final String OUTEDGE_OPTION_HINT = "ids";
+
+    private static final String PARENTRELATIONS_OPTION_LONG = "parentRelations";
+    private static final String PARENTRELATIONS_OPTION_DESCRIPTION = "A comma separated list of parent relation identifiers for which to search.";
+    private static final String PARENTRELATIONS_OPTION_HINT = "ids";
+
     private static final String ID_OPTION_LONG = "id";
     private static final String ID_OPTION_DESCRIPTION = "A comma separated list of Atlas ids for which to search.";
     private static final String ID_OPTION_HINT = "ids";
@@ -71,10 +84,17 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     private static final String COLLECT_OPTION_LONG = "collect-matching";
     private static final String COLLECT_OPTION_DESCRIPTION = "Collect all matching atlas files and save to a file using the MultiAtlas.";
 
+    private static final Integer ALL_TYPES_CONTEXT = 3;
+    private static final Integer EDGE_ONLY_CONTEXT = 4;
+    private static final Integer NODE_ONLY_CONTEXT = 5;
+
     private Set<String> wkts;
     private TaggableFilter taggableFilter;
     private Set<Long> startNodeIds;
     private Set<Long> endNodeIds;
+    private Set<Long> inEdgeIds;
+    private Set<Long> outEdgeIds;
+    private Set<Long> parentRelations;
 
     private Set<Long> ids;
     private Set<Long> osmIds;
@@ -143,22 +163,34 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     public void registerOptionsAndArguments()
     {
         registerOptionWithRequiredArgument(TYPES_OPTION_LONG, TYPES_OPTION_DESCRIPTION,
-                OptionOptionality.OPTIONAL, TYPES_OPTION_HINT);
+                OptionOptionality.OPTIONAL, TYPES_OPTION_HINT, ALL_TYPES_CONTEXT);
 
         registerOptionWithRequiredArgument(GEOMETRY_OPTION_LONG, GEOMETRY_OPTION_DESCRIPTION,
-                OptionOptionality.OPTIONAL, GEOMETRY_OPTION_HINT);
+                OptionOptionality.OPTIONAL, GEOMETRY_OPTION_HINT, ALL_TYPES_CONTEXT,
+                EDGE_ONLY_CONTEXT, NODE_ONLY_CONTEXT);
         registerOptionWithRequiredArgument(TAGGABLEFILTER_OPTION_LONG,
                 TAGGABLEFILTER_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
-                TAGGABLEFILTER_OPTION_HINT);
+                TAGGABLEFILTER_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT,
+                NODE_ONLY_CONTEXT);
         registerOptionWithRequiredArgument(STARTNODE_OPTION_LONG, STARTNODE_OPTION_DESCRIPTION,
-                OptionOptionality.OPTIONAL, STARTNODE_OPTION_HINT);
+                OptionOptionality.OPTIONAL, STARTNODE_OPTION_HINT, EDGE_ONLY_CONTEXT);
         registerOptionWithRequiredArgument(ENDNODE_OPTION_LONG, ENDNODE_OPTION_DESCRIPTION,
-                OptionOptionality.OPTIONAL, ENDNODE_OPTION_HINT);
+                OptionOptionality.OPTIONAL, ENDNODE_OPTION_HINT, EDGE_ONLY_CONTEXT);
+        registerOptionWithRequiredArgument(INEDGE_OPTION_LONG, INEDGE_OPTION_DESCRIPTION,
+                OptionOptionality.OPTIONAL, INEDGE_OPTION_HINT, NODE_ONLY_CONTEXT);
+        registerOptionWithRequiredArgument(OUTEDGE_OPTION_LONG, OUTEDGE_OPTION_DESCRIPTION,
+                OptionOptionality.OPTIONAL, OUTEDGE_OPTION_HINT, NODE_ONLY_CONTEXT);
+        registerOptionWithRequiredArgument(PARENTRELATIONS_OPTION_LONG,
+                PARENTRELATIONS_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
+                PARENTRELATIONS_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT,
+                NODE_ONLY_CONTEXT);
 
         registerOptionWithRequiredArgument(ID_OPTION_LONG, ID_OPTION_DESCRIPTION,
-                OptionOptionality.OPTIONAL, ID_OPTION_HINT);
+                OptionOptionality.OPTIONAL, ID_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT,
+                NODE_ONLY_CONTEXT);
         registerOptionWithRequiredArgument(OSMID_OPTION_LONG, OSMID_OPTION_DESCRIPTION,
-                OptionOptionality.OPTIONAL, OSMID_OPTION_HINT);
+                OptionOptionality.OPTIONAL, OSMID_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT,
+                NODE_ONLY_CONTEXT);
 
         registerOption(COLLECT_OPTION_LONG, COLLECT_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL);
         super.registerOptionsAndArguments();
@@ -167,6 +199,13 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     @Override
     public int start()
     {
+        /*
+         * Some options (e.g. --startNode) only make sense for certain types. We will use this set
+         * to track types we are locked into by the provided options. If this set is ever non-empty
+         * AND contains more than one element, that means the user provided conflicting options.
+         */
+        final Set<ItemType> lockedType = new HashSet<>();
+
         /*
          * Parse typesToCheck first. We will overwrite this if necessary in the case that the user
          * provides a type specific search criteria (e.g. --startNode).
@@ -189,6 +228,12 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                 .orElse(new HashSet<>());
         this.endNodeIds = this.optionAndArgumentDelegate
                 .getOptionArgument(ENDNODE_OPTION_LONG, this::parseCommaSeparatedLongs)
+                .orElse(new HashSet<>());
+        this.inEdgeIds = this.optionAndArgumentDelegate
+                .getOptionArgument(INEDGE_OPTION_LONG, this::parseCommaSeparatedLongs)
+                .orElse(new HashSet<>());
+        this.outEdgeIds = this.optionAndArgumentDelegate
+                .getOptionArgument(OUTEDGE_OPTION_LONG, this::parseCommaSeparatedLongs)
                 .orElse(new HashSet<>());
 
         /*
@@ -244,7 +289,6 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             {
                 entityMatchesAllCriteriaSoFar = false;
             }
-
             if (entityMatchesAllCriteriaSoFar && !this.osmIds.isEmpty()
                     && !this.osmIds.contains(entity.getOsmIdentifier()))
             {
