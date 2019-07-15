@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -108,6 +109,9 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
 
+    private boolean unitTestMode = false;
+    private final List<AtlasEntity> matchedEntities = new ArrayList<>();
+
     public static void main(final String[] args)
     {
         new AtlasSearchCommand().runSubcommandAndExit(args);
@@ -117,6 +121,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     {
         this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
+        this.typesToCheck = new HashSet<>();
         this.startNodeIds = new HashSet<>();
         this.endNodeIds = new HashSet<>();
         this.inEdgeIds = new HashSet<>();
@@ -149,6 +154,11 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     public String getCommandName()
     {
         return "find";
+    }
+
+    public List<AtlasEntity> getMatchedEntities()
+    {
+        return this.matchedEntities;
     }
 
     @Override
@@ -208,19 +218,15 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     public int start()
     {
         /*
-         * Some options (e.g. --startNode) only make sense for certain types. We will use this set
-         * to track types we are locked into by the provided options. If this set is ever non-empty
-         * AND contains more than one element, that means the user provided conflicting options.
-         */
-        final Set<ItemType> lockedType = new HashSet<>();
-
-        /*
          * Parse typesToCheck first. We will overwrite this if necessary in the case that the user
          * provides a type specific search criteria (e.g. --startNode).
          */
-        this.typesToCheck = this.optionAndArgumentDelegate
-                .getOptionArgument(TYPES_OPTION_LONG, this::parseCommaSeparatedItemTypes)
-                .orElse(Sets.hashSet(ItemType.values()));
+        if (this.optionAndArgumentDelegate.getParserContext() == ALL_TYPES_CONTEXT)
+        {
+            this.typesToCheck = this.optionAndArgumentDelegate
+                    .getOptionArgument(TYPES_OPTION_LONG, this::parseCommaSeparatedItemTypes)
+                    .orElse(Sets.hashSet(ItemType.values()));
+        }
 
         /*
          * Handle the various search properties.
@@ -233,6 +239,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                 .orElse(null);
         if (this.optionAndArgumentDelegate.getParserContext() == EDGE_ONLY_CONTEXT)
         {
+            this.typesToCheck.add(ItemType.EDGE);
             this.startNodeIds = this.optionAndArgumentDelegate
                     .getOptionArgument(STARTNODE_OPTION_LONG, this::parseCommaSeparatedLongs)
                     .orElse(new HashSet<>());
@@ -242,6 +249,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         }
         if (this.optionAndArgumentDelegate.getParserContext() == NODE_ONLY_CONTEXT)
         {
+            this.typesToCheck.add(ItemType.NODE);
             this.inEdgeIds = this.optionAndArgumentDelegate
                     .getOptionArgument(INEDGE_OPTION_LONG, this::parseCommaSeparatedLongs)
                     .orElse(new HashSet<>());
@@ -277,8 +285,14 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         return 0;
     }
 
+    public AtlasSearchCommand withUnitTestMode()
+    {
+        this.unitTestMode = true;
+        return this;
+    }
+
     @Override
-    protected void processAtlas(final Atlas atlas, final String atlasFileName,
+    protected void processAtlas(final Atlas atlas, final String atlasFileName, // NO SONAR
             final File atlasResource)
     {
         /*
@@ -370,6 +384,10 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                         TTYAttribute.GREEN);
                 this.outputDelegate.printlnStdout("");
                 this.matchingAtlases.add(atlas);
+                if (this.unitTestMode)
+                {
+                    this.matchedEntities.add(entity);
+                }
             }
         }
     }
