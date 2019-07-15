@@ -256,12 +256,12 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         }
         if (this.tags != null)
         {
-            builder.append("tags=" + this.tags + ", ");
+            builder.append("tags: " + this.tags + ", ");
             builder.append(separator);
         }
         if (this.relationIdentifiers != null)
         {
-            builder.append("parentRelations=" + this.relationIdentifiers + ", ");
+            builder.append("parentRelations: " + this.relationIdentifiers + ", ");
             builder.append(separator);
         }
         builder.append("]");
