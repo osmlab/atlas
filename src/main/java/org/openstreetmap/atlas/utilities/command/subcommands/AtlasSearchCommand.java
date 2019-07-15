@@ -12,7 +12,10 @@ import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
+import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.geography.atlas.items.Node;
+import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
 import org.openstreetmap.atlas.streaming.resource.File;
@@ -114,6 +117,11 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     {
         this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
+        this.startNodeIds = new HashSet<>();
+        this.endNodeIds = new HashSet<>();
+        this.inEdgeIds = new HashSet<>();
+        this.outEdgeIds = new HashSet<>();
+        this.parentRelations = new HashSet<>();
     }
 
     @Override
@@ -223,17 +231,26 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         this.taggableFilter = this.optionAndArgumentDelegate
                 .getOptionArgument(TAGGABLEFILTER_OPTION_LONG, TaggableFilter::forDefinition)
                 .orElse(null);
-        this.startNodeIds = this.optionAndArgumentDelegate
-                .getOptionArgument(STARTNODE_OPTION_LONG, this::parseCommaSeparatedLongs)
-                .orElse(new HashSet<>());
-        this.endNodeIds = this.optionAndArgumentDelegate
-                .getOptionArgument(ENDNODE_OPTION_LONG, this::parseCommaSeparatedLongs)
-                .orElse(new HashSet<>());
-        this.inEdgeIds = this.optionAndArgumentDelegate
-                .getOptionArgument(INEDGE_OPTION_LONG, this::parseCommaSeparatedLongs)
-                .orElse(new HashSet<>());
-        this.outEdgeIds = this.optionAndArgumentDelegate
-                .getOptionArgument(OUTEDGE_OPTION_LONG, this::parseCommaSeparatedLongs)
+        if (this.optionAndArgumentDelegate.getParserContext() == EDGE_ONLY_CONTEXT)
+        {
+            this.startNodeIds = this.optionAndArgumentDelegate
+                    .getOptionArgument(STARTNODE_OPTION_LONG, this::parseCommaSeparatedLongs)
+                    .orElse(new HashSet<>());
+            this.endNodeIds = this.optionAndArgumentDelegate
+                    .getOptionArgument(ENDNODE_OPTION_LONG, this::parseCommaSeparatedLongs)
+                    .orElse(new HashSet<>());
+        }
+        if (this.optionAndArgumentDelegate.getParserContext() == NODE_ONLY_CONTEXT)
+        {
+            this.inEdgeIds = this.optionAndArgumentDelegate
+                    .getOptionArgument(INEDGE_OPTION_LONG, this::parseCommaSeparatedLongs)
+                    .orElse(new HashSet<>());
+            this.outEdgeIds = this.optionAndArgumentDelegate
+                    .getOptionArgument(OUTEDGE_OPTION_LONG, this::parseCommaSeparatedLongs)
+                    .orElse(new HashSet<>());
+        }
+        this.parentRelations = this.optionAndArgumentDelegate
+                .getOptionArgument(PARENTRELATIONS_OPTION_LONG, this::parseCommaSeparatedLongs)
                 .orElse(new HashSet<>());
 
         /*
@@ -248,17 +265,12 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
 
         this.matchingAtlases = new HashSet<>();
 
-        if (this.typesToCheck.isEmpty())
+        if (this.typesToCheck.isEmpty() && this.wkts.isEmpty() && this.taggableFilter == null
+                && this.startNodeIds.isEmpty() && this.endNodeIds.isEmpty()
+                && this.parentRelations.isEmpty() && this.ids.isEmpty() && this.osmIds.isEmpty())
         {
-            this.outputDelegate.printlnErrorMessage("no ItemTypes were successfully parsed");
-            return 1;
-        }
-
-        if (this.wkts.isEmpty() && this.taggableFilter == null && this.startNodeIds.isEmpty()
-                && this.endNodeIds.isEmpty() && this.ids.isEmpty() && this.osmIds.isEmpty())
-        {
-            this.outputDelegate
-                    .printlnErrorMessage("no ids or properties were successfully parsed");
+            this.outputDelegate.printlnErrorMessage(
+                    "no ids, properties, or ItemTypes were successfully parsed");
             return 1;
         }
 
@@ -299,6 +311,50 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                     && !this.wkts.contains(entity.toWkt()))
             {
                 entityMatchesAllCriteriaSoFar = false;
+            }
+            if (this.optionAndArgumentDelegate.getParserContext() == NODE_ONLY_CONTEXT)
+            {
+                final Node node = (Node) entity;
+                final Set<Long> intersectingInEdgeIdentifiers = com.google.common.collect.Sets
+                        .intersection(node.inEdges().stream().map(Edge::getIdentifier)
+                                .collect(Collectors.toSet()), this.inEdgeIds);
+                final Set<Long> intersectingOutEdgeIdentifiers = com.google.common.collect.Sets
+                        .intersection(node.outEdges().stream().map(Edge::getIdentifier)
+                                .collect(Collectors.toSet()), this.outEdgeIds);
+                if (entityMatchesAllCriteriaSoFar && !this.inEdgeIds.isEmpty()
+                        && intersectingInEdgeIdentifiers.isEmpty())
+                {
+                    entityMatchesAllCriteriaSoFar = false;
+                }
+                if (entityMatchesAllCriteriaSoFar && !this.outEdgeIds.isEmpty()
+                        && intersectingOutEdgeIdentifiers.isEmpty())
+                {
+                    entityMatchesAllCriteriaSoFar = false;
+                }
+            }
+            if (this.optionAndArgumentDelegate.getParserContext() == EDGE_ONLY_CONTEXT)
+            {
+                final Edge edge = (Edge) entity;
+                if (entityMatchesAllCriteriaSoFar && !this.startNodeIds.isEmpty()
+                        && !this.startNodeIds.contains(edge.start().getIdentifier()))
+                {
+                    entityMatchesAllCriteriaSoFar = false;
+                }
+                if (entityMatchesAllCriteriaSoFar && !this.endNodeIds.isEmpty()
+                        && !this.endNodeIds.contains(edge.end().getIdentifier()))
+                {
+                    entityMatchesAllCriteriaSoFar = false;
+                }
+            }
+            if (entityMatchesAllCriteriaSoFar && !this.parentRelations.isEmpty())
+            {
+                final Set<Long> intersectingParentRelationIdentifiers = com.google.common.collect.Sets
+                        .intersection(entity.relations().stream().map(Relation::getIdentifier)
+                                .collect(Collectors.toSet()), this.parentRelations);
+                if (intersectingParentRelationIdentifiers.isEmpty())
+                {
+                    entityMatchesAllCriteriaSoFar = false;
+                }
             }
 
             /*
@@ -396,19 +452,5 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             }
         }
         return idSet;
-    }
-
-    private Set<String> parseCommaSeparatedStrings(final String string)
-    {
-        final Set<String> stringSet = new HashSet<>();
-
-        if (string.isEmpty())
-        {
-            return stringSet;
-        }
-
-        final String[] stringSplit = string.split(",");
-        Arrays.stream(stringSplit).forEach(stringSet::add);
-        return stringSet;
     }
 }
