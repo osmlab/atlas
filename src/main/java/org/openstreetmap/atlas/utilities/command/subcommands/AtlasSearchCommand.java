@@ -135,11 +135,21 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         if (this.optionAndArgumentDelegate.hasOption(COLLECT_OPTION_LONG)
                 && !this.matchingAtlases.isEmpty())
         {
-            final Atlas outputAtlas = new MultiAtlas(this.matchingAtlases);
             final Path concatenatedPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
                     OUTPUT_ATLAS);
             final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
-            new PackedAtlasCloner().cloneFrom(outputAtlas).save(outputFile);
+            final Atlas outputAtlas;
+            if (this.matchingAtlases.size() == 1)
+            {
+                outputAtlas = new ArrayList<>(this.matchingAtlases).get(0);
+                outputAtlas.save(outputFile);
+            }
+            else
+            {
+                outputAtlas = new MultiAtlas(this.matchingAtlases);
+                new PackedAtlasCloner().cloneFrom(outputAtlas).save(outputFile);
+            }
+
             if (this.optionAndArgumentDelegate.hasVerboseOption())
             {
                 this.outputDelegate
@@ -292,14 +302,14 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     }
 
     @Override
-    protected void processAtlas(final Atlas atlas, final String atlasFileName, // NO SONAR
+    protected void processAtlas(final Atlas atlas, final String atlasFileName, // NOSONAR
             final File atlasResource)
     {
         /*
          * This loop is O(N) (where N is the number of atlas entities), assuming the lists of
          * provided evaluation properties are much smaller than the size of the entity set.
          */
-        for (final AtlasEntity entity : atlas.entities())
+        for (final AtlasEntity entity : atlas.entities()) // NOSONAR
         {
             boolean entityMatchesAllCriteriaSoFar = true;
             if (!this.typesToCheck.contains(entity.getType()))
