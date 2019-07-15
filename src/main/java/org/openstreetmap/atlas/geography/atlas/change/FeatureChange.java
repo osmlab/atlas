@@ -468,7 +468,8 @@ public class FeatureChange implements Located, Serializable
             else
             {
                 // If we get here, something very unexpected happened.
-                throw new CoreException("Unexpected merge failure for {} and {}", this, other);
+                throw new CoreException("Unexpected merge failure for {} and {}", this.prettify(),
+                        other.prettify());
             }
         }
         catch (final Exception exception)
@@ -540,6 +541,8 @@ public class FeatureChange implements Located, Serializable
         }
         builder.append("afView: "
                 + ((CompleteEntity<?>) this.afterView).prettify(completeEntityFormat) + ", ");
+        builder.append(separator);
+        builder.append("metadata: " + this.metaData);
         builder.append(separator);
         builder.append("]");
 
