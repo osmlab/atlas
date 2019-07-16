@@ -16,6 +16,7 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas.Relation.Member;
  * {@link TestAtlasHandler} unit test rule.
  *
  * @author cstaylor
+ * @author bbreithaupt
  */
 public class AtlasTestCaseRule extends CoreTestRule
 {

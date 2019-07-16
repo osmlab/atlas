@@ -14,6 +14,7 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
  * Example test case illustrating how to use custom rules, and {@link TestAtlasHandler} unit tests.
  *
  * @author cstaylor
+ * @author bbreithaupt
  */
 public class AtlasTestCase
 {
