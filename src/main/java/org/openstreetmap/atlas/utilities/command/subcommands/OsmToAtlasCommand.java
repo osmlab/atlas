@@ -11,7 +11,6 @@ import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.OutputStreamWritableResource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
-import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
@@ -68,8 +67,7 @@ public class OsmToAtlasCommand extends MultipleOutputCommand
                 final Atlas atlas = TestAtlasHandler.getAtlasFromJsomOsmResource(
                         this.optionAndArgumentDelegate.hasOption(JOSM),
                         new InputStreamResource(() -> new File(absoluteOsmPath.toString()).read()),
-                        absoluteOsmPath.getFileName().toString(),
-                        ISOCountryTag.UNKNOWN_ISO_COUNTRY);
+                        absoluteOsmPath.getFileName().toString());
                 final WritableResource outputResource = new OutputStreamWritableResource(
                         this.getOutputFile(absoluteOsmPath).write());
                 atlas.save(outputResource);

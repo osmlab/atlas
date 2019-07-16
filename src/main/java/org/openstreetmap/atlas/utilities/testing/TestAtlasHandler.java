@@ -65,6 +65,13 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas.SizeEstimate;
 public class TestAtlasHandler implements FieldHandler
 {
     public static Atlas getAtlasFromJsomOsmResource(final boolean josmFormat,
+            final AbstractResource resource, final String fileName)
+    {
+        return getAtlasFromJsomOsmResource(josmFormat, resource, fileName,
+                ISOCountryTag.UNKNOWN_ISO_COUNTRY);
+    }
+
+    public static Atlas getAtlasFromJsomOsmResource(final boolean josmFormat,
             final AbstractResource resource, final String fileName, final String iso)
     {
         FileSuffix.suffixFor(fileName).ifPresent(suffix ->
