@@ -12,7 +12,7 @@ public class FeatureChangeMergeException extends CoreException
 {
     private static final long serialVersionUID = -3583945839922744755L;
 
-    private final transient MergeFailureType failureType;
+    private final MergeFailureType failureType;
 
     public FeatureChangeMergeException(final MergeFailureType failureType, final String message)
     {
