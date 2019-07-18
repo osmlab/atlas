@@ -88,8 +88,7 @@ public final class FeatureChangeMergingHelpers
                 .withMemberExtractor(atlasEntity -> atlasEntity.relations() == null ? null
                         : atlasEntity.relations().stream().map(Relation::getIdentifier)
                                 .collect(Collectors.toSet()))
-                .withAfterViewNoBeforeMerger(
-                        MemberMergeStrategies.simpleLongSetAllowCollisionsMerger)
+                .withAfterViewNoBeforeMerger(MemberMergeStrategies.simpleLongSetMerger)
                 .withAfterViewConsistentBeforeViewMerger(
                         MemberMergeStrategies.diffBasedLongSetMerger)
                 .build().mergeMember();
@@ -205,14 +204,14 @@ public final class FeatureChangeMergingHelpers
 
             if (!leftInEdgeIdentifiers.equals(rightInEdgeIdentifiers))
             {
-                mergedBeforeNode.withInEdgeIdentifiers(
-                        MemberMergeStrategies.simpleLongSortedSetAllowCollisionsMerger
+                mergedBeforeNode
+                        .withInEdgeIdentifiers(MemberMergeStrategies.simpleLongSortedSetMerger
                                 .apply(leftInEdgeIdentifiers, rightInEdgeIdentifiers));
             }
             if (!leftOutEdgeIdentifiers.equals(rightOutEdgeIdentifiers))
             {
-                mergedBeforeNode.withOutEdgeIdentifiers(
-                        MemberMergeStrategies.simpleLongSortedSetAllowCollisionsMerger
+                mergedBeforeNode
+                        .withOutEdgeIdentifiers(MemberMergeStrategies.simpleLongSortedSetMerger
                                 .apply(leftOutEdgeIdentifiers, rightOutEdgeIdentifiers));
             }
             return new FeatureChange(ChangeType.REMOVE, left.getAfterView(), mergedBeforeNode);
@@ -541,12 +540,10 @@ public final class FeatureChangeMergingHelpers
                 .withMemberExtractor(atlasEntity -> ((Node) atlasEntity).inEdges() == null ? null
                         : ((Node) atlasEntity).inEdges().stream().map(Edge::getIdentifier)
                                 .collect(Collectors.toCollection(TreeSet::new)))
-                .withAfterViewNoBeforeMerger(
-                        MemberMergeStrategies.simpleLongSortedSetAllowCollisionsMerger)
+                .withAfterViewNoBeforeMerger(MemberMergeStrategies.simpleLongSortedSetMerger)
                 .withAfterViewConsistentBeforeViewMerger(
                         MemberMergeStrategies.diffBasedLongSortedSetMerger)
-                .withBeforeViewMerger(
-                        MemberMergeStrategies.simpleLongSortedSetAllowCollisionsMerger)
+                .withBeforeViewMerger(MemberMergeStrategies.simpleLongSortedSetMerger)
                 .useHackForMergingConflictingConnectedEdgeSetBeforeViews(
                         (CompleteNode) afterEntityLeft, (CompleteNode) afterEntityRight)
                 .build().mergeMember();
@@ -558,12 +555,10 @@ public final class FeatureChangeMergingHelpers
                 .withMemberExtractor(atlasEntity -> ((Node) atlasEntity).outEdges() == null ? null
                         : ((Node) atlasEntity).outEdges().stream().map(Edge::getIdentifier)
                                 .collect(Collectors.toCollection(TreeSet::new)))
-                .withAfterViewNoBeforeMerger(
-                        MemberMergeStrategies.simpleLongSortedSetAllowCollisionsMerger)
+                .withAfterViewNoBeforeMerger(MemberMergeStrategies.simpleLongSortedSetMerger)
                 .withAfterViewConsistentBeforeViewMerger(
                         MemberMergeStrategies.diffBasedLongSortedSetMerger)
-                .withBeforeViewMerger(
-                        MemberMergeStrategies.simpleLongSortedSetAllowCollisionsMerger)
+                .withBeforeViewMerger(MemberMergeStrategies.simpleLongSortedSetMerger)
                 .useHackForMergingConflictingConnectedEdgeSetBeforeViews(
                         (CompleteNode) afterEntityLeft, (CompleteNode) afterEntityRight)
                 .build().mergeMember();
@@ -580,12 +575,12 @@ public final class FeatureChangeMergingHelpers
          * simple merge will always succeed, since the sets are key only.
          */
         mergedAfterNode.setExplicitlyExcludedInEdgeIdentifiers(
-                MemberMergeStrategies.simpleLongSetAllowCollisionsMerger.apply(
+                MemberMergeStrategies.simpleLongSetMerger.apply(
                         ((CompleteNode) afterEntityLeft).explicitlyExcludedInEdgeIdentifiers(),
                         ((CompleteNode) afterEntityRight).explicitlyExcludedInEdgeIdentifiers()));
 
         mergedAfterNode.setExplicitlyExcludedOutEdgeIdentifiers(
-                MemberMergeStrategies.simpleLongSetAllowCollisionsMerger.apply(
+                MemberMergeStrategies.simpleLongSetMerger.apply(
                         ((CompleteNode) afterEntityLeft).explicitlyExcludedOutEdgeIdentifiers(),
                         ((CompleteNode) afterEntityRight).explicitlyExcludedOutEdgeIdentifiers()));
 
@@ -699,8 +694,7 @@ public final class FeatureChangeMergingHelpers
                                 : ((Relation) atlasEntity).allRelationsWithSameOsmIdentifier()
                                         .stream().map(Relation::getIdentifier)
                                         .collect(Collectors.toSet()))
-                .withAfterViewNoBeforeMerger(
-                        MemberMergeStrategies.simpleLongSetAllowCollisionsMerger)
+                .withAfterViewNoBeforeMerger(MemberMergeStrategies.simpleLongSetMerger)
                 .withAfterViewConsistentBeforeViewMerger(
                         MemberMergeStrategies.diffBasedLongSetMerger)
                 .build().mergeMember();

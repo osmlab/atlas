@@ -10,6 +10,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.exception.change.FeatureChangeMergeException;
+import org.openstreetmap.atlas.exception.change.MergeFailureType;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -431,21 +433,34 @@ public class FeatureChange implements Located, Serializable
         {
             // Pre-condition 1)
             if (this.getIdentifier() != other.getIdentifier()
-                    || this.getItemType() != other.getItemType()
-                    || this.getChangeType() != other.getChangeType())
+                    || this.getItemType() != other.getItemType())
             {
-                throw new CoreException(
+                throw new FeatureChangeMergeException(
+                        MergeFailureType.FEATURE_CHANGE_INVALID_PROPERTIES_MERGE,
                         "Cannot merge FeatureChanges with mismatching properties: [{}, {}, {}] vs [{}, {}, {}]",
                         this.getIdentifier(), this.getItemType(), this.getChangeType(),
                         other.getIdentifier(), other.getItemType(), other.getChangeType());
+            }
+
+            // Pre-condition 1A) (we separate this one to provide a better exception)
+            if (this.getIdentifier() == other.getIdentifier()
+                    && this.getItemType() == other.getItemType()
+                    && this.getChangeType() != other.getChangeType())
+            {
+                throw new FeatureChangeMergeException(
+                        MergeFailureType.FEATURE_CHANGE_INVALID_ADD_REMOVE_MERGE,
+                        "Cannot merge FeatureChanges for [{}, {}], one is ADD and one is REMOVE",
+                        this.getIdentifier(), this.getItemType());
             }
 
             // Pre-condition 2)
             if (this.getBeforeView() == null && other.getBeforeView() != null
                     || this.getBeforeView() != null && other.getBeforeView() == null)
             {
-                throw new CoreException("One of the FeatureChanges was missing a beforeView - "
-                        + "cannot merge two FeatureChanges unless both either explicitly provide or explicitly exclude a beforeView, {} and {}",
+                throw new FeatureChangeMergeException(
+                        MergeFailureType.FEATURE_CHANGE_IMBALANCED_BEFORE_VIEW,
+                        "One of the FeatureChanges was missing a beforeView - "
+                                + "cannot merge two FeatureChanges unless both either explicitly provide or explicitly exclude a beforeView, {} and {}",
                         this.toString(), other.toString());
             }
 
@@ -472,10 +487,18 @@ public class FeatureChange implements Located, Serializable
                         other.prettify());
             }
         }
+        catch (final FeatureChangeMergeException exception)
+        {
+            throw new FeatureChangeMergeException(
+                    exception.withNewTopLevelFailure(MergeFailureType.HIGHEST_LEVEL_MERGE_FAILURE),
+                    "Cannot merge two feature changes:\n{}\nAND\n{}", this.prettify(),
+                    other.prettify(), exception);
+        }
         catch (final Exception exception)
         {
-            throw new CoreException("Cannot merge two feature changes:\n{}\nAND\n{}",
-                    this.prettify(), other.prettify(), exception);
+            throw new FeatureChangeMergeException(MergeFailureType.HIGHEST_LEVEL_MERGE_FAILURE,
+                    "Cannot merge two feature changes:\n{}\nAND\n{}", this.prettify(),
+                    other.prettify(), exception);
         }
         FeatureChangeMergingHelpers.mergeMetaData(this, other).forEach(result::addMetaData);
         return result;
