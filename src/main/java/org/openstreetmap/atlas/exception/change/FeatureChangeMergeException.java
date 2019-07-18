@@ -5,8 +5,6 @@ import java.util.List;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A special exception for {@link FeatureChange} merge errors.
@@ -16,8 +14,6 @@ import org.slf4j.LoggerFactory;
 public class FeatureChangeMergeException extends CoreException
 {
     private static final long serialVersionUID = -3583945839922744755L;
-
-    private static final Logger logger = LoggerFactory.getLogger(FeatureChangeMergeException.class);
 
     private final List<MergeFailureType> failureTypeTrace;
 
@@ -152,13 +148,9 @@ public class FeatureChangeMergeException extends CoreException
             boolean foundSubSequenceThisIteration = true;
             for (int j = 0, tmpI = i; j < subSequence.size(); j++, tmpI++)
             {
-                // We hit the end of the failure trace early
-                if (tmpI >= this.failureTypeTrace.size())
-                {
-                    foundSubSequenceThisIteration = false;
-                    break;
-                }
-                if (subSequence.get(j) != this.failureTypeTrace.get(tmpI))
+                // We hit the end of the failure trace early or we found a sequence mismatch
+                if (tmpI >= this.failureTypeTrace.size()
+                        || subSequence.get(j) != this.failureTypeTrace.get(tmpI))
                 {
                     foundSubSequenceThisIteration = false;
                     break;

@@ -17,8 +17,6 @@ import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.utilities.function.QuaternaryOperator;
 import org.openstreetmap.atlas.utilities.function.TernaryOperator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This class encapsulates the logic and configuration for {@link CompleteEntity} member merging in
@@ -204,7 +202,6 @@ public final class MemberMerger<M>
         }
     }
 
-    private static final Logger logger = LoggerFactory.getLogger(MemberMerger.class);
     private String memberName;
     private AtlasEntity beforeEntityLeft;
     private AtlasEntity afterEntityLeft;
@@ -399,7 +396,7 @@ public final class MemberMerger<M>
             throw new FeatureChangeMergeException(
                     exception.withNewTopLevelFailure(
                             MergeFailureType.BEFORE_VIEW_MERGE_STRATEGY_FAILED),
-                    "Attempted beforeView merge strategy failed for {} with beforeView: {} vs {}",
+                    "Attempted beforeView merge strategy failed for {} with beforeView: {} vs {}", // NOSONAR
                     this.memberName, beforeMemberLeft, beforeMemberRight, exception);
         }
         catch (final Exception exception)
@@ -428,7 +425,7 @@ public final class MemberMerger<M>
             throw new FeatureChangeMergeException(exception.withNewTopLevelFailure(
                     MergeFailureType.AFTER_VIEW_CONFLICTING_BEFORE_VIEW_MERGE_STRATEGY_FAILED),
                     "Tried merge strategy for hackForConflictingConnectedEdgeSet, but it failed for {}"
-                            + "\nbeforeView: {} vs {};\nafterView: {} vs {}",
+                            + "\nbeforeView: {} vs {};\nafterView: {} vs {}", // NOSONAR
                     this.memberName, beforeMemberLeft, beforeMemberRight, afterMemberLeft,
                     afterMemberRight, exception);
         }
