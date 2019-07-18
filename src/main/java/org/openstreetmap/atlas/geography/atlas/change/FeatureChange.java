@@ -491,8 +491,8 @@ public class FeatureChange implements Located, Serializable
         {
             throw new FeatureChangeMergeException(
                     exception.withNewTopLevelFailure(MergeFailureType.HIGHEST_LEVEL_MERGE_FAILURE),
-                    "Cannot merge two feature changes:\n{}\nAND\n{}", this.prettify(),
-                    other.prettify(), exception);
+                    "Cannot merge two feature changes:\n{}\nAND\n{}\nParent failureTrace: {}",
+                    this.prettify(), other.prettify(), exception.getMergeFailureTrace(), exception);
         }
         catch (final Exception exception)
         {
