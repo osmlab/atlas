@@ -40,14 +40,14 @@ public final class MemberMergeStrategies
     static final BinaryOperator<Long> autofailBinaryLongMerger = (afterLeft, afterRight) ->
     {
         throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_LONG_MERGE,
-                "autofailBinaryLongMerger: {} vs {}", afterLeft, afterRight);
+                "autofailBinaryLongMerger:\n{}\nvs\n{}", afterLeft, afterRight);
     };
 
     static final QuaternaryOperator<Long> autofailQuaternaryLongMerger = (beforeLeft, beforeRight,
             afterLeft, afterRight) ->
     {
         throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_LONG_MERGE,
-                "autofailQuaternaryLongMerger: before: {} vs {}, after: {} vs {}", beforeLeft,
+                "autofailQuaternaryLongMerger: before:\n{}\nvs\n{}\nafter:\n{}\nvs\n{}", beforeLeft,
                 beforeRight, afterLeft, afterRight);
     };
 
@@ -55,86 +55,86 @@ public final class MemberMergeStrategies
             afterMapRight) ->
     {
         throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_TAG_MERGE,
-                "autofailBinaryTagMerger: {} vs {}", afterMapLeft, afterMapRight);
+                "autofailBinaryTagMerger:\n{}\nvs\n{}", afterMapLeft, afterMapRight);
     };
 
     static final QuaternaryOperator<Map<String, String>> autofailQuaternaryTagMerger = (
             beforeMapLeft, afterMapLeft, beforeMapRight, afterMapRight) ->
     {
         throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_TAG_MERGE,
-                "autofailQuaternaryTagMerger: before: {} vs {}, after: {} vs {}", beforeMapLeft,
-                beforeMapRight, afterMapLeft, afterMapRight);
+                "autofailQuaternaryTagMerger: before:\n{}\nvs\n{}\nafter:\n{}\nvs\n{}",
+                beforeMapLeft, beforeMapRight, afterMapLeft, afterMapRight);
     };
 
     static final BinaryOperator<Set<Long>> autofailBinaryLongSetMerger = (afterLeft, afterRight) ->
     {
         throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_LONG_SET_MERGE,
-                "autofailBinaryLongSetMerger: {} vs {}", afterLeft, afterRight);
+                "autofailBinaryLongSetMerger:\n{}\nvs\n{}", afterLeft, afterRight);
     };
 
     static final QuaternaryOperator<Set<Long>> autofailQuaternaryLongSetMerger = (beforeLeft,
             afterLeft, beforeRight, afterRight) ->
     {
         throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_LONG_SET_MERGE,
-                "autofailQuaternaryLongSetMerger: before: {} vs {}, after: {} vs {}", beforeLeft,
-                beforeRight, afterLeft, afterRight);
+                "autofailQuaternaryLongSetMerger: before\n{}\nvs\n{}\nafter:\n{}\nvs\n{}",
+                beforeLeft, beforeRight, afterLeft, afterRight);
     };
 
     static final BinaryOperator<SortedSet<Long>> autofailBinaryLongSortedSetMerger = (afterLeft,
             afterRight) ->
     {
         throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_LONG_SORTED_SET_MERGE,
-                "autofailBinaryLongSortedSetMerger: {} vs {}", afterLeft, afterRight);
+                "autofailBinaryLongSortedSetMerger:\n{}\nvs\n{}", afterLeft, afterRight);
     };
 
     static final QuaternaryOperator<SortedSet<Long>> autofailQuaternaryLongSortedSetMerger = (
             beforeLeft, afterLeft, beforeRight, afterRight) ->
     {
         throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_LONG_SORTED_SET_MERGE,
-                "autofailQuaternaryLongSortedSetMerger: before: {} vs {}, after: {} vs {}",
+                "autofailQuaternaryLongSortedSetMerger: before:\n{}\nvs\n{}\nafter:\n{}\nvs\n{}",
                 beforeLeft, beforeRight, afterLeft, afterRight);
     };
 
     static final BinaryOperator<Location> autofailBinaryLocationMerger = (afterLeft, afterRight) ->
     {
         throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_LOCATION_MERGE,
-                "autofailBinaryLocationMerger: {} vs {}", afterLeft, afterRight);
+                "autofailBinaryLocationMerger:\n{}\nvs\n{}", afterLeft, afterRight);
     };
 
     static final QuaternaryOperator<Location> autofailQuaternaryLocationMerger = (beforeLeft,
             afterLeft, beforeRight, afterRight) ->
     {
         throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_LOCATION_MERGE,
-                "autofailQuaternaryLocationMerger: before: {} vs {}, after: {} vs {}", beforeLeft,
-                beforeRight, afterLeft, afterRight);
+                "autofailQuaternaryLocationMerger: before:\n{}\nvs\n{}\nafter:\n{}\nvs\n{}",
+                beforeLeft, beforeRight, afterLeft, afterRight);
     };
 
     static final BinaryOperator<PolyLine> autofailBinaryPolyLineMerger = (afterLeft, afterRight) ->
     {
         throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_POLYLINE_MERGE,
-                "autofailBinaryPolyLineMerger: {} vs {}", afterLeft, afterRight);
+                "autofailBinaryPolyLineMerger:\n{}\nvs\n{}", afterLeft, afterRight);
     };
 
     static final QuaternaryOperator<PolyLine> autofailQuaternaryPolyLineMerger = (beforeLeft,
             afterLeft, beforeRight, afterRight) ->
     {
         throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_POLYLINE_MERGE,
-                "autofailQuaternaryPolyLineMerger: before: {} vs {}, after: {} vs {}", beforeLeft,
-                beforeRight, afterLeft, afterRight);
+                "autofailQuaternaryPolyLineMerger: before:\n{}\nvs\n{}\nafter:\n{}\nvs\n{}",
+                beforeLeft, beforeRight, afterLeft, afterRight);
     };
 
     static final BinaryOperator<Polygon> autofailBinaryPolygonMerger = (afterLeft, afterRight) ->
     {
         throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_POLYGON_MERGE,
-                "autofailBinaryPolygonMerger: {} vs {}", afterLeft, afterRight);
+                "autofailBinaryPolygonMerger:\n{}\nvs\n{}", afterLeft, afterRight);
     };
 
     static final QuaternaryOperator<Polygon> autofailQuaternaryPolygonMerger = (beforeLeft,
             afterLeft, beforeRight, afterRight) ->
     {
         throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_POLYGON_MERGE,
-                "autofailQuaternaryPolygonMerger: before: {} vs {}, after: {} vs {}", beforeLeft,
-                beforeRight, afterLeft, afterRight);
+                "autofailQuaternaryPolygonMerger: before:\n{}\nvs\n{}\nafter:\n{}\nvs\n{}",
+                beforeLeft, beforeRight, afterLeft, afterRight);
     };
 
     static final BinaryOperator<Map<String, String>> simpleTagMerger = (afterMapLeft,
@@ -786,7 +786,7 @@ public final class MemberMergeStrategies
              */
             throw new FeatureChangeMergeException(
                     MergeFailureType.MUTUALLY_EXCLUSIVE_ADD_ADD_CONFLICT,
-                    "diffBasedMutuallyExclusiveMerger failed due to ADD/ADD conflict: beforeView was {} but afterViews were [{} vs {}]",
+                    "diffBasedMutuallyExclusiveMerger failed due to ADD/ADD conflict: beforeView was:\n{}\nbut afterViews were:\n{}\nvs\n{}",
                     beforeView, afterViewLeft, afterViewRight);
         };
     }
@@ -814,14 +814,14 @@ public final class MemberMergeStrategies
         if (!explicitlyExcludedLeft.equals(implicitlyRemovedFromLeft))
         {
             throw new CoreException(
-                    "explicitlyExcludedLeft set did not match the implicitly computed removedFromLeft set: {} vs {}\n"
+                    "explicitlyExcludedLeft set did not match the implicitly computed removedFromLeft set:\n{}\nvs\n{}\n"
                             + "This is likely because members were removed without using the correct withXAndSource API",
                     explicitlyExcludedLeft, implicitlyRemovedFromLeft);
         }
         if (!explicitlyExcludedRight.equals(implicitlyRemovedFromRight))
         {
             throw new CoreException(
-                    "explicitlyExcludedRight set did not match the implicitly computed removedFromRight set: {} vs {}\n"
+                    "explicitlyExcludedRight set did not match the implicitly computed removedFromRight set:\n{}\nvs\n{}\n"
                             + "This is likely because members were removed without using the correct withXAndSource API",
                     explicitlyExcludedRight, implicitlyRemovedFromRight);
         }
