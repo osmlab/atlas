@@ -5,6 +5,13 @@ package org.openstreetmap.atlas.exception.change;
  */
 public enum MergeFailureType
 {
+    AUTOFAIL_TAG_MERGE("tag Map merge failed due to autofail strategy"),
+    AUTOFAIL_LONG_SET_MERGE("Long Set merge failed due to autofail strategy"),
+    AUTOFAIL_LONG_SORTED_SET_MERGE("Long SortedSet merge failed due to autofail strategy"),
+    AUTOFAIL_LOCATION_MERGE("Location merge failed due to autofail strategy"),
+    AUTOFAIL_POLYLINE_MERGE("PolyLine merge failed due to autofail strategy"),
+    AUTOFAIL_POLYGON_MERGE("Polygon merge failed due to autofail strategy"),
+    AUTOFAIL_LONG_MERGE("Long merge failed due to autofail strategy"),
     AFTER_VIEW_NO_BEFORE_VIEW_MERGE_STRATEGY_FAILED(
             "the afterView merging function (that ignores beforeView) failed"),
     AFTER_VIEW_CONSISTENT_BEFORE_VIEW_MERGE_STRATEGY_FAILED(

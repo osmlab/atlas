@@ -37,6 +37,106 @@ import org.openstreetmap.atlas.utilities.function.TernaryOperator;
  */
 public final class MemberMergeStrategies
 {
+    static final BinaryOperator<Long> autofailBinaryLongMerger = (afterLeft, afterRight) ->
+    {
+        throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_LONG_MERGE,
+                "autofailBinaryLongMerger: {} vs {}", afterLeft, afterRight);
+    };
+
+    static final QuaternaryOperator<Long> autofailQuaternaryLongMerger = (beforeLeft, beforeRight,
+            afterLeft, afterRight) ->
+    {
+        throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_LONG_MERGE,
+                "autofailQuaternaryLongMerger: before: {} vs {}, after: {} vs {}", beforeLeft,
+                beforeRight, afterLeft, afterRight);
+    };
+
+    static final BinaryOperator<Map<String, String>> autofailBinaryTagMerger = (afterMapLeft,
+            afterMapRight) ->
+    {
+        throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_TAG_MERGE,
+                "autofailBinaryTagMerger: {} vs {}", afterMapLeft, afterMapRight);
+    };
+
+    static final QuaternaryOperator<Map<String, String>> autofailQuaternaryTagMerger = (
+            beforeMapLeft, afterMapLeft, beforeMapRight, afterMapRight) ->
+    {
+        throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_TAG_MERGE,
+                "autofailQuaternaryTagMerger: before: {} vs {}, after: {} vs {}", beforeMapLeft,
+                beforeMapRight, afterMapLeft, afterMapRight);
+    };
+
+    static final BinaryOperator<Set<Long>> autofailBinaryLongSetMerger = (afterLeft, afterRight) ->
+    {
+        throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_LONG_SET_MERGE,
+                "autofailBinaryLongSetMerger: {} vs {}", afterLeft, afterRight);
+    };
+
+    static final QuaternaryOperator<Set<Long>> autofailQuaternaryLongSetMerger = (beforeLeft,
+            afterLeft, beforeRight, afterRight) ->
+    {
+        throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_LONG_SET_MERGE,
+                "autofailQuaternaryLongSetMerger: before: {} vs {}, after: {} vs {}", beforeLeft,
+                beforeRight, afterLeft, afterRight);
+    };
+
+    static final BinaryOperator<SortedSet<Long>> autofailBinaryLongSortedSetMerger = (afterLeft,
+            afterRight) ->
+    {
+        throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_LONG_SORTED_SET_MERGE,
+                "autofailBinaryLongSortedSetMerger: {} vs {}", afterLeft, afterRight);
+    };
+
+    static final QuaternaryOperator<SortedSet<Long>> autofailQuaternaryLongSortedSetMerger = (
+            beforeLeft, afterLeft, beforeRight, afterRight) ->
+    {
+        throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_LONG_SORTED_SET_MERGE,
+                "autofailQuaternaryLongSortedSetMerger: before: {} vs {}, after: {} vs {}",
+                beforeLeft, beforeRight, afterLeft, afterRight);
+    };
+
+    static final BinaryOperator<Location> autofailBinaryLocationMerger = (afterLeft, afterRight) ->
+    {
+        throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_LOCATION_MERGE,
+                "autofailBinaryLocationMerger: {} vs {}", afterLeft, afterRight);
+    };
+
+    static final QuaternaryOperator<Location> autofailQuaternaryLocationMerger = (beforeLeft,
+            afterLeft, beforeRight, afterRight) ->
+    {
+        throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_LOCATION_MERGE,
+                "autofailQuaternaryLocationMerger: before: {} vs {}, after: {} vs {}", beforeLeft,
+                beforeRight, afterLeft, afterRight);
+    };
+
+    static final BinaryOperator<PolyLine> autofailBinaryPolyLineMerger = (afterLeft, afterRight) ->
+    {
+        throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_POLYLINE_MERGE,
+                "autofailBinaryPolyLineMerger: {} vs {}", afterLeft, afterRight);
+    };
+
+    static final QuaternaryOperator<PolyLine> autofailQuaternaryPolyLineMerger = (beforeLeft,
+            afterLeft, beforeRight, afterRight) ->
+    {
+        throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_POLYLINE_MERGE,
+                "autofailQuaternaryPolyLineMerger: before: {} vs {}, after: {} vs {}", beforeLeft,
+                beforeRight, afterLeft, afterRight);
+    };
+
+    static final BinaryOperator<Polygon> autofailBinaryPolygonMerger = (afterLeft, afterRight) ->
+    {
+        throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_POLYGON_MERGE,
+                "autofailBinaryPolygonMerger: {} vs {}", afterLeft, afterRight);
+    };
+
+    static final QuaternaryOperator<Polygon> autofailQuaternaryPolygonMerger = (beforeLeft,
+            afterLeft, beforeRight, afterRight) ->
+    {
+        throw new FeatureChangeMergeException(MergeFailureType.AUTOFAIL_POLYGON_MERGE,
+                "autofailQuaternaryPolygonMerger: before: {} vs {}, after: {} vs {}", beforeLeft,
+                beforeRight, afterLeft, afterRight);
+    };
+
     static final BinaryOperator<Map<String, String>> simpleTagMerger = (afterMapLeft,
             afterMapRight) ->
     {
@@ -476,8 +576,6 @@ public final class MemberMergeStrategies
         return result;
     };
 
-    static final BinaryOperator<RelationBean> beforeViewRelationBeanMerger = RelationBean::mergeBeans;
-
     /**
      * A merger for cases when two {@link Set}s have conflicting beforeViews. This is useful for
      * merging {@link Node} in/out {@link Edge} sets, since different shards may occasionally have
@@ -601,7 +699,7 @@ public final class MemberMergeStrategies
          * we can apply the changes from our removedMerged and addedMerged sets to get the final
          * result.
          */
-        final Set<RelationBeanItem> mergedBeforeView = beforeViewRelationBeanMerger
+        final Set<RelationBeanItem> mergedBeforeView = simpleRelationBeanMerger
                 .apply(beforeLeftBean, beforeRightBean).asSet();
         mergedBeforeView.removeAll(removedMerged);
         mergedBeforeView.addAll(addedMerged);

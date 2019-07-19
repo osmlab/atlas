@@ -132,7 +132,7 @@ public class FeatureChangeMergeException extends CoreException
      *            the subsequence of {@link MergeFailureType}s to check
      * @return if the subsequence is present
      */
-    public boolean traceContainsExactFailureSequence(final List<MergeFailureType> subSequence)
+    public boolean traceContainsExactFailureSubSequence(final List<MergeFailureType> subSequence)
     {
         if (subSequence.isEmpty())
         {
