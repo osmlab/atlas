@@ -168,6 +168,11 @@ public final class MemberMerger<M>
             {
                 throw new CoreException("Both \'beforeEntity\' fields must either be set or null");
             }
+
+            if (this.memberExtractor == null)
+            {
+                throw new CoreException("Required field \'memberExtractor\' was unset");
+            }
         }
     }
 

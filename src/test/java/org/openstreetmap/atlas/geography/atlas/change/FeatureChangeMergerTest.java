@@ -68,7 +68,7 @@ public class FeatureChangeMergerTest
                     exception.rootLevelFailure());
             Assert.assertTrue(exception.traceContainsFailureType(
                     MergeFailureType.MUTUALLY_EXCLUSIVE_ADD_ADD_CONFLICT));
-            Assert.assertTrue(exception.traceContainsExactFailureSequence(Arrays.asList(
+            Assert.assertTrue(exception.traceContainsExactFailureSubSequence(Arrays.asList(
                     MergeFailureType.MUTUALLY_EXCLUSIVE_ADD_ADD_CONFLICT,
                     MergeFailureType.DIFF_BASED_POLYGON_MERGE_FAIL,
                     MergeFailureType.AFTER_VIEW_CONSISTENT_BEFORE_VIEW_MERGE_STRATEGY_FAILED)));
@@ -176,7 +176,7 @@ public class FeatureChangeMergerTest
                     exception.rootLevelFailure());
             Assert.assertTrue(exception
                     .traceContainsFailureType(MergeFailureType.DIFF_BASED_TAG_ADD_ADD_CONFLICT));
-            Assert.assertTrue(exception.traceContainsExactFailureSequence(Arrays.asList(
+            Assert.assertTrue(exception.traceContainsExactFailureSubSequence(Arrays.asList(
                     MergeFailureType.DIFF_BASED_TAG_ADD_ADD_CONFLICT,
                     MergeFailureType.AFTER_VIEW_CONSISTENT_BEFORE_VIEW_MERGE_STRATEGY_FAILED)));
             Assert.assertTrue(exception.traceMatchesExactFailureSequence(Arrays.asList(

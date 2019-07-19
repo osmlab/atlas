@@ -5,19 +5,16 @@ package org.openstreetmap.atlas.exception.change;
  */
 public enum MergeFailureType
 {
-    AFTER_VIEW_NO_BEFORE_VIEW_MERGE_STRATEGY_FAILED(
-            "the afterView merging function (that ignores beforeView) failed"),
-    AFTER_VIEW_CONSISTENT_BEFORE_VIEW_MERGE_STRATEGY_FAILED(
-            "the afterView merging function (that assumes consistent beforeViews) failed"),
-    AFTER_VIEW_CONFLICTING_BEFORE_VIEW_MERGE_STRATEGY_FAILED(
-            "the afterView merging function (that accounts for conflicting beforeViews) failed"),
-    BEFORE_VIEW_MERGE_STRATEGY_FAILED("the beforeView merging function failed"),
-    MISSING_BEFORE_VIEW_MERGE_STRATEGY(
-            "beforeMembers conflict and no beforeView merging strategy provided"),
-    MISSING_AFTER_VIEW_MERGE_STRATEGY_WITH_BEFORE_MEMBER_CONFLICT_HANDLING(
-            "beforeMembers conflict and no beforeView-conflict-capable afterView merging strategy provided"),
-    MISSING_AFTER_VIEW_MERGE_STRATEGY(
-            "afterMembers conflict and no afterView merging strategy provided"),
+    /*
+     * These are all root level failures.
+     */
+    AUTOFAIL_TAG_MERGE("tag Map merge failed due to autofail strategy"),
+    AUTOFAIL_LONG_SET_MERGE("Long Set merge failed due to autofail strategy"),
+    AUTOFAIL_LONG_SORTED_SET_MERGE("Long SortedSet merge failed due to autofail strategy"),
+    AUTOFAIL_LOCATION_MERGE("Location merge failed due to autofail strategy"),
+    AUTOFAIL_POLYLINE_MERGE("PolyLine merge failed due to autofail strategy"),
+    AUTOFAIL_POLYGON_MERGE("Polygon merge failed due to autofail strategy"),
+    AUTOFAIL_LONG_MERGE("Long merge failed due to autofail strategy"),
     SIMPLE_TAG_MERGE_FAIL("simpleTagMerger failed"),
     SIMPLE_LONG_SET_MERGE_FAIL("simpleLongSetMerger failed"),
     SIMPLE_LONG_SORTED_SET_MERGE_FAIL("simpleLongSortedSetMerger failed"),
@@ -46,6 +43,28 @@ public enum MergeFailureType
             "left and right FeatureChanges disagreed on ID or ItemType"),
     FEATURE_CHANGE_IMBALANCED_BEFORE_VIEW(
             "left and right FeatureChanges did not both have beforeViews"),
+
+    /*
+     * These failures occur at the next level up from root. They differentiate between
+     * afterView/beforeView merge errors, and do not contain specific member information.
+     */
+    AFTER_VIEW_NO_BEFORE_VIEW_MERGE_STRATEGY_FAILED(
+            "the afterView merging function (that ignores beforeView) failed"),
+    AFTER_VIEW_CONSISTENT_BEFORE_VIEW_MERGE_STRATEGY_FAILED(
+            "the afterView merging function (that assumes consistent beforeViews) failed"),
+    AFTER_VIEW_CONFLICTING_BEFORE_VIEW_MERGE_STRATEGY_FAILED(
+            "the afterView merging function (that accounts for conflicting beforeViews) failed"),
+    BEFORE_VIEW_MERGE_STRATEGY_FAILED("the beforeView merging function failed"),
+    MISSING_BEFORE_VIEW_MERGE_STRATEGY(
+            "beforeMembers conflict and no beforeView merging strategy provided"),
+    MISSING_AFTER_VIEW_MERGE_STRATEGY_WITH_BEFORE_MEMBER_CONFLICT_HANDLING(
+            "beforeMembers conflict and no beforeView-conflict-capable afterView merging strategy provided"),
+    MISSING_AFTER_VIEW_MERGE_STRATEGY(
+            "afterMembers conflict and no afterView merging strategy provided"),
+
+    /*
+     * The generic highest level merge failure.
+     */
     HIGHEST_LEVEL_MERGE_FAILURE("the FeatureChange merge failed");
 
     private final String description;
