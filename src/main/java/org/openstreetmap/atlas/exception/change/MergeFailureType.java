@@ -15,9 +15,38 @@ public enum MergeFailureType
     MISSING_BEFORE_VIEW_MERGE_STRATEGY(
             "beforeMembers conflict and no beforeView merging strategy provided"),
     MISSING_AFTER_VIEW_MERGE_STRATEGY_WITH_BEFORE_MEMBER_CONFLICT_HANDLING(
-            "beforeMembers conflict and no beforeView-conflict-capable afterView merging strategy"),
+            "beforeMembers conflict and no beforeView-conflict-capable afterView merging strategy provided"),
     MISSING_AFTER_VIEW_MERGE_STRATEGY(
-            "afterMembers conflict and no afterView merging strategy provided");
+            "afterMembers conflict and no afterView merging strategy provided"),
+    SIMPLE_TAG_MERGE_FAIL("simpleTagMerger failed"),
+    SIMPLE_LONG_SET_MERGE_FAIL("simpleLongSetMerger failed"),
+    SIMPLE_LONG_SORTED_SET_MERGE_FAIL("simpleLongSortedSetMerger failed"),
+    SIMPLE_RELATION_BEAN_MERGE_FAIL("simpleRelationBeanMerger failed"),
+    DIFF_BASED_RELATION_BEAN_REMOVE_REMOVE_CONFLICT(
+            "diffBasedRelationBeanMerger failed due to REMOVE/REMOVE conflict"),
+    DIFF_BASED_RELATION_BEAN_ADD_REMOVE_CONFLICT(
+            "diffBasedRelationBeanMerger failed due to ADD/REMOVE conflict"),
+    DIFF_BASED_RELATION_BEAN_ADD_ADD_CONFLICT(
+            "diffBasedRelationBeanMerger failed due to ADD/ADD conflict"),
+    DIFF_BASED_TAG_ADD_ADD_CONFLICT("diffBasedTagMerger failed due to ADD/ADD conflict"),
+    DIFF_BASED_TAG_ADD_REMOVE_CONFLICT("diffBasedTagMerger failed due to ADD/REMOVE conflict"),
+    DIFF_BASED_LONG_MERGE_FAIL("diffBasedLongMerger failed"),
+    DIFF_BASED_LOCATION_MERGE_FAIL("diffBasedLocationMerger failed"),
+    DIFF_BASED_POLYLINE_MERGE_FAIL("diffBasedPolyLineMerger failed"),
+    DIFF_BASED_POLYGON_MERGE_FAIL("diffBasedPolygonMerger failed"),
+    CONFLICTING_BEFORE_VIEW_SET_ADD_REMOVE_CONFLICT(
+            "conflictingBeforeViewSetMerger failed due to ADD/REMOVE conflict"),
+    CONFLICTING_BEFORE_VIEW_RELATION_BEAN_ADD_REMOVE_CONFLICT(
+            "conflictingBeforeViewRelationBeanMerger failed due to ADD/REMOVE conflict"),
+    MUTUALLY_EXCLUSIVE_ADD_ADD_CONFLICT(
+            "diffBasedMutuallyExclusiveMerger failed due to ADD/ADD conflict"),
+    FEATURE_CHANGE_INVALID_ADD_REMOVE_MERGE(
+            "left and right FeatureChanges disagreed on ChangeType"),
+    FEATURE_CHANGE_INVALID_PROPERTIES_MERGE(
+            "left and right FeatureChanges disagreed on ID or ItemType"),
+    FEATURE_CHANGE_IMBALANCED_BEFORE_VIEW(
+            "left and right FeatureChanges did not both have beforeViews"),
+    HIGHEST_LEVEL_MERGE_FAILURE("the FeatureChange merge failed");
 
     private final String description;
 
