@@ -244,6 +244,7 @@ public class OsmPbfIngestTest
                     .setAdditionalCountryCodes(COUNTRY_1_NAME);
             Atlas atlas = new RawAtlasGenerator(() -> osmosis, loadingOption, MultiPolygon.MAXIMUM)
                     .build();
+            atlas.points().forEach(System.out::println);
             atlas = new RawAtlasCountrySlicer(loadingOption).slice(atlas);
             atlas = new WaySectionProcessor(atlas, AtlasLoadingOption.createOptionWithNoSlicing())
                     .run();
@@ -255,6 +256,7 @@ public class OsmPbfIngestTest
             final Edge edgeIn = atlas.edgesIntersecting(Location.TEST_7.bounds()).iterator().next();
             final Node nodeIn = edgeIn.end();
             Assert.assertNull(nodeIn.tag(SyntheticBoundaryNodeTag.KEY));
+            atlas.points().forEach(System.out::println);
             Assert.assertEquals(2, atlas.numberOfPoints());
         }
     }

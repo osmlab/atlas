@@ -5,8 +5,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
@@ -15,24 +17,34 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import org.locationtech.jts.algorithm.distance.DiscreteHausdorffDistance;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryCollection;
+import org.locationtech.jts.geom.IntersectionMatrix;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.geom.TopologyException;
+import org.locationtech.jts.index.strtree.GeometryItemDistance;
 import org.locationtech.jts.operation.linemerge.LineMerger;
+import org.locationtech.jts.precision.GeometryPrecisionReducer;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.change.ChangeAtlas;
+import org.openstreetmap.atlas.geography.atlas.change.ChangeBuilder;
+import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
+import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
+import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.CountrySlicingIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.PointIdentifierFactory;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.ChangeSetHandler;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.SimpleChangeSet;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.changeset.SimpleChangeSetHandler;
-import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryLine;
-import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryPoint;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
@@ -41,6 +53,8 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Strings;
 
 /**
  * The {@link RawAtlasPointAndLineSlicer} consumes an un-sliced raw Atlas and produces an Atlas with
@@ -53,16 +67,9 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
 {
     private static final Logger logger = LoggerFactory.getLogger(RawAtlasPointAndLineSlicer.class);
 
-    // Keeps track of all changes made during slicing
-    private final SimpleChangeSet slicedPointAndLineChanges;
-
-    // Keeps track of points marked for removal
-    private final Set<Long> pointsMarkedForRemoval = new HashSet<>();
-
     public RawAtlasPointAndLineSlicer(final Atlas atlas, final AtlasLoadingOption loadingOption)
     {
         super(loadingOption, new CoordinateToNewPointMapping(), atlas);
-        this.slicedPointAndLineChanges = new SimpleChangeSet();
     }
 
     /**
@@ -76,44 +83,77 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         final Time time = Time.now();
         logger.info("Starting Point and Line Slicing for Atlas {}", getShardOrAtlasName());
 
-        // Slice lines and points
-        sliceLines();
-        slicePoints();
-
-        // Apply changes and rebuild the atlas with the changes before slicing relations
-        final ChangeSetHandler simpleChangeBuilder = new SimpleChangeSetHandler(getStartingAtlas(),
-                this.slicedPointAndLineChanges);
-        final Atlas atlasWithSlicedWaysAndPoints = simpleChangeBuilder.applyChanges();
+        final Atlas pointSlicedAtlas = slicePoints(getStartingAtlas());
+        logger.debug("Finished point slicing, moving on to line slicing");
+        final Atlas pointAndLineSlicedAtlas = sliceLines(pointSlicedAtlas);
 
         logger.info("Finished Point and Line Slicing for Atlas {} in {}", getShardOrAtlasName(),
                 time.elapsedSince());
-        getStatistics().summary();
-        return atlasWithSlicedWaysAndPoints;
+
+        return pointAndLineSlicedAtlas.cloneToPackedAtlas();
     }
 
     /**
-     * Takes a location, a list of points from the raw Atlas at that location, and a list of point
-     * IDs. Ensures the tags for the point are updated, ensures the points are not removed from the
-     * raw Atlas, and adds the points the list of points for the line.
+     * Small helper method to take geometry and parse it before adding it to a result list. If the
+     * geometry is in fact a collection, each geometry in the collection is tagged with a country
+     * code before being added. Otherwise, the country code will be added elsewhere. Note that this
+     * method relies on the ability to modify the passed-in collection directly so that there's no
+     * need to return anything.
      *
-     * @param location
-     *            The location for the point(s)
-     * @param rawAtlasPoints
-     *            The points from the raw Atlas
-     * @param line
-     *            The List representing the points for the line to add the points to
+     * @param geometry
+     *            A geometry to add to the results collection
+     * @param results
+     *            The current collection of results to add the geometry to
      */
-    private void addRawAtlasPointsToLine(final Location location,
-            final Iterable<Point> rawAtlasPoints, final List<Long> line)
+    private void addResult(final Geometry geometry, final List<Geometry> results)
     {
-        final Map<String, String> pointTags = createPointTags(location, true);
-        for (final Point rawAtlasPoint : rawAtlasPoints)
+        if (geometry instanceof GeometryCollection)
         {
-            this.pointsMarkedForRemoval.remove(rawAtlasPoint.getIdentifier());
-            this.slicedPointAndLineChanges.updatePointTags(rawAtlasPoint.getIdentifier(),
-                    pointTags);
-            line.add(rawAtlasPoint.getIdentifier());
+            final GeometryCollection collection = (GeometryCollection) geometry;
+            CountryBoundaryMap.geometries(collection).forEach(part ->
+            {
+                CountryBoundaryMap.getGeometryProperties(geometry).forEach(
+                        (key, value) -> CountryBoundaryMap.setGeometryProperty(part, key, value));
+                this.addResult(part, results);
+            });
         }
+        else if (geometry instanceof LineString
+                || geometry instanceof org.locationtech.jts.geom.Polygon)
+        {
+            results.add(geometry);
+        }
+        else
+        {
+            if (logger.isErrorEnabled())
+            {
+                logger.error("Resulting slice was a {}, ignoring it.", geometry.toText());
+            }
+        }
+    }
+
+    /**
+     * Given a list of slices, check that all tags for each slice are the same (i.e. no
+     * SyntheticNearestNeighborCountry tag on one slice but not the others)
+     *
+     * @param slices
+     * @return
+     */
+    private boolean allLineTagsEqual(final List<Geometry> slices)
+    {
+        if (slices == null || slices.isEmpty())
+        {
+            return false;
+        }
+        final Geometry firstSlice = slices.get(0);
+        final Map<String, String> tagMap = CountryBoundaryMap.getGeometryProperties(firstSlice);
+        for (final Geometry slice : slices)
+        {
+            if (!CountryBoundaryMap.getGeometryProperties(slice).equals(tagMap))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -166,6 +206,18 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         return result;
     }
 
+    /**
+     * Small helper method to generate a {@link Point} identifier that will avoid clashing with
+     * previously existing point identifiers in the {@link Atlas} being sliced.
+     *
+     * @param pointIdentifierFactory
+     *            An instantiated factory for generating new {@link Point} identifiers
+     * @param lineIdentifier
+     *            The identifier for the {@link Line} being sliced
+     * @return An identifier that can safely be used to make a new {@link Point} in the
+     *         {@link Atlas} being sliced
+     */
+
     private long createNewPointIdentifier(final PointIdentifierFactory pointIdentifierFactory,
             final long lineIdentifier)
     {
@@ -182,29 +234,103 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                 pointIdentifierFactory.getIdentifierScale(), lineIdentifier, getShardOrAtlasName());
     }
 
-    private boolean isOutsideWorkingBound(final Map<String, String> tags)
+    /**
+     * Helper method to subtract each candidate out from the original {@link Geometry}. This process
+     * helps identify bad slicing {@link Geometry} candidate, slicing artifacts, and whether
+     * leftover {@link Geometry} exists (usually geometry that lays entirely outside the
+     * {@link CountryBoundaryMap} used for cutting). If there is any significant remainder geometry,
+     * it is returned.
+     *
+     * @param identifier
+     *            The identifier of the {@link Line} being sliced
+     * @param candidates
+     *            The current collection of candidates {@link Geometry} objects from slicing
+     * @param results
+     *            The current collection of valid slice {@link Geometry}
+     * @param target
+     *            The original {@link Geometry} pre-slicing
+     * @return Any leftover {@link Geometry} from the original target that isn't represented by the
+     *         union of the slice candidate {@link Geometry} collection
+     */
+    private Geometry cutGeometry(final long identifier,
+            final List<org.locationtech.jts.geom.Polygon> candidates, final List<Geometry> results,
+            final Geometry target)
     {
-        if (getCountries() != null && !getCountries().isEmpty())
+        Geometry currentTarget = target;
+        boolean fullyMatched = false;
+        // Start cut process
+        for (final org.locationtech.jts.geom.Polygon candidate : candidates)
         {
-            final String tagValue = tags.get(ISOCountryTag.KEY);
-            final String[] countryCodes = tagValue.split(ISOCountryTag.COUNTRY_DELIMITER);
-            for (final String countryCode : countryCodes)
+            Geometry clipped;
+            try
             {
-                // Break if any one the countries is inside the bound
-                if (getCountries().contains(countryCode))
+                clipped = currentTarget.intersection(candidate);
+            }
+            catch (final TopologyException exc)
+            {
+                logger.error(
+                        "Error while using regular intersection for line {}, attempting again with reduced precision",
+                        identifier, exc);
+                try
                 {
-                    return false;
+                    final GeometryPrecisionReducer precisionReducer = new GeometryPrecisionReducer(
+                            new PrecisionModel(CountryBoundaryMap.PRECISION_MODEL));
+                    precisionReducer.setPointwise(true);
+                    precisionReducer.setChangePrecisionModel(false);
+                    currentTarget = precisionReducer.reduce(target);
+                    clipped = currentTarget.intersection(candidate);
+                }
+                catch (final Exception newExc)
+                {
+                    logger.error(
+                            "Reduced precision still failed for line {}, rethrowing original exception",
+                            identifier, newExc);
+                    throw exc;
                 }
             }
 
-            // We've gone through all the countries and haven't seen one inside, it must be outside
-            return true;
-        }
+            // We don't want single point pieces
+            if (clipped.getNumPoints() > 1)
+            {
+                // Add to the results
+                final String countryCode = CountryBoundaryMap.getGeometryProperty(candidate,
+                        ISOCountryTag.KEY);
+                CountryBoundaryMap.setGeometryProperty(clipped, ISOCountryTag.KEY, countryCode);
+                addResult(clipped, results);
 
-        // Assume it's inside
-        return false;
+                // Update target to be what's left after clipping
+                currentTarget = currentTarget.difference(candidate);
+                if (currentTarget.getDimension() == 1
+                        && currentTarget.getLength() < CountryBoundaryMap.LINE_BUFFER
+                        || currentTarget.getDimension() == 2
+                                && currentTarget.getArea() < CountryBoundaryMap.AREA_BUFFER
+                                && new DiscreteHausdorffDistance(currentTarget, candidate)
+                                        .orientedDistance() < CountryBoundaryMap.LINE_BUFFER)
+                {
+                    // The remaining piece is very small and we ignore it. This also helps avoid
+                    // cutting features just a little over boundary lines and generating too many
+                    // new nodes, which is both unnecessary and exhausts node identifier resources.
+                    fullyMatched = true;
+                    break;
+                }
+            }
+        }
+        return fullyMatched ? null : currentTarget;
     }
 
+    /**
+     * Helper method that takes in a collection of slice {@link Geometry} and organizes it. If all
+     * slices for a country have matching tags, their slices will be run through {@link LineMerger}
+     * in an attempt to reduce any redundant slicing (i.e. two line slices with the same tags that
+     * intersect at their endpoints will get merged into one line slice). The returned map is sorted
+     * alphabetically by country code so that slice processing is always deterministic, regardless
+     * of which countries are being sliced.
+     *
+     * @param slices
+     *            Collection of slice {@link Geometry} for the {@link Line} being sliced
+     * @return {@link SortedMap} mapping alphabetically sorted country codes to the slice
+     *         {@link Geometry} for that country
+     */
     @SuppressWarnings("unchecked")
     private SortedMap<String, Collection<Geometry>> preprocessSlices(final List<Geometry> slices)
     {
@@ -219,47 +345,59 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
             final SortedSet<Geometry> sortedSlices = new TreeSet<>();
             final List<Geometry> slicesForCountry = slicesByCountryCode.get(countryCode);
 
-            final Map<String, String> mergedLineTags = new HashMap<>();
-            mergedLineTags.put(ISOCountryTag.KEY, countryCode);
-            slicesForCountry.forEach(
-                    slice -> CountryBoundaryMap.getGeometryProperties(slice).forEach((key, value) ->
-                    {
-                        if (!mergedLineTags.containsKey(key))
+            if (allLineTagsEqual(slicesForCountry))
+            {
+                final Map<String, String> lineTags = new HashMap<>();
+                lineTags.put(ISOCountryTag.KEY, countryCode);
+                CountryBoundaryMap.getGeometryProperties(slicesForCountry.get(0))
+                        .forEach((key, value) ->
                         {
-                            mergedLineTags.put(key, value);
-                        }
-                    }));
+                            if (!lineTags.containsKey(key))
+                            {
+                                lineTags.put(key, value);
+                            }
+                        });
 
-            final LineMerger merger = new LineMerger();
-            merger.add(slicesForCountry);
-            merger.getMergedLineStrings()
-                    .forEach(geometry -> mergedLineTags.forEach((key, value) -> CountryBoundaryMap
-                            .setGeometryProperty((Geometry) geometry, key, value)));
-            sortedSlices.addAll(merger.getMergedLineStrings());
-            processedSlices.put(countryCode, sortedSlices);
+                final LineMerger merger = new LineMerger();
+                merger.add(slicesForCountry);
+                merger.getMergedLineStrings()
+                        .forEach(geometry -> lineTags.forEach((key, value) -> CountryBoundaryMap
+                                .setGeometryProperty((Geometry) geometry, key, value)));
+                sortedSlices.addAll(merger.getMergedLineStrings());
+                processedSlices.put(countryCode, sortedSlices);
+            }
+            else
+            {
+                sortedSlices.addAll(slicesForCountry);
+                processedSlices.put(countryCode, sortedSlices);
+            }
         });
         return processedSlices;
     }
 
     /**
      * Processes each slice by updating corresponding tags ({@link ISOCountryTag},
-     * {@link SyntheticNearestNeighborCountryCodeTag}, {@link SyntheticBoundaryNodeTag} and creating
-     * {@link SimpleChangeSet}s to keep track of created, updated and deleted {@link Point}s and
-     * {@link Line}s.
+     * {@link SyntheticNearestNeighborCountryCodeTag}, {@link SyntheticBoundaryNodeTag}, making a
+     * new {@link FeatureChange} for new {@link Line}s based on each slice, then creates a
+     * {@link FeatureChange} to remove the original {@link Line}.
      *
      * @param line
      *            The {@link Line} that was sliced
      * @param slices
-     *            The resulting {@link Geometry} slices
+     *            A collection of slice {@link Geometry} for the {@link Line} being sliced
+     * @param atlas
+     *            The {@link Atlas} being sliced
+     * @param lineChanges
+     *            The {@link ChangeBuilder} keeping track of {@link Line} slicing
+     *            {@link FeatureChange}s
      */
-    private void processLineSlices(final Line line, final List<Geometry> slices)
+    private void processLineSlices(final Line line, final List<Geometry> slices, final Atlas atlas,
+            final ChangeBuilder lineChanges)
     {
-        // Used to generate identifiers for new points and lines
         final CountrySlicingIdentifierFactory lineIdentifierFactory = new CountrySlicingIdentifierFactory(
                 line.getIdentifier());
         final PointIdentifierFactory pointIdentifierFactory = new PointIdentifierFactory(
                 line.getIdentifier());
-        final List<TemporaryLine> createdLines = new ArrayList<>();
         slices.forEach(slice ->
         {
             if (slice instanceof org.locationtech.jts.geom.Polygon)
@@ -279,150 +417,294 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
             for (final Geometry slice : mergedSlices.get(countryCode))
             {
                 final long lineSliceIdentifier = lineIdentifierFactory.nextIdentifier();
-                final List<Long> newLineShapePoints = processSlice(slice, pointIdentifierFactory,
-                        line);
-                // Check if the slice is within the working bound and mark all points for this
-                // slice for removal if so
-                if (isOutsideWorkingBound(slice))
+                final PolyLine newLineGeometry = processSlice(slice, pointIdentifierFactory, line,
+                        atlas, lineChanges);
+                final Map<String, String> lineTags = createLineTags(slice, line.getTags());
+                final CompleteLine newLineSlice = CompleteLine.from(line)
+                        .withIdentifier(lineSliceIdentifier).withTags(lineTags)
+                        .withPolyLine(newLineGeometry);
+                if (isInsideWorkingBound(newLineSlice))
                 {
-                    removeShapePointsFromFilteredSliced(slice);
-                }
-                else
-                {
-                    // Extract relevant tag values for this slice
-                    final Map<String, String> lineTags = createLineTags(slice, line.getTags());
-                    createdLines.add(
-                            new TemporaryLine(lineSliceIdentifier, newLineShapePoints, lineTags));
+                    lineChanges.add(FeatureChange.add(newLineSlice, atlas));
+                    for (final Relation relation : line.relations())
+                    {
+                        final CompleteRelation updatedRelation = CompleteRelation.from(relation)
+                                .withExtraMember(newLineSlice, line);
+                        lineChanges.add(FeatureChange.add(updatedRelation, atlas));
+                    }
                 }
             }
         });
-        // Update the change with the added and removed lines
-        if (line.isClosed())
-        {
-            final boolean clockwise = new Polygon(line.asPolyLine().truncate(0, 1)).isClockwise();
-            createdLines.forEach(createdLine ->
-            {
-                this.slicedPointAndLineChanges.createLine(createdLine, clockwise);
-            });
-        }
-        else
-        {
-            createdLines.forEach(this.slicedPointAndLineChanges::createLine);
-        }
-        this.slicedPointAndLineChanges.createDeletedToCreatedMapping(line.getIdentifier(),
-                createdLines.stream().map(TemporaryLine::getIdentifier)
-                        .collect(Collectors.toSet()));
 
-        // Record a successful slice
-        getStatistics().recordSlicedLine();
+        lineChanges.add(FeatureChange.remove(CompleteLine.shallowFrom(line), atlas));
     }
 
-    private List<Long> processSlice(final Geometry slice,
-            final PointIdentifierFactory pointIdentifierFactory, final Line line)
+    /**
+     * Given a slice {@link Geometry}, create a {@link PolyLine} out of it, ensuring that all
+     * {@link Location}s along the {@link PolyLine} have either {@link Point}s in the original
+     * {@link Atlas}, {@link Point}s made by other slices, or new {@link Point}s using
+     * {@link FeatureChange}s. Additionally, JTS frequently reverses geometry winding during the
+     * slice operation, so the returned {@link PolyLine} will be checked to ensure its winding
+     * matches the source entity's winding.
+     *
+     * @param slice
+     *            The slice {@link Geometry} to make a new {@link Line} for
+     * @param pointIdentifierFactory
+     *            A {@link PointIdentifierFactory} for generating new {@link Point} identifiers if
+     *            needed
+     * @param line
+     *            The {@link Line} being sliced
+     * @param atlas
+     *            The {@link Atlas} being sliced
+     * @param lineChanges
+     *            The {@link ChangeBuilder} tracking {@link Line} slicing changes
+     * @return A {@link PolyLine} representing the slice
+     */
+
+    private PolyLine processSlice(final Geometry slice,
+            final PointIdentifierFactory pointIdentifierFactory, final Line line, final Atlas atlas,
+            final ChangeBuilder lineChanges)
     {
+        final List<Location> slicedLineLocations = new ArrayList<>();
 
-        // Keep track of identifiers that form the geometry of the new line
-        final List<Long> newLineShapePoints = new ArrayList<>(slice.getNumPoints());
-
-        // Because country shapes do not share border, we are reducing the precision of
-        // the geometry
+        // JTS geometry often adds unnecessary precision after slicing-- reduce it to the standard
+        // precision to avoid errors
         final Coordinate[] jtsSliceCoordinates = PRECISION_REDUCER.edit(slice.getCoordinates(),
                 slice);
 
         for (final Coordinate coordinate : jtsSliceCoordinates)
         {
             final Location coordinateLocation = JTS_LOCATION_CONVERTER.backwardConvert(coordinate);
-            final Iterable<Point> rawAtlasPointsAtSliceVertex = getStartingAtlas()
-                    .pointsAt(coordinateLocation);
 
             // If there aren't any points at this precision in the raw Atlas, need to
             // examine cache and possibly scale the coordinate to 6 digits of precision
-            if (Iterables.isEmpty(rawAtlasPointsAtSliceVertex))
+            if (Iterables.isEmpty(atlas.pointsAt(coordinateLocation)))
             {
-                // Check the cache for this coordinate -- if it already exists, we'll
-                // use it. Otherwise, scale to 6-digits and continue
-                if (getCoordinateToPointMapping().containsCoordinate(coordinate))
-                {
-                    newLineShapePoints
-                            .add(getCoordinateToPointMapping().getPointForCoordinate(coordinate));
-                }
-                else
-                {
-                    final Location scaledLocation = JTS_LOCATION_CONVERTER.backwardConvert(
-                            getCoordinateToPointMapping().getScaledCoordinate(coordinate));
-                    final Iterable<Point> rawAtlasPointsAtScaledCoordinate = getStartingAtlas()
-                            .pointsAt(scaledLocation);
+                // Add the scaled location to the line
+                final Location scaledLocation = JTS_LOCATION_CONVERTER.backwardConvert(
+                        getCoordinateToPointMapping().getScaledCoordinate(coordinate));
+                slicedLineLocations.add(scaledLocation);
 
-                    // If the raw Atlas doesn't contain the 6-digit coordinate either,
-                    // then we'll make a point at that location and update the cache and
-                    // changeset with it. Otherwise, use the existing Atlas point by
-                    // making sure it's kept and adding it to the line
-                    if (Iterables.isEmpty(rawAtlasPointsAtScaledCoordinate))
+                // If the location doesn't have a point in the original Atlas or in the cache,
+                // make a new Point and add it both
+                if (Iterables.isEmpty(atlas.pointsAt(scaledLocation))
+                        && !getCoordinateToPointMapping().containsCoordinate(coordinate))
+                {
+                    final Map<String, String> pointTags = createPointTags(coordinateLocation,
+                            false);
+                    pointTags.put(SyntheticBoundaryNodeTag.KEY,
+                            SyntheticBoundaryNodeTag.YES.toString());
+                    final long pointIdentifier = createNewPointIdentifier(pointIdentifierFactory,
+                            line.getIdentifier());
+                    final CompletePoint newPointFromSlice = new CompletePoint(pointIdentifier,
+                            scaledLocation, pointTags, new HashSet<Long>());
+                    // PLEASE NOTE!! It may seem silly to do all of the above, but only add if it's
+                    // inside the bounds. However, this is done to guarantee that identifiers are
+                    // deterministic-- we go through all the motions of slicing regardless of the
+                    // outcome for determinism, then only add if we need it.
+                    if (isInsideWorkingBound(newPointFromSlice))
                     {
-                        final Map<String, String> pointTags = createPointTags(scaledLocation,
-                                false);
-                        pointTags.put(SyntheticBoundaryNodeTag.KEY,
-                                SyntheticBoundaryNodeTag.YES.toString());
-                        final long pointIdentifier = createNewPointIdentifier(
-                                pointIdentifierFactory, line.getIdentifier());
-                        final TemporaryPoint newPoint = createNewPoint(
-                                getCoordinateToPointMapping().getScaledCoordinate(coordinate),
-                                pointIdentifier, pointTags);
-                        getCoordinateToPointMapping().storeMapping(coordinate,
-                                newPoint.getIdentifier());
-                        newLineShapePoints.add(newPoint.getIdentifier());
-                        this.slicedPointAndLineChanges.createPoint(newPoint);
-                    }
-                    else
-                    {
-                        addRawAtlasPointsToLine(scaledLocation, rawAtlasPointsAtScaledCoordinate,
-                                newLineShapePoints);
+                        lineChanges.add(FeatureChange.add(newPointFromSlice, getStartingAtlas()));
+                        getCoordinateToPointMapping().storeMapping(coordinate, pointIdentifier);
                     }
                 }
             }
             else
             {
-                addRawAtlasPointsToLine(coordinateLocation, rawAtlasPointsAtSliceVertex,
-                        newLineShapePoints);
+                slicedLineLocations.add(coordinateLocation);
             }
         }
-        return newLineShapePoints;
-    }
 
-    /**
-     * Given a slice, that is outside the working bound, mark all shape points for this slice for
-     * removal from the final atlas. Since we are removing the slice, we don't need its shape
-     * points.
-     *
-     * @param slice
-     *            The {@link Geometry} slice being filtered
-     */
-    private void removeShapePointsFromFilteredSliced(final Geometry slice)
-    {
-        final Coordinate[] jtsSliceCoordinates = slice.getCoordinates();
-        for (final Coordinate coordinate : jtsSliceCoordinates)
+        PolyLine polylineForSlice = new PolyLine(slicedLineLocations);
+
+        // JTS frequently reverses the winding during slicing-- this checks the winding of the
+        // original geometry, and reverse the winding of the slice if needed
+        if (line.isClosed())
         {
-            final Location location = JTS_LOCATION_CONVERTER.backwardConvert(coordinate);
-            final Iterable<Point> existingRawAtlasPoints = getStartingAtlas().pointsAt(location);
-            existingRawAtlasPoints
-                    .forEach(point -> this.pointsMarkedForRemoval.add(point.getIdentifier()));
+            final boolean originalClockwise = new Polygon(line.asPolyLine().truncate(0, 1))
+                    .isClockwise();
+            final boolean sliceClockwise = new Polygon(polylineForSlice.truncate(0, 1))
+                    .isClockwise();
+            if (originalClockwise != sliceClockwise)
+            {
+                polylineForSlice = polylineForSlice.reversed();
+            }
         }
+        return polylineForSlice;
     }
 
     /**
-     * Slices the given {@link Geometry} into multiple geometries and returns them as a list.
+     * Helper method for slicing geometry operations that looks at each slice {@link Geometry} and
+     * relates it to the original {@link Geometry}. Should the original entity be entirely within
+     * one country, return true as a short-circuit to avoid further unnecessary operations.
+     * Otherwise, tags each {@link Geometry} with an {@link ISOCountryTag} for the country it's in,
+     * or removes if it's not a valid candidate.
+     *
+     * @param identifier
+     *            The identifier for the original {@link Line} being sliced
+     * @param candidates
+     *            The collection of candidate slice {@link Geometry}
+     * @param results
+     *            The current running collection of valid slice {@link Geometry}
+     * @param target
+     *            The JTS {@link Geometry} for the {@link Line} being sliced
+     * @return True if the entity lays entirely in one country, false otherwise.
+     */
+    private boolean relateCandidates(final long identifier,
+            final List<org.locationtech.jts.geom.Polygon> candidates, final List<Geometry> results,
+            final Geometry target)
+    {
+        // Check relation of target to all polygons
+        final Iterator<org.locationtech.jts.geom.Polygon> candidateIterator = candidates.iterator();
+        while (candidateIterator.hasNext())
+        {
+            final org.locationtech.jts.geom.Polygon candidate = candidateIterator.next();
+            final String countryCode = CountryBoundaryMap.getGeometryProperty(candidate,
+                    ISOCountryTag.KEY);
+            if (Strings.isNullOrEmpty(countryCode))
+            {
+                logger.warn(
+                        "Ignoring a candidate polygon from slicing, because it is missing country tag.");
+            }
+            else
+            {
+                try
+                {
+                    final IntersectionMatrix matrix = target.relate(candidate);
+                    // Fully contained inside a single country, no need to go any further, just
+                    // assign and return the country code
+                    if (matrix.isWithin())
+                    {
+                        CountryBoundaryMap.setGeometryProperty(target, ISOCountryTag.KEY,
+                                countryCode);
+                        addResult(target, results);
+                        return true;
+                    }
+
+                    // No intersection, remove from candidate list
+                    if (!matrix.isIntersects())
+                    {
+                        candidateIterator.remove();
+                    }
+                }
+                catch (final Exception e)
+                {
+                    logger.warn("error slicing way {}:", identifier, e);
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Slice the {@link Geometry} with given country boundary map and assign country code to each
+     * piece. If the {@link Line} doesn't cross any border then it contains only one item with
+     * country code assigned. If the {@link Line} crosses borders then slice it by the border
+     * geometry and assign country codes for each piece. If there is any segment not contained by
+     * any country boundary, it will be assigned to nearest country with the
+     * {@link SyntheticNearestNeighborCountryCodeTag}.
      *
      * @param geometry
-     *            The {@link Geometry} to slice
+     *            The JTS {@link Geometry} to be sliced
      * @param line
-     *            The {@link Line} being sliced
-     * @return a list of {@link Geometry} slices
+     *            The source Atlas {@link Line} being sliced
+     * @return A list of sliced {@link Geometry} objects
      */
     private List<Geometry> sliceGeometry(final Geometry geometry, final Line line)
     {
         try
         {
-            return getCountryBoundaryMap().slice(line.getIdentifier(), geometry, line);
+            final CountryBoundaryMap boundary = getCountryBoundaryMap();
+            final List<Geometry> results = new ArrayList<>();
+            if (Objects.isNull(geometry))
+            {
+                return results;
+            }
+
+            final Geometry target = geometry;
+            List<org.locationtech.jts.geom.Polygon> candidates = boundary
+                    .query(target.getEnvelopeInternal());
+
+            // Performance improvement, if only one polygon returned no need to do any further
+            // evaluation (except when geometry has to be sliced at all costs)
+            if (shouldSkipSlicing(candidates, line))
+            {
+                final String countryCode = CountryBoundaryMap.getGeometryProperty(candidates.get(0),
+                        ISOCountryTag.KEY);
+                CountryBoundaryMap.setGeometryProperty(target, ISOCountryTag.KEY, countryCode);
+                addResult(target, results);
+                return results;
+            }
+
+            // Remove duplicates and avoid slicing across too many polygons for performance reasons
+            candidates = candidates.stream().distinct().collect(Collectors.toList());
+            if (candidates.size() > boundary.getPolygonSliceLimit())
+            {
+                logger.warn("Skipping slicing way {} due to too many intersecting polygons [{}]",
+                        line.getIdentifier(), candidates.size());
+                return results;
+            }
+
+            final long numberCountries = CountryBoundaryMap.numberCountries(candidates);
+            if (numberCountries > CountryBoundaryMap.MAXIMUM_EXPECTED_COUNTRIES_TO_SLICE_WITH)
+            {
+                logger.warn("Slicing way {} with {} countries.", line.getIdentifier(),
+                        numberCountries);
+            }
+
+            if (relateCandidates(line.getIdentifier(), candidates, results, target))
+            {
+                return results;
+            }
+
+            // Performance: short circuit, if all intersected polygons in same country, skip
+            // cutting (except when geometry has to be sliced at all costs)
+            if (shouldSkipSlicing(candidates, line))
+            {
+                final String countryCode = CountryBoundaryMap.getGeometryProperty(candidates.get(0),
+                        ISOCountryTag.KEY);
+                CountryBoundaryMap.setGeometryProperty(target, ISOCountryTag.KEY, countryCode);
+                addResult(target, results);
+                return results;
+            }
+
+            // Sort intersecting polygons for consistent slicing
+            Collections.sort(candidates, (final org.locationtech.jts.geom.Polygon first,
+                    final org.locationtech.jts.geom.Polygon second) ->
+            {
+                final int countryCodeComparison = CountryBoundaryMap
+                        .getGeometryProperty(first, ISOCountryTag.KEY).compareTo(
+                                CountryBoundaryMap.getGeometryProperty(second, ISOCountryTag.KEY));
+                if (countryCodeComparison != 0)
+                {
+                    return countryCodeComparison;
+                }
+
+                return first.compareTo(second);
+            });
+
+            final Geometry remainder = cutGeometry(line.getIdentifier(), candidates, results,
+                    target);
+
+            // Part or all of the geometry is not inside any country, assign with nearest country.
+            if (remainder != null)
+            {
+                final Geometry nearestGeometry = boundary.nearestNeighbour(
+                        target.getEnvelopeInternal(), remainder, new GeometryItemDistance());
+                if (nearestGeometry != null)
+                {
+                    final String nearestCountryCode = CountryBoundaryMap
+                            .getGeometryProperty(nearestGeometry, ISOCountryTag.KEY);
+                    CountryBoundaryMap.setGeometryProperty(remainder, ISOCountryTag.KEY,
+                            nearestCountryCode);
+                    CountryBoundaryMap.setGeometryProperty(remainder,
+                            SyntheticNearestNeighborCountryCodeTag.KEY,
+                            SyntheticNearestNeighborCountryCodeTag.YES.toString());
+                    addResult(remainder, results);
+                }
+            }
+
+            return results;
         }
         catch (final TopologyException e)
         {
@@ -433,153 +715,116 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
     }
 
     /**
-     * Converts the given {@link Line} to a JTS {@link Geometry}, slices the geometry and updates
-     * all corresponding {@link Point}s and {@link Line}s in the given raw Atlas.
+     * Converts the given {@link Line} to a JTS {@link Geometry} and slices it. If the results of
+     * slicing are empty, or are from the same country, simply updates the original geometry with
+     * the country tag. Otherwise, calls a helper function to replace this {@link Line} with the
+     * slices.
      *
      * @param line
      *            The {@link Line} to slice
+     * @param atlas
+     *            The {@link Atlas} being sliced
+     * @param lineChanges
+     *            The {@link ChangeBuilder} used to keep track of the {@link Line} slicing changes
      */
-    private void sliceLine(final Line line)
+    private void sliceLine(final Line line, final Atlas atlas, final ChangeBuilder lineChanges)
     {
-        getStatistics().recordProcessedLine();
         final List<Geometry> slices = convertToJtsGeometryAndSlice(line);
         if (slices == null || slices.isEmpty())
         {
             // No slices generated or an error in slicing, create missing country code
             final Map<String, String> tags = new HashMap<>();
             tags.put(ISOCountryTag.KEY, ISOCountryTag.COUNTRY_MISSING);
-            this.slicedPointAndLineChanges.updateLineTags(line.getIdentifier(), tags);
-            updateLineShapePoints(line);
+            final CompleteLine updatedLine = CompleteLine.from(line).withTags(tags);
+            lineChanges.add(FeatureChange.add(updatedLine, atlas));
         }
-        else if (slicesBelongToSingleCountry(slices)
-                && !getCountryBoundaryMap().shouldForceSlicing(line))
+        else if (CountryBoundaryMap.isSameCountry(slices) && !shouldForceSlicing(line))
         {
-            // This line belongs to a single country, check to make sure it's the right one
-            if (isOutsideWorkingBound(slices.get(0)))
+            final CompleteLine updatedLine = CompleteLine.from(line)
+                    .withTags(createLineTags(slices.get(0), line.getTags()));
+            if (isInsideWorkingBound(updatedLine))
             {
-                this.slicedPointAndLineChanges.createDeletedToCreatedMapping(line.getIdentifier(),
-                        Collections.emptySet());
+                lineChanges.add(FeatureChange.add(updatedLine, atlas));
             }
             else
             {
-                this.slicedPointAndLineChanges.updateLineTags(line.getIdentifier(),
-                        createLineTags(slices.get(0), line.getTags()));
-                updateLineShapePoints(line);
+                lineChanges.add(FeatureChange.remove(CompleteLine.shallowFrom(line), atlas));
             }
         }
-        else if (slices.size() < CountrySlicingIdentifierFactory.IDENTIFIER_SCALE_DEFAULT)
-        {
-            processLineSlices(line, slices);
-        }
-        else
+        else if (slices.size() > CountrySlicingIdentifierFactory.IDENTIFIER_SCALE_DEFAULT)
         {
             logger.error(
                     "Country slicing exceeded maximum line identifier name space of {} for Line {} for Atlas {}. It will be added as is, with two or more country codes.",
                     CountrySlicingIdentifierFactory.IDENTIFIER_SCALE_DEFAULT, line.getIdentifier(),
                     getShardOrAtlasName());
-            // Update to use all country codes
-            updateLineToHaveCountryCodesFromAllSlices(line, slices);
-            getStatistics().recordSkippedLine();
+            final Map<String, String> tags = new HashMap<>();
+            final Set<String> allCountries = slices.stream().map(
+                    geometry -> CountryBoundaryMap.getGeometryProperty(geometry, ISOCountryTag.KEY))
+                    .collect(Collectors.toCollection(TreeSet::new));
+            final String countryString = String.join(",", allCountries);
+            tags.put(ISOCountryTag.KEY, countryString);
+            final CompleteLine afterLine = CompleteLine.from(line).withTags(tags);
+            lineChanges.add(FeatureChange.add(afterLine, atlas));
+        }
+        else
+        {
+            processLineSlices(line, slices, atlas, lineChanges);
         }
     }
 
     /**
-     * Slices all the {@link Line}s in the given raw Atlas.
+     * Given a point-sliced {@link Atlas}, slice its {@link Line}s by making {@link FeatureChange}s,
+     * then rebuilding using {@link ChangeAtlas}. Should no {@link Line}s qualify for slicing,
+     * returns the original {@link Atlas} unmodified.
+     *
+     * @param pointSlicedAtlas
+     *            The Atlas to be line sliced
+     * @return An Atlas with lines sliced
      */
-    private void sliceLines()
+    private Atlas sliceLines(final Atlas pointSlicedAtlas)
     {
-        StreamSupport.stream(getStartingAtlas().lines().spliterator(), true)
-                .forEach(this::sliceLine);
+        final ChangeBuilder lineChangeBuilder = new ChangeBuilder();
+        StreamSupport.stream(pointSlicedAtlas.lines().spliterator(), true)
+                .forEach(line -> sliceLine(line, pointSlicedAtlas, lineChangeBuilder));
+        if (lineChangeBuilder.peekNumberOfChanges() == 0)
+        {
+            return pointSlicedAtlas;
+        }
+        logger.debug("building new changeAtlas...");
+        return new ChangeAtlas(pointSlicedAtlas, lineChangeBuilder.get());
     }
 
     /**
-     * Updates all points that haven't been assigned a country code after line-slicing. This
-     * includes any stand-alone points (e.g. trees, barriers) or points that didn't get sliced
-     * during line slicing.
+     * Tag all {@link Point}s in the {@link Atlas} with country codes by making
+     * {@link FeatureChange}s, then rebuilding using {@link ChangeAtlas}. Should no {@link Point}s
+     * need tagging, return the original {@link Atlas}.
+     *
+     * @param rawAtlas
+     *            A raw {@link Atlas} to be point-tagged
+     * @return An {@link Atlas} with all points country tagged
      */
-    private void slicePoints()
+    private Atlas slicePoints(final Atlas rawAtlas)
     {
-        StreamSupport.stream(getStartingAtlas().points().spliterator(), true).forEach(point ->
+        final ChangeBuilder pointChanges = new ChangeBuilder();
+        StreamSupport.stream(rawAtlas.points().spliterator(), true).forEach(point ->
         {
-            final long pointIdentifier = point.getIdentifier();
-
-            // Only update points that haven't been assigned a country code after way slicing or
-            // those marked for removal
-            if (!this.slicedPointAndLineChanges.getUpdatedPointTags().containsKey(pointIdentifier)
-                    && !this.pointsMarkedForRemoval.contains(pointIdentifier))
+            final Map<String, String> updatedTags = createPointTags(point.getLocation(), true);
+            final CompletePoint afterPoint = CompletePoint.from(point);
+            updatedTags.forEach(afterPoint::withAddedTag);
+            if (isInsideWorkingBound(afterPoint))
             {
-                getStatistics().recordProcessedPoint();
-                final Map<String, String> updatedTags = createPointTags(point.getLocation(), true);
-                if (isOutsideWorkingBound(updatedTags))
-                {
-                    // This point is outside our boundary, remove it
-                    this.slicedPointAndLineChanges.deletePoint(pointIdentifier);
-                }
-                else
-                {
-                    // Update the point tags
-                    this.slicedPointAndLineChanges.updatePointTags(pointIdentifier, updatedTags);
-                }
+                pointChanges.add(FeatureChange.add(afterPoint, rawAtlas));
+            }
+            else
+            {
+                pointChanges.add(FeatureChange.remove(CompletePoint.shallowFrom(point)));
             }
         });
+        if (pointChanges.peekNumberOfChanges() == 0)
 
-        // Update all removed points
-        this.pointsMarkedForRemoval.forEach(this.slicedPointAndLineChanges::deletePoint);
-    }
-
-    /**
-     * Checks if there is a single slice or if all of the slices are in the same country.
-     *
-     * @param slices
-     *            The sliced pieces to check
-     * @return {@code true} if the slices for this line are all part of the same country
-     */
-    private boolean slicesBelongToSingleCountry(final List<Geometry> slices)
-    {
-        return slices.size() == 1 || CountryBoundaryMap.isSameCountry(slices);
-    }
-
-    /**
-     * Updates all of the given {@link Line}'s shape points' tags. Under the covers, uses
-     * {@link CountryBoundaryMap} spatial index call.
-     *
-     * @param line
-     *            The {@link Line} whose shape points to update
-     */
-    private void updateLineShapePoints(final Line line)
-    {
-        for (final Location location : line.asPolyLine())
         {
-            for (final Point point : getStartingAtlas().pointsAt(location))
-            {
-                getStatistics().recordProcessedPoint();
-                this.slicedPointAndLineChanges.updatePointTags(point.getIdentifier(),
-                        createPointTags(location, true));
-            }
+            return rawAtlas;
         }
-    }
-
-    /**
-     * For {@link Line}s that could not be cut (because of too many created points or too many
-     * created line segments), we will gather the country codes for all the slices and assign the
-     * multiple-country code value to the un-sliced line. As a result, the same un-sliced line will
-     * appear in Atlas files for all spanning countries.
-     *
-     * @param line
-     *            The {@link Line} in question
-     * @param slices
-     *            The {@link Geometry} slices for the given {@link Line}
-     */
-    private void updateLineToHaveCountryCodesFromAllSlices(final Line line,
-            final List<Geometry> slices)
-    {
-        final Map<String, String> tags = new HashMap<>();
-        final Set<String> allCountries = slices.stream().map(
-                geometry -> CountryBoundaryMap.getGeometryProperty(geometry, ISOCountryTag.KEY))
-                .collect(Collectors.toCollection(TreeSet::new));
-        final String countryString = String.join(",", allCountries);
-        tags.put(ISOCountryTag.KEY, countryString);
-        this.slicedPointAndLineChanges.updateLineTags(line.getIdentifier(), tags);
-        updateLineShapePoints(line);
+        return new ChangeAtlas(rawAtlas, pointChanges.get());
     }
 }
