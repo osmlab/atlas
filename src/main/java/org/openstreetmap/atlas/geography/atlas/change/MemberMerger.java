@@ -388,7 +388,7 @@ public final class MemberMerger<M>
         {
             throw new FeatureChangeMergeException(
                     MergeFailureType.MISSING_BEFORE_VIEW_MERGE_STRATEGY,
-                    "Conflicting beforeMembers {} and no beforeView merge strategy was provided; beforeView: {} vs {}",
+                    "Conflicting beforeMembers {} and no beforeView merge strategy was provided; beforeView:\n{}\nvs\n{}",
                     this.memberName, beforeMemberLeft, beforeMemberRight);
         }
 
@@ -401,14 +401,14 @@ public final class MemberMerger<M>
             throw new FeatureChangeMergeException(
                     exception.withNewTopLevelFailure(
                             MergeFailureType.BEFORE_VIEW_MERGE_STRATEGY_FAILED),
-                    "Attempted beforeView merge strategy failed for {} with beforeView: {} vs {}", // NOSONAR
+                    "Attempted beforeView merge strategy failed for {} with beforeView:\n{}\nvs\n{}", // NOSONAR
                     this.memberName, beforeMemberLeft, beforeMemberRight, exception);
         }
         catch (final Exception exception)
         {
             throw new FeatureChangeMergeException(
                     MergeFailureType.BEFORE_VIEW_MERGE_STRATEGY_FAILED,
-                    "Attempted beforeView merge strategy failed for {} with beforeView: {} vs {}",
+                    "Attempted beforeView merge strategy failed for {} with beforeView:\n{}\nvs\n{}",
                     this.memberName, beforeMemberLeft, beforeMemberRight, exception);
         }
 
@@ -430,7 +430,7 @@ public final class MemberMerger<M>
             throw new FeatureChangeMergeException(exception.withNewTopLevelFailure(
                     MergeFailureType.AFTER_VIEW_CONFLICTING_BEFORE_VIEW_MERGE_STRATEGY_FAILED),
                     "Tried merge strategy for hackForConflictingConnectedEdgeSet, but it failed for {}"
-                            + "\nbeforeView: {} vs {};\nafterView: {} vs {}", // NOSONAR
+                            + "\nbeforeView:\n{}\nvs\n{}\nafterView:\n{}\nvs\n{}", // NOSONAR
                     this.memberName, beforeMemberLeft, beforeMemberRight, afterMemberLeft,
                     afterMemberRight, exception);
         }
@@ -439,7 +439,7 @@ public final class MemberMerger<M>
             throw new FeatureChangeMergeException(
                     MergeFailureType.AFTER_VIEW_CONFLICTING_BEFORE_VIEW_MERGE_STRATEGY_FAILED,
                     "Tried merge strategy for hackForConflictingConnectedEdgeSet, but it failed for {}"
-                            + "\nbeforeView: {} vs {};\nafterView: {} vs {}",
+                            + "\nbeforeView:\n{}\nvs\n{}\nafterView:\n{}\nvs\n{}",
                     this.memberName, beforeMemberLeft, beforeMemberRight, afterMemberLeft,
                     afterMemberRight, exception);
         }
@@ -474,7 +474,7 @@ public final class MemberMerger<M>
             throw new FeatureChangeMergeException(
                     MergeFailureType.MISSING_AFTER_VIEW_MERGE_STRATEGY_WITH_BEFORE_MEMBER_CONFLICT_HANDLING,
                     "Conflicting beforeMembers {} and no afterView merge strategy capable of handling"
-                            + " conflicting beforeViews was provided; beforeView: {} vs {}",
+                            + " conflicting beforeViews was provided; beforeView:\n{}\nvs\n{}",
                     this.memberName, beforeMemberLeft, beforeMemberRight);
         }
 
@@ -482,7 +482,7 @@ public final class MemberMerger<M>
         {
             throw new FeatureChangeMergeException(
                     MergeFailureType.MISSING_BEFORE_VIEW_MERGE_STRATEGY,
-                    "Conflicting beforeMembers {} and no beforeView merge strategy was provided; beforeView: {} vs {}",
+                    "Conflicting beforeMembers {} and no beforeView merge strategy was provided; beforeView:\n{}\nvs\n{}",
                     this.memberName, beforeMemberLeft, beforeMemberRight);
         }
 
@@ -495,14 +495,14 @@ public final class MemberMerger<M>
             throw new FeatureChangeMergeException(
                     exception.withNewTopLevelFailure(
                             MergeFailureType.BEFORE_VIEW_MERGE_STRATEGY_FAILED),
-                    "Attempted beforeView merge strategy failed for {} with beforeView: {} vs {}",
+                    "Attempted beforeView merge strategy failed for {} with beforeView:\n{}\nvs\n{}",
                     this.memberName, beforeMemberLeft, beforeMemberRight, exception);
         }
         catch (final Exception exception)
         {
             throw new FeatureChangeMergeException(
                     MergeFailureType.BEFORE_VIEW_MERGE_STRATEGY_FAILED,
-                    "Attempted beforeView merge strategy failed for {} with beforeView: {} vs {}",
+                    "Attempted beforeView merge strategy failed for {} with beforeView:\n{}\nvs\n{}",
                     this.memberName, beforeMemberLeft, beforeMemberRight, exception);
         }
 
@@ -516,7 +516,7 @@ public final class MemberMerger<M>
             throw new FeatureChangeMergeException(exception.withNewTopLevelFailure(
                     MergeFailureType.AFTER_VIEW_CONFLICTING_BEFORE_VIEW_MERGE_STRATEGY_FAILED),
                     "Tried merge strategy for handling conflicting beforeViews. but it failed for {}"
-                            + "\nbeforeView: {} vs {};\nafterView: {} vs {}",
+                            + "\nbeforeView:\n{}\nvs\n{}\nafterView:\n{}\nvs\n{}",
                     this.memberName, beforeMemberLeft, beforeMemberRight, afterMemberLeft,
                     afterMemberRight, exception);
         }
@@ -525,7 +525,7 @@ public final class MemberMerger<M>
             throw new FeatureChangeMergeException(
                     MergeFailureType.AFTER_VIEW_CONFLICTING_BEFORE_VIEW_MERGE_STRATEGY_FAILED,
                     "Tried merge strategy for handling conflicting beforeViews. but it failed for {}"
-                            + "\nbeforeView: {} vs {};\nafterView: {} vs {}",
+                            + "\nbeforeView:\n{}\nvs\n{}\nafterView:\n{}\nvs\n{}",
                     this.memberName, beforeMemberLeft, beforeMemberRight, afterMemberLeft,
                     afterMemberRight, exception);
         }
@@ -574,7 +574,7 @@ public final class MemberMerger<M>
             {
                 throw new FeatureChangeMergeException(exception.withNewTopLevelFailure(
                         MergeFailureType.AFTER_VIEW_CONSISTENT_BEFORE_VIEW_MERGE_STRATEGY_FAILED),
-                        "Attempted afterViewConsistentBeforeMerge failed for {} with beforeView: {}; afterView: {} vs {}",
+                        "Attempted afterViewConsistentBeforeMerge failed for {} with beforeView:\n{}\nafterView:\n{}\nvs\n{}",
                         this.memberName, beforeMemberResult, afterMemberLeft, afterMemberRight,
                         exception);
             }
@@ -582,7 +582,7 @@ public final class MemberMerger<M>
             {
                 throw new FeatureChangeMergeException(
                         MergeFailureType.AFTER_VIEW_CONSISTENT_BEFORE_VIEW_MERGE_STRATEGY_FAILED,
-                        "Attempted afterViewConsistentBeforeMerge failed for {} with beforeView: {}; afterView: {} vs {}",
+                        "Attempted afterViewConsistentBeforeMerge failed for {} with beforeView:\n{}\nafterView:\n{}\nvs\n{}",
                         this.memberName, beforeMemberResult, afterMemberLeft, afterMemberRight,
                         exception);
             }
@@ -603,14 +603,14 @@ public final class MemberMerger<M>
                 throw new FeatureChangeMergeException(
                         exception.withNewTopLevelFailure(
                                 MergeFailureType.AFTER_VIEW_NO_BEFORE_VIEW_MERGE_STRATEGY_FAILED),
-                        "Attempted afterViewNoBeforeMerge failed for {}; afterView: {} vs {}",
+                        "Attempted afterViewNoBeforeMerge failed for {}; afterView:\n{}\nvs\n{}",
                         this.memberName, afterMemberLeft, afterMemberRight, exception);
             }
             catch (final Exception exception)
             {
                 throw new FeatureChangeMergeException(
                         MergeFailureType.AFTER_VIEW_NO_BEFORE_VIEW_MERGE_STRATEGY_FAILED,
-                        "Attempted afterViewNoBeforeMerge failed for {}; afterView: {} vs {}",
+                        "Attempted afterViewNoBeforeMerge failed for {}; afterView:\n{}\nvs\n{}",
                         this.memberName, afterMemberLeft, afterMemberRight, exception);
             }
         }
@@ -621,7 +621,7 @@ public final class MemberMerger<M>
         {
             throw new FeatureChangeMergeException(
                     MergeFailureType.MISSING_AFTER_VIEW_MERGE_STRATEGY,
-                    "Conflicting members and no merge strategy for {}; afterView: {} vs {}",
+                    "Conflicting members and no merge strategy for {}; afterView:\n{}\nvs\n{}",
                     this.memberName, afterMemberLeft, afterMemberRight);
         }
 
