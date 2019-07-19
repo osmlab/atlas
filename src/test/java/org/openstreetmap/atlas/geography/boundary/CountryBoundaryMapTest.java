@@ -65,7 +65,7 @@ public class CountryBoundaryMapTest
         final WKTReader reader = new WKTReader();
         final Rectangle rectangleInMAF = Rectangle.forLocations(Location.forString("18.09, -63.06"),
                 Location.forString("18.08, -63.04"));
-        // final Geometry geometry = reader.read(new WktPolygonConverter().convert(rectangleInMAF));
+
         final PackedAtlasBuilder builder = new PackedAtlasBuilder();
         builder.addLine(1L, rectangleInMAF, new HashMap<String, String>());
         final Atlas rawAtlas = builder.get();
@@ -81,10 +81,7 @@ public class CountryBoundaryMapTest
         final RawAtlasCountrySlicer slicerWithPrebuildIndex = new RawAtlasCountrySlicer(
                 AtlasLoadingOption.createOptionWithAllEnabled(mapWithGridIndex));
 
-        // final List<Geometry> firstSlice = mapWithGridIndex.slice(1000000L, geometry);
         final Atlas slicedAtlas = slicerWithPrebuildIndex.sliceLines(rawAtlas);
-
-        slicedAtlas.lines().forEach(line -> logger.info(line.toString()));
         logger.info("It took {} to slice using serialized pre-built grid index",
                 start.elapsedSince());
 
@@ -102,15 +99,11 @@ public class CountryBoundaryMapTest
                 AtlasLoadingOption.createOptionWithAllEnabled(mapWithGridIndex));
 
         final Atlas reslicedAtlas = slicerWithOnTheFlyIndex.sliceLines(rawAtlas);
-
-        reslicedAtlas.lines().forEach(line -> logger.info(line.toString()));
         logger.info("It took {} to slice using constructed grid index", start2.elapsedSince());
 
         // Make sure the slice results are identical
-        reslicedAtlas.lines().forEach(slicedLine ->
-        {
-            reslicedAtlas.line(slicedLine.getIdentifier()).equals(slicedLine);
-        });
+        reslicedAtlas.lines().forEach(
+                slicedLine -> reslicedAtlas.line(slicedLine.getIdentifier()).equals(slicedLine));
 
         // Validate that it took less time to read in the grid index and slice than to create the
         // grid index on the fly.
@@ -224,7 +217,6 @@ public class CountryBoundaryMapTest
         final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(
                 AtlasLoadingOption.createOptionWithAllEnabled(map));
         final Atlas slicedAtlas = slicer.sliceLines(rawAtlas);
-        slicedAtlas.lines().forEach(line -> logger.info(line.toString()));
         Assert.assertEquals(2, slicedAtlas.numberOfLines());
     }
 
@@ -256,7 +248,6 @@ public class CountryBoundaryMapTest
         final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(
                 AtlasLoadingOption.createOptionWithAllEnabled(map));
         final Atlas slicedAtlas = slicer.sliceLines(rawAtlas);
-        logger.info("{}", slicedAtlas);
         Assert.assertEquals(6, slicedAtlas.numberOfLines());
 
         // First piece should be in DOM and rest should be in HTI
@@ -282,7 +273,6 @@ public class CountryBoundaryMapTest
                 slicedAtlas.line(2003000L).asPolyLine().reversed());
         Assert.assertEquals(slicedAtlas.line(1002000L).asPolyLine(),
                 slicedAtlas.line(2002000L).asPolyLine().reversed());
-        logger.info("{} compared to {}", slicedAtlas.line(1001000L), slicedAtlas.line(2001000L));
     }
 
     @Test

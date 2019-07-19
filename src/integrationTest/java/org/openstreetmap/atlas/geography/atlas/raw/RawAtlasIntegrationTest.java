@@ -240,7 +240,6 @@ public class RawAtlasIntegrationTest
                 .getPath();
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
         final Atlas rawAtlas = rawAtlasGenerator.build();
-        rawAtlas.relations().forEach(System.out::println);
         final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(loadingOptionAll).slice(rawAtlas);
 
         // Simple fetcher that returns the atlas from above for the corresponding shard

@@ -137,7 +137,6 @@ public class LineAndPointSlicingTest
         rawAtlas.lines().forEach(line -> Assert.assertFalse("The line is counter clockwise:",
                 new Polygon(line.asPolyLine().truncate(0, 1)).isClockwise()));
         Assert.assertEquals("The line was cut into 2 segments", 2, slicedAtlas.numberOfLines());
-        slicedAtlas.lines().forEach(System.out::println);
         slicedAtlas.lines()
                 .forEach(line -> Assert.assertTrue("Both segments are closed", line.isClosed()));
 
@@ -281,7 +280,6 @@ public class LineAndPointSlicingTest
         final long newPointIdentifier = pointIdentifierFactory.nextIdentifier();
         slicedAtlas.points().forEach(point ->
         {
-            System.out.println(point);
             if (point.getIdentifier() == newPointIdentifier)
             {
                 // Make specific checks for the new added point
