@@ -610,7 +610,7 @@ public class FeatureChange implements Located, Serializable
      *            the contextual atlas
      * @return the updated {@link FeatureChange}
      */
-    FeatureChange withAtlasContext(final Atlas atlas)
+    public FeatureChange withAtlasContext(final Atlas atlas)
     {
         computeBeforeViewUsingAtlasContext(atlas, this.changeType);
         return this;
