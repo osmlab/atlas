@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.locale;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
@@ -14,7 +15,7 @@ import org.openstreetmap.atlas.utilities.collections.EnhancedCollectors;
  *
  * @author robert_stack
  */
-public final class IsoLanguage implements Comparable<IsoLanguage>
+public final class IsoLanguage implements Comparable<IsoLanguage>, Serializable
 {
     // Use United States fixed Locale for display use cases
     private static final Locale LANGUAGE_LOCALE = Locale.US;
