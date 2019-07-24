@@ -27,7 +27,6 @@ public interface ISOCountryTag
     @TagKey
     String KEY = "iso_country_code";
 
-    String UNKNOWN_ISO_COUNTRY = "UNK";
     String COUNTRY_MISSING = "N/A";
     String COUNTRY_DELIMITER = ",";
 

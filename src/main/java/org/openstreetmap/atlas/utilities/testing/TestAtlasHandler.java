@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeSet;
 
 import org.apache.commons.lang3.StringUtils;
@@ -67,12 +68,11 @@ public class TestAtlasHandler implements FieldHandler
     public static Atlas getAtlasFromJsomOsmResource(final boolean josmFormat,
             final AbstractResource resource, final String fileName)
     {
-        return getAtlasFromJsomOsmResource(josmFormat, resource, fileName,
-                ISOCountryTag.UNKNOWN_ISO_COUNTRY);
+        return getAtlasFromJsomOsmResource(josmFormat, resource, fileName, Optional.empty());
     }
 
     public static Atlas getAtlasFromJsomOsmResource(final boolean josmFormat,
-            final AbstractResource resource, final String fileName, final String iso)
+            final AbstractResource resource, final String fileName, final Optional<String> iso)
     {
         FileSuffix.suffixFor(fileName).ifPresent(suffix ->
         {
@@ -107,22 +107,24 @@ public class TestAtlasHandler implements FieldHandler
      *            ISO code to be applied to all features
      * @return the resulting Atlas
      */
-    private static Atlas buildAtlasFromPbf(final Resource pbfResource, final String iso)
+    private static Atlas buildAtlasFromPbf(final Resource pbfResource, final Optional<String> iso)
     {
         // Create raw Atlas
         final AtlasLoadingOption loadingOption = AtlasLoadingOption.withNoFilter();
-        if (!iso.equals(ISOCountryTag.UNKNOWN_ISO_COUNTRY))
+        if (iso.isPresent())
         {
             loadingOption.setCountrySlicing(true);
             loadingOption.setCountryBoundaryMap(CountryBoundaryMap
-                    .fromBoundaryMap(Collections.singletonMap(iso, MultiPolygon.MAXIMUM)));
+                    .fromBoundaryMap(Collections.singletonMap(iso.get(), MultiPolygon.MAXIMUM)));
         }
         final Atlas rawAtlas = new RawAtlasGenerator(pbfResource, loadingOption,
                 MultiPolygon.MAXIMUM).build();
 
         // Country Slice and Way-Section
-        return new WaySectionProcessor(iso.equals(ISOCountryTag.UNKNOWN_ISO_COUNTRY) ? rawAtlas
-                : new RawAtlasCountrySlicer(loadingOption).slice(rawAtlas), loadingOption).run();
+        return new WaySectionProcessor(
+                iso.isPresent() ? new RawAtlasCountrySlicer(loadingOption).slice(rawAtlas)
+                        : rawAtlas,
+                loadingOption).run();
     }
 
     private static String[] mergeTags(final String[] firstTags, final String[] secondTags)
@@ -141,7 +143,7 @@ public class TestAtlasHandler implements FieldHandler
         return returnValue;
     }
 
-    private static Map<String, String> parseTags(final String iso, final String... tags)
+    private static Map<String, String> parseTags(final Optional<String> iso, final String... tags)
     {
         final Map<String, String> tagmap = new HashMap<>();
         for (final String tagAndValue : tags)
@@ -164,10 +166,9 @@ public class TestAtlasHandler implements FieldHandler
             }
         }
         // Add a country code if one does not already exist
-        if (!iso.equals(ISOCountryTag.UNKNOWN_ISO_COUNTRY)
-                && !tagmap.containsKey(ISOCountryTag.KEY.toLowerCase()))
+        if (iso.isPresent() && !tagmap.containsKey(ISOCountryTag.KEY.toLowerCase()))
         {
-            tagmap.put(ISOCountryTag.KEY.toLowerCase(), iso);
+            tagmap.put(ISOCountryTag.KEY.toLowerCase(), iso.get());
         }
         return tagmap;
     }
@@ -225,7 +226,7 @@ public class TestAtlasHandler implements FieldHandler
     }
 
     private long addArea(final PackedAtlasBuilder builder, final FeatureIDGenerator areaIDGenerator,
-            final Area area, final String iso, final String... additionalTags)
+            final Area area, final Optional<String> iso, final String... additionalTags)
     {
         final long areaId = areaIDGenerator.nextId(area.id());
         builder.addArea(areaId, buildAreaPolygon(area),
@@ -297,11 +298,13 @@ public class TestAtlasHandler implements FieldHandler
 
         final PackedAtlasBuilder builder = new PackedAtlasBuilder();
         final AtlasSize size = convertSizeEstimates(testAtlas.size());
-        final String iso = testAtlas.iso();
-        if (!iso.equals(ISOCountryTag.UNKNOWN_ISO_COUNTRY))
+        final Optional<String> iso = testAtlas.iso().equals(TestAtlas.UNKNOWN_ISO_COUNTRY)
+                ? Optional.empty()
+                : Optional.of(testAtlas.iso());
+        if (iso.isPresent())
         {
-            final AtlasMetaData metaData = new AtlasMetaData(size, true, null, null, iso, null,
-                    Maps.hashMap());
+            final AtlasMetaData metaData = new AtlasMetaData(size, true, null, null, iso.get(),
+                    null, Maps.hashMap());
             builder.withMetaData(metaData);
         }
         else
@@ -326,7 +329,8 @@ public class TestAtlasHandler implements FieldHandler
         }
     }
 
-    private void handle(final PackedAtlasBuilder builder, final String iso, final Area... areas)
+    private void handle(final PackedAtlasBuilder builder, final Optional<String> iso,
+            final Area... areas)
     {
         final FeatureIDGenerator areaIDGenerator = new FeatureIDGenerator();
         for (final Area area : areas)
@@ -335,7 +339,7 @@ public class TestAtlasHandler implements FieldHandler
         }
     }
 
-    private void handle(final PackedAtlasBuilder builder, final String iso,
+    private void handle(final PackedAtlasBuilder builder, final Optional<String> iso,
             final Building... buildings)
     {
         final FeatureIDGenerator buildingGenerator = new FeatureIDGenerator();
@@ -382,7 +386,8 @@ public class TestAtlasHandler implements FieldHandler
         }
     }
 
-    private void handle(final PackedAtlasBuilder builder, final String iso, final Edge... edges)
+    private void handle(final PackedAtlasBuilder builder, final Optional<String> iso,
+            final Edge... edges)
     {
         final FeatureIDGenerator edgeIDGenerator = new FeatureIDGenerator();
         for (final Edge edge : edges)
@@ -392,7 +397,8 @@ public class TestAtlasHandler implements FieldHandler
         }
     }
 
-    private void handle(final PackedAtlasBuilder builder, final String iso, final Line... lines)
+    private void handle(final PackedAtlasBuilder builder, final Optional<String> iso,
+            final Line... lines)
     {
         final FeatureIDGenerator lineIDGenerator = new FeatureIDGenerator();
         for (final Line line : lines)
@@ -402,7 +408,8 @@ public class TestAtlasHandler implements FieldHandler
         }
     }
 
-    private void handle(final PackedAtlasBuilder builder, final String iso, final Node... nodes)
+    private void handle(final PackedAtlasBuilder builder, final Optional<String> iso,
+            final Node... nodes)
     {
         final FeatureIDGenerator nodeIDGenerator = new FeatureIDGenerator();
         for (final Node node : nodes)
@@ -412,7 +419,8 @@ public class TestAtlasHandler implements FieldHandler
         }
     }
 
-    private void handle(final PackedAtlasBuilder builder, final String iso, final Point... points)
+    private void handle(final PackedAtlasBuilder builder, final Optional<String> iso,
+            final Point... points)
     {
         final FeatureIDGenerator pointIDGenerator = new FeatureIDGenerator();
         for (final Point point : points)
@@ -422,7 +430,7 @@ public class TestAtlasHandler implements FieldHandler
         }
     }
 
-    private void handle(final PackedAtlasBuilder builder, final String iso,
+    private void handle(final PackedAtlasBuilder builder, final Optional<String> iso,
             final Relation... relations)
     {
         final FeatureIDGenerator relationIDGenerator = new FeatureIDGenerator();
@@ -449,10 +457,11 @@ public class TestAtlasHandler implements FieldHandler
         final String completeName = String.format("%s/%s", packageName, resourcePath);
         try
         {
-            field.set(rule,
-                    getAtlasFromJsomOsmResource(josmFormat, new ClassResource(completeName),
-                            Paths.get(completeName).getFileName().toString(),
-                            field.getAnnotation(TestAtlas.class).iso()));
+            field.set(rule, getAtlasFromJsomOsmResource(josmFormat, new ClassResource(completeName),
+                    Paths.get(completeName).getFileName().toString(),
+                    field.getAnnotation(TestAtlas.class).iso().equals(TestAtlas.UNKNOWN_ISO_COUNTRY)
+                            ? Optional.empty()
+                            : Optional.of(field.getAnnotation(TestAtlas.class).iso())));
         }
         catch (IllegalArgumentException | IllegalAccessException e)
         {

@@ -7,7 +7,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
-import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Area.Known;
 
 /**
@@ -272,6 +271,10 @@ public @interface TestAtlas
 
     String DEFAULT_OSM_ID = "<default>";
 
+    // This is for the atlas metadata: we only add the ISO country code if it is something besides
+    // unknown
+    String UNKNOWN_ISO_COUNTRY = "UNKNOWN";
+
     /**
      * Areas we want added to the atlas
      *
@@ -299,7 +302,7 @@ public @interface TestAtlas
      *
      * @return a string containing the ISO3 character code of the country or UNK if not set
      */
-    String iso() default ISOCountryTag.UNKNOWN_ISO_COUNTRY;
+    String iso() default UNKNOWN_ISO_COUNTRY;
 
     /**
      * Lines we want added to the atlas
