@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -489,10 +490,11 @@ public class FeatureChange implements Located, Serializable
         }
         catch (final FeatureChangeMergeException exception)
         {
-            throw new FeatureChangeMergeException(
-                    exception.withNewTopLevelFailure(MergeFailureType.HIGHEST_LEVEL_MERGE_FAILURE),
-                    "Cannot merge two feature changes:\n{}\nAND\n{}\nParent failureTrace: {}",
-                    this.prettify(), other.prettify(), exception.getMergeFailureTrace(), exception);
+            final List<MergeFailureType> newFailureTrace = exception
+                    .withNewTopLevelFailure(MergeFailureType.HIGHEST_LEVEL_MERGE_FAILURE);
+            throw new FeatureChangeMergeException(newFailureTrace,
+                    "Cannot merge two feature changes:\n{}\nAND\n{}\nFailureTrace: {}",
+                    this.prettify(), other.prettify(), newFailureTrace, exception);
         }
         catch (final Exception exception)
         {
