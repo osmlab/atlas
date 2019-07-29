@@ -80,14 +80,16 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
     @Override
     public Atlas slice()
     {
-        final Time time = Time.now();
-        logger.info("Starting Point and Line Slicing for Atlas {}", getShardOrAtlasName());
+        Time time = Time.now();
+        logger.info("Starting line slicing for Atlas {}", getShardOrAtlasName());
+        final Atlas lineSlicedAtlas = sliceLines(getStartingAtlas());
+        logger.info("Finished line slicing for Atlas {} in {}", getShardOrAtlasName(),
+                time.elapsedSince());
+        time = Time.now();
+        logger.info("Starting point slicing for Atlas {}", getShardOrAtlasName());
+        final Atlas pointAndLineSlicedAtlas = slicePoints(lineSlicedAtlas);
 
-        final Atlas pointSlicedAtlas = slicePoints(getStartingAtlas());
-        logger.debug("Finished point slicing, moving on to line slicing");
-        final Atlas pointAndLineSlicedAtlas = sliceLines(pointSlicedAtlas);
-
-        logger.info("Finished Point and Line Slicing for Atlas {} in {}", getShardOrAtlasName(),
+        logger.info("Finished point slicing for Atlas {} in {}", getShardOrAtlasName(),
                 time.elapsedSince());
 
         return pointAndLineSlicedAtlas.cloneToPackedAtlas();
@@ -136,7 +138,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
      * SyntheticNearestNeighborCountry tag on one slice but not the others)
      *
      * @param slices
-     * @return
+     * @return True if all {@link Geometry} contain the same tags, false otherwise
      */
     private boolean allLineTagsEqual(final List<Geometry> slices)
     {
@@ -217,7 +219,6 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
      * @return An identifier that can safely be used to make a new {@link Point} in the
      *         {@link Atlas} being sliced
      */
-
     private long createNewPointIdentifier(final PointIdentifierFactory pointIdentifierFactory,
             final long lineIdentifier)
     {
@@ -300,22 +301,27 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
 
                 // Update target to be what's left after clipping
                 currentTarget = currentTarget.difference(candidate);
-                if (currentTarget.getDimension() == 1
-                        && currentTarget.getLength() < CountryBoundaryMap.LINE_BUFFER
-                        || currentTarget.getDimension() == 2
-                                && currentTarget.getArea() < CountryBoundaryMap.AREA_BUFFER
-                                && new DiscreteHausdorffDistance(currentTarget, candidate)
-                                        .orientedDistance() < CountryBoundaryMap.LINE_BUFFER)
+
+                // If the remaining piece is very small and we ignore it. This helps avoid
+                // cutting features just a little over boundary lines and generating too many
+                // new nodes, which is both unnecessary and exhausts node identifier resources.
+                if (isSignificantGeometry(currentTarget)
+                        && new DiscreteHausdorffDistance(currentTarget, candidate)
+                                .orientedDistance() < CountryBoundaryMap.LINE_BUFFER)
                 {
-                    // The remaining piece is very small and we ignore it. This also helps avoid
-                    // cutting features just a little over boundary lines and generating too many
-                    // new nodes, which is both unnecessary and exhausts node identifier resources.
                     fullyMatched = true;
                     break;
                 }
             }
         }
         return fullyMatched ? null : currentTarget;
+    }
+
+    private boolean isSignificantGeometry(final Geometry geometry)
+    {
+        return geometry.getDimension() == 1 && geometry.getLength() > CountryBoundaryMap.LINE_BUFFER
+                || geometry.getDimension() == 2
+                        && geometry.getArea() > CountryBoundaryMap.AREA_BUFFER;
     }
 
     /**
@@ -498,15 +504,8 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                             line.getIdentifier());
                     final CompletePoint newPointFromSlice = new CompletePoint(pointIdentifier,
                             scaledLocation, pointTags, new HashSet<Long>());
-                    // PLEASE NOTE!! It may seem silly to do all of the above, but only add if it's
-                    // inside the bounds. However, this is done to guarantee that identifiers are
-                    // deterministic-- we go through all the motions of slicing regardless of the
-                    // outcome for determinism, then only add if we need it.
-                    if (isInsideWorkingBound(newPointFromSlice))
-                    {
-                        lineChanges.add(FeatureChange.add(newPointFromSlice, getStartingAtlas()));
-                        getCoordinateToPointMapping().storeMapping(coordinate, pointIdentifier);
-                    }
+                    getCoordinateToPointMapping().storeMapping(coordinate, pointIdentifier);
+                    lineChanges.add(FeatureChange.add(newPointFromSlice, atlas));
                 }
             }
             else
@@ -564,7 +563,8 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
             if (Strings.isNullOrEmpty(countryCode))
             {
                 logger.warn(
-                        "Ignoring a candidate polygon from slicing, because it is missing country tag.");
+                        "Ignoring a candidate polygon from slicing line {}, because it is missing country tag.",
+                        identifier);
             }
             else
             {
@@ -686,24 +686,33 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
             final Geometry remainder = cutGeometry(line.getIdentifier(), candidates, results,
                     target);
 
-            // Part or all of the geometry is not inside any country, assign with nearest country.
-            if (remainder != null)
+            if (remainder == null)
             {
-                final Geometry nearestGeometry = boundary.nearestNeighbour(
-                        target.getEnvelopeInternal(), remainder, new GeometryItemDistance());
-                if (nearestGeometry != null)
+                return results;
+            }
+
+            // Part or all of the geometry is not inside any country, assign with nearest country.
+            final Geometry nearestGeometry = boundary.nearestNeighbour(target.getEnvelopeInternal(),
+                    remainder, new GeometryItemDistance());
+            if (nearestGeometry == null)
+            {
+                return results;
+            }
+            for (int i = 0; i < remainder.getNumGeometries(); i++)
+            {
+                final Geometry current = remainder.getGeometryN(i);
+                if (isSignificantGeometry(current))
                 {
                     final String nearestCountryCode = CountryBoundaryMap
                             .getGeometryProperty(nearestGeometry, ISOCountryTag.KEY);
-                    CountryBoundaryMap.setGeometryProperty(remainder, ISOCountryTag.KEY,
+                    CountryBoundaryMap.setGeometryProperty(current, ISOCountryTag.KEY,
                             nearestCountryCode);
-                    CountryBoundaryMap.setGeometryProperty(remainder,
+                    CountryBoundaryMap.setGeometryProperty(current,
                             SyntheticNearestNeighborCountryCodeTag.KEY,
                             SyntheticNearestNeighborCountryCodeTag.YES.toString());
-                    addResult(remainder, results);
+                    addResult(current, results);
                 }
             }
-
             return results;
         }
         catch (final TopologyException e)
@@ -790,7 +799,6 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         {
             return pointSlicedAtlas;
         }
-        logger.debug("building new changeAtlas...");
         return new ChangeAtlas(pointSlicedAtlas, lineChangeBuilder.get());
     }
 
@@ -803,28 +811,31 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
      *            A raw {@link Atlas} to be point-tagged
      * @return An {@link Atlas} with all points country tagged
      */
-    private Atlas slicePoints(final Atlas rawAtlas)
+    private Atlas slicePoints(final Atlas lineSlicedAtlas)
     {
         final ChangeBuilder pointChanges = new ChangeBuilder();
-        StreamSupport.stream(rawAtlas.points().spliterator(), true).forEach(point ->
+        StreamSupport.stream(lineSlicedAtlas.points().spliterator(), true).forEach(point ->
         {
-            final Map<String, String> updatedTags = createPointTags(point.getLocation(), true);
-            final CompletePoint afterPoint = CompletePoint.from(point);
-            updatedTags.forEach(afterPoint::withAddedTag);
-            if (isInsideWorkingBound(afterPoint))
+            if (!point.getTag(ISOCountryTag.KEY).isPresent())
             {
-                pointChanges.add(FeatureChange.add(afterPoint, rawAtlas));
-            }
-            else
-            {
-                pointChanges.add(FeatureChange.remove(CompletePoint.shallowFrom(point)));
+                final Map<String, String> updatedTags = createPointTags(point.getLocation(), true);
+                final CompletePoint afterPoint = CompletePoint.from(point);
+                updatedTags.forEach(afterPoint::withAddedTag);
+                if (isInsideWorkingBound(afterPoint))
+                {
+                    pointChanges.add(FeatureChange.add(afterPoint, lineSlicedAtlas));
+                }
+                else
+                {
+                    pointChanges.add(FeatureChange.remove(CompletePoint.shallowFrom(point)));
+                }
             }
         });
         if (pointChanges.peekNumberOfChanges() == 0)
 
         {
-            return rawAtlas;
+            return lineSlicedAtlas;
         }
-        return new ChangeAtlas(rawAtlas, pointChanges.get());
+        return new ChangeAtlas(lineSlicedAtlas, pointChanges.get());
     }
 }
