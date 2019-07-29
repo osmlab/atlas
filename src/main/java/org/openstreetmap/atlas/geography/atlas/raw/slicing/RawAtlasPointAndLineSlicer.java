@@ -563,7 +563,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
             if (Strings.isNullOrEmpty(countryCode))
             {
                 logger.warn(
-                        "Ignoring a candidate polygon from slicing line {}, because it is missing country tag.",
+                        "Ignoring a candidate polygon from slicing way {}, because it is missing country tag.",
                         identifier);
             }
             else
@@ -741,15 +741,13 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         final List<Geometry> slices = convertToJtsGeometryAndSlice(line);
         if (slices == null || slices.isEmpty())
         {
-            // No slices generated or an error in slicing, create missing country code
-            final Map<String, String> tags = new HashMap<>();
-            tags.put(ISOCountryTag.KEY, ISOCountryTag.COUNTRY_MISSING);
-            final CompleteLine updatedLine = CompleteLine.from(line).withTags(tags);
+            final CompleteLine updatedLine = CompleteLine.shallowFrom(line).withTags(line.getTags())
+                    .withAddedTag(ISOCountryTag.KEY, ISOCountryTag.COUNTRY_MISSING);
             lineChanges.add(FeatureChange.add(updatedLine, atlas));
         }
         else if (CountryBoundaryMap.isSameCountry(slices) && !shouldForceSlicing(line))
         {
-            final CompleteLine updatedLine = CompleteLine.from(line)
+            final CompleteLine updatedLine = CompleteLine.shallowFrom(line)
                     .withTags(createLineTags(slices.get(0), line.getTags()));
             if (isInsideWorkingBound(updatedLine))
             {
@@ -766,13 +764,12 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                     "Country slicing exceeded maximum line identifier name space of {} for Line {} for Atlas {}. It will be added as is, with two or more country codes.",
                     CountrySlicingIdentifierFactory.IDENTIFIER_SCALE_DEFAULT, line.getIdentifier(),
                     getShardOrAtlasName());
-            final Map<String, String> tags = new HashMap<>();
             final Set<String> allCountries = slices.stream().map(
                     geometry -> CountryBoundaryMap.getGeometryProperty(geometry, ISOCountryTag.KEY))
                     .collect(Collectors.toCollection(TreeSet::new));
             final String countryString = String.join(",", allCountries);
-            tags.put(ISOCountryTag.KEY, countryString);
-            final CompleteLine afterLine = CompleteLine.from(line).withTags(tags);
+            final CompleteLine afterLine = CompleteLine.shallowFrom(line).withTags(line.getTags())
+                    .withAddedTag(ISOCountryTag.KEY, countryString);
             lineChanges.add(FeatureChange.add(afterLine, atlas));
         }
         else
@@ -818,9 +815,9 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         {
             if (!point.getTag(ISOCountryTag.KEY).isPresent())
             {
-                final Map<String, String> updatedTags = createPointTags(point.getLocation(), true);
-                final CompletePoint afterPoint = CompletePoint.from(point);
-                updatedTags.forEach(afterPoint::withAddedTag);
+                final CompletePoint afterPoint = CompletePoint.shallowFrom(point)
+                        .withTags(point.getTags());
+                createPointTags(point.getLocation(), true).forEach(afterPoint::withAddedTag);
                 if (isInsideWorkingBound(afterPoint))
                 {
                     pointChanges.add(FeatureChange.add(afterPoint, lineSlicedAtlas));
