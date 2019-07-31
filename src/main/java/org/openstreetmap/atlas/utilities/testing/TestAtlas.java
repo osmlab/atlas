@@ -300,7 +300,7 @@ public @interface TestAtlas
     /**
      * ISO Country Code of the Atlas
      *
-     * @return a string containing the ISO3 character code of the country or UNKNOWN if not set
+     * @return a string containing the ISO3 character code of the country or UNK if not set
      */
     String iso() default UNKNOWN_ISO_COUNTRY;
 
