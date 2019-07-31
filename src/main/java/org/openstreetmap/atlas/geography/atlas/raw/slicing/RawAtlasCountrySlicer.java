@@ -59,7 +59,7 @@ public class RawAtlasCountrySlicer
     {
         this.loadingOption = loadingOption;
         this.relationPredicate = entity -> entity.getType().equals(ItemType.RELATION)
-                && loadingOption.getSlicingFilter().test(entity);
+                && loadingOption.getRelationSlicingFilter().test(entity);
         this.sharding = null;
         this.atlasFetcher = null;
     }
@@ -89,9 +89,14 @@ public class RawAtlasCountrySlicer
         }
         this.loadingOption = loadingOption;
         this.relationPredicate = entity -> entity.getType().equals(ItemType.RELATION)
-                && loadingOption.getSlicingFilter().test(entity);
+                && loadingOption.getRelationSlicingFilter().test(entity);
         this.sharding = sharding;
         this.atlasFetcher = atlasFetcher;
+    }
+
+    public AtlasLoadingOption getLoadingOption()
+    {
+        return this.loadingOption;
     }
 
     /**
