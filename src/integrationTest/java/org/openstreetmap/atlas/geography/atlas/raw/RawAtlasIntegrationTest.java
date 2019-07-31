@@ -209,15 +209,12 @@ public class RawAtlasIntegrationTest
         // Assert all raw Atlas entities have a country code
         assertAllEntitiesHaveCountryCode(slicedRawAtlas);
 
-        // Try only with Ivory Coast now!
-        final Set<String> onlyIvoryCoast = new HashSet<>();
-        onlyIvoryCoast.add("CIV");
         final Atlas ivoryCoast = new RawAtlasCountrySlicer(loadingOptionIvoryCoast).slice(rawAtlas);
 
         Assert.assertEquals(0, ivoryCoast.numberOfNodes());
         Assert.assertEquals(0, ivoryCoast.numberOfEdges());
         Assert.assertEquals(0, ivoryCoast.numberOfAreas());
-        Assert.assertEquals(37911, ivoryCoast.numberOfPoints());
+        Assert.assertEquals(34962, ivoryCoast.numberOfPoints());
         Assert.assertEquals(3637, ivoryCoast.numberOfLines());
         Assert.assertEquals(12, ivoryCoast.numberOfRelations());
 

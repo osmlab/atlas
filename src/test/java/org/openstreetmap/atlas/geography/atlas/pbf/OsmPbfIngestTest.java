@@ -156,7 +156,6 @@ public class OsmPbfIngestTest
             Atlas atlas = new RawAtlasGenerator(() -> osmosis, loadingOption, MultiPolygon.MAXIMUM)
                     .build();
             atlas = new WaySectionProcessor(atlas, loadingOption).run();
-            logger.info("{}", atlas);
             final Edge edgeIn = atlas.edgesIntersecting(DE_ANZA_AT_280.bounds()).iterator().next();
             final Node nodeIn = edgeIn.end();
             Assert.assertNull(nodeIn.tag(SyntheticBoundaryNodeTag.KEY));
@@ -177,7 +176,6 @@ public class OsmPbfIngestTest
         final CountryBoundaryMap countryBoundaryMap = CountryBoundaryMap.fromPlainText(boundaries);
         final MultiPolygon boundary = countryBoundaryMap.countryBoundary("AIA").get(0)
                 .getBoundary();
-        logger.debug("Boundary: {}", boundary.toWkt());
         final AtlasLoadingOption option = AtlasLoadingOption
                 .createOptionWithAllEnabled(countryBoundaryMap);
         option.setEdgeFilter(
@@ -187,7 +185,6 @@ public class OsmPbfIngestTest
         option.setAdditionalCountryCodes(countryBoundaryMap.getLoadedCountries());
         atlas = new RawAtlasCountrySlicer(option).slice(atlas);
         atlas = new WaySectionProcessor(atlas, option).run();
-        logger.debug("Atlas: {}", atlas);
 
         // Edges with access=no that need to be included
         Assert.assertNotNull(atlas.edge(205527844000002L));
@@ -211,7 +208,6 @@ public class OsmPbfIngestTest
             atlas = new RawAtlasCountrySlicer(loadingOption).slice(atlas);
             atlas = new WaySectionProcessor(atlas, AtlasLoadingOption.createOptionWithNoSlicing())
                     .run();
-            logger.info("{}", atlas);
             Assert.assertEquals(2, atlas.numberOfLines());
             Assert.assertEquals(1, atlas.numberOfRelations());
             final Relation relation = atlas.relations().iterator().next();
@@ -229,7 +225,6 @@ public class OsmPbfIngestTest
             Atlas atlas = new RawAtlasGenerator(() -> osmosis, loadingOption, MultiPolygon.MAXIMUM)
                     .build();
             atlas = new WaySectionProcessor(atlas, loadingOption).run();
-            logger.info("{}", atlas);
             Assert.assertEquals(3, atlas.numberOfLines());
         }
     }

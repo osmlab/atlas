@@ -280,7 +280,6 @@ public class LineAndPointSlicingTest
         final long newPointIdentifier = pointIdentifierFactory.nextIdentifier();
         slicedAtlas.points().forEach(point ->
         {
-            System.out.println(point);
             if (point.getIdentifier() == newPointIdentifier)
             {
                 // Make specific checks for the new added point
