@@ -462,8 +462,16 @@ public class Location
             lambda = (lon1 + lon2) / 2;
         }
 
-        // Normalize to -180/180
-        lambda = (lambda + FACTOR_OF_3 * Math.PI) % (2 * Math.PI) - Math.PI;
+        // Normalize to [-180, +180), unless both input points are at +180, then return +180
+        if (this.getLongitude().equals(Longitude.MAXIMUM)
+                && that.getLongitude().equals(Longitude.MAXIMUM))
+        {
+            lambda = Longitude.MAXIMUM.asRadians();
+        }
+        else
+        {
+            lambda = (lambda + FACTOR_OF_3 * Math.PI) % (2 * Math.PI) - Math.PI;
+        }
 
         return new Location(Latitude.radians(pheta), Longitude.radians(lambda));
     }
