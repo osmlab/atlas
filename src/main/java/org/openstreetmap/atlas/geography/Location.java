@@ -456,6 +456,12 @@ public class Location
         double lambda = ((lon2 - lon1) * Math.log(phi3) + lon1 * Math.log(phi2)
                 - lon2 * Math.log(phi1)) / Math.log(phi2 / phi1);
 
+        // Locations on the same circle of latitude
+        if (!Double.isFinite(lambda))
+        {
+            lambda = (lon1 + lon2) / 2;
+        }
+
         // Normalize to -180/180
         lambda = (lambda + FACTOR_OF_3 * Math.PI) % (2 * Math.PI) - Math.PI;
 
