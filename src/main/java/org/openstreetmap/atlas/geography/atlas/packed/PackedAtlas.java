@@ -165,13 +165,17 @@ public final class PackedAtlas extends AbstractAtlas
     private static final String ALREADY_EXISTS_EXCEPTION_MESSAGE = "{} with identifier {} already exists.";
     // Serializer.
     private transient PackedAtlasSerializer serializer;
+
     // Serialization formats for saving/loading this PackedAtlas
     private AtlasSerializationFormat saveSerializationFormat = AtlasSerializationFormat.PROTOBUF;
     private AtlasSerializationFormat loadSerializationFormat = AtlasSerializationFormat.PROTOBUF;
+
     // Meta-Data
     private AtlasMetaData metaData = new AtlasMetaData();
+
     // Dictionary
     private final IntegerDictionary<String> dictionary;
+
     // The OSM (and way-sectioned) edge and node indices
     private final LongArray edgeIdentifiers;
     private final LongArray nodeIdentifiers;
@@ -179,6 +183,7 @@ public final class PackedAtlas extends AbstractAtlas
     private final LongArray lineIdentifiers;
     private final LongArray pointIdentifiers;
     private final LongArray relationIdentifiers;
+
     // The maps from edge index to index in the arrays above, and in the attributes
     private final LongToLongMap edgeIdentifierToEdgeArrayIndex;
     private final LongToLongMap nodeIdentifierToNodeArrayIndex;
@@ -186,30 +191,36 @@ public final class PackedAtlas extends AbstractAtlas
     private final LongToLongMap lineIdentifierToLineArrayIndex;
     private final LongToLongMap pointIdentifierToPointArrayIndex;
     private final LongToLongMap relationIdentifierToRelationArrayIndex;
+
     // Node attributes
     private final LongArray nodeLocations;
     private final LongArrayOfArrays nodeInEdgesIndices;
     private final LongArrayOfArrays nodeOutEdgesIndices;
     private final PackedTagStore nodeTags;
     private final LongToLongMultiMap nodeIndexToRelationIndices;
+
     // Edge attributes
     private final LongArray edgeStartNodeIndex;
     private final LongArray edgeEndNodeIndex;
     private final PolyLineArray edgePolyLines;
     private final PackedTagStore edgeTags;
     private final LongToLongMultiMap edgeIndexToRelationIndices;
+
     // Areas attributes
     private final PolygonArray areaPolygons;
     private final PackedTagStore areaTags;
     private final LongToLongMultiMap areaIndexToRelationIndices;
+
     // Line attributes
     private final PolyLineArray linePolyLines;
     private final PackedTagStore lineTags;
     private final LongToLongMultiMap lineIndexToRelationIndices;
+
     // Point attributes
     private final LongArray pointLocations;
     private final PackedTagStore pointTags;
     private final LongToLongMultiMap pointIndexToRelationIndices;
+
     // Relation attributes
     private final LongArrayOfArrays relationMemberIndices;
     private final ByteArrayOfArrays relationMemberTypes;
@@ -218,6 +229,7 @@ public final class PackedAtlas extends AbstractAtlas
     private final LongToLongMultiMap relationIndexToRelationIndices;
     private final LongToLongMultiMap relationOsmIdentifierToRelationIdentifiers;
     private final LongArray relationOsmIdentifiers;
+
     // Bounds of the Atlas
     private Rectangle bounds;
 
