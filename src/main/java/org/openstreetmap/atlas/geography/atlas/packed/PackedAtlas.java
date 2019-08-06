@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Supplier;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
@@ -1551,6 +1552,22 @@ public final class PackedAtlas extends AbstractAtlas
         }
         this.areaTags.setDictionary(dictionary());
         return this.areaTags;
+    }
+
+    private <T> T deserializedIfNeeded(final Supplier<T> supplier, final Object lock,
+            final String fieldName)
+    {
+        if (supplier.get() == null)
+        {
+            synchronized (lock) // NOSONAR
+            {
+                if (supplier.get() == null)
+                {
+                    this.serializer.deserializeIfNeeded(fieldName);
+                }
+            }
+        }
+        return supplier.get();
     }
 
     private IntegerDictionary<String> dictionary()
