@@ -160,9 +160,11 @@ public final class PackedAtlas extends AbstractAtlas
     protected static final Object FIELD_RELATION_OSM_IDENTIFIER_TO_RELATION_IDENTIFIERS_LOCK = new Object();
     protected static final String FIELD_RELATION_OSM_IDENTIFIERS = "relationOsmIdentifiers";
     protected static final Object FIELD_RELATION_OSM_IDENTIFIERS_LOCK = new Object();
+
     private static final long serialVersionUID = -7582554057580336684L;
     private static final Logger logger = LoggerFactory.getLogger(PackedAtlas.class);
     private static final String ALREADY_EXISTS_EXCEPTION_MESSAGE = "{} with identifier {} already exists.";
+
     // Serializer.
     private transient PackedAtlasSerializer serializer;
 
@@ -1113,17 +1115,39 @@ public final class PackedAtlas extends AbstractAtlas
         return null;
     }
 
+    /**
+     * Return the identifier of the {@link Node}, if any, at a given {@link Location}. If there are
+     * multiple {@link Node}s at the given location, the one with the lowest identifier is returned.
+     *
+     * @param location
+     *            the location to check
+     * @return the {@link Node} if it exists, null otherwise
+     */
     protected Long nodeIdentifierForLocation(final Location location)
     {
         buildNodeSpatialIndexIfNecessary();
 
-        final Iterator<Node> nodes;
         final Rectangle locationBounds = location.bounds();
-        nodes = this.getNodeSpatialIndex().get(locationBounds).iterator();
-
-        if (nodes.hasNext())
+        final SortedSet<Node> nodesByAscendingIdentifier = new TreeSet<>((node1, node2) ->
         {
-            return nodes.next().getIdentifier();
+            if (node1.getIdentifier() < node2.getIdentifier())
+            {
+                return -1;
+            }
+            else if (node1.getIdentifier() > node2.getIdentifier())
+            {
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        });
+        this.getNodeSpatialIndex().get(locationBounds).forEach(nodesByAscendingIdentifier::add);
+
+        if (!nodesByAscendingIdentifier.isEmpty())
+        {
+            return nodesByAscendingIdentifier.first().getIdentifier();
         }
 
         return null;
