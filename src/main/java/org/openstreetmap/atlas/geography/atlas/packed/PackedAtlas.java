@@ -1538,107 +1538,44 @@ public final class PackedAtlas extends AbstractAtlas
 
     private IntegerDictionary<String> dictionary()
     {
-        if (this.dictionary == null)
-        {
-            synchronized (FIELD_DICTIONARY_LOCK)
-            {
-                if (this.dictionary == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_DICTIONARY);
-                }
-            }
-        }
-        return this.dictionary;
+        return deserializedIfNeeded(() -> this.dictionary, FIELD_DICTIONARY_LOCK, FIELD_DICTIONARY);
     }
 
     private LongArray edgeEndNodeIndex()
     {
-        if (this.edgeEndNodeIndex == null)
-        {
-            synchronized (FIELD_EDGE_END_NODE_INDEX_LOCK)
-            {
-                if (this.edgeEndNodeIndex == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_EDGE_END_NODE_INDEX);
-                }
-            }
-        }
-        return this.edgeEndNodeIndex;
+        return deserializedIfNeeded(() -> this.edgeEndNodeIndex, FIELD_EDGE_END_NODE_INDEX_LOCK,
+                FIELD_EDGE_END_NODE_INDEX);
     }
 
     private LongToLongMap edgeIdentifierToEdgeArrayIndex()
     {
-        if (this.edgeIdentifierToEdgeArrayIndex == null)
-        {
-            synchronized (FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX_LOCK)
-            {
-                if (this.edgeIdentifierToEdgeArrayIndex == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX);
-                }
-            }
-        }
-        return this.edgeIdentifierToEdgeArrayIndex;
+        return deserializedIfNeeded(() -> this.edgeIdentifierToEdgeArrayIndex,
+                FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX_LOCK,
+                FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX);
     }
 
     private LongArray edgeIdentifiers()
     {
-        if (this.edgeIdentifiers == null)
-        {
-            synchronized (FIELD_EDGE_IDENTIFIERS_LOCK)
-            {
-                if (this.edgeIdentifiers == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_EDGE_IDENTIFIERS);
-                }
-            }
-        }
-        return this.edgeIdentifiers;
+        return deserializedIfNeeded(() -> this.edgeIdentifiers, FIELD_EDGE_IDENTIFIERS_LOCK,
+                FIELD_EDGE_IDENTIFIERS);
     }
 
     private LongToLongMultiMap edgeIndexToRelationIndices()
     {
-        if (this.edgeIndexToRelationIndices == null)
-        {
-            synchronized (FIELD_EDGE_INDEX_TO_RELATION_INDICES_LOCK)
-            {
-                if (this.edgeIndexToRelationIndices == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_EDGE_INDEX_TO_RELATION_INDICES);
-                }
-            }
-        }
-        return this.edgeIndexToRelationIndices;
+        return deserializedIfNeeded(() -> this.edgeIndexToRelationIndices,
+                FIELD_EDGE_INDEX_TO_RELATION_INDICES_LOCK, FIELD_EDGE_INDEX_TO_RELATION_INDICES);
     }
 
     private PolyLineArray edgePolyLines()
     {
-        if (this.edgePolyLines == null)
-        {
-            synchronized (FIELD_EDGE_POLY_LINES_LOCK)
-            {
-                if (this.edgePolyLines == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_EDGE_POLY_LINES);
-                }
-            }
-        }
-        return this.edgePolyLines;
+        return deserializedIfNeeded(() -> this.edgePolyLines, FIELD_EDGE_POLY_LINES_LOCK,
+                FIELD_EDGE_POLY_LINES);
     }
 
     private LongArray edgeStartNodeIndex()
     {
-        if (this.edgeStartNodeIndex == null)
-        {
-            synchronized (FIELD_EDGE_START_NODE_INDEX_LOCK)
-            {
-                if (this.edgeStartNodeIndex == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_EDGE_START_NODE_INDEX);
-                }
-            }
-        }
-        return this.edgeStartNodeIndex;
+        return deserializedIfNeeded(() -> this.edgeStartNodeIndex, FIELD_EDGE_START_NODE_INDEX_LOCK,
+                FIELD_EDGE_START_NODE_INDEX);
     }
 
     private PackedTagStore edgeTags()
@@ -1663,62 +1600,27 @@ public final class PackedAtlas extends AbstractAtlas
 
     private LongToLongMap lineIdentifierToLineArrayIndex()
     {
-        if (this.lineIdentifierToLineArrayIndex == null)
-        {
-            synchronized (FIELD_LINE_IDENTIFIER_TO_LINE_ARRAY_INDEX_LOCK)
-            {
-                if (this.lineIdentifierToLineArrayIndex == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_LINE_IDENTIFIER_TO_LINE_ARRAY_INDEX);
-                }
-            }
-        }
-        return this.lineIdentifierToLineArrayIndex;
+        return deserializedIfNeeded(() -> this.lineIdentifierToLineArrayIndex,
+                FIELD_LINE_IDENTIFIER_TO_LINE_ARRAY_INDEX_LOCK,
+                FIELD_LINE_IDENTIFIER_TO_LINE_ARRAY_INDEX);
     }
 
     private LongArray lineIdentifiers()
     {
-        if (this.lineIdentifiers == null)
-        {
-            synchronized (FIELD_LINE_IDENTIFIERS_LOCK)
-            {
-                if (this.lineIdentifiers == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_LINE_IDENTIFIERS);
-                }
-            }
-        }
-        return this.lineIdentifiers;
+        return deserializedIfNeeded(() -> this.lineIdentifiers, FIELD_LINE_IDENTIFIERS_LOCK,
+                FIELD_LINE_IDENTIFIERS);
     }
 
     private LongToLongMultiMap lineIndexToRelationIndices()
     {
-        if (this.lineIndexToRelationIndices == null)
-        {
-            synchronized (FIELD_LINE_INDEX_TO_RELATION_INDICES_LOCK)
-            {
-                if (this.lineIndexToRelationIndices == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_LINE_INDEX_TO_RELATION_INDICES);
-                }
-            }
-        }
-        return this.lineIndexToRelationIndices;
+        return deserializedIfNeeded(() -> this.lineIndexToRelationIndices,
+                FIELD_LINE_INDEX_TO_RELATION_INDICES_LOCK, FIELD_LINE_INDEX_TO_RELATION_INDICES);
     }
 
     private PolyLineArray linePolyLines()
     {
-        if (this.linePolyLines == null)
-        {
-            synchronized (FIELD_LINE_POLYLINES_LOCK)
-            {
-                if (this.linePolyLines == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_LINE_POLYLINES);
-                }
-            }
-        }
-        return this.linePolyLines;
+        return deserializedIfNeeded(() -> this.linePolyLines, FIELD_LINE_POLYLINES_LOCK,
+                FIELD_LINE_POLYLINES);
     }
 
     private PackedTagStore lineTags()
@@ -1752,92 +1654,39 @@ public final class PackedAtlas extends AbstractAtlas
 
     private LongToLongMap nodeIdentifierToNodeArrayIndex()
     {
-        if (this.nodeIdentifierToNodeArrayIndex == null)
-        {
-            synchronized (FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX_LOCK)
-            {
-                if (this.nodeIdentifierToNodeArrayIndex == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX);
-                }
-            }
-        }
-        return this.nodeIdentifierToNodeArrayIndex;
+        return deserializedIfNeeded(() -> this.nodeIdentifierToNodeArrayIndex,
+                FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX_LOCK,
+                FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX);
     }
 
     private LongArray nodeIdentifiers()
     {
-        if (this.nodeIdentifiers == null)
-        {
-            synchronized (FIELD_NODE_IDENTIFIERS_LOCK)
-            {
-                if (this.nodeIdentifiers == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_NODE_IDENTIFIERS);
-                }
-            }
-        }
-        return this.nodeIdentifiers;
+        return deserializedIfNeeded(() -> this.nodeIdentifiers, FIELD_NODE_IDENTIFIERS_LOCK,
+                FIELD_NODE_IDENTIFIERS);
     }
 
     private LongArrayOfArrays nodeInEdgesIndices()
     {
-        if (this.nodeInEdgesIndices == null)
-        {
-            synchronized (FIELD_NODE_IN_EDGES_INDICES_LOCK)
-            {
-                if (this.nodeInEdgesIndices == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_NODE_IN_EDGES_INDICES);
-                }
-            }
-        }
-        return this.nodeInEdgesIndices;
+        return deserializedIfNeeded(() -> this.nodeInEdgesIndices, FIELD_NODE_IN_EDGES_INDICES_LOCK,
+                FIELD_NODE_IN_EDGES_INDICES);
     }
 
     private LongToLongMultiMap nodeIndexToRelationIndices()
     {
-        if (this.nodeIndexToRelationIndices == null)
-        {
-            synchronized (FIELD_NODE_INDEX_TO_RELATION_INDICES_LOCK)
-            {
-                if (this.nodeIndexToRelationIndices == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_NODE_INDEX_TO_RELATION_INDICES);
-                }
-            }
-        }
-        return this.nodeIndexToRelationIndices;
+        return deserializedIfNeeded(() -> this.nodeIndexToRelationIndices,
+                FIELD_NODE_INDEX_TO_RELATION_INDICES_LOCK, FIELD_NODE_INDEX_TO_RELATION_INDICES);
     }
 
     private LongArray nodeLocations()
     {
-        if (this.nodeLocations == null)
-        {
-            synchronized (FIELD_NODE_LOCATIONS_LOCK)
-            {
-                if (this.nodeLocations == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_NODE_LOCATIONS);
-                }
-            }
-        }
-        return this.nodeLocations;
+        return deserializedIfNeeded(() -> this.nodeLocations, FIELD_NODE_LOCATIONS_LOCK,
+                FIELD_NODE_LOCATIONS);
     }
 
     private LongArrayOfArrays nodeOutEdgesIndices()
     {
-        if (this.nodeOutEdgesIndices == null)
-        {
-            synchronized (FIELD_NODE_OUT_EDGES_INDICES_LOCK)
-            {
-                if (this.nodeOutEdgesIndices == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_NODE_OUT_EDGES_INDICES);
-                }
-            }
-        }
-        return this.nodeOutEdgesIndices;
+        return deserializedIfNeeded(() -> this.nodeOutEdgesIndices,
+                FIELD_NODE_OUT_EDGES_INDICES_LOCK, FIELD_NODE_OUT_EDGES_INDICES);
     }
 
     private PackedTagStore nodeTags()
@@ -1848,63 +1697,27 @@ public final class PackedAtlas extends AbstractAtlas
 
     private LongToLongMap pointIdentifierToPointArrayIndex()
     {
-        if (this.pointIdentifierToPointArrayIndex == null)
-        {
-            synchronized (FIELD_POINT_IDENTIFIER_TO_POINT_ARRAY_INDEX_LOCK)
-            {
-                if (this.pointIdentifierToPointArrayIndex == null)
-                {
-                    this.serializer
-                            .deserializeIfNeeded(FIELD_POINT_IDENTIFIER_TO_POINT_ARRAY_INDEX);
-                }
-            }
-        }
-        return this.pointIdentifierToPointArrayIndex;
+        return deserializedIfNeeded(() -> this.pointIdentifierToPointArrayIndex,
+                FIELD_POINT_IDENTIFIER_TO_POINT_ARRAY_INDEX_LOCK,
+                FIELD_POINT_IDENTIFIER_TO_POINT_ARRAY_INDEX);
     }
 
     private LongArray pointIdentifiers()
     {
-        if (this.pointIdentifiers == null)
-        {
-            synchronized (FIELD_POINT_IDENTIFIERS_LOCK)
-            {
-                if (this.pointIdentifiers == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_POINT_IDENTIFIERS);
-                }
-            }
-        }
-        return this.pointIdentifiers;
+        return deserializedIfNeeded(() -> this.pointIdentifiers, FIELD_POINT_IDENTIFIERS_LOCK,
+                FIELD_POINT_IDENTIFIERS);
     }
 
     private LongToLongMultiMap pointIndexToRelationIndices()
     {
-        if (this.pointIndexToRelationIndices == null)
-        {
-            synchronized (FIELD_POINT_INDEX_TO_RELATION_INDICES_LOCK)
-            {
-                if (this.pointIndexToRelationIndices == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_POINT_INDEX_TO_RELATION_INDICES);
-                }
-            }
-        }
-        return this.pointIndexToRelationIndices;
+        return deserializedIfNeeded(() -> this.pointIndexToRelationIndices,
+                FIELD_POINT_INDEX_TO_RELATION_INDICES_LOCK, FIELD_POINT_INDEX_TO_RELATION_INDICES);
     }
 
     private LongArray pointLocations()
     {
-        if (this.pointLocations == null)
-        {
-            synchronized (FIELD_POINT_LOCATIONS_LOCK)
-            {
-                if (this.pointLocations == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_POINT_LOCATIONS);
-                }
-            }
-        }
-        return this.pointLocations;
+        return deserializedIfNeeded(() -> this.pointLocations, FIELD_POINT_LOCATIONS_LOCK,
+                FIELD_POINT_LOCATIONS);
     }
 
     private PackedTagStore pointTags()
@@ -1915,124 +1728,53 @@ public final class PackedAtlas extends AbstractAtlas
 
     private LongToLongMap relationIdentifierToRelationArrayIndex()
     {
-        if (this.relationIdentifierToRelationArrayIndex == null)
-        {
-            synchronized (FIELD_RELATION_IDENTIFIER_TO_RELATION_ARRAY_INDEX_LOCK)
-            {
-                if (this.relationIdentifierToRelationArrayIndex == null)
-                {
-                    this.serializer
-                            .deserializeIfNeeded(FIELD_RELATION_IDENTIFIER_TO_RELATION_ARRAY_INDEX);
-                }
-            }
-        }
-        return this.relationIdentifierToRelationArrayIndex;
+        return deserializedIfNeeded(() -> this.relationIdentifierToRelationArrayIndex,
+                FIELD_RELATION_IDENTIFIER_TO_RELATION_ARRAY_INDEX_LOCK,
+                FIELD_RELATION_IDENTIFIER_TO_RELATION_ARRAY_INDEX);
     }
 
     private LongArray relationIdentifiers()
     {
-        if (this.relationIdentifiers == null)
-        {
-            synchronized (FIELD_RELATION_IDENTIFIERS_LOCK)
-            {
-                if (this.relationIdentifiers == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_RELATION_IDENTIFIERS);
-                }
-            }
-        }
-        return this.relationIdentifiers;
+        return deserializedIfNeeded(() -> this.relationIdentifiers, FIELD_RELATION_IDENTIFIERS_LOCK,
+                FIELD_RELATION_IDENTIFIERS);
     }
 
     private LongToLongMultiMap relationIndexToRelationIndices()
     {
-        if (this.relationIndexToRelationIndices == null)
-        {
-            synchronized (FIELD_RELATION_INDEX_TO_RELATION_INDICES_LOCK)
-            {
-                if (this.relationIndexToRelationIndices == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_RELATION_INDEX_TO_RELATION_INDICES);
-                }
-            }
-        }
-        return this.relationIndexToRelationIndices;
+        return deserializedIfNeeded(() -> this.relationIndexToRelationIndices,
+                FIELD_RELATION_INDEX_TO_RELATION_INDICES_LOCK,
+                FIELD_RELATION_INDEX_TO_RELATION_INDICES);
     }
 
     private LongArrayOfArrays relationMemberIndices()
     {
-        if (this.relationMemberIndices == null)
-        {
-            synchronized (FIELD_RELATION_MEMBERS_INDICES_LOCK)
-            {
-                if (this.relationMemberIndices == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_RELATION_MEMBERS_INDICES);
-                }
-            }
-        }
-        return this.relationMemberIndices;
+        return deserializedIfNeeded(() -> this.relationMemberIndices,
+                FIELD_RELATION_MEMBERS_INDICES_LOCK, FIELD_RELATION_MEMBERS_INDICES);
     }
 
     private IntegerArrayOfArrays relationMemberRoles()
     {
-        if (this.relationMemberRoles == null)
-        {
-            synchronized (FIELD_RELATION_MEMBER_ROLES_LOCK)
-            {
-                if (this.relationMemberRoles == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_RELATION_MEMBER_ROLES);
-                }
-            }
-        }
-        return this.relationMemberRoles;
+        return deserializedIfNeeded(() -> this.relationMemberRoles,
+                FIELD_RELATION_MEMBER_ROLES_LOCK, FIELD_RELATION_MEMBER_ROLES);
     }
 
     private ByteArrayOfArrays relationMemberTypes()
     {
-        if (this.relationMemberTypes == null)
-        {
-            synchronized (FIELD_RELATION_MEMBER_TYPES_LOCK)
-            {
-                if (this.relationMemberTypes == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_RELATION_MEMBER_TYPES);
-                }
-            }
-        }
-        return this.relationMemberTypes;
+        return deserializedIfNeeded(() -> this.relationMemberTypes,
+                FIELD_RELATION_MEMBER_TYPES_LOCK, FIELD_RELATION_MEMBER_TYPES);
     }
 
     private LongToLongMultiMap relationOsmIdentifierToRelationIdentifiers()
     {
-        if (this.relationOsmIdentifierToRelationIdentifiers == null)
-        {
-            synchronized (FIELD_RELATION_OSM_IDENTIFIER_TO_RELATION_IDENTIFIERS_LOCK)
-            {
-                if (this.relationOsmIdentifierToRelationIdentifiers == null)
-                {
-                    this.serializer.deserializeIfNeeded(
-                            FIELD_RELATION_OSM_IDENTIFIER_TO_RELATION_IDENTIFIERS);
-                }
-            }
-        }
-        return this.relationOsmIdentifierToRelationIdentifiers;
+        return deserializedIfNeeded(() -> this.relationOsmIdentifierToRelationIdentifiers,
+                FIELD_RELATION_OSM_IDENTIFIER_TO_RELATION_IDENTIFIERS_LOCK,
+                FIELD_RELATION_OSM_IDENTIFIER_TO_RELATION_IDENTIFIERS);
     }
 
     private LongArray relationOsmIdentifiers()
     {
-        if (this.relationOsmIdentifiers == null)
-        {
-            synchronized (FIELD_RELATION_OSM_IDENTIFIERS_LOCK)
-            {
-                if (this.relationOsmIdentifiers == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_RELATION_OSM_IDENTIFIERS);
-                }
-            }
-        }
-        return this.relationOsmIdentifiers;
+        return deserializedIfNeeded(() -> this.relationOsmIdentifiers,
+                FIELD_RELATION_OSM_IDENTIFIERS_LOCK, FIELD_RELATION_OSM_IDENTIFIERS);
     }
 
     private PackedTagStore relationTags()
