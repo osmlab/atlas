@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -1480,82 +1481,43 @@ public final class PackedAtlas extends AbstractAtlas
 
     private LongToLongMap areaIdentifierToAreaArrayIndex()
     {
-        if (this.areaIdentifierToAreaArrayIndex == null)
-        {
-            synchronized (FIELD_AREA_IDENTIFIER_TO_AREA_ARRAY_INDEX_LOCK)
-            {
-                if (this.areaIdentifierToAreaArrayIndex == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_AREA_IDENTIFIER_TO_AREA_ARRAY_INDEX);
-                }
-            }
-        }
-        return this.areaIdentifierToAreaArrayIndex;
+        return deserializedIfNeeded(() -> this.areaIdentifierToAreaArrayIndex,
+                FIELD_AREA_IDENTIFIER_TO_AREA_ARRAY_INDEX_LOCK,
+                FIELD_AREA_IDENTIFIER_TO_AREA_ARRAY_INDEX);
     }
 
     private LongArray areaIdentifiers()
     {
-        if (this.areaIdentifiers == null)
-        {
-            synchronized (FIELD_AREA_IDENTIFIERS_LOCK)
-            {
-                if (this.areaIdentifiers == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_AREA_IDENTIFIERS);
-                }
-            }
-        }
-        return this.areaIdentifiers;
+        return deserializedIfNeeded(() -> this.areaIdentifiers, FIELD_AREA_IDENTIFIERS_LOCK,
+                FIELD_AREA_IDENTIFIERS);
     }
 
     private LongToLongMultiMap areaIndexToRelationIndices()
     {
-        if (this.areaIndexToRelationIndices == null)
-        {
-            synchronized (FIELD_AREA_INDEX_TO_RELATION_INDICES_LOCK)
-            {
-                if (this.areaIndexToRelationIndices == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_AREA_INDEX_TO_RELATION_INDICES);
-                }
-            }
-        }
-        return this.areaIndexToRelationIndices;
+        return deserializedIfNeeded(() -> this.areaIndexToRelationIndices,
+                FIELD_AREA_INDEX_TO_RELATION_INDICES_LOCK, FIELD_AREA_INDEX_TO_RELATION_INDICES);
     }
 
     private PolygonArray areaPolygons()
     {
-        if (this.areaPolygons == null)
-        {
-            synchronized (FIELD_AREA_POLYGONS_LOCK)
-            {
-                if (this.areaPolygons == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_AREA_POLYGONS);
-                }
-            }
-        }
-        return this.areaPolygons;
+        return deserializedIfNeeded(() -> this.areaPolygons, FIELD_AREA_POLYGONS_LOCK,
+                FIELD_AREA_POLYGONS);
     }
 
     private PackedTagStore areaTags()
     {
-        if (this.areaTags == null)
-        {
-            synchronized (FIELD_AREA_TAGS_LOCK)
-            {
-                if (this.areaTags == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_AREA_TAGS);
-                }
-            }
-        }
-        this.areaTags.setDictionary(dictionary());
-        return this.areaTags;
+        return deserializedIfNeeded(() -> this.areaTags, tags -> tags.setDictionary(dictionary()),
+                FIELD_AREA_TAGS_LOCK, FIELD_AREA_TAGS);
     }
 
     private <T> T deserializedIfNeeded(final Supplier<T> supplier, final Object lock,
             final String fieldName)
+    {
+        return deserializedIfNeeded(supplier, null, lock, fieldName);
+    }
+
+    private <T> T deserializedIfNeeded(final Supplier<T> supplier, final Consumer<T> consumer,
+            final Object lock, final String fieldName)
     {
         if (supplier.get() == null)
         {
@@ -1566,6 +1528,10 @@ public final class PackedAtlas extends AbstractAtlas
                     this.serializer.deserializeIfNeeded(fieldName);
                 }
             }
+        }
+        if (consumer != null)
+        {
+            consumer.accept(supplier.get());
         }
         return supplier.get();
     }
@@ -1677,18 +1643,8 @@ public final class PackedAtlas extends AbstractAtlas
 
     private PackedTagStore edgeTags()
     {
-        if (this.edgeTags == null)
-        {
-            synchronized (FIELD_EDGE_TAGS_LOCK)
-            {
-                if (this.edgeTags == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_EDGE_TAGS);
-                }
-            }
-        }
-        this.edgeTags.setDictionary(dictionary());
-        return this.edgeTags;
+        return deserializedIfNeeded(() -> this.edgeTags, tags -> tags.setDictionary(dictionary()),
+                FIELD_EDGE_TAGS_LOCK, FIELD_EDGE_TAGS);
     }
 
     private Set<Relation> itemRelations(final long[] relationIndices)
@@ -1767,18 +1723,8 @@ public final class PackedAtlas extends AbstractAtlas
 
     private PackedTagStore lineTags()
     {
-        if (this.lineTags == null)
-        {
-            synchronized (FIELD_LINE_TAGS_LOCK)
-            {
-                if (this.lineTags == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_LINE_TAGS);
-                }
-            }
-        }
-        this.lineTags.setDictionary(dictionary());
-        return this.lineTags;
+        return deserializedIfNeeded(() -> this.lineTags, tags -> tags.setDictionary(dictionary()),
+                FIELD_LINE_TAGS_LOCK, FIELD_LINE_TAGS);
     }
 
     // Keep this method around so legacy Atlas files can still be deserialized.
@@ -1896,18 +1842,8 @@ public final class PackedAtlas extends AbstractAtlas
 
     private PackedTagStore nodeTags()
     {
-        if (this.nodeTags == null)
-        {
-            synchronized (FIELD_NODE_TAGS_LOCK)
-            {
-                if (this.nodeTags == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_NODE_TAGS);
-                }
-            }
-        }
-        this.nodeTags.setDictionary(dictionary());
-        return this.nodeTags;
+        return deserializedIfNeeded(() -> this.nodeTags, tags -> tags.setDictionary(dictionary()),
+                FIELD_NODE_TAGS_LOCK, FIELD_NODE_TAGS);
     }
 
     private LongToLongMap pointIdentifierToPointArrayIndex()
@@ -1973,18 +1909,8 @@ public final class PackedAtlas extends AbstractAtlas
 
     private PackedTagStore pointTags()
     {
-        if (this.pointTags == null)
-        {
-            synchronized (FIELD_POINT_TAGS_LOCK)
-            {
-                if (this.pointTags == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_POINT_TAGS);
-                }
-            }
-        }
-        this.pointTags.setDictionary(dictionary());
-        return this.pointTags;
+        return deserializedIfNeeded(() -> this.pointTags, tags -> tags.setDictionary(dictionary()),
+                FIELD_POINT_TAGS_LOCK, FIELD_POINT_TAGS);
     }
 
     private LongToLongMap relationIdentifierToRelationArrayIndex()
@@ -2111,18 +2037,9 @@ public final class PackedAtlas extends AbstractAtlas
 
     private PackedTagStore relationTags()
     {
-        if (this.relationTags == null)
-        {
-            synchronized (FIELD_RELATION_TAGS_LOCK)
-            {
-                if (this.relationTags == null)
-                {
-                    this.serializer.deserializeIfNeeded(FIELD_RELATION_TAGS);
-                }
-            }
-        }
-        this.relationTags.setDictionary(dictionary());
-        return this.relationTags;
+        return deserializedIfNeeded(() -> this.relationTags,
+                tags -> tags.setDictionary(dictionary()), FIELD_RELATION_TAGS_LOCK,
+                FIELD_RELATION_TAGS);
     }
 
     /**
