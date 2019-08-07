@@ -163,7 +163,6 @@ public final class PackedAtlas extends AbstractAtlas
 
     private static final long serialVersionUID = -7582554057580336684L;
     private static final Logger logger = LoggerFactory.getLogger(PackedAtlas.class);
-    private static final String ALREADY_EXISTS_EXCEPTION_MESSAGE = "{} with identifier {} already exists.";
 
     // Serializer.
     private transient PackedAtlasSerializer serializer;
@@ -731,7 +730,8 @@ public final class PackedAtlas extends AbstractAtlas
         {
             if (this.areaIdentifierToAreaArrayIndex.containsKey(areaIdentifier))
             {
-                throw new AtlasIntegrityException(ALREADY_EXISTS_EXCEPTION_MESSAGE, ItemType.AREA,
+                throw new AtlasIntegrityException(
+                        PackedAtlasLogMessages.ALREADY_EXISTS_EXCEPTION_MESSAGE, ItemType.AREA,
                         areaIdentifier);
             }
             final long index = this.areaIdentifiers.size();
@@ -754,7 +754,8 @@ public final class PackedAtlas extends AbstractAtlas
         {
             if (this.edgeIdentifierToEdgeArrayIndex.containsKey(edgeIdentifier))
             {
-                throw new AtlasIntegrityException(ALREADY_EXISTS_EXCEPTION_MESSAGE, ItemType.EDGE,
+                throw new AtlasIntegrityException(
+                        PackedAtlasLogMessages.ALREADY_EXISTS_EXCEPTION_MESSAGE, ItemType.EDGE,
                         edgeIdentifier);
             }
             final long index = this.edgeIdentifiers.size();
@@ -793,7 +794,8 @@ public final class PackedAtlas extends AbstractAtlas
         {
             if (this.lineIdentifierToLineArrayIndex.containsKey(lineIdentifier))
             {
-                throw new AtlasIntegrityException(ALREADY_EXISTS_EXCEPTION_MESSAGE, ItemType.LINE,
+                throw new AtlasIntegrityException(
+                        PackedAtlasLogMessages.ALREADY_EXISTS_EXCEPTION_MESSAGE, ItemType.LINE,
                         lineIdentifier);
             }
             final long index = this.lineIdentifiers.size();
@@ -816,7 +818,8 @@ public final class PackedAtlas extends AbstractAtlas
         {
             if (this.nodeIdentifierToNodeArrayIndex.containsKey(nodeIdentifier))
             {
-                throw new AtlasIntegrityException(ALREADY_EXISTS_EXCEPTION_MESSAGE, ItemType.NODE,
+                throw new AtlasIntegrityException(
+                        PackedAtlasLogMessages.ALREADY_EXISTS_EXCEPTION_MESSAGE, ItemType.NODE,
                         nodeIdentifier);
             }
             final long index = this.nodeIdentifiers.size();
@@ -843,7 +846,8 @@ public final class PackedAtlas extends AbstractAtlas
         {
             if (this.pointIdentifierToPointArrayIndex.containsKey(pointIdentifier))
             {
-                throw new AtlasIntegrityException(ALREADY_EXISTS_EXCEPTION_MESSAGE, ItemType.POINT,
+                throw new AtlasIntegrityException(
+                        PackedAtlasLogMessages.ALREADY_EXISTS_EXCEPTION_MESSAGE, ItemType.POINT,
                         pointIdentifier);
             }
             final long index = this.pointIdentifiers.size();
@@ -904,8 +908,9 @@ public final class PackedAtlas extends AbstractAtlas
         {
             if (this.relationIdentifierToRelationArrayIndex.containsKey(relationIdentifier))
             {
-                throw new AtlasIntegrityException(ALREADY_EXISTS_EXCEPTION_MESSAGE,
-                        ItemType.RELATION, relationIdentifier);
+                throw new AtlasIntegrityException(
+                        PackedAtlasLogMessages.ALREADY_EXISTS_EXCEPTION_MESSAGE, ItemType.RELATION,
+                        relationIdentifier);
             }
 
             final long index = this.relationIdentifiers.size();
