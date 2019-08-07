@@ -1327,6 +1327,12 @@ public final class PackedAtlas extends AbstractAtlas
         this.metaData = metaData;
     }
 
+    @Override
+    protected void setName(final String name) // NOSONAR
+    {
+        super.setName(name);
+    }
+
     /**
      * Add a {@link RelationMember}
      *
