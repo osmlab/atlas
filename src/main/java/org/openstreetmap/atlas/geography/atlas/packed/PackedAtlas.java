@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.LongFunction;
 import java.util.function.Supplier;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -1478,7 +1478,7 @@ public final class PackedAtlas extends AbstractAtlas
                 FIELD_EDGE_TAGS_LOCK, FIELD_EDGE_TAGS);
     }
 
-    private <T> Iterable<T> indexBasedIterable(final long size, final Function<Long, T> supplier)
+    private <T> Iterable<T> indexBasedIterable(final long size, final LongFunction<T> supplier)
     {
         return () -> new Iterator<T>()
         {
