@@ -67,17 +67,6 @@ public class ComplexHighwayArea extends ComplexEntity
         this(new ComplexHighwayAreaHelper(edge));
     }
 
-    @Override
-    public List<ComplexEntityError> getAllInvalidations()
-    {
-        final List<ComplexEntityError> returnValue = new ArrayList<>();
-        if (!isValid())
-        {
-            returnValue.add(getError().get());
-        }
-        return returnValue;
-    }
-
     public PolyLine getHighwayAreaBoundary()
     {
         return this.boundary;

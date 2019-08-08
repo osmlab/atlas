@@ -1,18 +1,15 @@
 package org.openstreetmap.atlas.geography.atlas.packed;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Consumer;
-import java.util.function.LongFunction;
 import java.util.function.Supplier;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -479,7 +476,7 @@ public final class PackedAtlas extends AbstractAtlas
     @Override
     public Iterable<Area> areas()
     {
-        return indexBasedIterable(this.areaIdentifiers().size(),
+        return Iterables.indexBasedIterable(this.areaIdentifiers().size(),
                 index -> new PackedArea(this, index));
     }
 
@@ -508,7 +505,7 @@ public final class PackedAtlas extends AbstractAtlas
     @Override
     public Iterable<Edge> edges()
     {
-        return indexBasedIterable(this.edgeIdentifiers().size(),
+        return Iterables.indexBasedIterable(this.edgeIdentifiers().size(),
                 index -> new PackedEdge(this, index));
     }
 
@@ -546,7 +543,7 @@ public final class PackedAtlas extends AbstractAtlas
     @Override
     public Iterable<Line> lines()
     {
-        return indexBasedIterable(this.lineIdentifiers().size(),
+        return Iterables.indexBasedIterable(this.lineIdentifiers().size(),
                 index -> new PackedLine(this, index));
     }
 
@@ -573,7 +570,7 @@ public final class PackedAtlas extends AbstractAtlas
     @Override
     public Iterable<Node> nodes()
     {
-        return indexBasedIterable(this.nodeIdentifiers().size(),
+        return Iterables.indexBasedIterable(this.nodeIdentifiers().size(),
                 index -> new PackedNode(this, index));
     }
 
@@ -626,7 +623,7 @@ public final class PackedAtlas extends AbstractAtlas
     @Override
     public Iterable<Point> points()
     {
-        return indexBasedIterable(this.pointIdentifiers().size(),
+        return Iterables.indexBasedIterable(this.pointIdentifiers().size(),
                 index -> new PackedPoint(this, index));
     }
 
@@ -644,7 +641,7 @@ public final class PackedAtlas extends AbstractAtlas
     @Override
     public Iterable<Relation> relations()
     {
-        return indexBasedIterable(this.relationIdentifiers().size(),
+        return Iterables.indexBasedIterable(this.relationIdentifiers().size(),
                 index -> new PackedRelation(this, index));
     }
 
@@ -1476,30 +1473,6 @@ public final class PackedAtlas extends AbstractAtlas
     {
         return deserializedIfNeeded(() -> this.edgeTags, tags -> tags.setDictionary(dictionary()),
                 FIELD_EDGE_TAGS_LOCK, FIELD_EDGE_TAGS);
-    }
-
-    private <T> Iterable<T> indexBasedIterable(final long size, final LongFunction<T> supplier)
-    {
-        return () -> new Iterator<T>()
-        {
-            private long index = 0L;
-
-            @Override
-            public boolean hasNext()
-            {
-                return this.index < size;
-            }
-
-            @Override
-            public T next()
-            {
-                if (!hasNext())
-                {
-                    throw new NoSuchElementException();
-                }
-                return supplier.apply(this.index++);
-            }
-        };
     }
 
     private Set<Relation> itemRelations(final long[] relationIndices)
