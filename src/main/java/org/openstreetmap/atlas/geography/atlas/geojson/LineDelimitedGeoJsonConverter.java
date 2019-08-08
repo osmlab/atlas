@@ -5,8 +5,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -25,6 +23,7 @@ import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.runtime.Command;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
+import org.openstreetmap.atlas.utilities.threads.Pool;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.openstreetmap.atlas.utilities.vectortiles.TippecanoeCommands;
 import org.slf4j.Logger;
@@ -40,32 +39,24 @@ import com.google.gson.JsonObject;
  */
 public class LineDelimitedGeoJsonConverter extends Command
 {
-    // Works great on a MacBook Pro (Retina, 15-inch, Mid 2015)
-    private static final int DEFAULT_THREADS = 8;
-
     /**
      * After all of your files are converted to LD GeoJSON, it is then concatenated into
      * EVERYTHING.geojson
      */
     public static final String EVERYTHING = "EVERYTHING.geojson";
-
     public static final int EXIT_FAILURE = 1;
-
-    private static final Logger logger = LoggerFactory
-            .getLogger(LineDelimitedGeoJsonConverter.class);
-
-    private static final AtlasResourceLoader ATLAS_RESOURCE_LOADER = new AtlasResourceLoader();
-
-    private static final Switch<Path> ATLAS_DIRECTORY = new Switch<>("atlasDirectory",
-            "The directory of atlases to convert.", Paths::get, Optionality.REQUIRED);
-
     protected static final Switch<Path> GEOJSON_DIRECTORY = new Switch<>("geojsonDirectory",
             "The directory to write line-delimited GeoJSON.", Paths::get, Optionality.REQUIRED);
-
     protected static final Switch<Boolean> OVERWRITE = new Switch<>("overwrite",
             "Choose to automatically overwrite a GeoJSON file if it exists at the given path.",
             Boolean::parseBoolean, Optionality.OPTIONAL, "false");
-
+    // Works great on a MacBook Pro (Retina, 15-inch, Mid 2015)
+    private static final int DEFAULT_THREADS = 8;
+    private static final Logger logger = LoggerFactory
+            .getLogger(LineDelimitedGeoJsonConverter.class);
+    private static final AtlasResourceLoader ATLAS_RESOURCE_LOADER = new AtlasResourceLoader();
+    private static final Switch<Path> ATLAS_DIRECTORY = new Switch<>("atlasDirectory",
+            "The directory of atlases to convert.", Paths::get, Optionality.REQUIRED);
     private static final Switch<Integer> THREADS = new Switch<>("threads",
             "The number of threads to work on processing atlas shards.", Integer::valueOf,
             Optionality.OPTIONAL, String.valueOf(DEFAULT_THREADS));
@@ -159,24 +150,10 @@ public class LineDelimitedGeoJsonConverter extends Command
                 atlases.size());
 
         // Execute in a pool of threads so we limit how many atlases get loaded in parallel.
-        final ForkJoinPool pool = new ForkJoinPool(threads);
-        try
+        try (Pool pool = new Pool(threads, "atlas-converter-worker"))
         {
-            pool.submit(() -> this.convertAtlases(atlasDirectory, geojsonDirectory)).get();
+            pool.queue(() -> this.convertAtlases(atlasDirectory, geojsonDirectory));
             TippecanoeCommands.concatenate(geojsonDirectory);
-        }
-        catch (final InterruptedException interrupt)
-        {
-            logger.error("The atlas to GeoJSON workers were interrupted.", interrupt);
-        }
-        catch (final ExecutionException execution)
-        {
-            logger.error("There was an execution exception on the atlas to GeoJSON workers.",
-                    execution);
-        }
-        finally
-        {
-            pool.shutdown();
         }
 
         logger.info(
