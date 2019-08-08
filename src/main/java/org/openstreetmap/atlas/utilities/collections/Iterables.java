@@ -18,6 +18,7 @@ import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Predicate;
+import java.util.function.ToLongFunction;
 import java.util.stream.StreamSupport;
 
 /**
@@ -222,12 +223,12 @@ public final class Iterables
      *            The type of the {@link Iterable}
      * @return The total count
      */
-    public static <T> long count(final Iterable<T> types, final Function<T, Long> typeCounter)
+    public static <T> long count(final Iterable<T> types, final ToLongFunction<T> typeCounter)
     {
         long result = 0;
         for (final T type : types)
         {
-            result += typeCounter.apply(type);
+            result += typeCounter.applyAsLong(type);
         }
         return result;
     }
@@ -239,7 +240,7 @@ public final class Iterables
      *            The type of the {@link Iterable}
      * @return An empty {@link Iterable} of the right type
      */
-    public static <T> Iterable<T> emptyIterable(final T example)
+    public static <T> Iterable<T> emptyIterable(final T example) // NOSONAR
     {
         return () -> new Iterator<T>()
         {
@@ -392,7 +393,7 @@ public final class Iterables
                             this.consumed = true;
                             return converter.apply(this.next);
                         }
-                        return null;
+                        throw new NoSuchElementException();
                     }
                 };
             }
