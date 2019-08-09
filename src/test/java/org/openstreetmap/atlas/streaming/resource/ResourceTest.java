@@ -18,9 +18,10 @@ public class ResourceTest
     public void testRead()
     {
         AbstractResource resource = new InputStreamResource(
-                CsvReaderTest.class.getResourceAsStream("data.csv"));
-        resource.lines().forEach(line -> logger.info(line));
-        resource = new InputStreamResource(CsvReaderTest.class.getResourceAsStream("data.csv"));
+                () -> CsvReaderTest.class.getResourceAsStream("data.csv"));
+        resource.lines().forEach(logger::info);
+        resource = new InputStreamResource(
+                () -> CsvReaderTest.class.getResourceAsStream("data.csv"));
         Assert.assertEquals(3, Iterables.size(resource.lines()));
     }
 

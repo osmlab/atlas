@@ -9,6 +9,7 @@ import java.util.Objects;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasSerializer;
 import org.openstreetmap.atlas.proto.adapters.ProtoAdapter;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.scalars.Ratio;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -217,23 +218,7 @@ public abstract class LargeArray<T> implements Iterable<T>, Serializable
     @Override
     public Iterator<T> iterator()
     {
-        return new Iterator<T>()
-        {
-            private final long totalSize = size();
-            private long index = 0;
-
-            @Override
-            public boolean hasNext()
-            {
-                return this.index < this.totalSize;
-            }
-
-            @Override
-            public T next()
-            {
-                return get(this.index++);
-            }
-        };
+        return Iterables.indexBasedIterable(size(), this::get).iterator();
     }
 
     /**

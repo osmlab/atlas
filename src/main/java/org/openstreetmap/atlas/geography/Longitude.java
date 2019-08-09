@@ -10,14 +10,12 @@ import org.openstreetmap.atlas.utilities.scalars.Angle;
  */
 public class Longitude extends Angle
 {
-    private static final long serialVersionUID = 4222162088144937632L;
-
     public static final Longitude MINIMUM = Longitude.dm7(MINIMUM_DM7);
     public static final Longitude ZERO = Longitude.dm7(0L);
     public static final Longitude MAXIMUM = Longitude.dm7(MAXIMUM_DM7);
     public static final Longitude ANTIMERIDIAN_WEST = Longitude.MINIMUM;
     public static final Longitude ANTIMERIDIAN_EAST = Longitude.MAXIMUM;
-
+    private static final long serialVersionUID = 4222162088144937632L;
     private boolean isMaximumDm7 = false;
 
     /**
@@ -74,7 +72,7 @@ public class Longitude extends Angle
         }
         if (dm7 >= MAXIMUM_DM7)
         {
-            dm7 = MAXIMUM_DM7 - 1;
+            dm7 = MAXIMUM_DM7 - 1L;
         }
         return dm7(dm7);
     }
