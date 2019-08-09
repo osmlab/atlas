@@ -3,8 +3,6 @@ package org.openstreetmap.atlas.utilities.scalars;
 import java.io.Serializable;
 
 import org.openstreetmap.atlas.exception.CoreException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Time duration
