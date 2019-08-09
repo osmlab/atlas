@@ -1,7 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.items.complex.islands;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.MultiPolygon;
@@ -43,19 +42,7 @@ public class ComplexIsland extends ComplexEntity
         {
             logger.warn("Unable to create complex islands from {}", source, e);
             setInvalidReason("Unable to create complex islands", e);
-            return;
         }
-    }
-
-    @Override
-    public List<ComplexEntityError> getAllInvalidations()
-    {
-        final List<ComplexEntityError> returnValue = new ArrayList<>();
-        if (!isValid())
-        {
-            returnValue.add(getError().get());
-        }
-        return returnValue;
     }
 
     public MultiPolygon getGeometry()

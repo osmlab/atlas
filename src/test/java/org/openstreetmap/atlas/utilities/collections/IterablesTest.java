@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import org.junit.Assert;
@@ -96,6 +97,34 @@ public class IterablesTest
         Assert.assertNotNull(Iterables.head(input));
         Assert.assertEquals(input.get(0), Iterables.head(input));
         Assert.assertNull(Iterables.head(Collections.emptyList()));
+    }
+
+    @Test
+    public void testIndexBased()
+    {
+        final List<Integer> input = new ArrayList<>();
+        input.add(1);
+        input.add(2);
+        input.add(3);
+
+        final Iterable<Integer> indexBased = Iterables.indexBasedIterable(input.size(),
+                index -> input.get((int) index));
+
+        Assert.assertEquals(3, Iterables.size(indexBased));
+    }
+
+    @Test(expected = NoSuchElementException.class)
+    public void testIndexBasedError()
+    {
+        final List<Integer> input = new ArrayList<>();
+        input.add(1);
+
+        final Iterable<Integer> indexBased = Iterables.indexBasedIterable(input.size(),
+                index -> input.get((int) index));
+        final Iterator<Integer> iterator = indexBased.iterator();
+        final int initialValue = iterator.next();
+        Assert.assertEquals(1L, initialValue);
+        iterator.next();
     }
 
     @Test

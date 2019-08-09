@@ -2,12 +2,9 @@ package org.openstreetmap.atlas.geography.atlas.delta;
 
 import static org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader.IS_ATLAS;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
@@ -17,6 +14,7 @@ import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.utilities.runtime.Command;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
+import org.openstreetmap.atlas.utilities.threads.Pool;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -149,10 +147,10 @@ public class AtlasDeltaGenerator extends Command
         this.logger.info("Comparing {} and {}", before, after);
 
         // If the after is a directory, we want to diff the individual shards in parallel.
-        if (Files.isDirectory(after))
+        if (after.toFile().isDirectory())
         {
             // You need to have the before dir be a dir of shards too for this to work.
-            if (!Files.isDirectory(before))
+            if (!before.toFile().isDirectory())
             {
                 this.logger.error(
                         "Your -before parameter must point to a directory of atlas shards if "
@@ -161,23 +159,9 @@ public class AtlasDeltaGenerator extends Command
             }
 
             // Execute in a pool of threads so we limit how many atlases get loaded in parallel.
-            final ForkJoinPool pool = new ForkJoinPool(this.threads);
-            try
+            try (Pool pool = new Pool(this.threads, "atlas-diff-worker"))
             {
-                pool.submit(() -> this.compareShardByShard(before, after, outputDirectory)).get();
-            }
-            catch (final InterruptedException interrupt)
-            {
-                this.logger.error("The shard diff workers were interrupted.", interrupt);
-            }
-            catch (final ExecutionException execution)
-            {
-                this.logger.error("There was an execution exception on the shard diff workers.",
-                        execution);
-            }
-            finally
-            {
-                pool.shutdown();
+                pool.queue(() -> this.compareShardByShard(before, after, outputDirectory));
             }
         }
         // Otherwise, we can do a normal compare where we look at 2 atlases or input shards with a
