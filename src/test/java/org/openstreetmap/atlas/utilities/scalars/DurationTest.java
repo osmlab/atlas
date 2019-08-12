@@ -29,7 +29,7 @@ public class DurationTest
     public void testEquals()
     {
         Assert.assertEquals(Duration.seconds(3600), Duration.hours(1));
-        Assert.assertEquals(Duration.seconds(1.001), Duration.seconds(1.002));
+        Assert.assertNotEquals(Duration.seconds(1.001), Duration.seconds(1.002));
     }
 
     @Test
