@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.utilities.threads;
 
 import java.io.Closeable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -57,7 +58,7 @@ public class Pool implements Closeable
     private final String name;
     private final int numberOfThreads;
     private final Duration endTimeout;
-    private final ArrayList<Throwable> errors;
+    private final List<Throwable> errors;
 
     public Pool(final int numberOfThreads, final String name)
     {
@@ -69,7 +70,7 @@ public class Pool implements Closeable
         this.numberOfThreads = numberOfThreads;
         this.name = name;
         this.endTimeout = endTimeout;
-        this.errors = new ArrayList<>();
+        this.errors = Collections.synchronizedList(new ArrayList<>());
         this.pool = new FixedThreadPoolExecutor();
     }
 
