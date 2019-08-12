@@ -1,7 +1,6 @@
 package org.openstreetmap.atlas.utilities.threads;
 
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -64,7 +63,11 @@ public class Result<T>
         {
             return this.future.get(timeout.asMilliseconds(), TimeUnit.MILLISECONDS);
         }
-        catch (final InterruptedException | ExecutionException e)
+        catch (final TimeoutException tex)
+        {
+            throw tex;
+        }
+        catch (final Exception e)
         {
             throw new CoreException(
                     "Interrupted before {} elapsed. Could not get value from Future in {}", timeout,
