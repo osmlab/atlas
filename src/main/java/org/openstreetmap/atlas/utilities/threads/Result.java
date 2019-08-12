@@ -63,6 +63,10 @@ public class Result<T>
         {
             return this.future.get(timeout.asMilliseconds(), TimeUnit.MILLISECONDS);
         }
+        catch (final TimeoutException tex)
+        {
+            throw tex;
+        }
         catch (final Exception e)
         {
             throw new CoreException(
