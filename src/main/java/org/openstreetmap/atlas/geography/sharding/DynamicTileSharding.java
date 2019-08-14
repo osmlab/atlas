@@ -428,19 +428,19 @@ public class DynamicTileSharding extends Command implements Sharding
     }
 
     @Override
-    public Iterable<? extends Shard> shards(final GeometricSurface surface)
+    public Iterable<Shard> shards(final GeometricSurface surface)
     {
         return Iterables.stream(this.root.leafNodes(surface)).map(Node::getTile);
     }
 
     @Override
-    public Iterable<? extends Shard> shardsCovering(final Location location)
+    public Iterable<Shard> shardsCovering(final Location location)
     {
         return Iterables.stream(this.root.leafNodesCovering(location)).map(Node::getTile);
     }
 
     @Override
-    public Iterable<? extends Shard> shardsIntersecting(final PolyLine polyLine)
+    public Iterable<Shard> shardsIntersecting(final PolyLine polyLine)
     {
         return Iterables.stream(this.root.leafNodesIntersecting(polyLine)).map(Node::getTile);
     }

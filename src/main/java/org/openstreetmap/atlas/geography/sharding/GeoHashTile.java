@@ -3,8 +3,8 @@ package org.openstreetmap.atlas.geography.sharding;
 import org.locationtech.spatial4j.context.SpatialContext;
 import org.locationtech.spatial4j.io.GeohashUtils;
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
-import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
 import org.openstreetmap.atlas.geography.sharding.converters.RectangleToSpatial4JRectangleConverter;
@@ -49,14 +49,15 @@ public class GeoHashTile implements Shard
         return new GeoHashTileIterable(precision);
     }
 
-    public static Iterable<GeoHashTile> allTiles(final int precision, final Polygon bounds)
+    public static Iterable<GeoHashTile> allTiles(final int precision,
+            final GeometricSurface surface)
     {
         validatePrecision(precision);
         if (precision == 0)
         {
             return Iterables.iterable(GeoHashTile.ROOT);
         }
-        return new GeoHashTileIterable(precision, bounds);
+        return new GeoHashTileIterable(precision, surface);
     }
 
     public static GeoHashTile covering(final Location location, final int precision)
@@ -152,6 +153,12 @@ public class GeoHashTile implements Shard
     public int hashCode()
     {
         return this.value.hashCode();
+    }
+
+    public Iterable<Shard> neighbors()
+    {
+        return Iterables.stream(GeoHashTile.allTiles(this.getPrecision(), this.bounds))
+                .filter(tile -> !this.equals(tile)).map(tile -> (Shard) tile).collect();
     }
 
     public char[] toCharArray()
