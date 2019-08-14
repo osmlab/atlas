@@ -30,7 +30,8 @@ public class GeoHashSharding implements Sharding
         }
         else
         {
-            throw new CoreException("Cannot have neighbors from another type of shard.");
+            throw new CoreException("Shard parameter was of invalid type {}",
+                    shard.getClass().getName());
         }
     }
 
