@@ -15,6 +15,9 @@ import org.openstreetmap.atlas.geography.Rectangle;
  */
 class GeoHashTileIterable implements Iterable<GeoHashTile>
 {
+    /**
+     * @author matthieun
+     */
     private class GeoHashTileIterator implements Iterator<GeoHashTile>
     {
         private final char[] current = Arrays.copyOf(GeoHashTileIterable.this.starting,

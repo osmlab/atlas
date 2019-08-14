@@ -157,7 +157,7 @@ public class GeoHashTile implements Shard
 
     public Iterable<Shard> neighbors()
     {
-        return Iterables.stream(GeoHashTile.allTiles(this.getPrecision(), this.bounds))
+        return Iterables.stream(GeoHashTile.allTiles(this.getPrecision(), bounds()))
                 .filter(tile -> !this.equals(tile)).map(tile -> (Shard) tile).collect();
     }
 
