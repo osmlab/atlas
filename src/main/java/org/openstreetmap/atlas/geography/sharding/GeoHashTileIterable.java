@@ -58,6 +58,11 @@ class GeoHashTileIterable implements Iterable<GeoHashTile>
             return result;
         }
 
+        private boolean overlaps(final GeoHashTile tile)
+        {
+            return GeoHashTileIterable.this.surface.overlaps(tile.bounds());
+        }
+
         private void tick(final int index)
         {
             final char currentChar = this.current[index];
@@ -134,11 +139,6 @@ class GeoHashTileIterable implements Iterable<GeoHashTile>
     private boolean isMaximum()
     {
         return this.isMaximum;
-    }
-
-    private boolean overlaps(final GeoHashTile tile)
-    {
-        return GeoHashTileIterable.this.surface.overlaps(tile.bounds());
     }
 
     /**
