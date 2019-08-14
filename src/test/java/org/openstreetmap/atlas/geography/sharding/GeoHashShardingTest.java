@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.sharding;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 
@@ -14,13 +15,26 @@ public class GeoHashShardingTest
     private final Sharding sharding = Sharding.forString("geohash@7");
 
     @Test
-    public void testIntersection()
+    public void testIntersectionBounds()
     {
         final Polygon bounds = new Polygon(Location.forWkt("POINT (-122.454 37.739)"),
                 Location.forWkt("POINT (-122.4547 37.739)"),
                 Location.forWkt("POINT (-122.4543 37.74)"));
 
         final Iterable<Shard> tiles = this.sharding.shards(bounds);
+        Assert.assertEquals(2, Iterables.size(tiles));
+        Assert.assertTrue(Iterables.equals(Iterables.from("9q8ytqp", "9q8ytqr"),
+                Iterables.stream(tiles).map(tile -> (GeoHashTile) tile).map(GeoHashTile::getName)));
+    }
+
+    @Test
+    public void testIntersectionShape()
+    {
+        final PolyLine shape = new Polygon(Location.forWkt("POINT (-122.454 37.739)"),
+                Location.forWkt("POINT (-122.4547 37.739)"),
+                Location.forWkt("POINT (-122.4543 37.74)"));
+
+        final Iterable<Shard> tiles = this.sharding.shardsIntersecting(shape);
         Assert.assertEquals(2, Iterables.size(tiles));
         Assert.assertTrue(Iterables.equals(Iterables.from("9q8ytqp", "9q8ytqr"),
                 Iterables.stream(tiles).map(tile -> (GeoHashTile) tile).map(GeoHashTile::getName)));
