@@ -21,6 +21,11 @@ public class GeoHashSharding implements Sharding
         this.precision = precision;
     }
 
+    public int getPrecision()
+    {
+        return this.precision;
+    }
+
     @Override
     public Iterable<Shard> neighbors(final Shard shard)
     {

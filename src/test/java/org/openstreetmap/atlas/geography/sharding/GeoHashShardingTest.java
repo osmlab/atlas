@@ -16,6 +16,12 @@ public class GeoHashShardingTest
     private final Sharding sharding = Sharding.forString("geohash@7");
 
     @Test
+    public void testGetPrecision()
+    {
+        Assert.assertEquals(7, ((GeoHashSharding) this.sharding).getPrecision());
+    }
+
+    @Test
     public void testIntersectionBounds()
     {
         final Polygon bounds = new Polygon(Location.forWkt("POINT (-122.454 37.739)"),
