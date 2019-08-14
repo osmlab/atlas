@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.sharding;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
@@ -60,5 +61,11 @@ public class GeoHashShardingTest
                 Iterables.from("9q8ytmy", "9q8ytmz", "9q8ytqn", "9q8ytqq", "9q8ytqr", "9q8yttb",
                         "9q8ytw0", "9q8ytw2"),
                 Iterables.stream(tiles).map(tile -> (GeoHashTile) tile).map(GeoHashTile::getName)));
+    }
+
+    @Test(expected = CoreException.class)
+    public void testNeighborsException()
+    {
+        final Iterable<Shard> tiles = this.sharding.neighbors(SlippyTile.forName("1-2-3"));
     }
 }

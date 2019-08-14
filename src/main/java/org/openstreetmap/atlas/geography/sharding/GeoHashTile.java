@@ -81,7 +81,7 @@ public class GeoHashTile implements Shard
         return (long) Math.pow((double) GEOHASH_CHARACTERS.length, (double) precision);
     }
 
-    private static void validatePrecision(final int precision)
+    public static void validatePrecision(final int precision)
     {
         if (precision > MAXIMUM_PRECISION)
         {

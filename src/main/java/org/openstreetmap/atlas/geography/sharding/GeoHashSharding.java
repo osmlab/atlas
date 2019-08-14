@@ -17,6 +17,7 @@ public class GeoHashSharding implements Sharding
 
     public GeoHashSharding(final int precision)
     {
+        GeoHashTile.validatePrecision(precision);
         this.precision = precision;
     }
 

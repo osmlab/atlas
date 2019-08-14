@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.sharding;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
@@ -24,6 +25,7 @@ public class GeoHashTileTest
         {
             logger.info("Starting {}", precision);
             final Time start = Time.now();
+
             Assert.assertEquals(GeoHashTile.numberTilesAtPrecision(precision),
                     Iterables.size(GeoHashTile.allTiles(precision)));
             logger.info("Finished {} in {}", precision, start.elapsedSince());
@@ -40,6 +42,7 @@ public class GeoHashTileTest
         Assert.assertTrue(
                 Iterables.equals(Iterables.from("9q8ytqn", "9q8ytqp", "9q8ytqq", "9q8ytqr"),
                         Iterables.stream(tiles).map(GeoHashTile::getName)));
+        Assert.assertEquals(GeoHashTile.ROOT, GeoHashTile.allTiles(0, bounds).iterator().next());
     }
 
     @Test
@@ -83,5 +86,17 @@ public class GeoHashTileTest
 
         final GeoHashTile tile12 = GeoHashTile.covering(point, 12);
         Assert.assertTrue(tile12.getName().startsWith("9q8ytqp"));
+    }
+
+    @Test(expected = CoreException.class)
+    public void testPrecisionTooHigh()
+    {
+        GeoHashTile.allTiles(-1);
+    }
+
+    @Test(expected = CoreException.class)
+    public void testPrecisionTooLow()
+    {
+        GeoHashTile.allTiles(GeoHashTile.MAXIMUM_PRECISION + 1);
     }
 }

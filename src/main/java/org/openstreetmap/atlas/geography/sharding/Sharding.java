@@ -51,11 +51,6 @@ public interface Sharding extends Serializable
         {
             final int precision;
             precision = Integer.valueOf(split.get(1));
-            if (precision > GeoHashTile.MAXIMUM_PRECISION)
-            {
-                throw new CoreException("Geohash Sharding precision too high : {}, max is {}",
-                        precision, GeoHashTile.MAXIMUM_PRECISION);
-            }
             return new GeoHashSharding(precision);
         }
         if ("dynamic".equals(split.get(0)))
