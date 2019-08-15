@@ -32,6 +32,12 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  */
 public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeListenable
 {
+    /*
+     * TODO add an isFull method for better fail-fast messaging. E.g. when calling
+     * CompleteEntity.from(CompleteEntity), we want to fail fast if the CompleteEntity parameter is
+     * not full.
+     */
+
     static Map<String, String> addNewTag(final Map<String, String> tags, final String key,
             final String value)
     {
