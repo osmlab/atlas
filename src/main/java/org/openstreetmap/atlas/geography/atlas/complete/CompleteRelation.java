@@ -331,13 +331,13 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     public CompleteRelation withExtraMember(final AtlasEntity newMember,
             final AtlasEntity memberFromWhichToCopyRole)
     {
-        final Relation sourceRelation = Iterables.stream(memberFromWhichToCopyRole.relations())
+        final Relation parentRelation = Iterables.stream(memberFromWhichToCopyRole.relations())
                 .firstMatching(relation -> relation.getIdentifier() == this.getIdentifier())
                 .orElseThrow(() -> new CoreException(
                         "Cannot copy role from {} {} as it does not have relation {} as parent",
                         memberFromWhichToCopyRole.getType(),
                         memberFromWhichToCopyRole.getIdentifier(), this.getIdentifier()));
-        final String role = sourceRelation.members().asBean()
+        final String role = parentRelation.members().asBean()
                 .getItemFor(memberFromWhichToCopyRole.getIdentifier(),
                         memberFromWhichToCopyRole.getType())
                 .orElseThrow(() -> new CoreException(
@@ -353,7 +353,7 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     {
         this.members.addItem(
                 new RelationBeanItem(newMember.getIdentifier(), role, newMember.getType()));
-        this.updateBounds(newMember.bounds());
+        this.withBoundsExtendedBy(newMember.bounds());
         return this;
     }
 
