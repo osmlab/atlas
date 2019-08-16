@@ -501,7 +501,7 @@ public class MemberMergeStrategiesTest
          */
         this.expectedException.expect(FeatureChangeMergeException.class);
         this.expectedException.expectMessage(
-                "diffBasedRelationBeanMerger failed due to ADD/ADD conflict on key: [AREA, 2, areaRole2]: beforeValue absolute count was 0 but addedLeft/Right diff counts conflict [1 vs 2]");
+                "diffBasedRelationBeanMerger failed due to ADD/ADD conflict on key: [[AREA, 2, areaRole2]]: beforeValue absolute count was 0 but addedLeft/Right diff counts conflict [1 vs 2]");
         MemberMergeStrategies.diffBasedRelationBeanMerger.apply(beforeBean, afterBean1, afterBean2);
     }
 
@@ -544,7 +544,7 @@ public class MemberMergeStrategiesTest
          */
         this.expectedException.expect(FeatureChangeMergeException.class);
         this.expectedException.expectMessage(
-                "diffBasedRelationBeanMerger failed due to ADD/REMOVE conflict(s) on key(s): [LINE, 1, lineRole1]");
+                "diffBasedRelationBeanMerger failed due to ADD/REMOVE conflict(s) on key(s): [[LINE, 1, lineRole1]]");
         MemberMergeStrategies.diffBasedRelationBeanMerger.apply(beforeBean, afterBean1, afterBean2);
     }
 
@@ -584,7 +584,7 @@ public class MemberMergeStrategiesTest
          */
         this.expectedException.expect(FeatureChangeMergeException.class);
         this.expectedException.expectMessage(
-                "diffBasedRelationBeanMerger failed due to REMOVE/REMOVE conflict on key: [AREA, 1, areaRole1]: beforeValue absolute count was 2 but removedLeft/Right diff counts conflict [1 vs 2]");
+                "diffBasedRelationBeanMerger failed due to REMOVE/REMOVE conflict on key: [[AREA, 1, areaRole1]]: beforeValue absolute count was 2 but removedLeft/Right diff counts conflict [1 vs 2]");
         MemberMergeStrategies.diffBasedRelationBeanMerger.apply(beforeBean, afterBean1, afterBean2);
     }
 
