@@ -93,6 +93,16 @@ public class CompletePointTest
     }
 
     @Test
+    public void testPointShallowCopyNullBounds()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("but it was not full");
+
+        final CompletePoint point = new CompletePoint(1L, null, null, null);
+        CompletePoint.shallowFrom(point);
+    }
+
+    @Test
     public void testShallow()
     {
         final Atlas atlas = this.rule.getAtlas();

@@ -84,6 +84,16 @@ public class CompleteLineTest
     }
 
     @Test
+    public void testLineShallowCopyNullBounds()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("bounds were null");
+
+        final CompleteLine line = new CompleteLine(1L, null, null, null);
+        CompleteLine.shallowFrom(line);
+    }
+
+    @Test
     public void testNonFullLineCopy()
     {
         this.expectedException.expect(CoreException.class);

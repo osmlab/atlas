@@ -30,6 +30,16 @@ public class CompleteAreaTest
     public final ExpectedException expectedException = ExpectedException.none();
 
     @Test
+    public void testAreaShallowCopyNullBounds()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("bounds were null");
+
+        final CompleteArea area = new CompleteArea(1L, null, null, null);
+        CompleteArea.shallowFrom(area);
+    }
+
+    @Test
     public void testBloatedEquals()
     {
         final CompleteArea area11 = new CompleteArea(123L, null, null, null);

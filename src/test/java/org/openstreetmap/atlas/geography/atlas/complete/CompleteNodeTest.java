@@ -120,6 +120,16 @@ public class CompleteNodeTest
     }
 
     @Test
+    public void testNodeShallowCopyNullBounds()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("but it was not full");
+
+        final CompleteNode node = new CompleteNode(1L, null, null, null, null, null);
+        CompleteNode.shallowFrom(node);
+    }
+
+    @Test
     public void testNonFullNodeCopy()
     {
         this.expectedException.expect(CoreException.class);

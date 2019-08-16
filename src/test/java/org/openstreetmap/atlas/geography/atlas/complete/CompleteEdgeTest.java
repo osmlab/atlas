@@ -78,6 +78,16 @@ public class CompleteEdgeTest
     }
 
     @Test
+    public void testEdgeShallowCopyNullBounds()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("but it was not full");
+
+        final CompleteEdge edge = new CompleteEdge(1L, null, null, null, null, null);
+        CompleteEdge.shallowFrom(edge);
+    }
+
+    @Test
     public void testFull()
     {
         final Atlas atlas = this.rule.getAtlas();
