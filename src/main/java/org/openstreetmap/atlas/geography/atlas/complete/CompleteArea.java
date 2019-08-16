@@ -44,6 +44,11 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
      */
     public static CompleteArea from(final Area area)
     {
+        if (area instanceof CompleteArea && !((CompleteArea) area).isFull())
+        {
+            throw new CoreException("Area parameter was a CompleteArea but it was not full: {}",
+                    area);
+        }
         return new CompleteArea(area.getIdentifier(), area.asPolygon(), area.getTags(),
                 area.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
@@ -60,6 +65,10 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
      */
     public static CompleteArea shallowFrom(final Area area)
     {
+        if (area.bounds() == null)
+        {
+            throw new CoreException("Area parameter bounds were null");
+        }
         return new CompleteArea(area.getIdentifier()).withBoundsExtendedBy(area.bounds());
     }
 
@@ -144,6 +153,13 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
     public int hashCode()
     {
         return super.hashCode();
+    }
+
+    @Override
+    public boolean isFull()
+    {
+        return this.bounds != null && this.polygon != null && this.tags != null
+                && this.relationIdentifiers != null;
     }
 
     @Override

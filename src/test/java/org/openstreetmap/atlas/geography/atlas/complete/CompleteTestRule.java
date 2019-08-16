@@ -20,6 +20,18 @@ public class CompleteTestRule extends CoreTestRule
     public static final String POINT_1_LOCATION = "37.331417,-122.0304871";
     public static final String POINT_2_LOCATION = "37.333364,-122.0200268";
 
+    private static final String ONE = "15.420563,-61.336198";
+    private static final String TWO = "15.429499,-61.332850";
+    private static final String THREE = "15.4855,-61.3041";
+    private static final String FOUR = "15.4809,-61.3366";
+    private static final String FIVE = "15.4852,-61.3816";
+    private static final String SIX = "15.4781,-61.3949";
+    private static final String SEVEN = "15.4145,-61.3826";
+    private static final String EIGHT = "15.4073,-61.3749";
+    private static final String NINE = "15.4075,-61.3746";
+    private static final String TEN = "15.4081,-61.3741";
+    private static final String ELEVEN = "15.4111,-62.3741";
+
     @TestAtlas(
 
             nodes = { @Node(id = "1", coordinates = @Loc(value = POINT_1_LOCATION)),
@@ -43,8 +55,42 @@ public class CompleteTestRule extends CoreTestRule
     )
     private Atlas atlas;
 
+    @TestAtlas(
+
+            points = {
+
+                    @Point(id = "1", coordinates = @Loc(value = ONE)),
+                    @Point(id = "2", coordinates = @Loc(value = TWO)),
+                    @Point(id = "3", coordinates = @Loc(value = THREE)),
+                    @Point(id = "4", coordinates = @Loc(value = FOUR)),
+                    @Point(id = "5", coordinates = @Loc(value = FIVE)),
+                    @Point(id = "6", coordinates = @Loc(value = SIX)),
+                    @Point(id = "7", coordinates = @Loc(value = SEVEN))
+
+            },
+
+            relations = {
+
+                    @Relation(id = "1", tags = { "type=relation" }, members = {
+
+                            @Member(id = "1", role = "a", type = "point"),
+                            @Member(id = "2", role = "a", type = "point"),
+                            @Member(id = "3", role = "a", type = "point")
+
+                    })
+
+            }
+
+    )
+    private Atlas atlas2;
+
     public Atlas getAtlas()
     {
         return this.atlas;
+    }
+
+    public Atlas getAtlas2()
+    {
+        return this.atlas2;
     }
 }
