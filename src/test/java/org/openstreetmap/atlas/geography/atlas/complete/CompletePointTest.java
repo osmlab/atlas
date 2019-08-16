@@ -96,7 +96,7 @@ public class CompletePointTest
     public void testPointShallowCopyNullBounds()
     {
         this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("but it was not full");
+        this.expectedException.expectMessage("bounds were null");
 
         final CompletePoint point = new CompletePoint(1L, null, null, null);
         CompletePoint.shallowFrom(point);

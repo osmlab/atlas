@@ -121,7 +121,7 @@ public class CompleteRelationTest
     public void testEdgeShallowCopyNullBounds()
     {
         this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("but it was not full");
+        this.expectedException.expectMessage("bounds were null");
 
         final CompleteRelation relation = new CompleteRelation(1L, null, null, null, null, null,
                 null, null);

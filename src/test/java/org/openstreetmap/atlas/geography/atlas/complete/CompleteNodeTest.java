@@ -123,7 +123,7 @@ public class CompleteNodeTest
     public void testNodeShallowCopyNullBounds()
     {
         this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("but it was not full");
+        this.expectedException.expectMessage("bounds were null");
 
         final CompleteNode node = new CompleteNode(1L, null, null, null, null, null);
         CompleteNode.shallowFrom(node);

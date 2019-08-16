@@ -81,7 +81,7 @@ public class CompleteEdgeTest
     public void testEdgeShallowCopyNullBounds()
     {
         this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("but it was not full");
+        this.expectedException.expectMessage("bounds were null");
 
         final CompleteEdge edge = new CompleteEdge(1L, null, null, null, null, null);
         CompleteEdge.shallowFrom(edge);
