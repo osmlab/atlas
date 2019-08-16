@@ -85,7 +85,6 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
     private static final long serialVersionUID = 8511830231633569713L;
 
     private final List<Long> memberIdentifiers;
-
     private final List<String> memberRoles;
     private final List<ItemType> memberTypes;
     /**
