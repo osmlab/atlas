@@ -44,6 +44,11 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
      */
     public static CompleteLine from(final Line line)
     {
+        if (line instanceof CompleteLine && !((CompleteLine) line).isFull())
+        {
+            throw new CoreException("Line parameter was a CompleteLine but it was not full: {}",
+                    line);
+        }
         return new CompleteLine(line.getIdentifier(), line.asPolyLine(), line.getTags(),
                 line.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
@@ -60,6 +65,10 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
      */
     public static CompleteLine shallowFrom(final Line line)
     {
+        if (line.bounds() == null)
+        {
+            throw new CoreException("Line parameter bounds were null");
+        }
         return new CompleteLine(line.getIdentifier()).withBoundsExtendedBy(line.bounds());
     }
 
@@ -144,6 +153,28 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
     public int hashCode()
     {
         return super.hashCode();
+    }
+
+    @Override
+    public boolean isFull()
+    {
+        if (this.bounds == null)
+        {
+            return false;
+        }
+        if (this.polyLine == null)
+        {
+            return false;
+        }
+        if (this.tags == null)
+        {
+            return false;
+        }
+        if (this.relationIdentifiers == null)
+        {
+            return false;
+        }
+        return true;
     }
 
     @Override

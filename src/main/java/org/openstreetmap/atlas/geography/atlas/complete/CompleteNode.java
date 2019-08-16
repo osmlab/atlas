@@ -51,6 +51,11 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
      */
     public static CompleteNode from(final Node node)
     {
+        if (node instanceof CompleteNode && !((CompleteNode) node).isFull())
+        {
+            throw new CoreException("Node parameter was a CompleteNode but it was not full: {}",
+                    node);
+        }
         return new CompleteNode(node.getIdentifier(), node.getLocation(), node.getTags(),
                 node.inEdges().stream().map(Edge::getIdentifier)
                         .collect(Collectors.toCollection(TreeSet::new)),
@@ -71,6 +76,10 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
      */
     public static CompleteNode shallowFrom(final Node node)
     {
+        if (node.bounds() == null)
+        {
+            throw new CoreException("Node parameter bounds were null");
+        }
         return new CompleteNode(node.getIdentifier()).withBoundsExtendedBy(node.bounds());
     }
 
@@ -184,6 +193,36 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         return this.inEdgeIdentifiers == null ? null
                 : this.inEdgeIdentifiers.stream().map(CompleteEdge::new)
                         .collect(Collectors.toCollection(TreeSet::new));
+    }
+
+    @Override
+    public boolean isFull()
+    {
+        if (this.bounds == null)
+        {
+            return false;
+        }
+        if (this.location == null)
+        {
+            return false;
+        }
+        if (this.tags == null)
+        {
+            return false;
+        }
+        if (this.inEdgeIdentifiers == null)
+        {
+            return false;
+        }
+        if (this.outEdgeIdentifiers == null)
+        {
+            return false;
+        }
+        if (this.relationIdentifiers == null)
+        {
+            return false;
+        }
+        return true;
     }
 
     @Override

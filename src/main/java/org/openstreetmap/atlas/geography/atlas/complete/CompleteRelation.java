@@ -54,6 +54,11 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
      */
     public static CompleteRelation from(final Relation relation)
     {
+        if (relation instanceof CompleteRelation && !((CompleteRelation) relation).isFull())
+        {
+            throw new CoreException(
+                    "Relation parameter was a CompleteRelation but it was not full: {}", relation);
+        }
         return new CompleteRelation(relation.getIdentifier(), relation.getTags(), relation.bounds(),
                 relation.members().asBean(),
                 relation.allRelationsWithSameOsmIdentifier().stream().map(Relation::getIdentifier)
@@ -75,6 +80,10 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
      */
     public static CompleteRelation shallowFrom(final Relation relation)
     {
+        if (relation.bounds() == null)
+        {
+            throw new CoreException("Relation parameter bounds were null");
+        }
         return new CompleteRelation(relation.getIdentifier())
                 .withBoundsExtendedBy(relation.bounds());
     }
@@ -189,6 +198,40 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     public int hashCode()
     {
         return super.hashCode();
+    }
+
+    @Override
+    public boolean isFull()
+    {
+        if (this.bounds == null)
+        {
+            return false;
+        }
+        if (this.tags == null)
+        {
+            return false;
+        }
+        if (this.members == null)
+        {
+            return false;
+        }
+        if (this.allRelationsWithSameOsmIdentifier == null)
+        {
+            return false;
+        }
+        if (this.allKnownOsmMembers == null)
+        {
+            return false;
+        }
+        if (this.osmRelationIdentifier == null)
+        {
+            return false;
+        }
+        if (this.relationIdentifiers == null)
+        {
+            return false;
+        }
+        return true;
     }
 
     @Override

@@ -43,6 +43,11 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
      */
     public static CompletePoint from(final Point point)
     {
+        if (point instanceof CompletePoint && !((CompletePoint) point).isFull())
+        {
+            throw new CoreException("Point parameter was a CompletePoint but it was not full: {}",
+                    point);
+        }
         return new CompletePoint(point.getIdentifier(), point.getLocation(), point.getTags(), point
                 .relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
@@ -59,6 +64,10 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
      */
     public static CompletePoint shallowFrom(final Point point)
     {
+        if (point.bounds() == null)
+        {
+            throw new CoreException("Point parameter bounds were null");
+        }
         return new CompletePoint(point.getIdentifier()).withBoundsExtendedBy(point.bounds());
     }
 
@@ -143,6 +152,28 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
     public int hashCode()
     {
         return super.hashCode();
+    }
+
+    @Override
+    public boolean isFull()
+    {
+        if (this.bounds == null)
+        {
+            return false;
+        }
+        if (this.location == null)
+        {
+            return false;
+        }
+        if (this.tags == null)
+        {
+            return false;
+        }
+        if (this.relationIdentifiers == null)
+        {
+            return false;
+        }
+        return true;
     }
 
     @Override

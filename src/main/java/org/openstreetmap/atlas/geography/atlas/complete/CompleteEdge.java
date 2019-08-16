@@ -47,6 +47,11 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
      */
     public static CompleteEdge from(final Edge edge)
     {
+        if (edge instanceof CompleteEdge && !((CompleteEdge) edge).isFull())
+        {
+            throw new CoreException("Edge parameter was a CompleteEdge but it was not full: {}",
+                    edge);
+        }
         return new CompleteEdge(edge.getIdentifier(), edge.asPolyLine(), edge.getTags(),
                 edge.start().getIdentifier(), edge.end().getIdentifier(),
                 edge.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
@@ -64,6 +69,10 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
      */
     public static CompleteEdge shallowFrom(final Edge edge)
     {
+        if (edge.bounds() == null)
+        {
+            throw new CoreException("Edge parameter bounds were null");
+        }
         return new CompleteEdge(edge.getIdentifier()).withBoundsExtendedBy(edge.bounds());
     }
 
@@ -164,6 +173,36 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
     public int hashCode()
     {
         return super.hashCode();
+    }
+
+    @Override
+    public boolean isFull()
+    {
+        if (this.bounds == null)
+        {
+            return false;
+        }
+        if (this.polyLine == null)
+        {
+            return false;
+        }
+        if (this.tags == null)
+        {
+            return false;
+        }
+        if (this.startNodeIdentifier == null)
+        {
+            return false;
+        }
+        if (this.endNodeIdentifier == null)
+        {
+            return false;
+        }
+        if (this.relationIdentifiers == null)
+        {
+            return false;
+        }
+        return true;
     }
 
     @Override
