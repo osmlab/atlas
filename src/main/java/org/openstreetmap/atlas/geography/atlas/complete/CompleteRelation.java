@@ -513,24 +513,13 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
 
     public CompleteRelation withRemovedMember(final AtlasEntity memberToRemove)
     {
-        return withRemovedMember(memberToRemove, null);
+        this.members.removeItem(memberToRemove.getIdentifier(), memberToRemove.getType());
+        return this;
     }
 
     public CompleteRelation withRemovedMember(final AtlasEntity memberToRemove, final String role)
     {
-        final RelationBean newMembers = new RelationBean();
-        for (final RelationBeanItem beanItem : this.members)
-        {
-            if (beanItem.getIdentifier() != memberToRemove.getIdentifier()
-                    || beanItem.getType() != memberToRemove.getType())
-            {
-                if (role == null || !beanItem.getRole().equals(role))
-                {
-                    newMembers.addItem(beanItem);
-                }
-            }
-        }
-        this.members = newMembers;
+        this.members.removeItem(memberToRemove.getIdentifier(), role, memberToRemove.getType());
         return this;
     }
 

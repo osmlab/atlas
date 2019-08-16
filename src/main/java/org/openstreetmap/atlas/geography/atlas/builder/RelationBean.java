@@ -342,6 +342,34 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
         return RelationBean.mergeBeans(this, other);
     }
 
+    public void removeItem(final Long identifier, final ItemType itemType)
+    {
+        int firstMatchingIndex = -1;
+        for (int i = 0; i < this.beanItems.size(); i++)
+        {
+            if (this.beanItems.get(i).getIdentifier().equals(identifier)
+                    && this.beanItems.get(i).getType().equals(itemType))
+            {
+                firstMatchingIndex = i;
+            }
+        }
+
+        if (firstMatchingIndex != -1)
+        {
+            this.beanItems.remove(firstMatchingIndex);
+        }
+    }
+
+    public void removeItem(final Long identifier, final String role, final ItemType itemType)
+    {
+        removeItem(new RelationBeanItem(identifier, role, itemType));
+    }
+
+    public void removeItem(final RelationBeanItem item)
+    {
+        this.beanItems.remove(item);
+    }
+
     /**
      * @return The number of members in this {@link RelationBean}
      */

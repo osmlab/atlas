@@ -7,6 +7,8 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas.Edge;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Loc;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Node;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Point;
+import org.openstreetmap.atlas.utilities.testing.TestAtlas.Relation;
+import org.openstreetmap.atlas.utilities.testing.TestAtlas.Relation.Member;
 
 /**
  * @author matthieun
@@ -92,6 +94,33 @@ public class ChangeAtlasTestRule extends CoreTestRule
     )
     private Atlas tagAtlas;
 
+    @TestAtlas(
+
+            points = {
+
+                    @Point(id = "1", coordinates = @Loc(value = ONE), tags = { "a=1", "b=2" }),
+                    @Point(id = "2", coordinates = @Loc(value = TWO), tags = { "a=1", "b=2" }),
+                    @Point(id = "3", coordinates = @Loc(value = THREE), tags = { "a=1", "b=2" }),
+                    @Point(id = "4", coordinates = @Loc(value = FOUR), tags = { "a=1", "b=2" })
+
+            },
+
+            relations = {
+
+                    @Relation(id = "1", tags = { "type=relation" }, members = {
+
+                            @Member(id = "1", role = "b", type = "point"),
+                            @Member(id = "2", role = "b", type = "point"),
+                            @Member(id = "3", role = "b", type = "point"),
+                            @Member(id = "4", role = "b", type = "point"),
+
+                    })
+
+            }
+
+    )
+    private Atlas pointAtlas;
+
     public Atlas differentNodeAndEdgeProperties1()
     {
         return this.differentNodeAndEdgeProperties1;
@@ -110,6 +139,11 @@ public class ChangeAtlasTestRule extends CoreTestRule
     public Atlas getAtlasEdge()
     {
         return this.atlasEdge;
+    }
+
+    public Atlas getPointAtlas()
+    {
+        return this.pointAtlas;
     }
 
     public Atlas getTagAtlas()
