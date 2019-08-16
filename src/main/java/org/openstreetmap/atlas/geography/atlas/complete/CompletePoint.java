@@ -157,23 +157,8 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
     @Override
     public boolean isFull()
     {
-        if (this.bounds == null)
-        {
-            return false;
-        }
-        if (this.location == null)
-        {
-            return false;
-        }
-        if (this.tags == null)
-        {
-            return false;
-        }
-        if (this.relationIdentifiers == null)
-        {
-            return false;
-        }
-        return true;
+        return this.bounds != null && this.location != null && this.tags != null
+                && this.relationIdentifiers != null;
     }
 
     @Override

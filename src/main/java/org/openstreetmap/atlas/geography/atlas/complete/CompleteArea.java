@@ -158,23 +158,8 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
     @Override
     public boolean isFull()
     {
-        if (this.bounds == null)
-        {
-            return false;
-        }
-        if (this.polygon == null)
-        {
-            return false;
-        }
-        if (this.tags == null)
-        {
-            return false;
-        }
-        if (this.relationIdentifiers == null)
-        {
-            return false;
-        }
-        return true;
+        return this.bounds != null && this.polygon != null && this.tags != null
+                && this.relationIdentifiers != null;
     }
 
     @Override

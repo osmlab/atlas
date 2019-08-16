@@ -158,23 +158,8 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
     @Override
     public boolean isFull()
     {
-        if (this.bounds == null)
-        {
-            return false;
-        }
-        if (this.polyLine == null)
-        {
-            return false;
-        }
-        if (this.tags == null)
-        {
-            return false;
-        }
-        if (this.relationIdentifiers == null)
-        {
-            return false;
-        }
-        return true;
+        return this.bounds != null && this.polyLine != null && this.tags != null
+                && this.relationIdentifiers != null;
     }
 
     @Override

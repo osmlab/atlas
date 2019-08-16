@@ -203,35 +203,9 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     @Override
     public boolean isFull()
     {
-        if (this.bounds == null)
-        {
-            return false;
-        }
-        if (this.tags == null)
-        {
-            return false;
-        }
-        if (this.members == null)
-        {
-            return false;
-        }
-        if (this.allRelationsWithSameOsmIdentifier == null)
-        {
-            return false;
-        }
-        if (this.allKnownOsmMembers == null)
-        {
-            return false;
-        }
-        if (this.osmRelationIdentifier == null)
-        {
-            return false;
-        }
-        if (this.relationIdentifiers == null)
-        {
-            return false;
-        }
-        return true;
+        return this.bounds != null && this.tags != null && this.members != null
+                && this.allRelationsWithSameOsmIdentifier != null && this.allKnownOsmMembers != null
+                && this.osmRelationIdentifier != null && this.relationIdentifiers != null;
     }
 
     @Override

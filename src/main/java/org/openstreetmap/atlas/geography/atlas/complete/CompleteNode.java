@@ -198,31 +198,9 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     @Override
     public boolean isFull()
     {
-        if (this.bounds == null)
-        {
-            return false;
-        }
-        if (this.location == null)
-        {
-            return false;
-        }
-        if (this.tags == null)
-        {
-            return false;
-        }
-        if (this.inEdgeIdentifiers == null)
-        {
-            return false;
-        }
-        if (this.outEdgeIdentifiers == null)
-        {
-            return false;
-        }
-        if (this.relationIdentifiers == null)
-        {
-            return false;
-        }
-        return true;
+        return this.bounds != null && this.location != null && this.tags != null
+                && this.inEdgeIdentifiers != null && this.outEdgeIdentifiers != null
+                && this.relationIdentifiers != null;
     }
 
     @Override

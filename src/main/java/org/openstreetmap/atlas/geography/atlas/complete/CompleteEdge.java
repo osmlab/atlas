@@ -178,31 +178,9 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
     @Override
     public boolean isFull()
     {
-        if (this.bounds == null)
-        {
-            return false;
-        }
-        if (this.polyLine == null)
-        {
-            return false;
-        }
-        if (this.tags == null)
-        {
-            return false;
-        }
-        if (this.startNodeIdentifier == null)
-        {
-            return false;
-        }
-        if (this.endNodeIdentifier == null)
-        {
-            return false;
-        }
-        if (this.relationIdentifiers == null)
-        {
-            return false;
-        }
-        return true;
+        return this.bounds != null && this.polyLine != null && this.tags != null
+                && this.startNodeIdentifier != null && this.endNodeIdentifier != null
+                && this.relationIdentifiers != null;
     }
 
     @Override
