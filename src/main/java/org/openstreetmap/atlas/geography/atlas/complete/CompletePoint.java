@@ -112,6 +112,12 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
         return CompleteItemType.POINT;
     }
 
+    public CompletePoint copy()
+    {
+        return new CompletePoint(this.identifier, this.location, this.tags,
+                this.relationIdentifiers);
+    }
+
     @Override
     public boolean equals(final Object other)
     {

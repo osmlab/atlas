@@ -126,6 +126,12 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
         return CompleteItemType.EDGE;
     }
 
+    public CompleteEdge copy()
+    {
+        return new CompleteEdge(this.identifier, this.polyLine, this.tags, this.startNodeIdentifier,
+                this.endNodeIdentifier, this.relationIdentifiers);
+    }
+
     @Override
     public Node end()
     {

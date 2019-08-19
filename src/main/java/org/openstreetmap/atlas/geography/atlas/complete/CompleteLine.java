@@ -119,6 +119,11 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
         return CompleteItemType.LINE;
     }
 
+    public CompleteLine copy()
+    {
+        return new CompleteLine(this.identifier, this.polyLine, this.tags, this.relationIdentifiers);
+    }
+
     @Override
     public boolean equals(final Object other)
     {

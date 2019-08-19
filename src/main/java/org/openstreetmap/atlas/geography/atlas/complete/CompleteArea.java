@@ -119,6 +119,11 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
         return CompleteItemType.AREA;
     }
 
+    public CompleteArea copy()
+    {
+        return new CompleteArea(this.identifier, this.polygon, this.tags, this.relationIdentifiers);
+    }
+
     @Override
     public boolean equals(final Object other)
     {
