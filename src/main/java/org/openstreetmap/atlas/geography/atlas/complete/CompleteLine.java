@@ -121,7 +121,8 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
 
     public CompleteLine copy()
     {
-        return new CompleteLine(this.identifier, this.polyLine, this.tags, this.relationIdentifiers);
+        return new CompleteLine(this.identifier, this.polyLine, this.tags,
+                this.relationIdentifiers);
     }
 
     @Override
