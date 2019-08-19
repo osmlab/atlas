@@ -84,6 +84,8 @@ public class CompleteAreaTest
                         .collect(Collectors.toSet()),
                 result.relations().stream().map(Relation::getIdentifier)
                         .collect(Collectors.toSet()));
+
+        Assert.assertEquals(result, result.copy());
     }
 
     @Test

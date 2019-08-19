@@ -129,6 +129,12 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         return CompleteItemType.NODE;
     }
 
+    public CompleteNode copy()
+    {
+        return new CompleteNode(this.identifier, this.location, this.tags, this.inEdgeIdentifiers,
+                this.outEdgeIdentifiers, this.relationIdentifiers);
+    }
+
     @Override
     public boolean equals(final Object other)
     {

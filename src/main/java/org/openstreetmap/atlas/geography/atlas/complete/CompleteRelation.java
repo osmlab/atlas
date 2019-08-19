@@ -158,6 +158,13 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
         return CompleteItemType.RELATION;
     }
 
+    public CompleteRelation copy()
+    {
+        return new CompleteRelation(this.identifier, this.tags, this.bounds, this.members,
+                this.allRelationsWithSameOsmIdentifier, this.allKnownOsmMembers,
+                this.osmRelationIdentifier, this.relationIdentifiers);
+    }
+
     @Override
     public boolean equals(final Object other)
     {
