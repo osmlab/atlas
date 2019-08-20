@@ -246,10 +246,6 @@ public class PoolTest
             result.get(Duration.ONE_SECOND);
             Assert.fail("Did not throw TimeoutException");
         }
-        catch (final TimeoutException e)
-        {
-            throw e;
-        }
     }
 
     private void runWithTimer(final Duration maximum, final Runnable test)

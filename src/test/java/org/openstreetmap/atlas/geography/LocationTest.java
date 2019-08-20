@@ -130,6 +130,27 @@ public class LocationTest extends Command
 
         Assert.assertEquals(51.0455, midpoint.getLatitude().asDegrees(), DELTA);
         Assert.assertEquals(1.5957265, midpoint.getLongitude().asDegrees(), DELTA);
+
+        final Location location3 = new Location(Latitude.degrees(49), Longitude.degrees(-95.153));
+        final Location location4 = new Location(Latitude.degrees(49), Longitude.degrees(-123.323));
+        final Location midpoint2 = location3.loxodromicMidPoint(location4);
+
+        Assert.assertEquals(49.0, midpoint2.getLatitude().asDegrees(), DELTA);
+        Assert.assertEquals(-109.238, midpoint2.getLongitude().asDegrees(), DELTA);
+
+        final Location location5 = new Location(Latitude.degrees(40.0), Longitude.degrees(-180.0));
+        final Location location6 = new Location(Latitude.degrees(50.0), Longitude.degrees(-180.0));
+        final Location midpoint3 = location5.loxodromicMidPoint(location6);
+
+        Assert.assertEquals(45.0, midpoint3.getLatitude().asDegrees(), DELTA);
+        Assert.assertEquals(-180.0, midpoint3.getLongitude().asDegrees(), DELTA);
+
+        final Location location7 = new Location(Latitude.degrees(40.0), Longitude.degrees(180.0));
+        final Location location8 = new Location(Latitude.degrees(50.0), Longitude.degrees(180.0));
+        final Location midpoint4 = location7.loxodromicMidPoint(location8);
+
+        Assert.assertEquals(45.0, midpoint4.getLatitude().asDegrees(), DELTA);
+        Assert.assertEquals(180.0, midpoint4.getLongitude().asDegrees(), DELTA);
     }
 
     @Test

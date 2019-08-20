@@ -1,8 +1,0 @@
-Find features with Atlas ID 123 in atlases on your desktop:
-#$ find-id ~/Desktop/*.atlas --id 123
-Find features with Atlas IDs 123, 456 and OSM IDs 1, 2, and 3 in atlases on your desktop:
-#$ find-id ~/Desktop/*.atlas --id 123,456 --osmid 1,2,3
-Find features with Atlas ID 123 in atlases on your desktop, and filter to only points and nodes:
-#$ find-id ~/Desktop/*.atlas --id 123 --types POINT,NODE
-Find features with OSM ID 123, then collect all containing atlases and save with MultiAtlas:
-#$ find-id ~/Desktop/*.atlas --osmid 123 --collect-matching

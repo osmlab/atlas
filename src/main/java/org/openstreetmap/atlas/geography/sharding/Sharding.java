@@ -47,6 +47,12 @@ public interface Sharding extends Serializable
             }
             return new SlippyTileSharding(zoom);
         }
+        if ("geohash".equals(split.get(0)))
+        {
+            final int precision;
+            precision = Integer.valueOf(split.get(1));
+            return new GeoHashSharding(precision);
+        }
         if ("dynamic".equals(split.get(0)))
         {
             final String definition = split.get(1);
@@ -62,14 +68,14 @@ public interface Sharding extends Serializable
      *            The shard for which to get neighbors
      * @return The shards {@link Iterable}, neighboring the supplied shard
      */
-    Iterable<? extends Shard> neighbors(Shard shard);
+    Iterable<Shard> neighbors(Shard shard);
 
     /**
      * Generate shards for the whole planet. This needs to be deterministic!
      *
      * @return The shards {@link Iterable}, covering the whole planet.
      */
-    default Iterable<? extends Shard> shards()
+    default Iterable<Shard> shards()
     {
         return shards(Rectangle.MAXIMUM);
     }
@@ -81,7 +87,7 @@ public interface Sharding extends Serializable
      *            The bounds to limit the shards.
      * @return The shards {@link Iterable}.
      */
-    Iterable<? extends Shard> shards(GeometricSurface surface);
+    Iterable<Shard> shards(GeometricSurface surface);
 
     /**
      * Generate shards. This needs to be deterministic!
@@ -91,7 +97,7 @@ public interface Sharding extends Serializable
      * @return The shards {@link Iterable} (In case the location falls right at the boundary between
      *         shards)
      */
-    Iterable<? extends Shard> shardsCovering(Location location);
+    Iterable<Shard> shardsCovering(Location location);
 
     /**
      * Generate shards. This needs to be deterministic!
@@ -100,5 +106,5 @@ public interface Sharding extends Serializable
      *            The line intersecting the shards
      * @return The shards {@link Iterable}.
      */
-    Iterable<? extends Shard> shardsIntersecting(PolyLine polyLine);
+    Iterable<Shard> shardsIntersecting(PolyLine polyLine);
 }

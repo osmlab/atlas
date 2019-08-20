@@ -1,0 +1,12 @@
+Display all features in an atlas:
+#$ find foo.atlas
+Display all edges in an atlas:
+#$ find foo.atlas --type EDGE
+Find features with Atlas ID 123 or 456 in an atlas:
+#$ find foo.atlas --id 123,456
+Find all coastline features in a group of atlases on your desktop:
+#$ find ~/Desktop/*.atlas --taggableFilter='natural->coastline'
+Find all features whose geometry matches some WKTs and also contain a 'population' tag
+#$ find foo.atlas --geometry='POINT (0 0):POINT (1 1)' --taggableFilter='population->*'
+Find features with OSM ID 123, then collect all containing atlases and save with MultiAtlas:
+#$ find ~/Desktop/*.atlas --osmid 123 --collect-matching

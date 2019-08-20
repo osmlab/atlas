@@ -21,16 +21,6 @@ import org.slf4j.LoggerFactory;
  */
 public final class IsoCountry implements Serializable
 {
-    private static final long serialVersionUID = 8686298246454085812L;
-
-    private static final Logger logger = LoggerFactory.getLogger(IsoCountry.class);
-
-    // Use United States fixed Locale for display use cases
-    private static final String LOCALE_LANGUAGE = Locale.ENGLISH.getLanguage();
-
-    private static final int ISO2_LENGTH = 2;
-    private static final int ISO3_LENGTH = 3;
-
     // Package private fields used by other classes in the locale package
     static final Set<String> ALL_COUNTRY_CODES;
     static final Set<String> ALL_DISPLAY_COUNTRIES;
@@ -40,6 +30,12 @@ public final class IsoCountry implements Serializable
     static final Map<String, String> ISO3_TO_ISO2;
     // private static final BiMap<String, String> ISO2_ISO3_MAP;
     static final Map<String, IsoCountry> ISO_COUNTRIES;
+    private static final long serialVersionUID = 8686298246454085812L;
+    private static final Logger logger = LoggerFactory.getLogger(IsoCountry.class);
+    // Use United States fixed Locale for display use cases
+    private static final String LOCALE_LANGUAGE = Locale.ENGLISH.getLanguage();
+    private static final int ISO2_LENGTH = 2;
+    private static final int ISO3_LENGTH = 3;
 
     static
     {
@@ -215,6 +211,30 @@ public final class IsoCountry implements Serializable
     }
 
     /**
+     * Indicates whether the ISO2 or ISO3 country code is valid
+     *
+     * @param isoCountry
+     *            2 or 3 character country code, case sensitive (examples "US", "USA")
+     * @return Whether this is a valid ISO2 or ISO3 country code
+     */
+    public static boolean isValidCountryCode(final String isoCountry)
+    {
+        if (isoCountry != null)
+        {
+            if (isoCountry.length() == ISO2_LENGTH && ISO2_TO_ISO3.keySet().contains(isoCountry))
+            {
+                return true;
+            }
+            else if (isoCountry.length() == ISO3_LENGTH
+                    && ISO3_TO_ISO2.keySet().contains(isoCountry))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Provides ISO2 string for ISO3
      *
      * @param iso3
@@ -246,30 +266,6 @@ public final class IsoCountry implements Serializable
             iso3 = ISO2_TO_ISO3.get(iso2);
         }
         return Optional.ofNullable(iso3);
-    }
-
-    /**
-     * Indicates whether the ISO2 or ISO3 country code is valid
-     *
-     * @param isoCountry
-     *            2 or 3 character country code, case sensitive (examples "US", "USA")
-     * @return Whether this is a valid ISO2 or ISO3 country code
-     */
-    public static boolean isValidCountryCode(final String isoCountry)
-    {
-        if (isoCountry != null)
-        {
-            if (isoCountry.length() == ISO2_LENGTH && ISO2_TO_ISO3.keySet().contains(isoCountry))
-            {
-                return true;
-            }
-            else if (isoCountry.length() == ISO3_LENGTH
-                    && ISO3_TO_ISO2.keySet().contains(isoCountry))
-            {
-                return true;
-            }
-        }
-        return false;
     }
 
     private IsoCountry(final String iso2)

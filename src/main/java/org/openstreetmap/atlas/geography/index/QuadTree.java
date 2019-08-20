@@ -34,18 +34,18 @@ public class QuadTree<T> implements JtsSpatialIndex<T>
     private final Quadtree tree = new Quadtree();
     private Rectangle bound;
 
-    public static <K extends Located> QuadTree<K> forLocated(final Iterable<K> locatedIterable)
-    {
-        final QuadTree<K> toReturn = new QuadTree<>();
-        locatedIterable.forEach(located -> toReturn.add(located.bounds(), located));
-        return toReturn;
-    }
-
     public static <K> QuadTree<K> forCollection(final Iterable<K> iterable,
             final Function<K, Rectangle> transform)
     {
         final QuadTree<K> toReturn = new QuadTree<>();
         iterable.forEach(item -> toReturn.add(transform.apply(item), item));
+        return toReturn;
+    }
+
+    public static <K extends Located> QuadTree<K> forLocated(final Iterable<K> locatedIterable)
+    {
+        final QuadTree<K> toReturn = new QuadTree<>();
+        locatedIterable.forEach(located -> toReturn.add(located.bounds(), located));
         return toReturn;
     }
 

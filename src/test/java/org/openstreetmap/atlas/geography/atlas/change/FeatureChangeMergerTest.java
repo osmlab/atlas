@@ -5,10 +5,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.exception.change.FeatureChangeMergeException;
+import org.openstreetmap.atlas.exception.change.MergeFailureType;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
@@ -41,9 +40,6 @@ public class FeatureChangeMergerTest
 {
     private static final Logger logger = LoggerFactory.getLogger(FeatureChangeMergerTest.class);
 
-    @Rule
-    public final ExpectedException expectedException = ExpectedException.none();
-
     @Test
     public void testMergeAreasFail()
     {
@@ -60,9 +56,33 @@ public class FeatureChangeMergerTest
          * This merge will fail, because the FeatureChanges have conflicting changed polygons. There
          * is no way to resolve conflicting geometry during a merge.
          */
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("Cannot merge two feature changes");
-        featureChange1.merge(featureChange2);
+        boolean caught = false;
+        try
+        {
+            featureChange1.merge(featureChange2);
+        }
+        catch (final FeatureChangeMergeException exception)
+        {
+            caught = true;
+            Assert.assertEquals(MergeFailureType.MUTUALLY_EXCLUSIVE_ADD_ADD_CONFLICT,
+                    exception.rootLevelFailure());
+            Assert.assertTrue(exception.traceContainsFailureType(
+                    MergeFailureType.MUTUALLY_EXCLUSIVE_ADD_ADD_CONFLICT));
+            Assert.assertTrue(exception.traceContainsExactFailureSubSequence(Arrays.asList(
+                    MergeFailureType.MUTUALLY_EXCLUSIVE_ADD_ADD_CONFLICT,
+                    MergeFailureType.DIFF_BASED_POLYGON_MERGE_FAIL,
+                    MergeFailureType.AFTER_VIEW_CONSISTENT_BEFORE_VIEW_MERGE_STRATEGY_FAILED)));
+            Assert.assertTrue(exception.traceMatchesExactFailureSequence(Arrays.asList(
+                    MergeFailureType.MUTUALLY_EXCLUSIVE_ADD_ADD_CONFLICT,
+                    MergeFailureType.DIFF_BASED_POLYGON_MERGE_FAIL,
+                    MergeFailureType.AFTER_VIEW_CONSISTENT_BEFORE_VIEW_MERGE_STRATEGY_FAILED,
+                    MergeFailureType.HIGHEST_LEVEL_MERGE_FAILURE)));
+        }
+
+        if (!caught)
+        {
+            Assert.fail("Did not catch expected FeatureChangeMergeException");
+        }
     }
 
     @Test
@@ -141,11 +161,34 @@ public class FeatureChangeMergerTest
                 123L, PolyLine.TEST_POLYLINE, Maps.hashMap("a", "3"), 1L, null, null), beforeEdge1);
 
         /*
-         * This merge will fail, because the FeatureChanges have conflicting tag changes.
+         * This merge will fail, because the FeatureChanges have a tag ADD/ADD conflict (a->2 vs.
+         * a->3).
          */
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("Cannot merge two feature changes");
-        featureChange1.merge(featureChange2);
+        boolean caught = false;
+        try
+        {
+            featureChange1.merge(featureChange2);
+        }
+        catch (final FeatureChangeMergeException exception)
+        {
+            caught = true;
+            Assert.assertEquals(MergeFailureType.DIFF_BASED_TAG_ADD_ADD_CONFLICT,
+                    exception.rootLevelFailure());
+            Assert.assertTrue(exception
+                    .traceContainsFailureType(MergeFailureType.DIFF_BASED_TAG_ADD_ADD_CONFLICT));
+            Assert.assertTrue(exception.traceContainsExactFailureSubSequence(Arrays.asList(
+                    MergeFailureType.DIFF_BASED_TAG_ADD_ADD_CONFLICT,
+                    MergeFailureType.AFTER_VIEW_CONSISTENT_BEFORE_VIEW_MERGE_STRATEGY_FAILED)));
+            Assert.assertTrue(exception.traceMatchesExactFailureSequence(Arrays.asList(
+                    MergeFailureType.DIFF_BASED_TAG_ADD_ADD_CONFLICT,
+                    MergeFailureType.AFTER_VIEW_CONSISTENT_BEFORE_VIEW_MERGE_STRATEGY_FAILED,
+                    MergeFailureType.HIGHEST_LEVEL_MERGE_FAILURE)));
+        }
+
+        if (!caught)
+        {
+            Assert.fail("Did not catch expected FeatureChangeMergeException");
+        }
     }
 
     @Test
@@ -205,9 +248,27 @@ public class FeatureChangeMergerTest
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.REMOVE,
                 new CompleteArea(123L, Polygon.CENTER, null, null), null);
 
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("Cannot merge two feature changes");
-        featureChange1.merge(featureChange2);
+        boolean caught = false;
+        try
+        {
+            featureChange1.merge(featureChange2);
+        }
+        catch (final FeatureChangeMergeException exception)
+        {
+            caught = true;
+            Assert.assertEquals(MergeFailureType.FEATURE_CHANGE_INVALID_ADD_REMOVE_MERGE,
+                    exception.rootLevelFailure());
+            Assert.assertTrue(exception.traceContainsFailureType(
+                    MergeFailureType.FEATURE_CHANGE_INVALID_ADD_REMOVE_MERGE));
+            Assert.assertTrue(exception.traceMatchesExactFailureSequence(
+                    Arrays.asList(MergeFailureType.FEATURE_CHANGE_INVALID_ADD_REMOVE_MERGE,
+                            MergeFailureType.HIGHEST_LEVEL_MERGE_FAILURE)));
+        }
+
+        if (!caught)
+        {
+            Assert.fail("Did not catch expected FeatureChangeMergeException");
+        }
     }
 
     @Test
@@ -218,9 +279,27 @@ public class FeatureChangeMergerTest
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
                 new CompleteArea(456L, Polygon.SILICON_VALLEY, null, null), null);
 
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("Cannot merge two feature changes");
-        featureChange1.merge(featureChange2);
+        boolean caught = false;
+        try
+        {
+            featureChange1.merge(featureChange2);
+        }
+        catch (final FeatureChangeMergeException exception)
+        {
+            caught = true;
+            Assert.assertEquals(MergeFailureType.FEATURE_CHANGE_INVALID_PROPERTIES_MERGE,
+                    exception.rootLevelFailure());
+            Assert.assertTrue(exception.traceContainsFailureType(
+                    MergeFailureType.FEATURE_CHANGE_INVALID_PROPERTIES_MERGE));
+            Assert.assertTrue(exception.traceMatchesExactFailureSequence(
+                    Arrays.asList(MergeFailureType.FEATURE_CHANGE_INVALID_PROPERTIES_MERGE,
+                            MergeFailureType.HIGHEST_LEVEL_MERGE_FAILURE)));
+        }
+
+        if (!caught)
+        {
+            Assert.fail("Did not catch expected FeatureChangeMergeException");
+        }
     }
 
     @Test
@@ -231,16 +310,34 @@ public class FeatureChangeMergerTest
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.REMOVE,
                 new CompletePoint(123L, Location.CENTER, null, null), null);
 
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("Cannot merge two feature changes");
-        featureChange1.merge(featureChange2);
+        boolean caught = false;
+        try
+        {
+            featureChange1.merge(featureChange2);
+        }
+        catch (final FeatureChangeMergeException exception)
+        {
+            caught = true;
+            Assert.assertEquals(MergeFailureType.FEATURE_CHANGE_INVALID_PROPERTIES_MERGE,
+                    exception.rootLevelFailure());
+            Assert.assertTrue(exception.traceContainsFailureType(
+                    MergeFailureType.FEATURE_CHANGE_INVALID_PROPERTIES_MERGE));
+            Assert.assertTrue(exception.traceMatchesExactFailureSequence(
+                    Arrays.asList(MergeFailureType.FEATURE_CHANGE_INVALID_PROPERTIES_MERGE,
+                            MergeFailureType.HIGHEST_LEVEL_MERGE_FAILURE)));
+        }
+
+        if (!caught)
+        {
+            Assert.fail("Did not catch expected FeatureChangeMergeException");
+        }
     }
 
     @Test
     public void testMergeLinesFail()
     {
-        final CompleteLine beforeLine1 = new CompleteLine(123L, PolyLine.TEST_POLYLINE, null,
-                Sets.hashSet(1L, 2L, 3L));
+        final CompleteLine beforeLine1 = new CompleteLine(123L, PolyLine.TEST_POLYLINE,
+                Maps.hashMap(), Sets.hashSet(1L, 2L, 3L));
 
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
                 new CompleteLine(123L, PolyLine.TEST_POLYLINE_2, Maps.hashMap("a", "1"),
@@ -252,11 +349,29 @@ public class FeatureChangeMergerTest
                 beforeLine1);
 
         /*
-         * This merge will fail, because the FeatureChanges have conflicting tags.
+         * This merge will fail, because the FeatureChanges have an ADD/ADD tag conflict (a->1 vs.
+         * a->2)
          */
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("Cannot merge two feature changes");
-        featureChange1.merge(featureChange2);
+        boolean caught = false;
+        try
+        {
+            featureChange1.merge(featureChange2);
+        }
+        catch (final FeatureChangeMergeException exception)
+        {
+            caught = true;
+            Assert.assertEquals(MergeFailureType.DIFF_BASED_TAG_ADD_ADD_CONFLICT,
+                    exception.rootLevelFailure());
+            Assert.assertTrue(exception.traceMatchesExactFailureSequence(Arrays.asList(
+                    MergeFailureType.DIFF_BASED_TAG_ADD_ADD_CONFLICT,
+                    MergeFailureType.AFTER_VIEW_CONSISTENT_BEFORE_VIEW_MERGE_STRATEGY_FAILED,
+                    MergeFailureType.HIGHEST_LEVEL_MERGE_FAILURE)));
+        }
+
+        if (!caught)
+        {
+            Assert.fail("Did not catch expected FeatureChangeMergeException");
+        }
     }
 
     @Test
@@ -376,11 +491,28 @@ public class FeatureChangeMergerTest
 
         /*
          * This merge will fail, because featureChange1 removes tag [b=2], while featureChange2
-         * modifies it to [b=3]. This generates an ADD/REMOVE collision.
+         * modifies it to [b=3]. This generates a tag ADD/REMOVE conflict.
          */
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("Cannot merge two feature changes");
-        featureChange1.merge(featureChange2);
+        boolean caught = false;
+        try
+        {
+            featureChange1.merge(featureChange2);
+        }
+        catch (final FeatureChangeMergeException exception)
+        {
+            caught = true;
+            Assert.assertEquals(MergeFailureType.DIFF_BASED_TAG_ADD_REMOVE_CONFLICT,
+                    exception.rootLevelFailure());
+            Assert.assertTrue(exception.traceMatchesExactFailureSequence(Arrays.asList(
+                    MergeFailureType.DIFF_BASED_TAG_ADD_REMOVE_CONFLICT,
+                    MergeFailureType.AFTER_VIEW_CONSISTENT_BEFORE_VIEW_MERGE_STRATEGY_FAILED,
+                    MergeFailureType.HIGHEST_LEVEL_MERGE_FAILURE)));
+        }
+
+        if (!caught)
+        {
+            Assert.fail("Did not catch expected FeatureChangeMergeException");
+        }
     }
 
     @Test
@@ -517,9 +649,27 @@ public class FeatureChangeMergerTest
          * This merge will fail, because featureChange1 and featureChange2 have conflicting changed
          * locations.
          */
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("Cannot merge two feature changes");
-        featureChange1.merge(featureChange2);
+        boolean caught = false;
+        try
+        {
+            featureChange1.merge(featureChange2);
+        }
+        catch (final FeatureChangeMergeException exception)
+        {
+            caught = true;
+            Assert.assertEquals(MergeFailureType.MUTUALLY_EXCLUSIVE_ADD_ADD_CONFLICT,
+                    exception.rootLevelFailure());
+            Assert.assertTrue(exception.traceMatchesExactFailureSequence(Arrays.asList(
+                    MergeFailureType.MUTUALLY_EXCLUSIVE_ADD_ADD_CONFLICT,
+                    MergeFailureType.DIFF_BASED_LOCATION_MERGE_FAIL,
+                    MergeFailureType.AFTER_VIEW_CONSISTENT_BEFORE_VIEW_MERGE_STRATEGY_FAILED,
+                    MergeFailureType.HIGHEST_LEVEL_MERGE_FAILURE)));
+        }
+
+        if (!caught)
+        {
+            Assert.fail("Did not catch expected FeatureChangeMergeException");
+        }
     }
 
     @Test
@@ -685,9 +835,26 @@ public class FeatureChangeMergerTest
         /*
          * This merge will fail due to an ADD/ADD conflict in the member list bean.
          */
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("Cannot merge two feature changes");
-        featureChange1.merge(featureChange2);
+        boolean caught = false;
+        try
+        {
+            featureChange1.merge(featureChange2);
+        }
+        catch (final FeatureChangeMergeException exception)
+        {
+            caught = true;
+            Assert.assertEquals(MergeFailureType.DIFF_BASED_RELATION_BEAN_ADD_ADD_CONFLICT,
+                    exception.rootLevelFailure());
+            Assert.assertTrue(exception.traceMatchesExactFailureSequence(Arrays.asList(
+                    MergeFailureType.DIFF_BASED_RELATION_BEAN_ADD_ADD_CONFLICT,
+                    MergeFailureType.AFTER_VIEW_CONSISTENT_BEFORE_VIEW_MERGE_STRATEGY_FAILED,
+                    MergeFailureType.HIGHEST_LEVEL_MERGE_FAILURE)));
+        }
+
+        if (!caught)
+        {
+            Assert.fail("Did not catch expected FeatureChangeMergeException");
+        }
     }
 
     @Test

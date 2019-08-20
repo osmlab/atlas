@@ -1,12 +1,9 @@
 package org.openstreetmap.atlas.geography.atlas.items.complex.buildings;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
@@ -57,18 +54,6 @@ public class BuildingPart extends ComplexEntity
         return false;
     }
 
-    @Override
-    public List<ComplexEntityError> getAllInvalidations()
-    {
-        final List<ComplexEntityError> returnValue = new ArrayList<>();
-        if (!isValid())
-        {
-            returnValue
-                    .add(getError().orElseThrow(() -> new CoreException("Should have an error")));
-        }
-        return returnValue;
-    }
-
     public MultiPolygon getGeometry()
     {
         return this.geometry;
@@ -78,6 +63,12 @@ public class BuildingPart extends ComplexEntity
     public int hashCode()
     {
         return Objects.hash(this.geometry);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "[BuildingPart: Geometry = " + this.geometry.toReadableString() + "]";
     }
 
     /**
@@ -101,11 +92,5 @@ public class BuildingPart extends ComplexEntity
                     getSource().getIdentifier());
         }
         return Optional.empty();
-    }
-
-    @Override
-    public String toString()
-    {
-        return "[BuildingPart: Geometry = " + this.geometry.toReadableString() + "]";
     }
 }

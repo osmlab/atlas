@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.streaming.readers;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.collections.StringList;
@@ -79,9 +80,9 @@ public final class CsvLine implements Iterable<Object>
             @Override
             public Object next()
             {
-                if (this.index >= CsvLine.this.items.length)
+                if (!hasNext())
                 {
-                    return null;
+                    throw new NoSuchElementException();
                 }
                 return get(this.index++);
             }

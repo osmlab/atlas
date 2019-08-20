@@ -18,6 +18,18 @@ public class LayerTagTestCase extends BaseTagTestCase
     }
 
     @Test
+    public void layerTooHigh()
+    {
+        Assert.assertFalse(validators().isValidFor(LayerTag.KEY, "6"));
+    }
+
+    @Test
+    public void layerTooLow()
+    {
+        Assert.assertFalse(validators().isValidFor(LayerTag.KEY, "-6"));
+    }
+
+    @Test
     public void layersJustRight()
     {
         for (int loop = -5; loop < 0; loop++)
@@ -29,17 +41,5 @@ public class LayerTagTestCase extends BaseTagTestCase
         {
             Assert.assertTrue(validators().isValidFor(LayerTag.KEY, String.valueOf(loop)));
         }
-    }
-
-    @Test
-    public void layerTooHigh()
-    {
-        Assert.assertFalse(validators().isValidFor(LayerTag.KEY, "6"));
-    }
-
-    @Test
-    public void layerTooLow()
-    {
-        Assert.assertFalse(validators().isValidFor(LayerTag.KEY, "-6"));
     }
 }

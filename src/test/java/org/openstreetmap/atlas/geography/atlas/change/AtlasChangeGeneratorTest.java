@@ -13,6 +13,7 @@ import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEntity;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
+import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
 
@@ -25,6 +26,32 @@ public class AtlasChangeGeneratorTest
 
     @Rule
     public final AtlasChangeGeneratorTestRule rule = new AtlasChangeGeneratorTestRule();
+
+    @Test
+    public void testAddLocation()
+    {
+        final Atlas source = this.rule.getNodeBoundsExpansionAtlas();
+        final Set<FeatureChange> result = new HashSet<>();
+        for (final Node node : source.nodes())
+        {
+            final CompleteNode completeNode = CompleteNode.shallowFrom(node)
+                    .withTags(node.getTags());
+            result.add(FeatureChange.add(completeNode));
+        }
+        final Set<FeatureChange> changes = AtlasChangeGenerator.expandNodeBounds(source, result);
+        for (final FeatureChange featureChange : changes)
+        {
+            if (featureChange.getIdentifier() == 177633000000L)
+            {
+                Assert.assertEquals(Location.forWkt("POINT (4.2194855 38.8231656)"),
+                        ((CompleteNode) featureChange.getAfterView()).getLocation());
+                Assert.assertEquals(
+                        "POLYGON ((4.2177433 38.8228217, 4.2177433 38.8235147, 4.2197697 38.8235147,"
+                                + " 4.2197697 38.8228217, 4.2177433 38.8228217))",
+                        featureChange.bounds().toWkt());
+            }
+        }
+    }
 
     @Test
     public void testEmptyChange()

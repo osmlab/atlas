@@ -48,18 +48,7 @@ public enum GeoJsonType
     private static final EnumSet GEOMETRY_TYPES = EnumSet.of(POINT, MULTI_POINT, LINESTRING,
             MULTI_LINESTRING, POLYGON, MULTI_POLYGON, GEOMETRY_COLLECTION);
     private static final EnumSet FEATURE_TYPES = EnumSet.of(FEATURE, FEATURE_COLLECTION);
-
-    public static GeoJsonType forString(final String type)
-    {
-        for (final GeoJsonType value : values())
-        {
-            if (value.getTypeString().equals(type))
-            {
-                return value;
-            }
-        }
-        throw new CoreException("Invalid geoJson type: {}", type);
-    }
+    private final String typeString;
 
     public static GeoJsonType forJson(final JsonObject object)
     {
@@ -75,22 +64,21 @@ public enum GeoJsonType
         return forString(typeString);
     }
 
-    private final String typeString;
-
-    GeoJsonType(final String typeString)
+    public static GeoJsonType forString(final String type)
     {
-        this.typeString = typeString;
+        for (final GeoJsonType value : values())
+        {
+            if (value.getTypeString().equals(type))
+            {
+                return value;
+            }
+        }
+        throw new CoreException("Invalid geoJson type: {}", type);
     }
 
-    @Override
-    public String toString()
+    public static boolean isFeatureType(final GeoJsonType type)
     {
-        return this.typeString;
-    }
-
-    public String getTypeString()
-    {
-        return this.typeString;
+        return FEATURE_TYPES.contains(type);
     }
 
     public static boolean isGeometryType(final GeoJsonType type)
@@ -98,8 +86,19 @@ public enum GeoJsonType
         return GEOMETRY_TYPES.contains(type);
     }
 
-    public static boolean isFeatureType(final GeoJsonType type)
+    GeoJsonType(final String typeString)
     {
-        return FEATURE_TYPES.contains(type);
+        this.typeString = typeString;
+    }
+
+    public String getTypeString()
+    {
+        return this.typeString;
+    }
+
+    @Override
+    public String toString()
+    {
+        return this.typeString;
     }
 }

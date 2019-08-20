@@ -32,7 +32,7 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
  */
 public class WaySectionProcessorTest
 {
-    private static CountryBoundaryMap COUNTRY_BOUNDARY_MAP;
+    private static final CountryBoundaryMap COUNTRY_BOUNDARY_MAP;
 
     static
     {
@@ -177,6 +177,22 @@ public class WaySectionProcessorTest
     }
 
     @Test
+    public void testLoopWithRepeatedLocation()
+    {
+        // Based on a prior version of https://www.openstreetmap.org/way/488453376 with a piece of
+        // https://www.openstreetmap.org/way/386313688
+        final Atlas slicedRawAtlas = this.setup.getLoopWithRepeatedLocationAtlas();
+        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+                AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
+
+        Assert.assertEquals("Four edges, each having a reverse counterpart", 4,
+                finalAtlas.numberOfEdges());
+        Assert.assertEquals("Two nodes", 2, finalAtlas.numberOfNodes());
+        Assert.assertTrue("This way got sectioned once, with a reverse edge", Iterables
+                .size(finalAtlas.edges(edge -> edge.getOsmIdentifier() == 488453376L)) == 2);
+    }
+
+    @Test
     public void testLoopingWayWithIntersection()
     {
         // Based on https://www.openstreetmap.org/way/310540517 and partial excerpt of
@@ -192,22 +208,6 @@ public class WaySectionProcessorTest
                 .size(finalAtlas.edges(edge -> edge.getOsmIdentifier() == 310540517L)) == 6);
         Assert.assertTrue("This edge got sectioned once, with reverse edges", Iterables
                 .size(finalAtlas.edges(edge -> edge.getOsmIdentifier() == 310540519L)) == 2);
-    }
-
-    @Test
-    public void testLoopWithRepeatedLocation()
-    {
-        // Based on a prior version of https://www.openstreetmap.org/way/488453376 with a piece of
-        // https://www.openstreetmap.org/way/386313688
-        final Atlas slicedRawAtlas = this.setup.getLoopWithRepeatedLocationAtlas();
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
-                AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
-
-        Assert.assertEquals("Four edges, each having a reverse counterpart", 4,
-                finalAtlas.numberOfEdges());
-        Assert.assertEquals("Two nodes", 2, finalAtlas.numberOfNodes());
-        Assert.assertTrue("This way got sectioned once, with a reverse edge", Iterables
-                .size(finalAtlas.edges(edge -> edge.getOsmIdentifier() == 488453376L)) == 2);
     }
 
     @Test

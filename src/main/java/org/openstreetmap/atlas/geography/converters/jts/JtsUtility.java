@@ -20,9 +20,10 @@ public final class JtsUtility
     public static final GeometryFactory GEOMETRY_FACTORY = JtsPrecisionManager.getGeometryFactory();
     private static final int MININMUM_NUMBER_OF_POLYGON_POINTS = 4;
 
-    public static LinearRing buildLinearRing(final CoordinateSequence sequence)
+    public static LineString buildLineString(final Coordinate[] coordinates)
     {
-        return new LinearRing(sequence, GEOMETRY_FACTORY);
+        final CoordinateArraySequence sequence = new CoordinateArraySequence(coordinates);
+        return new LineString(sequence, GEOMETRY_FACTORY);
     }
 
     public static LinearRing buildLinearRing(final List<Coordinate> coordinates)
@@ -33,10 +34,9 @@ public final class JtsUtility
         return new LinearRing(sequence, GEOMETRY_FACTORY);
     }
 
-    public static LineString buildLineString(final Coordinate[] coordinates)
+    public static LinearRing buildLinearRing(final CoordinateSequence sequence)
     {
-        final CoordinateArraySequence sequence = new CoordinateArraySequence(coordinates);
-        return new LineString(sequence, GEOMETRY_FACTORY);
+        return new LinearRing(sequence, GEOMETRY_FACTORY);
     }
 
     public static Polygon toPolygon(final Coordinate[] coordinates)

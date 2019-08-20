@@ -17,11 +17,9 @@ public class CaptureOutputStream extends PrintStream
         super(out);
     }
 
-    @Override
-    public PrintStream printf(final String format, final Object... args)
+    public String getLog()
     {
-        this.log = this.log.concat(String.format(format, args));
-        return super.printf(format, args);
+        return this.log;
     }
 
     @Override
@@ -31,8 +29,10 @@ public class CaptureOutputStream extends PrintStream
         super.print(string);
     }
 
-    public String getLog()
+    @Override
+    public PrintStream printf(final String format, final Object... args)
     {
-        return this.log;
+        this.log = this.log.concat(String.format(format, args));
+        return super.printf(format, args);
     }
 }

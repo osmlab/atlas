@@ -256,8 +256,8 @@ public class DynamicTileSharding extends Command implements Sharding
 
         protected void split()
         {
-            this.children.addAll(this.tile.split(this.zoom() + 1).stream()
-                    .map(tile -> new Node(tile)).collect(Collectors.toList()));
+            this.children.addAll(this.tile.split(this.zoom() + 1).stream().map(Node::new)
+                    .collect(Collectors.toList()));
         }
 
         protected int zoom()
@@ -339,11 +339,11 @@ public class DynamicTileSharding extends Command implements Sharding
             Optionality.OPTIONAL);
     public static final Switch<Integer> MAXIMUM_COUNT = new Switch<>("maxCount",
             "The maximum feature count. Any cell with a larger feature count will be split, up to maxZoom",
-            value -> Integer.valueOf(value), Optionality.OPTIONAL, "200000");
+            Integer::valueOf, Optionality.OPTIONAL, "200000");
     public static final Switch<Integer> MAXIMUM_ZOOM = new Switch<>("maxZoom", "The maximum zoom",
-            value -> Integer.valueOf(value), Optionality.OPTIONAL, "10");
+            Integer::valueOf, Optionality.OPTIONAL, "10");
     public static final Switch<Integer> MINIMUM_ZOOM = new Switch<>("minZoom", "The minimum zoom",
-            value -> Integer.valueOf(value), Optionality.OPTIONAL, "5");
+            Integer::valueOf, Optionality.OPTIONAL, "5");
     public static final Switch<WritableResource> OUTPUT = new Switch<>("output",
             "The resource where to save the serialized tree.", File::new, Optionality.REQUIRED);
     private static final int MINIMUM_TO_SPLIT = 1_000;
@@ -428,19 +428,19 @@ public class DynamicTileSharding extends Command implements Sharding
     }
 
     @Override
-    public Iterable<? extends Shard> shards(final GeometricSurface surface)
+    public Iterable<Shard> shards(final GeometricSurface surface)
     {
         return Iterables.stream(this.root.leafNodes(surface)).map(Node::getTile);
     }
 
     @Override
-    public Iterable<? extends Shard> shardsCovering(final Location location)
+    public Iterable<Shard> shardsCovering(final Location location)
     {
         return Iterables.stream(this.root.leafNodesCovering(location)).map(Node::getTile);
     }
 
     @Override
-    public Iterable<? extends Shard> shardsIntersecting(final PolyLine polyLine)
+    public Iterable<Shard> shardsIntersecting(final PolyLine polyLine)
     {
         return Iterables.stream(this.root.leafNodesIntersecting(polyLine)).map(Node::getTile);
     }
@@ -461,9 +461,9 @@ public class DynamicTileSharding extends Command implements Sharding
         {
             long count = 0;
             long tilesCalculated = 0;
-            for (int x = 0; x < Math.pow(2, currentZoom + 1); x += 2)
+            for (int x = 0; x < Math.pow(2, currentZoom + 1.0); x += 2)
             {
-                for (int y = 0; y < Math.pow(2, currentZoom + 1); y += 2)
+                for (int y = 0; y < Math.pow(2, currentZoom + 1.0); y += 2)
                 {
                     count = 0;
                     // top left
@@ -496,14 +496,9 @@ public class DynamicTileSharding extends Command implements Sharding
     protected int onRun(final CommandMap command)
     {
         final Resource definition = (Resource) command.get(DEFINITION);
-        int numberLines = 0;
-        for (@SuppressWarnings("unused")
-        final String line : definition.lines())
-        {
-            numberLines++;
-        }
+        final int numberLines = (int) Iterables.size(definition.lines());
         logger.info("There are {} tiles.", numberLines);
-        Map<SlippyTile, Long> counts = new HashMap<>(numberLines);
+        final Map<SlippyTile, Long> counts = new HashMap<>(numberLines);
         final WritableResource output = (WritableResource) command.get(OUTPUT);
         final int maximum = (int) command.get(MAXIMUM_COUNT);
         final int minimumZoom = (int) command.get(MINIMUM_ZOOM);
@@ -528,7 +523,6 @@ public class DynamicTileSharding extends Command implements Sharding
         // Therefore we want to start calculating counts one level below, which is (maximumZoom-2)
         final Map<SlippyTile, Long> allCounts = calculateTileCountsForAllZoom(maximumZoom - 2,
                 counts);
-        counts = null;
         if (zoom == 0)
         {
             throw new CoreException("No tiles in definition");
@@ -559,12 +553,16 @@ public class DynamicTileSharding extends Command implements Sharding
             return count > maximum;
         });
         this.save(output);
-        logger.info("Printed tree to {}. Loading for verification...", lastRawCommand(OUTPUT));
-        new DynamicTileSharding(new File(lastRawCommand(OUTPUT)));
-        logger.info("Successfully loaded tree from {}", lastRawCommand(OUTPUT));
+        final String outputLocation = lastRawCommand(OUTPUT);
+        logger.info("Printed tree to {}. Loading for verification...", outputLocation);
+        new DynamicTileSharding(new File(outputLocation));
+        logger.info("Successfully loaded tree from {}", outputLocation);
         if (geoJson != null)
         {
-            logger.info("Saving geojson to {}...", lastRawCommand(GEOJSON));
+            if (logger.isInfoEnabled())
+            {
+                logger.info("Saving geojson to {}...", lastRawCommand(GEOJSON));
+            }
             this.saveAsGeoJson(geoJson);
         }
         return 0;

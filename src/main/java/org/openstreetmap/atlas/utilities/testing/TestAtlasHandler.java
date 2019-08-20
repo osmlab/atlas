@@ -4,9 +4,11 @@ import java.lang.reflect.Field;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeSet;
 
 import org.apache.commons.lang3.StringUtils;
@@ -27,6 +29,8 @@ import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
 import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasCountrySlicer;
+import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.AbstractResource;
 import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
@@ -36,6 +40,7 @@ import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.tags.BuildingPartTag;
 import org.openstreetmap.atlas.tags.BuildingTag;
+import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.collections.Maps;
@@ -56,9 +61,79 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas.SizeEstimate;
  * Handler implementation for Atlas fields annotated with the TestAtlas annotation
  *
  * @author cstaylor
+ * @author bbreithaupt
  */
 public class TestAtlasHandler implements FieldHandler
 {
+    public static Atlas getAtlasFromJsomOsmResource(final boolean josmFormat,
+            final AbstractResource resource, final String fileName)
+    {
+        return getAtlasFromJsomOsmResource(josmFormat, resource, fileName, Optional.empty());
+    }
+
+    public static Atlas getAtlasFromJsomOsmResource(final boolean josmFormat,
+            final AbstractResource resource, final String fileName, final Optional<String> iso)
+    {
+        FileSuffix.suffixFor(fileName).ifPresent(suffix ->
+        {
+            if (suffix == FileSuffix.GZIP)
+            {
+                resource.setDecompressor(Decompressor.GZIP);
+            }
+        });
+        final ByteArrayResource pbfFile = new ByteArrayResource();
+        if (josmFormat)
+        {
+            // If the XML file is in JOSM format, fix it to look like an OSM file
+            final StringResource osmFile = new StringResource();
+            new OsmFileParser().update(resource, osmFile);
+            new OsmFileToPbf().update(osmFile, pbfFile);
+        }
+        else
+        {
+            new OsmFileToPbf().update(resource, pbfFile);
+        }
+        return buildAtlasFromPbf(pbfFile, iso);
+    }
+
+    /**
+     * Builds an {@link Atlas} from the given pbf resource, using the raw atlas flow. This does NOT
+     * country-slice the pbf resource since no corresponding boundary file is supplied and the flow
+     * is not meant to test slicing logic.
+     *
+     * @param pbfResource
+     *            The pbf input resource to use
+     * @param iso
+     *            ISO code to be applied to all features
+     * @return the resulting Atlas
+     */
+    private static Atlas buildAtlasFromPbf(final Resource pbfResource, final Optional<String> iso)
+    {
+        // Create raw Atlas
+        final AtlasLoadingOption loadingOption = AtlasLoadingOption.withNoFilter();
+        if (iso.isPresent())
+        {
+            loadingOption.setCountrySlicing(true);
+            loadingOption.setCountryBoundaryMap(CountryBoundaryMap
+                    .fromBoundaryMap(Collections.singletonMap(iso.get(), MultiPolygon.MAXIMUM)));
+        }
+        final Atlas rawAtlas = new RawAtlasGenerator(pbfResource, loadingOption,
+                MultiPolygon.MAXIMUM).build();
+
+        // Country Slice and Way-Section
+        return new WaySectionProcessor(
+                iso.isPresent() ? new RawAtlasCountrySlicer(loadingOption).slice(rawAtlas)
+                        : rawAtlas,
+                loadingOption).run();
+    }
+
+    private static String[] mergeTags(final String[] firstTags, final String[] secondTags)
+    {
+        final List<String> allTags = new ArrayList<>(Arrays.asList(firstTags));
+        allTags.addAll(Arrays.asList(secondTags));
+        return allTags.toArray(new String[0]);
+    }
+
     private static Map<String, String> mergeTags(final Map<String, String> firstTags,
             final Map<String, String> secondTags)
     {
@@ -68,15 +143,7 @@ public class TestAtlasHandler implements FieldHandler
         return returnValue;
     }
 
-    private static Map<String, String> mergeTags(final String[] firstTags,
-            final String[] secondTags)
-    {
-        final List<String> allTags = new ArrayList<>(Arrays.asList(firstTags));
-        allTags.addAll(Arrays.asList(secondTags));
-        return parseTags(allTags.toArray(new String[0]));
-    }
-
-    private static Map<String, String> parseTags(final String... tags)
+    private static Map<String, String> parseTags(final Optional<String> iso, final String... tags)
     {
         final Map<String, String> tagmap = new HashMap<>();
         for (final String tagAndValue : tags)
@@ -97,6 +164,11 @@ public class TestAtlasHandler implements FieldHandler
                 // Erroneous case
                 throw new CoreException("{} isn't a valid tag description", tagAndValue);
             }
+        }
+        // Add a country code if one does not already exist
+        if (iso.isPresent() && !tagmap.containsKey(ISOCountryTag.KEY.toLowerCase()))
+        {
+            tagmap.put(ISOCountryTag.KEY.toLowerCase(), iso.get());
         }
         return tagmap;
     }
@@ -154,10 +226,11 @@ public class TestAtlasHandler implements FieldHandler
     }
 
     private long addArea(final PackedAtlasBuilder builder, final FeatureIDGenerator areaIDGenerator,
-            final Area area, final String... additionalTags)
+            final Area area, final Optional<String> iso, final String... additionalTags)
     {
         final long areaId = areaIDGenerator.nextId(area.id());
-        builder.addArea(areaId, buildAreaPolygon(area), mergeTags(area.tags(), additionalTags));
+        builder.addArea(areaId, buildAreaPolygon(area),
+                parseTags(iso, mergeTags(area.tags(), additionalTags)));
         return areaId;
     }
 
@@ -183,26 +256,6 @@ public class TestAtlasHandler implements FieldHandler
         return Polygon.SILICON_VALLEY;
     }
 
-    /**
-     * Builds an {@link Atlas} from the given pbf resource, using the raw atlas flow. This does NOT
-     * country-slice the pbf resource since no corresponding boundary file is supplied and the flow
-     * is not meant to test slicing logic.
-     *
-     * @param pbfResource
-     *            The pbf input resource to use
-     * @return the resulting Atlas
-     */
-    private static Atlas buildAtlasFromPbf(final Resource pbfResource)
-    {
-        // Create raw Atlas
-        final AtlasLoadingOption loadingOption = AtlasLoadingOption.withNoFilter();
-        final Atlas rawAtlas = new RawAtlasGenerator(pbfResource, loadingOption,
-                MultiPolygon.MAXIMUM).build();
-
-        // Way-section
-        return new WaySectionProcessor(rawAtlas, loadingOption).run();
-    }
-
     private Location convertLoc(final Loc point)
     {
         if (point.value().equalsIgnoreCase(Loc.USE_LATLON)
@@ -223,14 +276,14 @@ public class TestAtlasHandler implements FieldHandler
         return Location.forString(point.value());
     }
 
-    private Polygon convertPolygon(final Loc[] points)
-    {
-        return new Polygon(pointsToLocations(points));
-    }
-
     private PolyLine convertPolyLine(final Loc[] points)
     {
         return new PolyLine(pointsToLocations(points));
+    }
+
+    private Polygon convertPolygon(final Loc[] points)
+    {
+        return new Polygon(pointsToLocations(points));
     }
 
     private AtlasSize convertSizeEstimates(final SizeEstimate estimate)
@@ -245,24 +298,26 @@ public class TestAtlasHandler implements FieldHandler
 
         final PackedAtlasBuilder builder = new PackedAtlasBuilder();
         final AtlasSize size = convertSizeEstimates(testAtlas.size());
-        final String iso = testAtlas.iso();
-        if (!iso.equals(TestAtlas.UNKNOWN_ISO_COUNTRY))
+        final Optional<String> iso = testAtlas.iso().equals(TestAtlas.UNKNOWN_ISO_COUNTRY)
+                ? Optional.empty()
+                : Optional.of(testAtlas.iso());
+        if (iso.isPresent())
         {
-            final AtlasMetaData metaData = new AtlasMetaData(size, true, null, null, iso, null,
-                    Maps.hashMap());
+            final AtlasMetaData metaData = new AtlasMetaData(size, true, null, null, iso.get(),
+                    null, Maps.hashMap());
             builder.withMetaData(metaData);
         }
         else
         {
             builder.setSizeEstimates(size);
         }
-        handle(builder, testAtlas.nodes());
-        handle(builder, testAtlas.edges());
-        handle(builder, testAtlas.areas());
-        handle(builder, testAtlas.lines());
-        handle(builder, testAtlas.points());
-        handle(builder, testAtlas.relations());
-        handle(builder, testAtlas.buildings());
+        handle(builder, iso, testAtlas.nodes());
+        handle(builder, iso, testAtlas.edges());
+        handle(builder, iso, testAtlas.areas());
+        handle(builder, iso, testAtlas.lines());
+        handle(builder, iso, testAtlas.points());
+        handle(builder, iso, testAtlas.relations());
+        handle(builder, iso, testAtlas.buildings());
 
         try
         {
@@ -274,16 +329,18 @@ public class TestAtlasHandler implements FieldHandler
         }
     }
 
-    private void handle(final PackedAtlasBuilder builder, final Area... areas)
+    private void handle(final PackedAtlasBuilder builder, final Optional<String> iso,
+            final Area... areas)
     {
         final FeatureIDGenerator areaIDGenerator = new FeatureIDGenerator();
         for (final Area area : areas)
         {
-            addArea(builder, areaIDGenerator, area);
+            addArea(builder, areaIDGenerator, area, iso);
         }
     }
 
-    private void handle(final PackedAtlasBuilder builder, final Building... buildings)
+    private void handle(final PackedAtlasBuilder builder, final Optional<String> iso,
+            final Building... buildings)
     {
         final FeatureIDGenerator buildingGenerator = new FeatureIDGenerator();
         for (final Building building : buildings)
@@ -292,14 +349,14 @@ public class TestAtlasHandler implements FieldHandler
             final TreeSet<Long> innerIds = new TreeSet<>();
             final TreeSet<Long> partIds = new TreeSet<>();
 
-            outerIds.add(addArea(builder, buildingGenerator, building.outer()));
+            outerIds.add(addArea(builder, buildingGenerator, building.outer(), iso));
             for (final Area inner : building.inners())
             {
-                innerIds.add(addArea(builder, buildingGenerator, inner));
+                innerIds.add(addArea(builder, buildingGenerator, inner, iso));
             }
             for (final Area part : building.parts())
             {
-                partIds.add(addArea(builder, buildingGenerator, part, BuildingPartTag.KEY,
+                partIds.add(addArea(builder, buildingGenerator, part, iso, BuildingPartTag.KEY,
                         BuildingPartTag.YES.getTagValue()));
             }
 
@@ -313,7 +370,7 @@ public class TestAtlasHandler implements FieldHandler
 
             final long outlineId = buildingGenerator.nextId(TestAtlas.AUTO_GENERATED);
             builder.addRelation(outlineId, outlineId, outline,
-                    mergeTags(parseTags(building.outlineTags()),
+                    mergeTags(parseTags(iso, building.outlineTags()),
                             Validators.toMap(RelationTypeTag.MULTIPOLYGON)));
 
             final RelationBean multipart = new RelationBean();
@@ -325,51 +382,56 @@ public class TestAtlasHandler implements FieldHandler
 
             final long buildingId = buildingGenerator.nextId(TestAtlas.AUTO_GENERATED);
             builder.addRelation(buildingId, buildingId, multipart, mergeTags(
-                    parseTags(building.tags()), Validators.toMap(RelationTypeTag.BUILDING)));
+                    parseTags(iso, building.tags()), Validators.toMap(RelationTypeTag.BUILDING)));
         }
     }
 
-    private void handle(final PackedAtlasBuilder builder, final Edge... edges)
+    private void handle(final PackedAtlasBuilder builder, final Optional<String> iso,
+            final Edge... edges)
     {
         final FeatureIDGenerator edgeIDGenerator = new FeatureIDGenerator();
         for (final Edge edge : edges)
         {
             builder.addEdge(edgeIDGenerator.nextId(edge.id()), convertPolyLine(edge.coordinates()),
-                    parseTags(edge.tags()));
+                    parseTags(iso, edge.tags()));
         }
     }
 
-    private void handle(final PackedAtlasBuilder builder, final Line... lines)
+    private void handle(final PackedAtlasBuilder builder, final Optional<String> iso,
+            final Line... lines)
     {
         final FeatureIDGenerator lineIDGenerator = new FeatureIDGenerator();
         for (final Line line : lines)
         {
             builder.addLine(lineIDGenerator.nextId(line.id()), convertPolyLine(line.coordinates()),
-                    parseTags(line.tags()));
+                    parseTags(iso, line.tags()));
         }
     }
 
-    private void handle(final PackedAtlasBuilder builder, final Node... nodes)
+    private void handle(final PackedAtlasBuilder builder, final Optional<String> iso,
+            final Node... nodes)
     {
         final FeatureIDGenerator nodeIDGenerator = new FeatureIDGenerator();
         for (final Node node : nodes)
         {
             builder.addNode(nodeIDGenerator.nextId(node.id()), convertLoc(node.coordinates()),
-                    parseTags(node.tags()));
+                    parseTags(iso, node.tags()));
         }
     }
 
-    private void handle(final PackedAtlasBuilder builder, final Point... points)
+    private void handle(final PackedAtlasBuilder builder, final Optional<String> iso,
+            final Point... points)
     {
         final FeatureIDGenerator pointIDGenerator = new FeatureIDGenerator();
         for (final Point point : points)
         {
             builder.addPoint(pointIDGenerator.nextId(point.id()), convertLoc(point.coordinates()),
-                    parseTags(point.tags()));
+                    parseTags(iso, point.tags()));
         }
     }
 
-    private void handle(final PackedAtlasBuilder builder, final Relation... relations)
+    private void handle(final PackedAtlasBuilder builder, final Optional<String> iso,
+            final Relation... relations)
     {
         final FeatureIDGenerator relationIDGenerator = new FeatureIDGenerator();
         for (final Relation relation : relations)
@@ -384,7 +446,7 @@ public class TestAtlasHandler implements FieldHandler
             final long osmIdentifier = relation.osmId().equals(TestAtlas.DEFAULT_OSM_ID)
                     ? identifier
                     : relationIDGenerator.nextId(relation.osmId());
-            builder.addRelation(identifier, osmIdentifier, bean, parseTags(relation.tags()));
+            builder.addRelation(identifier, osmIdentifier, bean, parseTags(iso, relation.tags()));
         }
     }
 
@@ -396,38 +458,16 @@ public class TestAtlasHandler implements FieldHandler
         try
         {
             field.set(rule, getAtlasFromJsomOsmResource(josmFormat, new ClassResource(completeName),
-                    Paths.get(completeName).getFileName().toString()));
+                    Paths.get(completeName).getFileName().toString(),
+                    field.getAnnotation(TestAtlas.class).iso().equals(TestAtlas.UNKNOWN_ISO_COUNTRY)
+                            ? Optional.empty()
+                            : Optional.of(field.getAnnotation(TestAtlas.class).iso())));
         }
         catch (IllegalArgumentException | IllegalAccessException e)
         {
             throw new CoreException("Error loading from JOSM osm resource {}", resourcePath, e);
         }
 
-    }
-
-    public static Atlas getAtlasFromJsomOsmResource(final boolean josmFormat,
-            final AbstractResource resource, final String fileName)
-    {
-        FileSuffix.suffixFor(fileName).ifPresent(suffix ->
-        {
-            if (suffix == FileSuffix.GZIP)
-            {
-                resource.setDecompressor(Decompressor.GZIP);
-            }
-        });
-        final ByteArrayResource pbfFile = new ByteArrayResource();
-        if (josmFormat)
-        {
-            // If the XML file is in JOSM format, fix it to look like an OSM file
-            final StringResource osmFile = new StringResource();
-            new OsmFileParser().update(resource, osmFile);
-            new OsmFileToPbf().update(osmFile, pbfFile);
-        }
-        else
-        {
-            new OsmFileToPbf().update(resource, pbfFile);
-        }
-        return buildAtlasFromPbf(pbfFile);
     }
 
     private void loadFromTextResource(final Field field, final CoreTestRule rule,

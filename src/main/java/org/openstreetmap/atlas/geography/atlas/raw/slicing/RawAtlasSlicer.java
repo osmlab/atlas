@@ -3,17 +3,20 @@ package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.precision.PrecisionReducerCoordinateOperation;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
@@ -28,6 +31,7 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
+import org.openstreetmap.atlas.tags.Taggable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,15 +45,13 @@ import com.google.common.collect.Sets;
  */
 public abstract class RawAtlasSlicer
 {
-    private static final Logger logger = LoggerFactory.getLogger(RawAtlasSlicer.class);
-
     // JTS converters
     protected static final JtsPolygonConverter JTS_POLYGON_CONVERTER = new JtsPolygonConverter();
     protected static final JtsPolyLineConverter JTS_POLYLINE_CONVERTER = new JtsPolyLineConverter();
     protected static final JtsLocationConverter JTS_LOCATION_CONVERTER = new JtsLocationConverter();
     protected static final JtsLinearRingConverter JTS_LINEAR_RING_CONVERTER = new JtsLinearRingConverter();
     protected static final MultiplePolyLineToPolygonsConverter MULTIPLE_POLY_LINE_TO_POLYGON_CONVERTER = new MultiplePolyLineToPolygonsConverter();
-
+    private static final Logger logger = LoggerFactory.getLogger(RawAtlasSlicer.class);
     // JTS precision handling
     private static final Integer SEVEN_DIGIT_PRECISION_SCALE = 10_000_000;
     private static final PrecisionModel PRECISION_MODEL = new PrecisionModel(
@@ -157,6 +159,19 @@ public abstract class RawAtlasSlicer
         this.shardOrAtlasName = getShardOrAtlasName(startingAtlas);
     }
 
+    public String getShardOrAtlasName()
+    {
+        return this.shardOrAtlasName;
+    }
+
+    /**
+     * @return the {@link Atlas} to be sliced
+     */
+    public Atlas getStartingAtlas()
+    {
+        return this.startingAtlas;
+    }
+
     /**
      * @return the {@link Atlas} after slicing.
      */
@@ -233,6 +248,12 @@ public abstract class RawAtlasSlicer
 
     protected Set<String> getCountries()
     {
+        if (this.loadingOption.getCountryCodes().isEmpty())
+        {
+            final HashSet<String> allCountryCodes = new HashSet<>();
+            allCountryCodes.addAll(this.loadingOption.getCountryBoundaryMap().allCountryNames());
+            this.loadingOption.setAdditionalCountryCodes(allCountryCodes);
+        }
         return this.loadingOption.getCountryCodes();
     }
 
@@ -261,6 +282,24 @@ public abstract class RawAtlasSlicer
         return this.loadingOption.getEdgeFilter().test(line);
     }
 
+    protected boolean isInsideWorkingBound(final AtlasEntity entity)
+    {
+        final Optional<String> countryCodes = entity.getTag(ISOCountryTag.KEY);
+        if (countryCodes.isPresent() && this.getCountries() != null
+                && !this.getCountries().isEmpty())
+        {
+            for (final String countryCode : countryCodes.get()
+                    .split(ISOCountryTag.COUNTRY_DELIMITER))
+            {
+                if (this.getCountries().contains(countryCode))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /**
      * Check if the {@link Geometry} should be filtered out based on the provided bound.
      *
@@ -283,21 +322,23 @@ public abstract class RawAtlasSlicer
         return false;
     }
 
+    protected boolean shouldForceSlicing(final Taggable... source)
+    {
+        if (this.loadingOption.getForceSlicingFilter() == null)
+        {
+            return false;
+        }
+        return source != null && source.length > 0
+                && this.loadingOption.getForceSlicingFilter().test(source[0]);
+    }
+
+    protected boolean shouldSkipSlicing(final List<Polygon> candidates, final Taggable... source)
+    {
+        return CountryBoundaryMap.isSameCountry(candidates) && !shouldForceSlicing(source);
+    }
+
     private String getShardOrAtlasName(final Atlas atlas)
     {
         return atlas.metaData().getShardName().orElse(atlas.getName());
-    }
-
-    public String getShardOrAtlasName()
-    {
-        return this.shardOrAtlasName;
-    }
-
-    /**
-     * @return the {@link Atlas} to be sliced
-     */
-    public Atlas getStartingAtlas()
-    {
-        return this.startingAtlas;
     }
 }

@@ -1,5 +1,11 @@
-jacoco {
+jacoco
+{
     toolVersion = versions.jacoco
+}
+
+checkstyle
+{
+    toolVersion = versions.checkstyle
 }
 
 sourceSets
@@ -37,8 +43,16 @@ task integrationTest(type: Test) {
     }
 }
 
+// Those 3 for atlas only here because ArrangementCheck is already in Atlas and
+// Gradle does not allow third party dependency of itself.
+checkstyleMain.dependsOn jar
+checkstyleTest.dependsOn jar
+checkstyleIntegrationTest.dependsOn jar
+
 check.dependsOn integrationTest
 integrationTest.mustRunAfter test
+
+check.dependsOn jacocoTestReport
 
 tasks.withType(Test) {
     reports.html.destination = file("${reporting.baseDir}/${name}")
@@ -55,14 +69,18 @@ dependencies
     testCompile packages.slf4j.log4j12
     testCompile packages.log4j
     testCompile packages.junit
+
     integrationTestCompile packages.junit
 }
 
 spotless {
     java {
         target project.fileTree(project.rootDir) {
-            include '**/*.java'
+            include 'src/**/*.java'
             exclude 'src/generated/**/*.java'
+            exclude 'src/main/resources/**/*.java'
+            exclude 'src/test/resources/**/*.java'
+            exclude 'src/integrationTest/resources/**/*.java'
         }
         importOrder 'static java', 'static javax', 'static org', 'static com', 'static scala', 'java', 'javax', 'org', 'com', 'scala'
         removeUnusedImports()
@@ -81,15 +99,12 @@ jacocoTestReport {
             fileTree(dir: it, exclude: 'org/openstreetmap/atlas/proto/**')
         })
     }
+    sourceSets sourceSets.main
+    executionData fileTree(project.rootDir.absolutePath).include("**/jacoco/*.exec")
 }
 
 sonarqube {
     properties {
         property "sonar.exclusions", "src/generated/**/*.java"
     }
-}
-
-checkstyle
-{
-    toolVersion = versions.checkstyle
 }

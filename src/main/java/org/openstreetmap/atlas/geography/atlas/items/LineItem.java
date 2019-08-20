@@ -13,6 +13,8 @@ import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 
@@ -25,6 +27,7 @@ import com.google.gson.JsonObject;
 public abstract class LineItem extends AtlasItem
 {
     private static final long serialVersionUID = -2053566750957119655L;
+    private static final Logger logger = LoggerFactory.getLogger(LineItem.class);
 
     protected LineItem(final Atlas atlas)
     {
@@ -96,18 +99,24 @@ public abstract class LineItem extends AtlasItem
         return asPolyLine().size();
     }
 
-    @Override
-    public boolean within(final GeometricSurface surface)
-    {
-        return this.asPolyLine().within(surface);
-    }
-
     /**
      * @return The overall heading of the {@link PolyLine}: the heading between the start point and
      *         the end point.
      */
     public Optional<Heading> overallHeading()
     {
+        final PolyLine polyLine = this.asPolyLine();
+        if (polyLine.first().equals(polyLine.last()))
+        {
+            if (logger.isWarnEnabled())
+            {
+                logger.warn(
+                        "Cannot compute ({},{})'s overall heading when the polyline has "
+                                + "same start and end locations : {}",
+                        this.getType(), this.getIdentifier(), polyLine.first().toWkt());
+            }
+            return Optional.empty();
+        }
         return this.asPolyLine().overallHeading();
     }
 
@@ -153,5 +162,11 @@ public abstract class LineItem extends AtlasItem
     public String toWkt()
     {
         return this.asPolyLine().toWkt();
+    }
+
+    @Override
+    public boolean within(final GeometricSurface surface)
+    {
+        return this.asPolyLine().within(surface);
     }
 }

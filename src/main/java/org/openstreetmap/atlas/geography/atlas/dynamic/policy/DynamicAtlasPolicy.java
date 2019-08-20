@@ -140,14 +140,14 @@ public class DynamicAtlasPolicy
         return this.maximumBounds;
     }
 
-    public Sharding getSharding()
-    {
-        return this.sharding;
-    }
-
     public Consumer<Set<Shard>> getShardSetChecker()
     {
         return this.shardSetChecker;
+    }
+
+    public Sharding getSharding()
+    {
+        return this.sharding;
     }
 
     public boolean isAggressivelyExploreRelations()

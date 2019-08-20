@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -22,6 +24,9 @@ public class CompletePointTest
 {
     @Rule
     public CompleteTestRule rule = new CompleteTestRule();
+
+    @Rule
+    public final ExpectedException expectedException = ExpectedException.none();
 
     @Test
     public void testBloatedEquals()
@@ -68,6 +73,8 @@ public class CompletePointTest
                         .collect(Collectors.toSet()),
                 result.relations().stream().map(Relation::getIdentifier)
                         .collect(Collectors.toSet()));
+
+        Assert.assertEquals(result, result.copy());
     }
 
     @Test
@@ -75,6 +82,26 @@ public class CompletePointTest
     {
         final CompletePoint superShallow = new CompletePoint(123L, null, null, null);
         Assert.assertTrue(superShallow.isShallow());
+    }
+
+    @Test
+    public void testNonFullPointCopy()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("but it was not full");
+
+        final CompletePoint point = new CompletePoint(1L, null, null, null);
+        CompletePoint.from(point);
+    }
+
+    @Test
+    public void testPointShallowCopyNullBounds()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("bounds were null");
+
+        final CompletePoint point = new CompletePoint(1L, null, null, null);
+        CompletePoint.shallowFrom(point);
     }
 
     @Test
@@ -104,6 +131,17 @@ public class CompletePointTest
         // When we update the location again, the bounds recalculation should "forget" about the
         // first update
         Assert.assertEquals(Rectangle.forLocated(Location.COLOSSEUM), result.bounds());
+    }
+
+    @Test
+    public void testToWkt()
+    {
+        final CompletePoint point1 = new CompletePoint(123L);
+        point1.withLocation(Location.forString("0,0"));
+        Assert.assertEquals("POINT (0 0)", point1.toWkt());
+
+        final CompletePoint point2 = new CompletePoint(123L);
+        Assert.assertNull(point2.toWkt());
     }
 
     @Test

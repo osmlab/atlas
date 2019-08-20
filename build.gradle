@@ -7,9 +7,8 @@ plugins {
 	id 'checkstyle'
 	id 'jacoco'
 	id "com.diffplug.gradle.spotless" version "3.18.0"
-	id 'org.sonarqube' version '2.6.2'
+	id 'org.sonarqube' version '2.7.1'
 	id 'com.google.protobuf' version '0.8.8'
-	// id "io.codearte.nexus-staging" version "0.12.0"
 }
 
 apply from: 'dependencies.gradle'
@@ -45,6 +44,7 @@ dependencies
     compile packages.http
     compile packages.jts
     compile packages.jtslab
+    compile packages.spatial4j
     compile packages.geotools
     compile packages.osmosis.core
     compile packages.osmosis.pbf
@@ -64,7 +64,13 @@ dependencies
     compile packages.protoc
     compile packages.artifact
     compile packages.groovy
-    
+    compile packages.checkstyle
+
+    testCompile packages.checkstyle_tests
+
+    checkstyle packages.checkstyle
+    checkstyle packages.atlas_checkstyle
+
     shaded project.configurations.getByName('compile')
     shaded packages.slf4j.log4j12
     shaded packages.log4j

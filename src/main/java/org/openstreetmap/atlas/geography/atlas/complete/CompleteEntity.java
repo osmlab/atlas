@@ -251,6 +251,13 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
     ItemType getType();
 
     /**
+     * A full {@link CompleteEntity} is one one that contains a non-null value for all its fields.
+     *
+     * @return if this entity is full
+     */
+    boolean isFull();
+
+    /**
      * A shallow {@link CompleteEntity} is one that contains only its identifier as effective data.
      *
      * @return if this entity is shallow
@@ -267,7 +274,25 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
      */
     String prettify(PrettifyStringFormat format);
 
+    /**
+     * Transform this {@link CompleteEntity} into a pretty string. This method uses the default
+     * format {@link PrettifyStringFormat#MINIMAL_SINGLE_LINE}.
+     *
+     * @return the pretty string
+     */
+    default String prettify()
+    {
+        return prettify(PrettifyStringFormat.MINIMAL_SINGLE_LINE);
+    }
+
     void setTags(Map<String, String> tags);
+
+    /**
+     * Get the WKT for this entity's geometry.
+     *
+     * @return the WKT of this entity's geometry, null if the geometry is null
+     */
+    String toWkt();
 
     default C withAddedTag(final String key, final String value)
     {

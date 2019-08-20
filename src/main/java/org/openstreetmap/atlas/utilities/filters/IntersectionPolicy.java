@@ -19,12 +19,20 @@ import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
  */
 public interface IntersectionPolicy extends Serializable
 {
-
     /**
      * A case by case common sense implementation.
      */
     IntersectionPolicy DEFAULT_INTERSECTION_POLICY = new IntersectionPolicy()
     {
+        private static final long serialVersionUID = -7852178753369272322L;
+
+        @Override
+        public boolean geometricSurfaceEntityIntersecting(final GeometricSurface geometricSurface,
+                final AtlasEntity entity)
+        {
+            return entity.intersects(geometricSurface);
+        }
+
         @Override
         public boolean multiPolygonEntityIntersecting(final MultiPolygon multiPolygon,
                 final AtlasEntity entity)
@@ -59,27 +67,21 @@ public interface IntersectionPolicy extends Serializable
         {
             return entity.intersects(polygon);
         }
-
-        @Override
-        public boolean geometricSurfaceEntityIntersecting(final GeometricSurface geometricSurface,
-                final AtlasEntity entity)
-        {
-            return entity.intersects(geometricSurface);
-        }
     };
 
-    default boolean geometricSurfaceEntityIntersecting(GeometricSurface geometricSurface,
-            AtlasEntity entity)
+    default boolean geometricSurfaceEntityIntersecting(final GeometricSurface geometricSurface,
+            final AtlasEntity entity)
     {
         return false;
     }
 
-    default boolean multiPolygonEntityIntersecting(MultiPolygon multiPolygon, AtlasEntity entity)
+    default boolean multiPolygonEntityIntersecting(final MultiPolygon multiPolygon,
+            final AtlasEntity entity)
     {
         return false;
     }
 
-    default boolean polygonEntityIntersecting(Polygon polygon, AtlasEntity entity)
+    default boolean polygonEntityIntersecting(final Polygon polygon, final AtlasEntity entity)
     {
         return false;
     }

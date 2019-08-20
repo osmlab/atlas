@@ -9,6 +9,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.exception.change.FeatureChangeMergeException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
@@ -57,7 +58,7 @@ public class MemberMergeStrategiesTest
          * afterBean2 explicitly removes it. This conflict is only possible in cases where we are
          * merging RelationBeans with conflicting beforeViews.
          */
-        this.expectedException.expect(CoreException.class);
+        this.expectedException.expect(FeatureChangeMergeException.class);
         this.expectedException
                 .expectMessage("conflictingBeforeViewRelationBeanMerger failed due to ADD/REMOVE");
         MemberMergeStrategies.conflictingBeforeViewRelationBeanMerger.apply(beforeBean1, afterBean1,
@@ -192,7 +193,7 @@ public class MemberMergeStrategiesTest
          * This will fail because the left side added 6L, while the right side explicitly removed
          * 6L.
          */
-        this.expectedException.expect(CoreException.class);
+        this.expectedException.expect(FeatureChangeMergeException.class);
         this.expectedException
                 .expectMessage("conflictingBeforeViewSetMerger failed due to ADD/REMOVE");
         MemberMergeStrategies.conflictingBeforeViewSetMerger.apply(beforeSet1, afterSet1,
@@ -261,9 +262,8 @@ public class MemberMergeStrategiesTest
         final Location afterLeft = Location.COLOSSEUM;
         final Location afterRight = Location.EIFFEL_TOWER;
 
-        this.expectedException.expect(CoreException.class);
-        this.expectedException
-                .expectMessage("diffBasedMutuallyExclusiveMerger failed due to ADD/ADD conflict");
+        this.expectedException.expect(FeatureChangeMergeException.class);
+        this.expectedException.expectMessage("mutually exclusive Location merge failed");
         MemberMergeStrategies.diffBasedLocationMerger.apply(before, afterLeft, afterRight);
     }
 
@@ -299,9 +299,8 @@ public class MemberMergeStrategiesTest
         final Long afterLeft = 1L;
         final Long afterRight = 2L;
 
-        this.expectedException.expect(CoreException.class);
-        this.expectedException
-                .expectMessage("diffBasedMutuallyExclusiveMerger failed due to ADD/ADD conflict");
+        this.expectedException.expect(FeatureChangeMergeException.class);
+        this.expectedException.expectMessage("mutually exclusive Long merge failed");
         MemberMergeStrategies.diffBasedLongMerger.apply(before, afterLeft, afterRight);
     }
 
@@ -391,53 +390,14 @@ public class MemberMergeStrategiesTest
     }
 
     @Test
-    public void testDiffBasedPolygonMergeADDADDConflictFail()
-    {
-        final Polygon before = Polygon.CENTER;
-        final Polygon afterLeft = Polygon.SILICON_VALLEY;
-        final Polygon afterRight = Polygon.SILICON_VALLEY_2;
-
-        this.expectedException.expect(CoreException.class);
-        this.expectedException
-                .expectMessage("diffBasedMutuallyExclusiveMerger failed due to ADD/ADD conflict");
-        MemberMergeStrategies.diffBasedPolygonMerger.apply(before, afterLeft, afterRight);
-    }
-
-    @Test
-    public void testDiffBasedPolygonMergeSuccess()
-    {
-        final Polygon before1 = Polygon.CENTER;
-        final Polygon afterLeft1 = Polygon.CENTER;
-        final Polygon afterRight1 = Polygon.SILICON_VALLEY;
-
-        Assert.assertEquals(Polygon.SILICON_VALLEY, MemberMergeStrategies.diffBasedPolygonMerger
-                .apply(before1, afterLeft1, afterRight1));
-
-        final Polygon before2 = Polygon.CENTER;
-        final Polygon afterLeft2 = Polygon.SILICON_VALLEY;
-        final Polygon afterRight2 = Polygon.CENTER;
-
-        Assert.assertEquals(Polygon.SILICON_VALLEY, MemberMergeStrategies.diffBasedPolygonMerger
-                .apply(before2, afterLeft2, afterRight2));
-
-        final Polygon before3 = Polygon.CENTER;
-        final Polygon afterLeft3 = Polygon.SILICON_VALLEY;
-        final Polygon afterRight3 = Polygon.SILICON_VALLEY;
-
-        Assert.assertEquals(Polygon.SILICON_VALLEY, MemberMergeStrategies.diffBasedPolygonMerger
-                .apply(before3, afterLeft3, afterRight3));
-    }
-
-    @Test
     public void testDiffBasedPolyLineMergeADDADDConflictFail()
     {
         final PolyLine before = PolyLine.TEST_POLYLINE;
         final PolyLine afterLeft = PolyLine.TEST_POLYLINE_2;
         final PolyLine afterRight = PolyLine.CENTER;
 
-        this.expectedException.expect(CoreException.class);
-        this.expectedException
-                .expectMessage("diffBasedMutuallyExclusiveMerger failed due to ADD/ADD conflict");
+        this.expectedException.expect(FeatureChangeMergeException.class);
+        this.expectedException.expectMessage("mutually exclusive PolyLine merge failed");
         MemberMergeStrategies.diffBasedPolyLineMerger.apply(before, afterLeft, afterRight);
     }
 
@@ -463,6 +423,43 @@ public class MemberMergeStrategiesTest
         final PolyLine afterRight3 = PolyLine.TEST_POLYLINE;
 
         Assert.assertEquals(PolyLine.TEST_POLYLINE, MemberMergeStrategies.diffBasedPolyLineMerger
+                .apply(before3, afterLeft3, afterRight3));
+    }
+
+    @Test
+    public void testDiffBasedPolygonMergeADDADDConflictFail()
+    {
+        final Polygon before = Polygon.CENTER;
+        final Polygon afterLeft = Polygon.SILICON_VALLEY;
+        final Polygon afterRight = Polygon.SILICON_VALLEY_2;
+
+        this.expectedException.expect(FeatureChangeMergeException.class);
+        this.expectedException.expectMessage("mutually exclusive Polygon merge failed");
+        MemberMergeStrategies.diffBasedPolygonMerger.apply(before, afterLeft, afterRight);
+    }
+
+    @Test
+    public void testDiffBasedPolygonMergeSuccess()
+    {
+        final Polygon before1 = Polygon.CENTER;
+        final Polygon afterLeft1 = Polygon.CENTER;
+        final Polygon afterRight1 = Polygon.SILICON_VALLEY;
+
+        Assert.assertEquals(Polygon.SILICON_VALLEY, MemberMergeStrategies.diffBasedPolygonMerger
+                .apply(before1, afterLeft1, afterRight1));
+
+        final Polygon before2 = Polygon.CENTER;
+        final Polygon afterLeft2 = Polygon.SILICON_VALLEY;
+        final Polygon afterRight2 = Polygon.CENTER;
+
+        Assert.assertEquals(Polygon.SILICON_VALLEY, MemberMergeStrategies.diffBasedPolygonMerger
+                .apply(before2, afterLeft2, afterRight2));
+
+        final Polygon before3 = Polygon.CENTER;
+        final Polygon afterLeft3 = Polygon.SILICON_VALLEY;
+        final Polygon afterRight3 = Polygon.SILICON_VALLEY;
+
+        Assert.assertEquals(Polygon.SILICON_VALLEY, MemberMergeStrategies.diffBasedPolygonMerger
                 .apply(before3, afterLeft3, afterRight3));
     }
 
@@ -502,7 +499,7 @@ public class MemberMergeStrategiesTest
         /*
          * The merge will fail, since the number of added [2, AREA, areaRole2] conflict.
          */
-        this.expectedException.expect(CoreException.class);
+        this.expectedException.expect(FeatureChangeMergeException.class);
         this.expectedException.expectMessage(
                 "diffBasedRelationBeanMerger failed due to ADD/ADD conflict on key: [AREA, 2, areaRole2]: beforeValue absolute count was 0 but addedLeft/Right diff counts conflict [1 vs 2]");
         MemberMergeStrategies.diffBasedRelationBeanMerger.apply(beforeBean, afterBean1, afterBean2);
@@ -545,7 +542,7 @@ public class MemberMergeStrategiesTest
          * The merge will fail, since one afterView tries to add an additional [1, LINE, lineRole1]
          * while the other afterView removes it entirely.
          */
-        this.expectedException.expect(CoreException.class);
+        this.expectedException.expect(FeatureChangeMergeException.class);
         this.expectedException.expectMessage(
                 "diffBasedRelationBeanMerger failed due to ADD/REMOVE conflict(s) on key(s): [LINE, 1, lineRole1]");
         MemberMergeStrategies.diffBasedRelationBeanMerger.apply(beforeBean, afterBean1, afterBean2);
@@ -585,7 +582,7 @@ public class MemberMergeStrategiesTest
         /*
          * The merge will fail, since the number of removed [1, AREA, areaRole1] conflict.
          */
-        this.expectedException.expect(CoreException.class);
+        this.expectedException.expect(FeatureChangeMergeException.class);
         this.expectedException.expectMessage(
                 "diffBasedRelationBeanMerger failed due to REMOVE/REMOVE conflict on key: [AREA, 1, areaRole1]: beforeValue absolute count was 2 but removedLeft/Right diff counts conflict [1 vs 2]");
         MemberMergeStrategies.diffBasedRelationBeanMerger.apply(beforeBean, afterBean1, afterBean2);
@@ -682,7 +679,7 @@ public class MemberMergeStrategiesTest
         final Map<String, String> after1A = Maps.hashMap("a", "10", "b", "2");
         final Map<String, String> after1B = Maps.hashMap("b", "2");
 
-        this.expectedException.expect(CoreException.class);
+        this.expectedException.expect(FeatureChangeMergeException.class);
         this.expectedException.expectMessage(
                 "diffBasedTagMerger failed due to ADD/REMOVE conflict(s) on key(s): [a]");
         MemberMergeStrategies.diffBasedTagMerger.apply(before1, after1A, after1B);

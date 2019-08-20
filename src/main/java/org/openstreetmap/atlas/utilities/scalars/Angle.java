@@ -15,30 +15,28 @@ import org.openstreetmap.atlas.geography.Heading;
  */
 public class Angle implements Serializable
 {
-    private static final long serialVersionUID = -5120437813288084229L;
-
     // There are ten million microdegrees per degree
-    protected static final int DM7_PER_DEGREE = 10_000_000;
+    public static final int DM7_PER_DEGREE = 10_000_000;
     // An angle is >= -180 degrees
-    protected static final int MINIMUM_DM7 = -1_800_000_000;
+    public static final int MINIMUM_DM7 = -1_800_000_000;
     // An angle is < 180 degrees
-    protected static final int MAXIMUM_DM7 = 1_800_000_000;
+    public static final int MAXIMUM_DM7 = 1_800_000_000;
     // There are approximately 57 degrees per radian
     public static final int DM7_PER_RADIAN = 572_957_795;
     // When precision is needed
     public static final double DM7_PER_RADIAN_DOUBLE = Double.valueOf(MAXIMUM_DM7) / Math.PI;
-    // dm7 unit per microdegree
-    protected static final int DM7_PER_MICRODEGREE = 10;
-    // Threshold to print a dm7 value
-    private static final int DM7_PRINT_THRESHOLD = 10_000;
-
     // This difference does not fit in an int!
-    protected static final long REVOLUTION_DM7 = (long) MAXIMUM_DM7 - (long) MINIMUM_DM7;
-
+    public static final long REVOLUTION_DM7 = (long) MAXIMUM_DM7 - (long) MINIMUM_DM7;
     // Useful Angle constants
     public static final Angle MINIMUM = Angle.dm7(MINIMUM_DM7);
     public static final Angle NONE = Angle.dm7(0L);
-    public static final Angle MAXIMUM = Angle.dm7(MAXIMUM_DM7 - 1);
+    public static final Angle MAXIMUM = Angle.dm7(MAXIMUM_DM7 - 1L);
+    // dm7 unit per microdegree
+    public static final int DM7_PER_MICRODEGREE = 10;
+    // Threshold to print a dm7 value
+    public static final int DM7_PRINT_THRESHOLD = 10_000;
+
+    private static final long serialVersionUID = -5120437813288084229L;
 
     // The primitive store. It will always fit between MINIMUM_DM7 and MAXIMUM_DM7, so int is enough
     private final int dm7;

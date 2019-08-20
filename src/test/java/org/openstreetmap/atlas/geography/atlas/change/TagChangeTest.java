@@ -9,6 +9,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.exception.change.FeatureChangeMergeException;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEntity;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteItemType;
@@ -147,7 +148,7 @@ public class TagChangeTest
             catch (final CoreException e)
             {
                 Assert.assertTrue(e.getMessage().startsWith("Cannot merge two feature changes"));
-                Assert.assertEquals(e.getCause().getClass(), CoreException.class);
+                Assert.assertEquals(e.getCause().getClass(), FeatureChangeMergeException.class);
                 Assert.assertTrue(e.getCause().getMessage()
                         .contains("Attempted afterViewNoBeforeMerge failed for tags; afterView:"));
                 return;

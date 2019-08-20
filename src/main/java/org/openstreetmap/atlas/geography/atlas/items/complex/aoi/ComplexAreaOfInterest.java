@@ -1,7 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.items.complex.aoi;
 
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -37,9 +36,10 @@ public final class ComplexAreaOfInterest extends ComplexEntity
     private static final Logger logger = LoggerFactory.getLogger(ComplexAreaOfInterest.class);
     private static final RelationOrAreaToMultiPolygonConverter RELATION_OR_AREA_TO_MULTI_POLYGON_CONVERTER = new RelationOrAreaToMultiPolygonConverter();
     private static final String AOI_RESOURCE = "aoi-tag-filter.json";
-    private MultiPolygon multiPolygon;
     // The default AreasOfInterest(AOI) tags
     private static List<TaggableFilter> defaultTaggableFilter;
+    private static final long serialVersionUID = 1191946548857888704L;
+    private final MultiPolygon multiPolygon;
 
     /**
      * This method creates a {@link ComplexAreaOfInterest} for the specified {@link AtlasEntity} if
@@ -141,9 +141,9 @@ public final class ComplexAreaOfInterest extends ComplexEntity
     }
 
     @Override
-    public String toString()
+    public boolean equals(final Object other)
     {
-        return this.getClass().getName() + " " + getSource();
+        return other instanceof ComplexAreaOfInterest && super.equals(other);
     }
 
     public MultiPolygon getGeometry()
@@ -152,25 +152,14 @@ public final class ComplexAreaOfInterest extends ComplexEntity
     }
 
     @Override
-    public List<ComplexEntityError> getAllInvalidations()
-    {
-        final List<ComplexEntityError> returnValue = new ArrayList<>();
-        if (!isValid())
-        {
-            getError().ifPresent(returnValue::add);
-        }
-        return returnValue;
-    }
-
-    @Override
-    public boolean equals(final Object other)
-    {
-        return other instanceof ComplexAreaOfInterest && super.equals(other);
-    }
-
-    @Override
     public int hashCode()
     {
         return super.hashCode();
+    }
+
+    @Override
+    public String toString()
+    {
+        return this.getClass().getName() + " " + getSource();
     }
 }

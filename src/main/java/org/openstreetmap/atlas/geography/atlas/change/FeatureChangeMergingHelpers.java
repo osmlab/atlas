@@ -79,7 +79,10 @@ public final class FeatureChangeMergingHelpers
                 .withAfterEntityRight(afterEntityRight).withMemberExtractor(Taggable::getTags)
                 .withAfterViewNoBeforeMerger(MemberMergeStrategies.simpleTagMerger)
                 .withAfterViewConsistentBeforeViewMerger(MemberMergeStrategies.diffBasedTagMerger)
-                .build().mergeMember();
+                .withAfterViewConflictingBeforeViewMerger(
+                        MemberMergeStrategies.autofailQuaternaryTagMerger)
+                .withBeforeViewMerger(MemberMergeStrategies.autofailBinaryTagMerger).build()
+                .mergeMember();
 
         final MergedMemberBean<Set<Long>> mergedParentRelationsBean = new MemberMerger.Builder<Set<Long>>()
                 .withMemberName("parentRelations").withBeforeEntityLeft(beforeEntityLeft)
@@ -88,11 +91,13 @@ public final class FeatureChangeMergingHelpers
                 .withMemberExtractor(atlasEntity -> atlasEntity.relations() == null ? null
                         : atlasEntity.relations().stream().map(Relation::getIdentifier)
                                 .collect(Collectors.toSet()))
-                .withAfterViewNoBeforeMerger(
-                        MemberMergeStrategies.simpleLongSetAllowCollisionsMerger)
+                .withAfterViewNoBeforeMerger(MemberMergeStrategies.simpleLongSetMerger)
                 .withAfterViewConsistentBeforeViewMerger(
                         MemberMergeStrategies.diffBasedLongSetMerger)
-                .build().mergeMember();
+                .withAfterViewConflictingBeforeViewMerger(
+                        MemberMergeStrategies.autofailQuaternaryLongSetMerger)
+                .withBeforeViewMerger(MemberMergeStrategies.autofailBinaryLongSetMerger).build()
+                .mergeMember();
 
         if (afterEntityLeft instanceof LocationItem)
         {
@@ -205,14 +210,14 @@ public final class FeatureChangeMergingHelpers
 
             if (!leftInEdgeIdentifiers.equals(rightInEdgeIdentifiers))
             {
-                mergedBeforeNode.withInEdgeIdentifiers(
-                        MemberMergeStrategies.simpleLongSortedSetAllowCollisionsMerger
+                mergedBeforeNode
+                        .withInEdgeIdentifiers(MemberMergeStrategies.simpleLongSortedSetMerger
                                 .apply(leftInEdgeIdentifiers, rightInEdgeIdentifiers));
             }
             if (!leftOutEdgeIdentifiers.equals(rightOutEdgeIdentifiers))
             {
-                mergedBeforeNode.withOutEdgeIdentifiers(
-                        MemberMergeStrategies.simpleLongSortedSetAllowCollisionsMerger
+                mergedBeforeNode
+                        .withOutEdgeIdentifiers(MemberMergeStrategies.simpleLongSortedSetMerger
                                 .apply(leftOutEdgeIdentifiers, rightOutEdgeIdentifiers));
             }
             return new FeatureChange(ChangeType.REMOVE, left.getAfterView(), mergedBeforeNode);
@@ -273,9 +278,13 @@ public final class FeatureChangeMergingHelpers
                 .withAfterEntityLeft(afterEntityLeft).withBeforeEntityRight(beforeEntityRight)
                 .withAfterEntityRight(afterEntityRight)
                 .withMemberExtractor(atlasEntity -> ((Area) atlasEntity).asPolygon())
+                .withAfterViewNoBeforeMerger(MemberMergeStrategies.autofailBinaryPolygonMerger)
                 .withAfterViewConsistentBeforeViewMerger(
                         MemberMergeStrategies.diffBasedPolygonMerger)
-                .build().mergeMember();
+                .withAfterViewConflictingBeforeViewMerger(
+                        MemberMergeStrategies.autofailQuaternaryPolygonMerger)
+                .withBeforeViewMerger(MemberMergeStrategies.autofailBinaryPolygonMerger).build()
+                .mergeMember();
 
         final CompleteArea mergedAfterArea = new CompleteArea(left.getIdentifier(),
                 mergedPolygonBean.getMergedAfterMember(), mergedTagsBean.getMergedAfterMember(),
@@ -329,8 +338,12 @@ public final class FeatureChangeMergingHelpers
                 .withAfterEntityRight(afterEntityRight)
                 .withMemberExtractor(edge -> ((Edge) edge).start() == null ? null
                         : ((Edge) edge).start().getIdentifier())
+                .withAfterViewNoBeforeMerger(MemberMergeStrategies.autofailBinaryLongMerger)
                 .withAfterViewConsistentBeforeViewMerger(MemberMergeStrategies.diffBasedLongMerger)
-                .build().mergeMember();
+                .withAfterViewConflictingBeforeViewMerger(
+                        MemberMergeStrategies.autofailQuaternaryLongMerger)
+                .withBeforeViewMerger(MemberMergeStrategies.autofailBinaryLongMerger).build()
+                .mergeMember();
 
         final MergedMemberBean<Long> mergedEndNodeIdentifierBean = new MemberMerger.Builder<Long>()
                 .withMemberName("endNode").withBeforeEntityLeft(beforeEntityLeft)
@@ -338,8 +351,12 @@ public final class FeatureChangeMergingHelpers
                 .withAfterEntityRight(afterEntityRight)
                 .withMemberExtractor(edge -> ((Edge) edge).end() == null ? null
                         : ((Edge) edge).end().getIdentifier())
+                .withAfterViewNoBeforeMerger(MemberMergeStrategies.autofailBinaryLongMerger)
                 .withAfterViewConsistentBeforeViewMerger(MemberMergeStrategies.diffBasedLongMerger)
-                .build().mergeMember();
+                .withAfterViewConflictingBeforeViewMerger(
+                        MemberMergeStrategies.autofailQuaternaryLongMerger)
+                .withBeforeViewMerger(MemberMergeStrategies.autofailBinaryLongMerger).build()
+                .mergeMember();
 
         final CompleteEdge mergedAfterEdge = new CompleteEdge(left.getIdentifier(),
                 mergedPolyLineBean.getMergedAfterMember(), mergedTagsBean.getMergedAfterMember(),
@@ -400,9 +417,13 @@ public final class FeatureChangeMergingHelpers
                 .withAfterEntityLeft(afterEntityLeft).withBeforeEntityRight(beforeEntityRight)
                 .withAfterEntityRight(afterEntityRight)
                 .withMemberExtractor(atlasEntity -> ((LineItem) atlasEntity).asPolyLine())
+                .withAfterViewNoBeforeMerger(MemberMergeStrategies.autofailBinaryPolyLineMerger)
                 .withAfterViewConsistentBeforeViewMerger(
                         MemberMergeStrategies.diffBasedPolyLineMerger)
-                .build().mergeMember();
+                .withAfterViewConflictingBeforeViewMerger(
+                        MemberMergeStrategies.autofailQuaternaryPolyLineMerger)
+                .withBeforeViewMerger(MemberMergeStrategies.autofailBinaryPolyLineMerger).build()
+                .mergeMember();
 
         if (afterEntityLeft instanceof Edge)
         {
@@ -494,9 +515,13 @@ public final class FeatureChangeMergingHelpers
                 .withAfterEntityLeft(afterEntityLeft).withBeforeEntityRight(beforeEntityRight)
                 .withAfterEntityRight(afterEntityRight)
                 .withMemberExtractor(atlasEntity -> ((LocationItem) atlasEntity).getLocation())
+                .withAfterViewNoBeforeMerger(MemberMergeStrategies.autofailBinaryLocationMerger)
                 .withAfterViewConsistentBeforeViewMerger(
                         MemberMergeStrategies.diffBasedLocationMerger)
-                .build().mergeMember();
+                .withAfterViewConflictingBeforeViewMerger(
+                        MemberMergeStrategies.autofailQuaternaryLocationMerger)
+                .withBeforeViewMerger(MemberMergeStrategies.autofailBinaryLocationMerger).build()
+                .mergeMember();
 
         if (afterEntityLeft instanceof Node)
         {
@@ -541,12 +566,12 @@ public final class FeatureChangeMergingHelpers
                 .withMemberExtractor(atlasEntity -> ((Node) atlasEntity).inEdges() == null ? null
                         : ((Node) atlasEntity).inEdges().stream().map(Edge::getIdentifier)
                                 .collect(Collectors.toCollection(TreeSet::new)))
-                .withAfterViewNoBeforeMerger(
-                        MemberMergeStrategies.simpleLongSortedSetAllowCollisionsMerger)
+                .withAfterViewNoBeforeMerger(MemberMergeStrategies.simpleLongSortedSetMerger)
                 .withAfterViewConsistentBeforeViewMerger(
                         MemberMergeStrategies.diffBasedLongSortedSetMerger)
-                .withBeforeViewMerger(
-                        MemberMergeStrategies.simpleLongSortedSetAllowCollisionsMerger)
+                .withAfterViewConflictingBeforeViewMerger(
+                        MemberMergeStrategies.autofailQuaternaryLongSortedSetMerger)
+                .withBeforeViewMerger(MemberMergeStrategies.simpleLongSortedSetMerger)
                 .useHackForMergingConflictingConnectedEdgeSetBeforeViews(
                         (CompleteNode) afterEntityLeft, (CompleteNode) afterEntityRight)
                 .build().mergeMember();
@@ -558,12 +583,12 @@ public final class FeatureChangeMergingHelpers
                 .withMemberExtractor(atlasEntity -> ((Node) atlasEntity).outEdges() == null ? null
                         : ((Node) atlasEntity).outEdges().stream().map(Edge::getIdentifier)
                                 .collect(Collectors.toCollection(TreeSet::new)))
-                .withAfterViewNoBeforeMerger(
-                        MemberMergeStrategies.simpleLongSortedSetAllowCollisionsMerger)
+                .withAfterViewNoBeforeMerger(MemberMergeStrategies.simpleLongSortedSetMerger)
                 .withAfterViewConsistentBeforeViewMerger(
                         MemberMergeStrategies.diffBasedLongSortedSetMerger)
-                .withBeforeViewMerger(
-                        MemberMergeStrategies.simpleLongSortedSetAllowCollisionsMerger)
+                .withAfterViewConflictingBeforeViewMerger(
+                        MemberMergeStrategies.autofailQuaternaryLongSortedSetMerger)
+                .withBeforeViewMerger(MemberMergeStrategies.simpleLongSortedSetMerger)
                 .useHackForMergingConflictingConnectedEdgeSetBeforeViews(
                         (CompleteNode) afterEntityLeft, (CompleteNode) afterEntityRight)
                 .build().mergeMember();
@@ -580,12 +605,12 @@ public final class FeatureChangeMergingHelpers
          * simple merge will always succeed, since the sets are key only.
          */
         mergedAfterNode.setExplicitlyExcludedInEdgeIdentifiers(
-                MemberMergeStrategies.simpleLongSetAllowCollisionsMerger.apply(
+                MemberMergeStrategies.simpleLongSetMerger.apply(
                         ((CompleteNode) afterEntityLeft).explicitlyExcludedInEdgeIdentifiers(),
                         ((CompleteNode) afterEntityRight).explicitlyExcludedInEdgeIdentifiers()));
 
         mergedAfterNode.setExplicitlyExcludedOutEdgeIdentifiers(
-                MemberMergeStrategies.simpleLongSetAllowCollisionsMerger.apply(
+                MemberMergeStrategies.simpleLongSetMerger.apply(
                         ((CompleteNode) afterEntityLeft).explicitlyExcludedOutEdgeIdentifiers(),
                         ((CompleteNode) afterEntityRight).explicitlyExcludedOutEdgeIdentifiers()));
 
@@ -686,7 +711,7 @@ public final class FeatureChangeMergingHelpers
                         MemberMergeStrategies.diffBasedRelationBeanMerger)
                 .withAfterViewConflictingBeforeViewMerger(
                         MemberMergeStrategies.conflictingBeforeViewRelationBeanMerger)
-                .withBeforeViewMerger(MemberMergeStrategies.beforeViewRelationBeanMerger).build()
+                .withBeforeViewMerger(MemberMergeStrategies.simpleRelationBeanMerger).build()
                 .mergeMember();
 
         final MergedMemberBean<Set<Long>> mergedAllRelationsWithSameOsmIdentifierBean = new MemberMerger.Builder<Set<Long>>()
@@ -699,11 +724,13 @@ public final class FeatureChangeMergingHelpers
                                 : ((Relation) atlasEntity).allRelationsWithSameOsmIdentifier()
                                         .stream().map(Relation::getIdentifier)
                                         .collect(Collectors.toSet()))
-                .withAfterViewNoBeforeMerger(
-                        MemberMergeStrategies.simpleLongSetAllowCollisionsMerger)
+                .withAfterViewNoBeforeMerger(MemberMergeStrategies.simpleLongSetMerger)
                 .withAfterViewConsistentBeforeViewMerger(
                         MemberMergeStrategies.diffBasedLongSetMerger)
-                .build().mergeMember();
+                .withAfterViewConflictingBeforeViewMerger(
+                        MemberMergeStrategies.autofailQuaternaryLongSetMerger)
+                .withBeforeViewMerger(MemberMergeStrategies.autofailBinaryLongSetMerger).build()
+                .mergeMember();
 
         final MergedMemberBean<RelationBean> mergedAllKnownMembersBean = new MemberMerger.Builder<RelationBean>()
                 .withMemberName("allKnownOsmMembers").withBeforeEntityLeft(beforeEntityLeft)
@@ -715,7 +742,9 @@ public final class FeatureChangeMergingHelpers
                 .withAfterViewNoBeforeMerger(MemberMergeStrategies.simpleRelationBeanMerger)
                 .withAfterViewConsistentBeforeViewMerger(
                         MemberMergeStrategies.diffBasedRelationBeanMerger)
-                .withBeforeViewMerger(MemberMergeStrategies.beforeViewRelationBeanMerger).build()
+                .withAfterViewConflictingBeforeViewMerger(
+                        MemberMergeStrategies.conflictingBeforeViewRelationBeanMerger)
+                .withBeforeViewMerger(MemberMergeStrategies.simpleRelationBeanMerger).build()
                 .mergeMember();
 
         final MergedMemberBean<Long> mergedOsmRelationIdentifier = new MemberMerger.Builder<Long>()
@@ -723,8 +752,12 @@ public final class FeatureChangeMergingHelpers
                 .withAfterEntityLeft(afterEntityLeft).withBeforeEntityRight(beforeEntityRight)
                 .withAfterEntityRight(afterEntityRight)
                 .withMemberExtractor(entity -> ((Relation) entity).osmRelationIdentifier())
+                .withAfterViewNoBeforeMerger(MemberMergeStrategies.autofailBinaryLongMerger)
                 .withAfterViewConsistentBeforeViewMerger(MemberMergeStrategies.diffBasedLongMerger)
-                .build().mergeMember();
+                .withAfterViewConflictingBeforeViewMerger(
+                        MemberMergeStrategies.autofailQuaternaryLongMerger)
+                .withBeforeViewMerger(MemberMergeStrategies.autofailBinaryLongMerger).build()
+                .mergeMember();
 
         final Rectangle mergedBounds = Rectangle.forLocated(afterEntityLeft, afterEntityRight);
 

@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
  *
  * @author cstaylor
  * @author ahsieh
+ * @author bbreithaupt
  */
 @Tag(Validation.ISO3_COUNTRY)
 public interface ISOCountryTag

@@ -25,13 +25,11 @@ import org.openstreetmap.atlas.utilities.compression.IntegerDictionary;
  */
 public class PackedTagStore implements Serializable, ProtoSerializable
 {
-    private static final long serialVersionUID = -5240324410665237846L;
-
     // Keep track of the field names for reflection code in the ProtoAdapter
     public static final String FIELD_KEYS = "keys";
     public static final String FIELD_VALUES = "values";
     public static final String FIELD_INDEX = "index";
-
+    private static final long serialVersionUID = -5240324410665237846L;
     private final IntegerArrayOfArrays keys;
     private final IntegerArrayOfArrays values;
     private transient IntegerDictionary<String> dictionary;
@@ -217,14 +215,6 @@ public class PackedTagStore implements Serializable, ProtoSerializable
     }
 
     /**
-     * @return The dictionary for keys
-     */
-    public IntegerDictionary<String> keysDictionary()
-    {
-        return this.dictionary;
-    }
-
-    /**
      * @param index
      *            The index to look for
      * @return All the keys at a specified index
@@ -262,6 +252,14 @@ public class PackedTagStore implements Serializable, ProtoSerializable
             result.put(keysDictionary().word(keyIndex), valuesDictionary().word(valueIndex));
         }
         return result;
+    }
+
+    /**
+     * @return The dictionary for keys
+     */
+    public IntegerDictionary<String> keysDictionary()
+    {
+        return this.dictionary;
     }
 
     public void setDictionary(final IntegerDictionary<String> dictionary)

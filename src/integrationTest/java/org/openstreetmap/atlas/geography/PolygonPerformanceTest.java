@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openstreetmap.atlas.utilities.scalars.Duration;
 import org.openstreetmap.atlas.utilities.time.Time;
@@ -69,6 +70,7 @@ public class PolygonPerformanceTest
                 overallTotalTimeWithBoundCheck, overallTotalTimeWithoutBoundCheck, iteration);
     }
 
+    @Ignore
     @Test
     public void testPerformance() throws Exception
     {

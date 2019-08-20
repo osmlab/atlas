@@ -46,7 +46,7 @@ public abstract class SingleLineMonitor extends RunScriptMonitor
                 final Optional<String> resultOption = parseResult(line);
                 if (resultOption.isPresent())
                 {
-                    synchronized (this.getClass())
+                    synchronized (SingleLineMonitor.class)
                     {
                         if (!this.result.isPresent())
                         {
