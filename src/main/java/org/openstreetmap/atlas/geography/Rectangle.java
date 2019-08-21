@@ -561,8 +561,13 @@ public final class Rectangle extends Polygon
      */
     public Angle width()
     {
-        return Angle.dm7(
-                this.upperRight.getLongitude().asDm7() - this.lowerLeft.getLongitude().asDm7());
+        long dm7Difference = this.upperRight.getLongitude().asDm7()
+                - this.lowerLeft.getLongitude().asDm7();
+        if (dm7Difference >= Angle.REVOLUTION_DM7)
+        {
+            dm7Difference = Angle.REVOLUTION_DM7 - 1;
+        }
+        return Angle.dm7(dm7Difference);
     }
 
     protected Rectangle2D asAwtRectangle()
