@@ -178,5 +178,14 @@ public class RectangleTest
         Assert.assertTrue(surface.isLessThan(this.rectangle3.surface()));
         Assert.assertTrue(this.rectangle1.surface().add(this.rectangle2.surface())
                 .isLessThan(this.rectangle3.surface()));
+
+        Assert.assertEquals(6479999998200000000L, Rectangle.MAXIMUM.surface().asDm7Squared());
+    }
+
+    @Test
+    public void testWidth()
+    {
+        Assert.assertEquals(50160, this.rectangle1.width().asDm7());
+        Assert.assertEquals(-1, Rectangle.MAXIMUM.width().asDm7());
     }
 }
