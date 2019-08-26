@@ -14,7 +14,7 @@ Each shard is a bounding box referenced with a zoom-level, x and y coordinates. 
 
 Example: Invoke with `Sharding.forString("dynamic@file:///path/to/tree.txt");`
 
-# GeohashSharding
+## GeohashSharding
 
 Each shard is a bounding box referenced with a geohash encoded string. All shards have the same precision and the same size.
 
