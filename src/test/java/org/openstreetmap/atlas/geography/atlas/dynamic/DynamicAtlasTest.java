@@ -68,6 +68,13 @@ public class DynamicAtlasTest
     }
 
     @Test
+    public void testGetPolicy()
+    {
+        Assert.assertEquals(this.policySupplier.get().getInitialShards(),
+                this.dynamicAtlas.getPolicy().getInitialShards());
+    }
+
+    @Test
     public void testLoadAreaByIdentifier()
     {
         // Already loaded: 12-1350-1870

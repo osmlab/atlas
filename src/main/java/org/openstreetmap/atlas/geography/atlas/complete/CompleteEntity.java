@@ -251,6 +251,13 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
     ItemType getType();
 
     /**
+     * A full {@link CompleteEntity} is one one that contains a non-null value for all its fields.
+     *
+     * @return if this entity is full
+     */
+    boolean isFull();
+
+    /**
      * A shallow {@link CompleteEntity} is one that contains only its identifier as effective data.
      *
      * @return if this entity is shallow

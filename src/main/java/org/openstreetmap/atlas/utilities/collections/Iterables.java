@@ -9,13 +9,16 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Function;
+import java.util.function.LongFunction;
 import java.util.function.Predicate;
+import java.util.function.ToLongFunction;
 import java.util.stream.StreamSupport;
 
 /**
@@ -33,11 +36,11 @@ public final class Iterables
      *            where to add the items
      * @param from
      *            where to get the items
-     * @param <Type>
+     * @param <T>
      *            what kind of objects we're copying
      * @return true if addHere has changed, false otherwise
      */
-    public static <Type> boolean addAll(final Collection<Type> addHere, final Iterable<Type> from)
+    public static <T> boolean addAll(final Collection<T> addHere, final Iterable<T> from)
     {
         final int oldSize = addHere.size();
         StreamSupport.stream(from.spliterator(), false).forEach(addHere::add);
@@ -49,13 +52,13 @@ public final class Iterables
      *
      * @param types
      *            The {@link Iterable} to strip down
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
      * @return The translated {@link Iterable}
      */
-    public static <Type> Iterable<Type> asIterable(final Iterable<Type> types)
+    public static <T> Iterable<T> asIterable(final Iterable<T> types)
     {
-        return () -> types.iterator();
+        return types::iterator;
     }
 
     /**
@@ -63,21 +66,18 @@ public final class Iterables
      *
      * @param types
      *            The {@link Iterable} to translate
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
      * @return The translated {@link Iterable}
      */
-    public static <Type> List<Type> asList(final Iterable<Type> types)
+    public static <T> List<T> asList(final Iterable<T> types)
     {
         if (types instanceof List)
         {
-            return (List<Type>) types;
+            return (List<T>) types;
         }
-        final List<Type> result = new ArrayList<>();
-        types.forEach(type ->
-        {
-            result.add(type);
-        });
+        final List<T> result = new ArrayList<>();
+        types.forEach(result::add);
         return result;
     }
 
@@ -86,14 +86,14 @@ public final class Iterables
      *
      * @param types
      *            The {@link Iterable} to translate
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
      * @return The translated {@link Iterable}
      */
-    public static <Type> List<Type> asList(final Type[] types)
+    public static <T> List<T> asList(final T[] types)
     {
-        final List<Type> result = new ArrayList<>();
-        for (final Type type : types)
+        final List<T> result = new ArrayList<>();
+        for (final T type : types)
         {
             result.add(type);
         }
@@ -105,16 +105,15 @@ public final class Iterables
      *
      * @param types
      *            The {@link Iterable} to translate
-     * @param <TypeKey>
+     * @param <K>
      *            The type of key of the entry
-     * @param <TypeValue>
+     * @param <V>
      *            The type of value of the entry
      * @return The translated {@link Iterable}
      */
-    public static <TypeKey, TypeValue> Map<TypeKey, TypeValue> asMap(
-            final Iterable<Map.Entry<TypeKey, TypeValue>> types)
+    public static <K, V> Map<K, V> asMap(final Iterable<Map.Entry<K, V>> types)
     {
-        final Map<TypeKey, TypeValue> result = new HashMap<>();
+        final Map<K, V> result = new HashMap<>();
         types.forEach(entry -> result.put(entry.getKey(), entry.getValue()));
         return result;
     }
@@ -124,17 +123,14 @@ public final class Iterables
      *
      * @param types
      *            The {@link Iterable} to translate
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
      * @return The translated {@link Iterable}
      */
-    public static <Type> Queue<Type> asQueue(final Iterable<Type> types)
+    public static <T> Queue<T> asQueue(final Iterable<T> types)
     {
-        final Queue<Type> result = new LinkedList<>();
-        types.forEach(type ->
-        {
-            result.add(type);
-        });
+        final Queue<T> result = new LinkedList<>();
+        types.forEach(result::add);
         return result;
     }
 
@@ -143,17 +139,14 @@ public final class Iterables
      *
      * @param types
      *            The {@link Iterable} to translate
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
      * @return The translated {@link Iterable}
      */
-    public static <Type> Set<Type> asSet(final Iterable<Type> types)
+    public static <T> Set<T> asSet(final Iterable<T> types)
     {
-        final Set<Type> result = new HashSet<>();
-        types.forEach(type ->
-        {
-            result.add(type);
-        });
+        final Set<T> result = new HashSet<>();
+        types.forEach(result::add);
         return result;
     }
 
@@ -162,14 +155,14 @@ public final class Iterables
      *
      * @param types
      *            The {@link Iterable} to translate
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
      * @return The translated {@link Iterable}
      */
-    public static <Type> Set<Type> asSet(final Type[] types)
+    public static <T> Set<T> asSet(final T[] types)
     {
-        final Set<Type> result = new HashSet<>();
-        for (final Type type : types)
+        final Set<T> result = new HashSet<>();
+        for (final T type : types)
         {
             result.add(type);
         }
@@ -181,17 +174,14 @@ public final class Iterables
      *
      * @param types
      *            The {@link Iterable} to translate
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
      * @return The translated {@link Iterable}
      */
-    public static <Type> SortedSet<Type> asSortedSet(final Iterable<Type> types)
+    public static <T> SortedSet<T> asSortedSet(final Iterable<T> types)
     {
-        final SortedSet<Type> result = new TreeSet<>();
-        types.forEach(type ->
-        {
-            result.add(type);
-        });
+        final SortedSet<T> result = new TreeSet<>();
+        types.forEach(result::add);
         return result;
     }
 
@@ -202,17 +192,17 @@ public final class Iterables
      *            The {@link Iterable} to test
      * @param type
      *            The item to test
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
      * @return True if the {@link Iterable} iterates at some point on the item.
      */
-    public static <Type> boolean contains(final Iterable<Type> types, final Type type)
+    public static <T> boolean contains(final Iterable<T> types, final T type)
     {
         if (types instanceof Collection)
         {
-            return ((Collection<Type>) types).contains(type);
+            return ((Collection<T>) types).contains(type);
         }
-        for (final Type candidate : types)
+        for (final T candidate : types)
         {
             if (candidate.equals(type))
             {
@@ -229,17 +219,16 @@ public final class Iterables
      *            The {@link Iterable} of input type
      * @param typeCounter
      *            The function from type to count
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
      * @return The total count
      */
-    public static <Type> long count(final Iterable<Type> types,
-            final Function<Type, Long> typeCounter)
+    public static <T> long count(final Iterable<T> types, final ToLongFunction<T> typeCounter)
     {
         long result = 0;
-        for (final Type type : types)
+        for (final T type : types)
         {
-            result += typeCounter.apply(type);
+            result += typeCounter.applyAsLong(type);
         }
         return result;
     }
@@ -247,13 +236,13 @@ public final class Iterables
     /**
      * @param example
      *            A random object to specify the type
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
      * @return An empty {@link Iterable} of the right type
      */
-    public static <Type> Iterable<Type> emptyIterable(final Type example)
+    public static <T> Iterable<T> emptyIterable(final T example) // NOSONAR
     {
-        return () -> new Iterator<Type>()
+        return () -> new Iterator<T>()
         {
             @Override
             public boolean hasNext()
@@ -262,9 +251,9 @@ public final class Iterables
             }
 
             @Override
-            public Type next()
+            public T next()
             {
-                return null;
+                throw new NoSuchElementException();
             }
         };
     }
@@ -276,11 +265,11 @@ public final class Iterables
      *            The first {@link Iterable}
      * @param other
      *            The second iterable
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
      * @return True if the two {@link Iterable}s iterate on the same items.
      */
-    public static <Type> boolean equals(final Iterable<Type> that, final Iterable<Type> other)
+    public static <T> boolean equals(final Iterable<T> that, final Iterable<T> other)
     {
         // Handle null iterables
         // If they are both null, then equal
@@ -299,8 +288,8 @@ public final class Iterables
         {
             return false;
         }
-        final Iterator<Type> thatIterator = that.iterator();
-        final Iterator<Type> otherIterator = other.iterator();
+        final Iterator<T> thatIterator = that.iterator();
+        final Iterator<T> otherIterator = other.iterator();
         while (thatIterator.hasNext())
         {
             if (!thatIterator.next().equals(otherIterator.next()))
@@ -318,12 +307,11 @@ public final class Iterables
      *            The {@link Iterable} to filter
      * @param matcher
      *            The {@link Predicate} used to filter
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
      * @return The filtered {@link Iterable}
      */
-    public static <Type> Iterable<Type> filter(final Iterable<Type> input,
-            final Predicate<Type> matcher)
+    public static <T> Iterable<T> filter(final Iterable<T> input, final Predicate<T> matcher)
     {
         return filterTranslate(input, item -> item, matcher);
     }
@@ -336,49 +324,48 @@ public final class Iterables
      * @param filterSet
      *            A set of identifiers for elements to skip (can be empty or have members)
      * @param identifier
-     *            A function that takes an element of Type for the {@link Iterable} and returns the
+     *            A function that takes an element of T for the {@link Iterable} and returns the
      *            identifier for that element
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
-     * @param <IdentifierType>
+     * @param <I>
      *            The type of the Identifier object for the elements in the {@link Iterable}
      * @return The translated {@link Iterable}
      */
-    public static <Type, IdentifierType> FilteredIterable<Type, IdentifierType> filter(
-            final Iterable<Type> types, final Set<IdentifierType> filterSet,
-            final Function<Type, IdentifierType> identifier)
+    public static <T, I> FilteredIterable<T, I> filter(final Iterable<T> types,
+            final Set<I> filterSet, final Function<T, I> identifier)
     {
         return new FilteredIterable<>(types, filterSet, identifier);
     }
 
     /**
-     * Translate an {@link Iterable} of type TypeIn to an {@link Iterable} of type TypeOut.
+     * Translate an {@link Iterable} of type I to an {@link Iterable} of type O.
      *
      * @param input
      *            The input {@link Iterable}
      * @param converter
-     *            The converter from TypeIn to TypeOut
+     *            The converter from I to O
      * @param matcher
-     *            A {@link Predicate} on TypeIn that filters only the items to match
-     * @param <TypeIn>
+     *            A {@link Predicate} on I that filters only the items to match
+     * @param <I>
      *            The type of the input {@link Iterable}
-     * @param <TypeOut>
+     * @param <O>
      *            The type of the output {@link Iterable}
-     * @return The {@link Iterable} of TypeOut
+     * @return The {@link Iterable} of O
      */
-    public static <TypeIn, TypeOut> Iterable<TypeOut> filterTranslate(final Iterable<TypeIn> input,
-            final Function<TypeIn, TypeOut> converter, final Predicate<TypeIn> matcher)
+    public static <I, O> Iterable<O> filterTranslate(final Iterable<I> input,
+            final Function<I, O> converter, final Predicate<I> matcher)
     {
-        return new Iterable<TypeOut>()
+        return new Iterable<O>()
         {
             @Override
-            public Iterator<TypeOut> iterator()
+            public Iterator<O> iterator()
             {
-                return new Iterator<TypeOut>()
+                return new Iterator<O>()
                 {
                     private boolean consumed = true;
-                    private final Iterator<TypeIn> iterator = input.iterator();
-                    private TypeIn next = null;
+                    private final Iterator<I> iterator = input.iterator();
+                    private I next = null;
                     private boolean valid = false;
 
                     @Override
@@ -399,14 +386,14 @@ public final class Iterables
                     }
 
                     @Override
-                    public TypeOut next()
+                    public O next()
                     {
                         if (hasNext())
                         {
                             this.consumed = true;
                             return converter.apply(this.next);
                         }
-                        return null;
+                        throw new NoSuchElementException();
                     }
                 };
             }
@@ -414,6 +401,7 @@ public final class Iterables
             @SuppressWarnings("unused")
             public void useless()
             {
+                // Unused
             }
         };
     }
@@ -423,11 +411,11 @@ public final class Iterables
      *
      * @param types
      *            The items
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
      * @return The first element in the {@link Iterable}, or empty if none.
      */
-    public static <Type> Optional<Type> first(final Iterable<Type> types)
+    public static <T> Optional<T> first(final Iterable<T> types)
     {
         return nth(types, 0);
     }
@@ -442,13 +430,13 @@ public final class Iterables
      *
      * @param types
      *            The {@link Enumeration}
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
      * @return The translated {@link Iterable}
      */
-    public static <Type> Iterable<Type> from(final Enumeration<Type> types)
+    public static <T> Iterable<T> from(final Enumeration<T> types)
     {
-        return () -> new Iterator<Type>()
+        return () -> new Iterator<T>()
         {
             @Override
             public boolean hasNext()
@@ -457,8 +445,12 @@ public final class Iterables
             }
 
             @Override
-            public Type next()
+            public T next()
             {
+                if (!hasNext())
+                {
+                    throw new NoSuchElementException();
+                }
                 return types.nextElement();
             }
         };
@@ -469,12 +461,12 @@ public final class Iterables
      *
      * @param types
      *            The 0 to many array of items to include
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
      * @return The translated {@link Iterable}
      */
     @SafeVarargs
-    public static <Type> Iterable<Type> from(final Type... types)
+    public static <T> Iterable<T> from(final T... types)
     {
         return asList(types);
     }
@@ -484,14 +476,50 @@ public final class Iterables
      *
      * @param types
      *            The items
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
      * @return The head element in the {@link Iterable}, or null if none.
      */
-    public static <Type> Type head(final Iterable<Type> types)
+    public static <T> T head(final Iterable<T> types)
     {
-        final Iterator<Type> iterator = types.iterator();
+        final Iterator<T> iterator = types.iterator();
         return iterator.hasNext() ? iterator.next() : null;
+    }
+
+    /**
+     * Get an {@link Iterable} based on something that can return the value at a specific index.
+     *
+     * @param size
+     *            The total size of the collection
+     * @param supplier
+     *            The provider of the value based on the index
+     * @param <T>
+     *            The type to return within the {@link Iterable}
+     * @return The index based {@link Iterable}
+     */
+    public static <T> Iterable<T> indexBasedIterable(final long size,
+            final LongFunction<T> supplier)
+    {
+        return () -> new Iterator<T>()
+        {
+            private long index = 0L;
+
+            @Override
+            public boolean hasNext()
+            {
+                return this.index < size;
+            }
+
+            @Override
+            public T next()
+            {
+                if (!hasNext())
+                {
+                    throw new NoSuchElementException();
+                }
+                return supplier.apply(this.index++);
+            }
+        };
     }
 
     /**
@@ -515,33 +543,13 @@ public final class Iterables
      *
      * @param types
      *            The items
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
      * @return An {@link Iterable} of items.
      */
-    public static <Type> Iterable<Type> iterable(@SuppressWarnings("unchecked") final Type... types)
+    public static <T> Iterable<T> iterable(@SuppressWarnings("unchecked") final T... types)
     {
-        return () -> new Iterator<Type>()
-        {
-            private int index = 0;
-            private final int max = types.length;
-
-            @Override
-            public boolean hasNext()
-            {
-                return this.index < this.max;
-            }
-
-            @Override
-            public Type next()
-            {
-                if (this.index < this.max)
-                {
-                    return types[this.index++];
-                }
-                return null;
-            }
-        };
+        return indexBasedIterable(types.length, index -> types[(int) index]);
     }
 
     /**
@@ -551,15 +559,15 @@ public final class Iterables
      *            The item to place in the head position
      * @param tail
      *            The items positioned after the head
-     * @param <Type>
+     * @param <T>
      *            The type of the head and tail {@link Iterable}
      * @return An {@link Iterable}
      */
-    public static <Type> Iterable<Type> join(final Type head, final Iterable<Type> tail)
+    public static <T> Iterable<T> join(final T head, final Iterable<T> tail)
     {
-        return () -> new Iterator<Type>()
+        return () -> new Iterator<T>()
         {
-            private final Iterator<Type> tailIterator = tail.iterator();
+            private final Iterator<T> tailIterator = tail.iterator();
             private boolean headConsumed = false;
 
             @Override
@@ -569,7 +577,7 @@ public final class Iterables
             }
 
             @Override
-            public Type next()
+            public T next()
             {
                 if (this.headConsumed)
                 {
@@ -596,7 +604,7 @@ public final class Iterables
         if (types instanceof List)
         {
             final List<T> list = (List<T>) types;
-            if (list.size() >= 1)
+            if (!list.isEmpty())
             {
                 result = list.get(list.size() - 1);
             }
@@ -623,16 +631,16 @@ public final class Iterables
      *            The items
      * @param index
      *            The index at which to pick
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
      * @return The first element in the {@link Iterable}, or empty if the iterable has no element at
      *         this index.
      */
-    public static <Type> Optional<Type> nth(final Iterable<Type> types, final long index)
+    public static <T> Optional<T> nth(final Iterable<T> types, final long index)
     {
         long counter = 0L;
-        final Iterator<Type> iterator = types.iterator();
-        Type result = iterator.hasNext() ? iterator.next() : null;
+        final Iterator<T> iterator = types.iterator();
+        T result = iterator.hasNext() ? iterator.next() : null;
         while (counter++ < index)
         {
             if (iterator.hasNext())
@@ -653,18 +661,18 @@ public final class Iterables
      *
      * @param source
      *            The {@link Iterable} to use as source
-     * @param <Type>
+     * @param <T>
      *            The type of the source {@link Iterable}
      * @return The corresponding {@link StreamIterable}
      */
-    public static <Type> StreamIterable<Type> parallelStream(final Iterable<Type> source)
+    public static <T> StreamIterable<T> parallelStream(final Iterable<T> source)
     {
         return new StreamIterable<>(source, true);
     }
 
     public static <T> void print(final Iterable<T> input, final String name)
     {
-        System.out.println(toString(input, name));
+        System.out.println(toString(input, name)); // NOSONAR
     }
 
     /**
@@ -672,17 +680,17 @@ public final class Iterables
      * of {@link Collection}, then it reads the size from it directly; it will not iterate
      * unnecessarily.
      *
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
      * @param types
      *            The input {@link Iterable}
      * @return The size of the {@link Iterable}
      */
-    public static <Type> long size(final Iterable<Type> types)
+    public static <T> long size(final Iterable<T> types)
     {
         if (types instanceof Collection)
         {
-            return ((Collection<Type>) types).size();
+            return ((Collection<T>) types).size();
         }
         return count(types, type -> 1L);
     }
@@ -692,11 +700,11 @@ public final class Iterables
      *
      * @param source
      *            The {@link Iterable} to use as source
-     * @param <Type>
+     * @param <T>
      *            The type of the source {@link Iterable}
      * @return The corresponding {@link StreamIterable}
      */
-    public static <Type> StreamIterable<Type> stream(final Iterable<Type> source)
+    public static <T> StreamIterable<T> stream(final Iterable<T> source)
     {
         return new StreamIterable<>(source);
     }
@@ -706,13 +714,13 @@ public final class Iterables
      *
      * @param types
      *            The items
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
      * @return An {@link Iterable}
      */
-    public static <Type> Iterable<Type> tail(final Iterable<Type> types)
+    public static <T> Iterable<T> tail(final Iterable<T> types)
     {
-        final Iterator<Type> iterator = types.iterator();
+        final Iterator<T> iterator = types.iterator();
         if (iterator.hasNext())
         {
             iterator.next();
@@ -725,12 +733,12 @@ public final class Iterables
      *
      * @param types
      *            The {@link Iterable} to translate
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
      * @return The translated {@link Iterable}
      */
     @SafeVarargs
-    public static <Type> List<Type> toList(final Type... types)
+    public static <T> List<T> toList(final T... types)
     {
         return asList(types);
     }
@@ -740,13 +748,13 @@ public final class Iterables
      *
      * @param input
      *            The input {@link Iterable}
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
      * @param name
      *            The name of the input {@link Iterable}
      * @return A {@link String} representation of the {@link Iterable}
      */
-    public static <Type> String toString(final Iterable<Type> input, final String name)
+    public static <T> String toString(final Iterable<T> input, final String name)
     {
         return toString(input, name, ", ");
     }
@@ -756,7 +764,7 @@ public final class Iterables
      *
      * @param input
      *            The input {@link Iterable}
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
      * @param name
      *            The name of the input {@link Iterable}
@@ -764,7 +772,7 @@ public final class Iterables
      *            The separator to use between each item in the input {@link Iterable}
      * @return A {@link String} representation of the {@link Iterable}
      */
-    public static <Type> String toString(final Iterable<Type> input, final String name,
+    public static <T> String toString(final Iterable<T> input, final String name,
             final String separator)
     {
         final StringBuilder builder = new StringBuilder();
@@ -772,7 +780,7 @@ public final class Iterables
         builder.append(name);
         builder.append(": ");
         long index = 0;
-        for (final Type type : input)
+        for (final T type : input)
         {
             if (index > 0)
             {
@@ -786,62 +794,61 @@ public final class Iterables
     }
 
     /**
-     * Translate an {@link Iterable} of type TypeIn to an {@link Iterable} of type TypeOut.
+     * Translate an {@link Iterable} of type I to an {@link Iterable} of type O.
      *
      * @param input
      *            The input {@link Iterable}
      * @param converter
-     *            The converter from TypeIn to TypeOut
-     * @param <TypeIn>
+     *            The converter from I to O
+     * @param <I>
      *            The type of the input {@link Iterable}
-     * @param <TypeOut>
+     * @param <O>
      *            The type of the output {@link Iterable}
-     * @return The {@link Iterable} of TypeOut
+     * @return The {@link Iterable} of O
      */
-    public static <TypeIn, TypeOut> Iterable<TypeOut> translate(final Iterable<TypeIn> input,
-            final Function<TypeIn, TypeOut> converter)
+    public static <I, O> Iterable<O> translate(final Iterable<I> input,
+            final Function<I, O> converter)
     {
         return filterTranslate(input, converter, item -> true);
     }
 
     /**
-     * Translate an {@link Iterable} of type TypeIn to an {@link Iterable} of type TypeOut.
+     * Translate an {@link Iterable} of type I to an {@link Iterable} of type O.
      *
      * @param input
      *            The input {@link Iterable}
      * @param converter
-     *            The converter from TypeIn to TypeOut
-     * @param <TypeIn>
+     *            The converter from I to O
+     * @param <I>
      *            The type of the input {@link Iterable}
-     * @param <TypeOut>
+     * @param <O>
      *            The type of the output {@link Iterable}
      * @param matcher
-     *            A {@link Predicate} on TypeOut that filters only the items to match
-     * @return The {@link Iterable} of TypeOut
+     *            A {@link Predicate} on O that filters only the items to match
+     * @return The {@link Iterable} of O
      */
-    public static <TypeIn, TypeOut> Iterable<TypeOut> translateFilter(final Iterable<TypeIn> input,
-            final Function<TypeIn, TypeOut> converter, final Predicate<TypeOut> matcher)
+    public static <I, O> Iterable<O> translateFilter(final Iterable<I> input,
+            final Function<I, O> converter, final Predicate<O> matcher)
     {
         return Iterables.filter(Iterables.translate(input, converter), matcher);
     }
 
     /**
-     * Translate an {@link Iterable} of type TypeIn to an {@link Iterable} of TypeOut where each
-     * converter yields multiple TypeOut for each TypeIn.
+     * Translate an {@link Iterable} of type I to an {@link Iterable} of O where each converter
+     * yields multiple O for each I.
      *
      * @param iterableIn
      *            The input {@link Iterable}
      * @param converter
-     *            The converter from TypeIn to multiple TypeOut
-     * @param <TypeIn>
+     *            The converter from I to multiple O
+     * @param <I>
      *            The type of the input {@link Iterable}
-     * @param <TypeOut>
+     * @param <O>
      *            The type of the output {@link Iterable}
-     * @return The {@link Iterable} of TypeOut
+     * @return The {@link Iterable} of O
      */
-    public static <TypeIn, TypeOut> Iterable<TypeOut> translateMulti(
-            final Iterable<TypeIn> iterableIn,
-            final Function<TypeIn, Iterable<? extends TypeOut>> converter)
+    public static <I, O> Iterable<O> translateMulti(final Iterable<I> iterableIn,
+            final Function<I, Iterable<? extends O>> converter)
     {
         return new MultiIterable<>(Iterables.translate(iterableIn, converter));
     }
@@ -855,11 +862,11 @@ public final class Iterables
      *            The index before which to truncate from the start
      * @param indexFromEnd
      *            The index after which to truncate from the end
-     * @param <Type>
+     * @param <T>
      *            The type of the {@link Iterable}
      * @return The truncated {@link Iterable}
      */
-    public static <Type> Iterable<Type> truncate(final Iterable<Type> types, final int startIndex,
+    public static <T> Iterable<T> truncate(final Iterable<T> types, final int startIndex,
             final int indexFromEnd)
     {
         return new SubIterable<>(types, startIndex, indexFromEnd);

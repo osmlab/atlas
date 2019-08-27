@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.utilities.time.Time;
 
 /**
  * @author matthieun
@@ -27,8 +28,8 @@ public class DurationTest
     @Test
     public void testEquals()
     {
-        Assert.assertTrue(Duration.seconds(3600).equals(Duration.hours(1)));
-        Assert.assertFalse(Duration.seconds(1.001).equals(Duration.seconds(1.002)));
+        Assert.assertEquals(Duration.seconds(3600), Duration.hours(1));
+        Assert.assertNotEquals(Duration.seconds(1.001), Duration.seconds(1.002));
     }
 
     @Test
@@ -42,6 +43,16 @@ public class DurationTest
         Assert.assertEquals(highest, lowest.highest(highest));
         Assert.assertEquals(highest, highest.highest(lowest));
         Assert.assertEquals(lowest, lowest.highest(null));
+    }
+
+    @Test
+    public void testSleep()
+    {
+        final Duration sleepTime = Duration.milliseconds(10);
+        final Time start = Time.now();
+        sleepTime.sleep();
+        final Duration elapsed = start.elapsedSince();
+        Assert.assertTrue(elapsed.isMoreThanOrEqualsTo(sleepTime));
     }
 
     @Test

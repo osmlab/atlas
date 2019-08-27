@@ -843,8 +843,16 @@ public class PolyLine
     {
         if (this.isPoint())
         {
-            logger.warn("Cannot compute a segment's heading when the polyline has zero length : {}",
-                    this);
+            logger.warn("Cannot compute a PolyLine's heading when it has zero length : {}", this);
+            return Optional.empty();
+        }
+        if (this.first().equals(this.last()))
+        {
+            if (logger.isWarnEnabled())
+            {
+                logger.warn("Cannot compute overall heading when the polyline has "
+                        + "same start and end locations : {}", this.first().toWkt());
+            }
             return Optional.empty();
         }
         return Optional.ofNullable(this.first().headingTo(this.last()));

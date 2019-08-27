@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
@@ -23,6 +25,9 @@ public class CompleteEdgeTest
 {
     @Rule
     public CompleteTestRule rule = new CompleteTestRule();
+
+    @Rule
+    public final ExpectedException expectedException = ExpectedException.none();
 
     @Test
     public void testBloatedEquals()
@@ -73,6 +78,16 @@ public class CompleteEdgeTest
     }
 
     @Test
+    public void testEdgeShallowCopyNullBounds()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("bounds were null");
+
+        final CompleteEdge edge = new CompleteEdge(1L, null, null, null, null, null);
+        CompleteEdge.shallowFrom(edge);
+    }
+
+    @Test
     public void testFull()
     {
         final Atlas atlas = this.rule.getAtlas();
@@ -89,6 +104,8 @@ public class CompleteEdgeTest
                         .collect(Collectors.toSet()),
                 result.relations().stream().map(Relation::getIdentifier)
                         .collect(Collectors.toSet()));
+
+        Assert.assertEquals(result, result.copy());
     }
 
     @Test
@@ -96,6 +113,16 @@ public class CompleteEdgeTest
     {
         final CompleteEdge superShallow = new CompleteEdge(123L, null, null, null, null, null);
         Assert.assertTrue(superShallow.isShallow());
+    }
+
+    @Test
+    public void testNonFullEdgeCopy()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("but it was not full");
+
+        final CompleteEdge edge = new CompleteEdge(1L, null, null, null, null, null);
+        CompleteEdge.from(edge);
     }
 
     @Test

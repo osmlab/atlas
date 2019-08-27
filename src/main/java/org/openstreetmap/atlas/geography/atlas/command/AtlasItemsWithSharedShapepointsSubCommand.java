@@ -11,6 +11,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Collection;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -120,7 +121,7 @@ public class AtlasItemsWithSharedShapepointsSubCommand extends AbstractAtlasSubC
     public void usage(final PrintStream writer)
     {
         writer.printf(AtlasCommandConstants.INPUT_PARAMETER_DESCRIPTION);
-        writer.printf("\t-output=/path/to/output/folder/for/each/country\n");
+        writer.printf("\t-output=/path/to/output/folder/for/each/country%n");
     }
 
     @Override
@@ -138,9 +139,13 @@ public class AtlasItemsWithSharedShapepointsSubCommand extends AbstractAtlasSubC
         final long totalErrors = this.countryToOSMids.asMap().values().parallelStream()
                 .flatMap(Collection::parallelStream).count();
         final NumberFormat formatter = DecimalFormat.getIntegerInstance();
-        logger.info("Completed: {} atlas files and found {} errors from {} countries took {}",
-                formatter.format(this.atlasFiles), formatter.format(totalErrors),
-                formatter.format(this.countryToOSMids.keySet().size()), this.start.elapsedSince());
+        if (logger.isInfoEnabled())
+        {
+            logger.info("Completed: {} atlas files and found {} errors from {} countries took {}",
+                    formatter.format(this.atlasFiles), formatter.format(totalErrors),
+                    formatter.format(this.countryToOSMids.keySet().size()),
+                    this.start.elapsedSince());
+        }
         return 0;
     }
 
@@ -153,14 +158,18 @@ public class AtlasItemsWithSharedShapepointsSubCommand extends AbstractAtlasSubC
         StreamSupport.stream(atlas.items().spliterator(), true).map(PolyLineTrouble::new)
                 .filter(PolyLineTrouble::hasDuplicatePoints).map(PolyLineTrouble::getOsmId)
                 .forEach(badOsmIDS::add);
-        final String countryName = atlas.metaData().getCountry().get();
-        badOsmIDS.stream().forEach(id ->
+        final Optional<String> countryNameOption = atlas.metaData().getCountry();
+        if (countryNameOption.isPresent())
         {
-            this.countryToOSMids.put(countryName, id);
-        });
-        if (!badOsmIDS.isEmpty())
-        {
-            logger.warn("Found {} overlaps in {}", badOsmIDS.size(), atlas.getName());
+            final String countryName = countryNameOption.get();
+            badOsmIDS.forEach(id ->
+            {
+                this.countryToOSMids.put(countryName, id);
+            });
+            if (!badOsmIDS.isEmpty())
+            {
+                logger.warn("Found {} overlaps in {}", badOsmIDS.size(), atlas.getName());
+            }
         }
     }
 

@@ -173,6 +173,11 @@ public class DynamicAtlas extends BareAtlas // NOSONAR
         return getShardsLoaded().size();
     }
 
+    public DynamicAtlasPolicy getPolicy()
+    {
+        return this.expander.getPolicy();
+    }
+
     /**
      * @return All the shards explored by this {@link DynamicAtlas} including the ones that yielded
      *         no Atlas.

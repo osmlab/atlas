@@ -16,6 +16,7 @@ import org.opengis.feature.Feature;
 import org.opengis.feature.Property;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.geometry.BoundingBox;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Latitude;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Location;
@@ -146,9 +147,17 @@ public class TimeZoneMap implements Located
                 boundary -> boundary.getPolygon().fullyGeometricallyEncloses(location));
 
         // if find polygons contain location
-        if (boundaries.size() >= 1)
+        if (!boundaries.isEmpty())
         {
-            return smallest(boundaries).getTimeZone();
+            final TimeZoneBoundary smallestBoundary = smallest(boundaries);
+            if (smallestBoundary != null)
+            {
+                return smallestBoundary.getTimeZone();
+            }
+            else
+            {
+                throw new CoreException("Could not find smallest time zone boundary.");
+            }
         }
 
         // expand bounding box by 12 * 2 nautical miles and search again
@@ -156,7 +165,7 @@ public class TimeZoneMap implements Located
         boundaries = this.index.get(larger);
 
         // return any found one
-        if (boundaries.size() >= 1)
+        if (!boundaries.isEmpty())
         {
             return boundaries.get(0).getTimeZone();
         }

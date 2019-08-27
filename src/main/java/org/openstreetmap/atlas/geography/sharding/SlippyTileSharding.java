@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography.sharding;
 
+import java.util.stream.Collectors;
+
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
@@ -23,11 +25,12 @@ public class SlippyTileSharding implements Sharding
     }
 
     @Override
-    public Iterable<SlippyTile> neighbors(final Shard shard)
+    public Iterable<Shard> neighbors(final Shard shard)
     {
         if (shard instanceof SlippyTile)
         {
-            return ((SlippyTile) shard).neighbors();
+            return ((SlippyTile) shard).neighbors().stream().map(neighbor -> (Shard) neighbor)
+                    .collect(Collectors.toSet());
         }
         else
         {
@@ -36,25 +39,28 @@ public class SlippyTileSharding implements Sharding
     }
 
     @Override
-    public Iterable<? extends Shard> shards(final GeometricSurface surface)
+    public Iterable<Shard> shards(final GeometricSurface surface)
     {
         return Iterables.stream(SlippyTile.allTiles(this.zoom, surface.bounds()))
-                .filter(slippyTile -> surface.overlaps(slippyTile.bounds()));
+                .filter(slippyTile -> surface.overlaps(slippyTile.bounds()))
+                .map(shard -> (Shard) shard);
     }
 
     @Override
-    public Iterable<? extends Shard> shardsCovering(final Location location)
+    public Iterable<Shard> shardsCovering(final Location location)
     {
         return Iterables.stream(SlippyTile.allTiles(this.zoom, location.bounds()))
-                .filter(slippyTile -> slippyTile.bounds().fullyGeometricallyEncloses(location));
+                .filter(slippyTile -> slippyTile.bounds().fullyGeometricallyEncloses(location))
+                .map(shard -> (Shard) shard);
     }
 
     @Override
-    public Iterable<? extends Shard> shardsIntersecting(final PolyLine polyLine)
+    public Iterable<Shard> shardsIntersecting(final PolyLine polyLine)
     {
         return Iterables.stream(SlippyTile.allTiles(this.zoom, polyLine.bounds()))
                 .filter(slippyTile -> polyLine.intersects(slippyTile.bounds())
-                        || slippyTile.bounds().fullyGeometricallyEncloses(polyLine));
+                        || slippyTile.bounds().fullyGeometricallyEncloses(polyLine))
+                .map(shard -> (Shard) shard);
     }
 
     @Override

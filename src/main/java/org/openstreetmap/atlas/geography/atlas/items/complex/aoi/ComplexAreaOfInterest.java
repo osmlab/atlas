@@ -1,7 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.items.complex.aoi;
 
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -145,17 +144,6 @@ public final class ComplexAreaOfInterest extends ComplexEntity
     public boolean equals(final Object other)
     {
         return other instanceof ComplexAreaOfInterest && super.equals(other);
-    }
-
-    @Override
-    public List<ComplexEntityError> getAllInvalidations()
-    {
-        final List<ComplexEntityError> returnValue = new ArrayList<>();
-        if (!isValid())
-        {
-            getError().ifPresent(returnValue::add);
-        }
-        return returnValue;
     }
 
     public MultiPolygon getGeometry()

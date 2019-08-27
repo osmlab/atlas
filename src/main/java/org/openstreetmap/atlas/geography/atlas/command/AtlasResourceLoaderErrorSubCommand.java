@@ -12,6 +12,8 @@ import org.openstreetmap.atlas.utilities.runtime.Command.Switch;
 import org.openstreetmap.atlas.utilities.runtime.Command.SwitchList;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
 import org.openstreetmap.atlas.utilities.runtime.FlexibleSubCommand;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Quick way of testing various problems when loading atlas files (missing files, corrupt files,
@@ -21,6 +23,9 @@ import org.openstreetmap.atlas.utilities.runtime.FlexibleSubCommand;
  */
 public class AtlasResourceLoaderErrorSubCommand implements FlexibleSubCommand
 {
+    private static final Logger logger = LoggerFactory
+            .getLogger(AtlasResourceLoaderErrorSubCommand.class);
+
     private static final Switch<File> INPUT_PARAMETER = new Switch<>("input", "Path of Atlas file",
             File::new, Command.Optionality.OPTIONAL);
 
@@ -34,9 +39,9 @@ public class AtlasResourceLoaderErrorSubCommand implements FlexibleSubCommand
         }
         catch (final CoreException oops)
         {
-            oops.printStackTrace();
+            logger.error("", oops);
             ExceptionSearch.find(StreamCorruptedException.class).within(oops)
-                    .ifPresent(StreamCorruptedException::printStackTrace);
+                    .ifPresent(error -> logger.error("", error));
         }
         return 0;
     }
@@ -62,7 +67,7 @@ public class AtlasResourceLoaderErrorSubCommand implements FlexibleSubCommand
     @Override
     public void usage(final PrintStream writer)
     {
-        writer.printf("-input=/path/to/resources/for/loading/atlas/files");
+        writer.print("-input=/path/to/resources/for/loading/atlas/files");
     }
 
 }

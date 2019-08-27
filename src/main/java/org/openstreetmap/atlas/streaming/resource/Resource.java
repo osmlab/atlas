@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.apache.commons.io.IOUtils;
 import org.openstreetmap.atlas.exception.CoreException;
@@ -137,7 +138,17 @@ public interface Resource
                     @Override
                     public String next()
                     {
+                        if (!hasNext())
+                        {
+                            throw new NoSuchElementException();
+                        }
                         final String result = this.line;
+                        populateNextLine();
+                        return result;
+                    }
+
+                    private void populateNextLine()
+                    {
                         try
                         {
                             this.line = reader.readLine();
@@ -151,7 +162,6 @@ public interface Resource
                         {
                             Streams.close(reader);
                         }
-                        return result;
                     }
                 };
             }

@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
@@ -23,6 +25,19 @@ public class CompleteAreaTest
 {
     @Rule
     public CompleteTestRule rule = new CompleteTestRule();
+
+    @Rule
+    public final ExpectedException expectedException = ExpectedException.none();
+
+    @Test
+    public void testAreaShallowCopyNullBounds()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("bounds were null");
+
+        final CompleteArea area = new CompleteArea(1L, null, null, null);
+        CompleteArea.shallowFrom(area);
+    }
 
     @Test
     public void testBloatedEquals()
@@ -69,6 +84,8 @@ public class CompleteAreaTest
                         .collect(Collectors.toSet()),
                 result.relations().stream().map(Relation::getIdentifier)
                         .collect(Collectors.toSet()));
+
+        Assert.assertEquals(result, result.copy());
     }
 
     @Test
@@ -76,6 +93,16 @@ public class CompleteAreaTest
     {
         final CompleteArea superShallow = new CompleteArea(123L, null, null, null);
         Assert.assertTrue(superShallow.isShallow());
+    }
+
+    @Test
+    public void testNonFullAreaCopy()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("but it was not full");
+
+        final CompleteArea area = new CompleteArea(1L, null, null, null);
+        CompleteArea.from(area);
     }
 
     @Test

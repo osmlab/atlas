@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.io.Serializable;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -116,7 +117,15 @@ public abstract class ComplexEntity implements AtlasObject
         return false;
     }
 
-    public abstract List<ComplexEntityError> getAllInvalidations();
+    public List<ComplexEntityError> getAllInvalidations()
+    {
+        final List<ComplexEntityError> returnValue = new ArrayList<>();
+        if (!isValid())
+        {
+            getError().ifPresent(returnValue::add);
+        }
+        return returnValue;
+    }
 
     @Override
     public Atlas getAtlas()

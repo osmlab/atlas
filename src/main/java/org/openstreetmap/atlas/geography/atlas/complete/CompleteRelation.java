@@ -54,6 +54,11 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
      */
     public static CompleteRelation from(final Relation relation)
     {
+        if (relation instanceof CompleteRelation && !((CompleteRelation) relation).isFull())
+        {
+            throw new CoreException(
+                    "Relation parameter was a CompleteRelation but it was not full: {}", relation);
+        }
         return new CompleteRelation(relation.getIdentifier(), relation.getTags(), relation.bounds(),
                 relation.members().asBean(),
                 relation.allRelationsWithSameOsmIdentifier().stream().map(Relation::getIdentifier)
@@ -75,6 +80,10 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
      */
     public static CompleteRelation shallowFrom(final Relation relation)
     {
+        if (relation.bounds() == null)
+        {
+            throw new CoreException("Relation parameter bounds were null");
+        }
         return new CompleteRelation(relation.getIdentifier())
                 .withBoundsExtendedBy(relation.bounds());
     }
@@ -149,6 +158,13 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
         return CompleteItemType.RELATION;
     }
 
+    public CompleteRelation copy()
+    {
+        return new CompleteRelation(this.identifier, this.tags, this.bounds, this.members,
+                this.allRelationsWithSameOsmIdentifier, this.allKnownOsmMembers,
+                this.osmRelationIdentifier, this.relationIdentifiers);
+    }
+
     @Override
     public boolean equals(final Object other)
     {
@@ -189,6 +205,14 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     public int hashCode()
     {
         return super.hashCode();
+    }
+
+    @Override
+    public boolean isFull()
+    {
+        return this.bounds != null && this.tags != null && this.members != null
+                && this.allRelationsWithSameOsmIdentifier != null && this.allKnownOsmMembers != null
+                && this.osmRelationIdentifier != null && this.relationIdentifiers != null;
     }
 
     @Override
@@ -331,13 +355,13 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     public CompleteRelation withExtraMember(final AtlasEntity newMember,
             final AtlasEntity memberFromWhichToCopyRole)
     {
-        final Relation sourceRelation = Iterables.stream(memberFromWhichToCopyRole.relations())
+        final Relation parentRelation = Iterables.stream(memberFromWhichToCopyRole.relations())
                 .firstMatching(relation -> relation.getIdentifier() == this.getIdentifier())
                 .orElseThrow(() -> new CoreException(
                         "Cannot copy role from {} {} as it does not have relation {} as parent",
                         memberFromWhichToCopyRole.getType(),
                         memberFromWhichToCopyRole.getIdentifier(), this.getIdentifier()));
-        final String role = sourceRelation.members().asBean()
+        final String role = parentRelation.members().asBean()
                 .getItemFor(memberFromWhichToCopyRole.getIdentifier(),
                         memberFromWhichToCopyRole.getType())
                 .orElseThrow(() -> new CoreException(
@@ -353,7 +377,7 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     {
         this.members.addItem(
                 new RelationBeanItem(newMember.getIdentifier(), role, newMember.getType()));
-        this.updateBounds(newMember.bounds());
+        this.withBoundsExtendedBy(newMember.bounds());
         return this;
     }
 

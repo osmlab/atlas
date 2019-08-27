@@ -4,6 +4,7 @@ import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
@@ -719,12 +720,15 @@ public class Polygon extends PolyLine implements GeometricSurface
             @Override
             public Location next()
             {
-                if (!this.read)
+                if (hasNext())
                 {
                     this.read = true;
                     return first();
                 }
-                return null;
+                else
+                {
+                    throw new NoSuchElementException();
+                }
             }
         });
     }
