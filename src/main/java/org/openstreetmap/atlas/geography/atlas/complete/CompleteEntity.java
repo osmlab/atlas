@@ -294,6 +294,8 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
      */
     String toWkt();
 
+    CompleteEntity withAddedRelationIdentifier(Long relationIdentifier);
+
     default C withAddedTag(final String key, final String value)
     {
         return CompleteEntity.withAddedTag((C) this, key, value, false);
@@ -306,6 +308,8 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
     CompleteEntity withRelationIdentifiers(Set<Long> relationIdentifiers);
 
     CompleteEntity withRelations(Set<Relation> relations);
+
+    CompleteEntity withRemovedRelationIdentifier(Long relationIdentifier);
 
     default C withRemovedTag(final String key)
     {

@@ -406,22 +406,27 @@ public class ChangeAtlasTest
         final Atlas atlas = this.rule.getPointAtlas();
         final ChangeBuilder changeBuilder = new ChangeBuilder();
 
+        /*
+         * Remove Point 1 role b, Point 2 role b, and Point 3 role c. The Point 3 remove will
+         * silently fail because Point 3 has role b and not role c.
+         */
         final CompleteRelation completeRelation = CompleteRelation.shallowFrom(atlas.relation(1L))
-                .withMembers(atlas.relation(1L).members());
-        completeRelation.withRemovedMember(atlas.point(1L));
+                .withMembers(atlas.relation(1L).members()).withRemovedMember(atlas.point(1L))
+                .withRemovedMember(atlas.point(2L), "b").withRemovedMember(atlas.point(3L), "c");
         changeBuilder.add(FeatureChange.add(completeRelation));
 
         final CompletePoint completePoint = CompletePoint.shallowFrom(atlas.point(1L))
-                .withRelations(atlas.point(1L).relations());
-        completePoint.withRelationIdentifiers(completePoint.relations().stream()
-                .filter(relation -> relation.getIdentifier() != 1L).map(Relation::getIdentifier)
-                .collect(Collectors.toSet()));
+                .withRelations(atlas.point(1L).relations()).withRemovedRelationIdentifier(1L);
         changeBuilder.add(FeatureChange.add(completePoint));
+        final CompletePoint completePoint2 = CompletePoint.shallowFrom(atlas.point(2L))
+                .withRelations(atlas.point(1L).relations()).withRemovedRelationIdentifier(1L);
+        changeBuilder.add(FeatureChange.add(completePoint2));
 
         final Atlas changeAtlas = new ChangeAtlas(atlas, changeBuilder.get());
-        System.out.println(changeAtlas.relation(1L));
         Assert.assertFalse(changeAtlas.relation(1L).members().asBean()
                 .contains(new RelationBean.RelationBeanItem(1L, "b", ItemType.POINT)));
+        Assert.assertFalse(changeAtlas.relation(1L).members().asBean()
+                .contains(new RelationBean.RelationBeanItem(2L, "b", ItemType.POINT)));
     }
 
     @Test

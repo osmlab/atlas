@@ -342,7 +342,18 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
         return RelationBean.mergeBeans(this, other);
     }
 
-    public void removeItem(final Long identifier, final ItemType itemType)
+    /**
+     * Remove an item from this {@link RelationBean} with a given identifier and {@link ItemType}.
+     * If an item is actually removed, this method will return its role wrapped in an
+     * {@link Optional}. If nothing was removed, then the {@link Optional} will be empty.
+     * 
+     * @param identifier
+     *            the id to remove
+     * @param itemType
+     *            the type to remove
+     * @return an {@link Optional} wrapping the role of the removed item
+     */
+    public Optional<String> removeItem(final Long identifier, final ItemType itemType)
     {
         int firstMatchingIndex = -1;
         for (int i = 0; i < this.beanItems.size(); i++)
@@ -356,18 +367,22 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
 
         if (firstMatchingIndex != -1)
         {
+            final String removedRole = this.beanItems.get(firstMatchingIndex).getRole();
             this.beanItems.remove(firstMatchingIndex);
+            return Optional.of(removedRole);
         }
+
+        return Optional.empty();
     }
 
-    public void removeItem(final Long identifier, final String role, final ItemType itemType)
+    public boolean removeItem(final Long identifier, final String role, final ItemType itemType)
     {
-        removeItem(new RelationBeanItem(identifier, role, itemType));
+        return removeItem(new RelationBeanItem(identifier, role, itemType));
     }
 
-    public void removeItem(final RelationBeanItem item)
+    public boolean removeItem(final RelationBeanItem item)
     {
-        this.beanItems.remove(item);
+        return this.beanItems.remove(item);
     }
 
     /**

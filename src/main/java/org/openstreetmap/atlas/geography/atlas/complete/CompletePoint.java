@@ -254,6 +254,13 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
         return this.location.toWkt();
     }
 
+    @Override
+    public CompletePoint withAddedRelationIdentifier(final Long relationIdentifier)
+    {
+        this.relationIdentifiers.add(relationIdentifier);
+        return this;
+    }
+
     public CompletePoint withBoundsExtendedBy(final Rectangle bounds)
     {
         if (this.bounds == null)
@@ -266,7 +273,7 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
     }
 
     @Override
-    public CompleteEntity withGeometry(final Iterable<Location> locations)
+    public CompletePoint withGeometry(final Iterable<Location> locations)
     {
         if (!locations.iterator().hasNext())
         {
@@ -301,6 +308,15 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
     public CompletePoint withRelations(final Set<Relation> relations)
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
+                .collect(Collectors.toSet());
+        return this;
+    }
+
+    @Override
+    public CompletePoint withRemovedRelationIdentifier(final Long relationIdentifier)
+    {
+        this.relationIdentifiers = this.relationIdentifiers.stream()
+                .filter(keepId -> keepId != relationIdentifier.longValue())
                 .collect(Collectors.toSet());
         return this;
     }

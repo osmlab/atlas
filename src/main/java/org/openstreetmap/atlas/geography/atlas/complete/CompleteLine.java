@@ -255,6 +255,13 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
         return this.polyLine.toWkt();
     }
 
+    @Override
+    public CompleteLine withAddedRelationIdentifier(final Long relationIdentifier)
+    {
+        this.relationIdentifiers.add(relationIdentifier);
+        return this;
+    }
+
     public CompleteLine withBoundsExtendedBy(final Rectangle bounds)
     {
         if (this.bounds == null)
@@ -298,6 +305,15 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
     public CompleteLine withRelations(final Set<Relation> relations)
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
+                .collect(Collectors.toSet());
+        return this;
+    }
+
+    @Override
+    public CompleteLine withRemovedRelationIdentifier(final Long relationIdentifier)
+    {
+        this.relationIdentifiers = this.relationIdentifiers.stream()
+                .filter(keepId -> keepId != relationIdentifier.longValue())
                 .collect(Collectors.toSet());
         return this;
     }
