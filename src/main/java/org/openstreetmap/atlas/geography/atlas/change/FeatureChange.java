@@ -16,6 +16,8 @@ import org.openstreetmap.atlas.exception.change.MergeFailureType;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescription;
+import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescriptorGenerator;
 import org.openstreetmap.atlas.geography.atlas.change.serializer.FeatureChangeGeoJsonSerializer;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
@@ -313,6 +315,21 @@ public class FeatureChange implements Located, Serializable
                     && this.getAfterView().equals(that.getAfterView());
         }
         return false;
+    }
+
+    /**
+     * Return a {@link ChangeDescription} object that explains the differences represented by this
+     * {@link FeatureChange}.
+     *
+     * @return the description
+     */
+    public ChangeDescription explain()
+    {
+        final ChangeDescription description = new ChangeDescription(getIdentifier(), getItemType());
+        new ChangeDescriptorGenerator(this.beforeView, this.afterView).generate()
+                .forEach(description::addChangeDescriptor);
+
+        return description;
     }
 
     public AtlasEntity getAfterView()

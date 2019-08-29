@@ -176,6 +176,17 @@ public class FeatureChangeTest
     }
 
     @Test
+    public void testChangeDescription()
+    {
+        final CompleteArea before = new CompleteArea(123L, Polygon.SILICON_VALLEY,
+                Maps.hashMap("key0", "value0", "key1", "value1"), null);
+        final CompleteArea after = new CompleteArea(123L, Polygon.SILICON_VALLEY,
+                Maps.hashMap("key1", "value1Prime", "key2", "value2"), null);
+        final FeatureChange featureChange = new FeatureChange(ChangeType.ADD, after, before);
+        System.out.println(featureChange.explain().toMultiLineString());
+    }
+
+    @Test
     public void testShallowValidation()
     {
         final CompletePoint before = new CompletePoint(123L, Location.CENTER,
