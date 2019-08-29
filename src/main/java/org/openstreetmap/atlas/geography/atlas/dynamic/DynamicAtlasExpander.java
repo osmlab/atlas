@@ -78,6 +78,11 @@ class DynamicAtlasExpander
         this.initialized = true;
     }
 
+    public DynamicAtlasPolicy getPolicy()
+    {
+        return this.policy;
+    }
+
     boolean areaCovered(final Area area)
     {
         final Polygon polygon = area.asPolygon();

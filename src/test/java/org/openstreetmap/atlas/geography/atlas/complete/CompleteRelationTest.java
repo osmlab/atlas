@@ -118,6 +118,17 @@ public class CompleteRelationTest
     }
 
     @Test
+    public void testEdgeShallowCopyNullBounds()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("bounds were null");
+
+        final CompleteRelation relation = new CompleteRelation(1L, null, null, null, null, null,
+                null, null);
+        CompleteRelation.shallowFrom(relation);
+    }
+
+    @Test
     public void testFailWithMembersAndSource()
     {
         final CompleteRelation relation = new CompleteRelation(1L, null, null, null, null, null,
@@ -152,6 +163,8 @@ public class CompleteRelationTest
                         .collect(Collectors.toSet()),
                 result.relations().stream().map(Relation::getIdentifier)
                         .collect(Collectors.toSet()));
+
+        Assert.assertEquals(result, result.copy());
     }
 
     @Test
@@ -160,6 +173,17 @@ public class CompleteRelationTest
         final CompleteRelation superShallow = new CompleteRelation(123L, null, null, null, null,
                 null, null, null);
         Assert.assertTrue(superShallow.isShallow());
+    }
+
+    @Test
+    public void testNonFullRelationCopy()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("but it was not full");
+
+        final CompleteRelation relation = new CompleteRelation(1L, null, null, null, null, null,
+                null, null);
+        CompleteRelation.from(relation);
     }
 
     @Test
@@ -199,5 +223,17 @@ public class CompleteRelationTest
 
         final CompleteRelation relation2 = new CompleteRelation(123L);
         Assert.assertNull(relation2.toWkt());
+    }
+
+    @Test
+    public void testWithExtraMember()
+    {
+        final Atlas atlas = this.rule.getAtlas2();
+
+        final CompleteRelation cRelation = CompleteRelation.from(atlas.relation(1L));
+        Assert.assertEquals(atlas.relation(1L).bounds(), cRelation.bounds());
+        cRelation.withExtraMember(atlas.point(5L), "a");
+        Assert.assertEquals(Rectangle.forLocated(atlas.relation(1L).bounds(), atlas.point(5L)),
+                cRelation.bounds());
     }
 }

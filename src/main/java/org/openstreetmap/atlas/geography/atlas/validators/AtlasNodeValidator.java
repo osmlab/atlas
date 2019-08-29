@@ -68,9 +68,9 @@ public class AtlasNodeValidator
                 if (!nodeLocation.equals(edgeStartLocation))
                 {
                     throw new CoreException(
-                            "Edge {} with start location {} does not match with its start Node {} at location: {}",
-                            edge.getIdentifier(), edgeStartLocation, edge.start().getIdentifier(),
-                            nodeLocation);
+                            "Node {} at location {} references outEdge {} which starts at a different location {}",
+                            node.getIdentifier(), nodeLocation, edge.getIdentifier(),
+                            edgeStartLocation);
                 }
             }
             for (final Edge edge : node.inEdges())
@@ -79,9 +79,9 @@ public class AtlasNodeValidator
                 if (!nodeLocation.equals(edgeEndLocation))
                 {
                     throw new CoreException(
-                            "Edge {} with end location {} does not match with its end Node {} at location: {}",
-                            edge.getIdentifier(), edgeEndLocation, edge.end().getIdentifier(),
-                            nodeLocation);
+                            "Node {} at location {} references inEdge {} which ends at a different location {}",
+                            node.getIdentifier(), nodeLocation, edge.getIdentifier(),
+                            edgeEndLocation);
                 }
             }
         }

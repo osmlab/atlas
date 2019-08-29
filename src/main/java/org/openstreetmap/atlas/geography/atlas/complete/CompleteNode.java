@@ -51,6 +51,11 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
      */
     public static CompleteNode from(final Node node)
     {
+        if (node instanceof CompleteNode && !((CompleteNode) node).isFull())
+        {
+            throw new CoreException("Node parameter was a CompleteNode but it was not full: {}",
+                    node);
+        }
         return new CompleteNode(node.getIdentifier(), node.getLocation(), node.getTags(),
                 node.inEdges().stream().map(Edge::getIdentifier)
                         .collect(Collectors.toCollection(TreeSet::new)),
@@ -71,6 +76,10 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
      */
     public static CompleteNode shallowFrom(final Node node)
     {
+        if (node.bounds() == null)
+        {
+            throw new CoreException("Node parameter bounds were null");
+        }
         return new CompleteNode(node.getIdentifier()).withBoundsExtendedBy(node.bounds());
     }
 
@@ -118,6 +127,12 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     public CompleteItemType completeItemType()
     {
         return CompleteItemType.NODE;
+    }
+
+    public CompleteNode copy()
+    {
+        return new CompleteNode(this.identifier, this.location, this.tags, this.inEdgeIdentifiers,
+                this.outEdgeIdentifiers, this.relationIdentifiers);
     }
 
     @Override
@@ -184,6 +199,14 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         return this.inEdgeIdentifiers == null ? null
                 : this.inEdgeIdentifiers.stream().map(CompleteEdge::new)
                         .collect(Collectors.toCollection(TreeSet::new));
+    }
+
+    @Override
+    public boolean isFull()
+    {
+        return this.bounds != null && this.location != null && this.tags != null
+                && this.inEdgeIdentifiers != null && this.outEdgeIdentifiers != null
+                && this.relationIdentifiers != null;
     }
 
     @Override

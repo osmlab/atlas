@@ -472,7 +472,7 @@ public class BigNodeFinder implements Finder<BigNode>
                 }
                 catch (final CoreException e)
                 {
-                    logger.warn("Could not append dual carriageway route {} with with {}",
+                    throw new CoreException("Could not append dual carriageway route {} with {}",
                             candidateJunctionRoute, expandableEdge.getIdentifier(), e);
                 }
                 // If the routes are DualCarriageWayRoutes, then return

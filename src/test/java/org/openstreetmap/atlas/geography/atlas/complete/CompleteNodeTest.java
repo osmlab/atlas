@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -25,6 +27,9 @@ public class CompleteNodeTest
 {
     @Rule
     public CompleteTestRule rule = new CompleteTestRule();
+
+    @Rule
+    public final ExpectedException expectedException = ExpectedException.none();
 
     @Test
     public void testBloatedEquals()
@@ -105,6 +110,8 @@ public class CompleteNodeTest
                         .collect(Collectors.toSet()),
                 result.relations().stream().map(Relation::getIdentifier)
                         .collect(Collectors.toSet()));
+
+        Assert.assertEquals(result, result.copy());
     }
 
     @Test
@@ -112,6 +119,26 @@ public class CompleteNodeTest
     {
         final CompleteNode superShallow = new CompleteNode(123L, null, null, null, null, null);
         Assert.assertTrue(superShallow.isShallow());
+    }
+
+    @Test
+    public void testNodeShallowCopyNullBounds()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("bounds were null");
+
+        final CompleteNode node = new CompleteNode(1L, null, null, null, null, null);
+        CompleteNode.shallowFrom(node);
+    }
+
+    @Test
+    public void testNonFullNodeCopy()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("but it was not full");
+
+        final CompleteNode node = new CompleteNode(1L, null, null, null, null, null);
+        CompleteNode.from(node);
     }
 
     @Test

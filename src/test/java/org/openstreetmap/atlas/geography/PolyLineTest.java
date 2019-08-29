@@ -149,6 +149,19 @@ public class PolyLineTest
     }
 
     @Test
+    public void testOverallHeading()
+    {
+        final PolyLine line1 = new PolyLine(Location.CROSSING_85_280, Location.TEST_1);
+        final PolyLine line2 = new PolyLine(Location.CROSSING_85_280, Location.TEST_1,
+                Location.CROSSING_85_280);
+        final PolyLine line3 = new PolyLine(Location.CROSSING_85_280);
+        Assert.assertTrue(line1.overallHeading().isPresent());
+        Assert.assertEquals(Heading.degrees(85.5165015), line1.overallHeading().get());
+        Assert.assertFalse(line2.overallHeading().isPresent());
+        Assert.assertFalse(line3.overallHeading().isPresent());
+    }
+
+    @Test
     public void testOverlapsShape()
     {
         final PolyLine larger = new PolyLine(Location.CROSSING_85_280, Location.TEST_1,

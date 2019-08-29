@@ -30,7 +30,7 @@ public class Angle implements Serializable
     // Useful Angle constants
     public static final Angle MINIMUM = Angle.dm7(MINIMUM_DM7);
     public static final Angle NONE = Angle.dm7(0L);
-    public static final Angle MAXIMUM = Angle.dm7(MAXIMUM_DM7 - 1);
+    public static final Angle MAXIMUM = Angle.dm7(MAXIMUM_DM7 - 1L);
     // dm7 unit per microdegree
     public static final int DM7_PER_MICRODEGREE = 10;
     // Threshold to print a dm7 value
