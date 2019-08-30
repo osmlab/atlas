@@ -1,8 +1,5 @@
 package org.openstreetmap.atlas.geography.atlas.change.description.descriptors;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescriptorType;
@@ -13,7 +10,8 @@ import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescript
 public class GeometryChangeDescriptor implements ChangeDescriptor
 {
     private final ChangeDescriptorType changeType;
-    private int diffIndex;
+    private final int diffIndex;
+    private final int geometrySize;
     private Location beforeLocation;
     private Location afterLocation;
 
@@ -22,6 +20,7 @@ public class GeometryChangeDescriptor implements ChangeDescriptor
     {
         this.changeType = changeType;
         this.diffIndex = 0;
+        this.geometrySize = 1;
         this.beforeLocation = before;
         this.afterLocation = after;
     }
@@ -30,8 +29,8 @@ public class GeometryChangeDescriptor implements ChangeDescriptor
             final PolyLine after)
     {
         this.changeType = changeType;
-        final List<Location> beforeLocations = new ArrayList<>(before);
-        final List<Location> afterLocations = new ArrayList<>(after);
+        this.diffIndex = 0;
+        this.geometrySize = Math.max(before.size(), after.size());
     }
 
     @Override
