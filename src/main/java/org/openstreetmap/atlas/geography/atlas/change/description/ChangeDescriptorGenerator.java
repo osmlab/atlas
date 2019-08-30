@@ -5,10 +5,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptor;
+import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.GeometryChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.TagChangeDescriptor;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteEntity;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
+import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 
 /**
  * @author lcram
@@ -28,12 +31,36 @@ public class ChangeDescriptorGenerator
     {
         final List<ChangeDescriptor> descriptors = new ArrayList<>();
 
-        if (this.beforeView == null)
+        descriptors.addAll(generateTagDescriptors());
+        descriptors.addAll(generateGeometryDescriptors());
+
+        return descriptors;
+    }
+
+    private List<ChangeDescriptor> generateGeometryDescriptors()
+    {
+        final List<ChangeDescriptor> descriptors = new ArrayList<>();
+
+        /*
+         * Relations do not have explicit geometry, so return nothing.
+         */
+        if (this.afterView.getType() == ItemType.RELATION)
         {
-            throw new CoreException("TODO handle this");
+            return descriptors;
         }
 
-        descriptors.addAll(generateTagDescriptors());
+        final CompleteEntity<? extends CompleteEntity<?>> beforeEntity = (CompleteEntity<? extends CompleteEntity<?>>) this.beforeView;
+        final CompleteEntity<? extends CompleteEntity<?>> afterEntity = (CompleteEntity<? extends CompleteEntity<?>>) this.afterView;
+
+        if (beforeEntity.getGeometry() != null && afterEntity.getGeometry() != null)
+        {
+            final List<Location> beforeGeometry = new ArrayList<>();
+            beforeEntity.getGeometry().forEach(beforeGeometry::add);
+            final List<Location> afterGeometry = new ArrayList<>();
+            afterEntity.getGeometry().forEach(afterGeometry::add);
+            descriptors.add(new GeometryChangeDescriptor(ChangeDescriptorType.UPDATE,
+                    beforeGeometry, afterGeometry));
+        }
 
         return descriptors;
     }
@@ -45,6 +72,10 @@ public class ChangeDescriptorGenerator
         final Map<String, String> beforeTags = this.beforeView.getTags();
         final Map<String, String> afterTags = this.afterView.getTags();
 
+        /*
+         * If the afterView tags were null, then we know that the tags were not updated. We can just
+         * return nothing.
+         */
         if (this.afterView.getTags() == null)
         {
             return descriptors;

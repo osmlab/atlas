@@ -56,15 +56,15 @@ public class ChangeDescription
         return this.itemType;
     }
 
-    public String toMultiLineString()
+    public String toSingleLineString()
     {
-        return toString(true);
+        return toString(false);
     }
 
     @Override
     public String toString()
     {
-        return toString(false);
+        return toString(true);
     }
 
     private String toString(final boolean multiLine)

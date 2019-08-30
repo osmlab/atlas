@@ -9,7 +9,8 @@ import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescript
 
 /**
  * A collection of utilities that implements a simple diff compute/apply system for {@link List}s of
- * any type.
+ * any type. TODO fix this so that instead of UPDATEs it does (collapsable when consecutive)
+ * REMOVE/ADD pairs. This may be better for displaying less confusing diffs.
  * 
  * @author lcram
  */
@@ -102,7 +103,8 @@ public final class ListDiff
             {
                 return "ACTION(" + this.descriptorType + ", " + changeString + ")";
             }
-            return "ACTION(" + this.descriptorType + ", " + this.index + ", " + changeString + ")";
+            return "ACTION(" + this.descriptorType + ", index " + this.index + ", " + changeString
+                    + ")";
         }
     }
 

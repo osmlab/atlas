@@ -325,6 +325,12 @@ public class FeatureChange implements Located, Serializable
      */
     public ChangeDescription explain()
     {
+        if (this.beforeView == null)
+        {
+            // TODO fix this
+            throw new CoreException(
+                    "TODO FeatureChange explain() is not yet supported for FeatureChanges without a beforeView");
+        }
         final ChangeDescription description = new ChangeDescription(getIdentifier(), getItemType());
         new ChangeDescriptorGenerator(this.beforeView, this.afterView).generate()
                 .forEach(description::addChangeDescriptor);

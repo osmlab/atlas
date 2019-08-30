@@ -178,12 +178,19 @@ public class FeatureChangeTest
     @Test
     public void testChangeDescription()
     {
-        final CompleteArea before = new CompleteArea(123L, Polygon.SILICON_VALLEY,
+        final PolyLine polyline1 = new PolyLine(Location.forString("1,1"),
+                Location.forString("2,2"), Location.forString("3,3"), Location.forString("4,4"));
+        final PolyLine polyline2 = new PolyLine(Location.forString("1,1"),
+                Location.forString("2,2"), Location.forString("10,10"), Location.forString("4,4"),
+                Location.forString("5,5"));
+
+        final CompleteLine before = new CompleteLine(123L, polyline1,
                 Maps.hashMap("key0", "value0", "key1", "value1"), null);
-        final CompleteArea after = new CompleteArea(123L, Polygon.SILICON_VALLEY,
+        final CompleteLine after = new CompleteLine(123L, polyline2,
                 Maps.hashMap("key1", "value1Prime", "key2", "value2"), null);
         final FeatureChange featureChange = new FeatureChange(ChangeType.ADD, after, before);
-        System.out.println(featureChange.explain().toMultiLineString());
+        System.out.println(featureChange.explain().toString());
+        // TODO finish test
     }
 
     @Test
