@@ -92,7 +92,7 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
 
     private static final long serialVersionUID = 8511830231633569713L;
 
-    private final List<RelationBeanItem> beanItems;
+    private List<RelationBeanItem> beanItems;
     /**
      * This set has no concept of how many {@link RelationBeanItem}s of a given value have been
      * removed. Technically, OSM allows for duplicate {@link RelationBeanItem}s in a given relation.
@@ -343,36 +343,38 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
     }
 
     /**
-     * Remove an item from this {@link RelationBean} with a given identifier and {@link ItemType}.
-     * If an item is actually removed, this method will return its role wrapped in an
-     * {@link Optional}. If nothing was removed, then the {@link Optional} will be empty.
+     * Remove all matching item from this {@link RelationBean} with a given identifier and
+     * {@link ItemType}. If item(s) are actually removed, this method will return a {@link List} of
+     * their roles. If nothing was removed, then the {@link List} will be empty.
      * 
      * @param identifier
      *            the id to remove
      * @param itemType
      *            the type to remove
-     * @return an {@link Optional} wrapping the role of the removed item
+     * @return a {@link List} containing the roles of the removed items
      */
-    public Optional<String> removeItem(final Long identifier, final ItemType itemType)
+    public List<String> removeAllMatchingItems(final Long identifier, final ItemType itemType)
     {
-        int firstMatchingIndex = -1;
-        for (int i = 0; i < this.beanItems.size(); i++)
+        final List<RelationBeanItem> newBeanItems = new ArrayList<>();
+        final List<String> removedRoles = new ArrayList<>();
+
+        for (final RelationBeanItem item : this.beanItems)
         {
-            if (this.beanItems.get(i).getIdentifier().equals(identifier)
-                    && this.beanItems.get(i).getType().equals(itemType))
+            if (item.getIdentifier().equals(identifier) && item.getType().equals(itemType))
             {
-                firstMatchingIndex = i;
+                removedRoles.add(item.getRole());
+            }
+            else
+            {
+                newBeanItems.add(
+                        new RelationBeanItem(item.getIdentifier(), item.getRole(), item.getType()));
             }
         }
-
-        if (firstMatchingIndex != -1)
+        if (!removedRoles.isEmpty())
         {
-            final String removedRole = this.beanItems.get(firstMatchingIndex).getRole();
-            this.beanItems.remove(firstMatchingIndex);
-            return Optional.of(removedRole);
+            this.beanItems = newBeanItems;
         }
-
-        return Optional.empty();
+        return removedRoles;
     }
 
     public boolean removeItem(final Long identifier, final String role, final ItemType itemType)

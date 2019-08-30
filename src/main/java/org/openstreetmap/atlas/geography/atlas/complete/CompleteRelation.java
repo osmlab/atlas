@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -521,13 +520,10 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
 
     public CompleteRelation withRemovedMember(final AtlasEntity memberToRemove)
     {
-        final Optional<String> role = this.members.removeItem(memberToRemove.getIdentifier(),
-                memberToRemove.getType());
-        if (role.isPresent())
-        {
-            this.members.addItemExplicitlyExcluded(memberToRemove.getIdentifier(), role.get(),
-                    memberToRemove.getType());
-        }
+        final List<String> roles = this.members
+                .removeAllMatchingItems(memberToRemove.getIdentifier(), memberToRemove.getType());
+        roles.forEach(role -> this.members.addItemExplicitlyExcluded(memberToRemove.getIdentifier(),
+                role, memberToRemove.getType()));
         return this;
     }
 
