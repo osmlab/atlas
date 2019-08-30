@@ -1,8 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.complete;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -136,18 +134,6 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
     public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
     {
         this.tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
-    }
-
-    @Override
-    public Iterable<Location> getGeometry()
-    {
-        if (this.location != null)
-        {
-            final List<Location> geometry = new ArrayList<>();
-            geometry.add(this.location);
-            return geometry;
-        }
-        return null;
     }
 
     @Override

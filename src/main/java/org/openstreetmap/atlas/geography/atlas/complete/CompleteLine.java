@@ -1,6 +1,5 @@
 package org.openstreetmap.atlas.geography.atlas.complete;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -142,16 +141,6 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
     public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
     {
         this.tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
-    }
-
-    @Override
-    public Iterable<Location> getGeometry()
-    {
-        if (this.polyLine != null)
-        {
-            return new ArrayList<>(this.polyLine);
-        }
-        return null;
     }
 
     @Override
