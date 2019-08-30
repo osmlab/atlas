@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.complete;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -140,6 +141,16 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
     public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
     {
         this.tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
+    }
+
+    @Override
+    public Iterable<Location> getGeometry()
+    {
+        if (this.polygon != null)
+        {
+            return new ArrayList<>(this.polygon);
+        }
+        return null;
     }
 
     @Override

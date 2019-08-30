@@ -244,6 +244,8 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
 
     CompleteItemType completeItemType();
 
+    Iterable<Location> getGeometry();
+
     long getIdentifier();
 
     Map<String, String> getTags();

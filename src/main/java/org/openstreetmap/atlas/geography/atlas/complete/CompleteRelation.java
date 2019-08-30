@@ -190,6 +190,13 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     }
 
     @Override
+    public Iterable<Location> getGeometry()
+    {
+        throw new UnsupportedOperationException("Relations do not have an explicit geometry."
+                + " Please instead use bounds to check the apparent geometry.");
+    }
+
+    @Override
     public long getIdentifier()
     {
         return this.identifier;
