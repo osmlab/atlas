@@ -41,6 +41,18 @@ public class GeoHashSharding implements Sharding
     }
 
     @Override
+    public Shard shardForName(final String name)
+    {
+        if (name.length() != this.precision)
+        {
+            throw new CoreException(
+                    "This geohash sharding is of precision {}. \"{}\" is not the correct length.",
+                    this.precision, name);
+        }
+        return GeoHashTile.forName(name);
+    }
+
+    @Override
     public Iterable<Shard> shards(final GeometricSurface surface)
     {
         return Iterables.stream(GeoHashTile.allTiles(this.precision, surface))

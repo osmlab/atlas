@@ -1,0 +1,64 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <node id='-194075' action='modify' visible='true' lat='48.34286153221' lon='-4.44799965592' />
+  <node id='-194076' action='modify' visible='true' lat='48.34124777257' lon='-4.44881305288' />
+  <node id='-194078' action='modify' visible='true' lat='48.34024017084' lon='-4.44782711717' />
+  <node id='-194080' action='modify' visible='true' lat='48.3386590971' lon='-4.44855424476' />
+  <node id='-194088' action='modify' visible='true' lat='48.34091190754' lon='-4.44546087148' />
+  <node id='-194090' action='modify' visible='true' lat='48.33946192824' lon='-4.44361224203' />
+  <node id='-194092' action='modify' visible='true' lat='48.33849525246' lon='-4.44048189616' />
+  <node id='-194101' action='modify' visible='true' lat='48.34333663952' lon='-4.44896094324' />
+  <node id='-194103' action='modify' visible='true' lat='48.34333663952' lon='-4.44654540076' />
+  <node id='-194112' action='modify' visible='true' lat='48.33820033077' lon='-4.4497496918' />
+  <node id='-194114' action='modify' visible='true' lat='48.33815936929' lon='-4.44737112191' />
+  <node id='-194122' action='modify' visible='true' lat='48.34243775021' lon='-4.43492532849' />
+  <node id='-194123' action='modify' visible='true' lat='48.33967789637' lon='-4.43547249913' />
+  <node id='-194125' action='modify' visible='true' lat='48.33880783395' lon='-4.43802596211' />
+  <node id='-194134' action='modify' visible='true' lat='48.34267510401' lon='-4.43550725999' />
+  <node id='-194136' action='modify' visible='true' lat='48.34261302345' lon='-4.43390078098' />
+  <way id='-194077' action='modify' visible='true'>
+    <nd ref='-194075' />
+    <nd ref='-194076' />
+    <nd ref='-194078' />
+    <nd ref='-194080' />
+    <tag k='highway' v='primary' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <way id='-194089' action='modify' visible='true'>
+    <nd ref='-194076' />
+    <nd ref='-194088' />
+    <nd ref='-194090' />
+    <nd ref='-194092' />
+    <tag k='highway' v='secondary' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <way id='-194102' action='modify' visible='true'>
+    <nd ref='-194101' />
+    <nd ref='-194075' />
+    <nd ref='-194103' />
+    <tag k='highway' v='trunk' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <way id='-194113' action='modify' visible='true'>
+    <nd ref='-194112' />
+    <nd ref='-194080' />
+    <nd ref='-194114' />
+    <tag k='highway' v='residential' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <way id='-194124' action='modify' visible='true'>
+    <nd ref='-194122' />
+    <nd ref='-194123' />
+    <nd ref='-194125' />
+    <nd ref='-194092' />
+    <tag k='highway' v='unclassified' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <way id='-194135' action='modify' visible='true'>
+    <nd ref='-194134' />
+    <nd ref='-194122' />
+    <nd ref='-194136' />
+    <tag k='highway' v='track' />
+    <tag k='oneway' v='yes' />
+  </way>
+</osm>
