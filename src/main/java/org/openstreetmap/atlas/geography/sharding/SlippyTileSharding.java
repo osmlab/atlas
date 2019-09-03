@@ -44,7 +44,8 @@ public class SlippyTileSharding implements Sharding
         final SlippyTile result = SlippyTile.forName(name);
         if (result.getZoom() != this.zoom)
         {
-            throw new CoreException("This sharding is of zoom {}, and \"{}\" is not.", this.zoom, name);
+            throw new CoreException("This sharding is of zoom {}, and \"{}\" is not.", this.zoom,
+                    name);
         }
         return result;
     }
