@@ -214,6 +214,12 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
     }
 
     @Override
+    public Set<Long> relationIdentifiers()
+    {
+        return this.relationIdentifiers;
+    }
+
+    @Override
     public Set<Relation> relations()
     {
         /*

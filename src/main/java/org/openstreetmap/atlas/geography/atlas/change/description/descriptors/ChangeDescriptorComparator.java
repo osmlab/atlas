@@ -30,30 +30,32 @@ public class ChangeDescriptorComparator implements Comparator<ChangeDescriptor>
             return geometryChangeCompare((GeometryChangeDescriptor) left,
                     (GeometryChangeDescriptor) right);
         }
-        if (left instanceof ParentRelationChangeDescriptor
-                && right instanceof ParentRelationChangeDescriptor)
+        if (left instanceof GenericSetChangeDescriptor
+                && right instanceof GenericSetChangeDescriptor)
         {
-            return parentRelationChangeCompare((ParentRelationChangeDescriptor) left,
-                    (ParentRelationChangeDescriptor) right);
+            return genericSetChangeCompare((GenericSetChangeDescriptor) left,
+                    (GenericSetChangeDescriptor) right);
         }
 
         throw new CoreException("Could not compare {} vs {}", left, right);
+    }
+
+    private int genericSetChangeCompare(final GenericSetChangeDescriptor left,
+            final GenericSetChangeDescriptor right)
+    {
+        if (left.getChangeDescriptorType() != right.getChangeDescriptorType())
+        {
+            return left.getChangeDescriptorType().compareTo(right.getChangeDescriptorType());
+        }
+        final Comparable leftComparable = (Comparable) left.getElement();
+        final Comparable rightComparable = (Comparable) right.getElement();
+        return leftComparable.compareTo(rightComparable);
     }
 
     private int geometryChangeCompare(final GeometryChangeDescriptor left,
             final GeometryChangeDescriptor right)
     {
         return Integer.compare(left.getSourcePosition(), right.getSourcePosition());
-    }
-
-    private int parentRelationChangeCompare(final ParentRelationChangeDescriptor left,
-            final ParentRelationChangeDescriptor right)
-    {
-        if (left.getChangeDescriptorType() != right.getChangeDescriptorType())
-        {
-            return left.getChangeDescriptorType().compareTo(right.getChangeDescriptorType());
-        }
-        return left.getElement().compareTo(right.getElement());
     }
 
     private int tagChangeCompare(final TagChangeDescriptor left, final TagChangeDescriptor right)

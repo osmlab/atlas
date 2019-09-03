@@ -213,6 +213,12 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
     }
 
     @Override
+    public Set<Long> relationIdentifiers()
+    {
+        return this.relationIdentifiers;
+    }
+
+    @Override
     public Set<Relation> relations()
     {
         /*

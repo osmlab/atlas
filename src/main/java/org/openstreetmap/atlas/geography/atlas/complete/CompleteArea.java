@@ -224,6 +224,12 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
     }
 
     @Override
+    public Set<Long> relationIdentifiers()
+    {
+        return this.relationIdentifiers;
+    }
+
+    @Override
     public Set<Relation> relations()
     {
         /*

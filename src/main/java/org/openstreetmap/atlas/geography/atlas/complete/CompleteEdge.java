@@ -247,6 +247,12 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
     }
 
     @Override
+    public Set<Long> relationIdentifiers()
+    {
+        return this.relationIdentifiers;
+    }
+
+    @Override
     public Set<Relation> relations()
     {
         /*

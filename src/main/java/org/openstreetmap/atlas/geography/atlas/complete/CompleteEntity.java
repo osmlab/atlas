@@ -287,6 +287,8 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
         return prettify(PrettifyStringFormat.MINIMAL_SINGLE_LINE);
     }
 
+    Set<Long> relationIdentifiers();
+
     void setTags(Map<String, String> tags);
 
     /**

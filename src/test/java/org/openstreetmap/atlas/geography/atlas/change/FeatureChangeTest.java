@@ -193,17 +193,12 @@ public class FeatureChangeTest
         final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD, after1, before1);
         System.out.println(featureChange1.explain().toString());
 
-        final PolyLine polyline3 = new PolyLine(Location.forString("1,1"),
-                Location.forString("2,2"), Location.forString("3,3"), Location.forString("4,4"),
-                Location.forString("5,5"));
-        final PolyLine polyline4 = new PolyLine(Location.forString("1,1"),
-                Location.forString("2,2"), Location.forString("3,3"), Location.forString("4,4"),
-                Location.forString("5,5"));
-
-        final CompleteLine before2 = new CompleteLine(123L, polyline3,
-                Maps.hashMap("key0", "value0"), Sets.hashSet(1L, 2L, 3L));
-        final CompleteLine after2 = new CompleteLine(123L, polyline4,
-                Maps.hashMap("key0", "value0", "key1", "value1"), Sets.hashSet(3L, 10L, 11L));
+        final CompleteNode before2 = new CompleteNode(123L, Location.forString("1,1"),
+                Maps.hashMap("key0", "value0"), Sets.treeSet(1L, 2L), Sets.treeSet(3L, 4L),
+                Sets.hashSet(1L, 2L, 3L));
+        final CompleteNode after2 = new CompleteNode(123L, Location.forString("1,1"),
+                Maps.hashMap("key0", "value0"), Sets.treeSet(2L, 100L),
+                Sets.treeSet(3L, 4L, 5L, 6L), Sets.hashSet(1L, 2L, 3L, 4L));
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, after2, before2);
         System.out.println(featureChange2.explain().toString());
         // TODO finish test

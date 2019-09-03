@@ -189,6 +189,11 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         return super.hashCode();
     }
 
+    public Set<Long> inEdgeIdentifiers()
+    {
+        return this.inEdgeIdentifiers;
+    }
+
     @Override
     public SortedSet<Edge> inEdges()
     {
@@ -215,6 +220,11 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         return this.location == null && this.inEdgeIdentifiers == null
                 && this.outEdgeIdentifiers == null && this.tags == null
                 && this.relationIdentifiers == null;
+    }
+
+    public Set<Long> outEdgeIdentifiers()
+    {
+        return this.outEdgeIdentifiers;
     }
 
     @Override
@@ -293,6 +303,12 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     }
 
     @Override
+    public Set<Long> relationIdentifiers()
+    {
+        return this.relationIdentifiers;
+    }
+
+    @Override
     public Set<Relation> relations()
     {
         /*
@@ -343,6 +359,12 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
             return null;
         }
         return this.location.toWkt();
+    }
+
+    public CompleteNode withAddedOutEdgeIdentifier(final Long extraOutEdgeIdentifier)
+    {
+        this.outEdgeIdentifiers.add(extraOutEdgeIdentifier);
+        return this;
     }
 
     @Override
@@ -433,24 +455,11 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         return this;
     }
 
-    public CompleteNode withOutEdgeIdentifierExtra(final Long extraOutEdgeIdentifier)
-    {
-        this.outEdgeIdentifiers.add(extraOutEdgeIdentifier);
-        return this;
-    }
-
-    public CompleteNode withOutEdgeIdentifierLess(final Long lessOutEdgeIdentifier)
-    {
-        this.outEdgeIdentifiers.remove(lessOutEdgeIdentifier);
-        this.explicitlyExcludedOutEdgeIdentifiers.add(lessOutEdgeIdentifier);
-        return this;
-    }
-
     public CompleteNode withOutEdgeIdentifierReplaced(final Long beforeOutEdgeIdentifier,
             final Long afterOutEdgeIdentifier)
     {
-        return this.withOutEdgeIdentifierLess(beforeOutEdgeIdentifier)
-                .withOutEdgeIdentifierExtra(afterOutEdgeIdentifier);
+        return this.withRemovedOutEdgeIdentifier(beforeOutEdgeIdentifier)
+                .withAddedOutEdgeIdentifier(afterOutEdgeIdentifier);
     }
 
     public CompleteNode withOutEdgeIdentifiers(final SortedSet<Long> outEdgeIdentifiers)
@@ -490,6 +499,13 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
                 .collect(Collectors.toSet());
+        return this;
+    }
+
+    public CompleteNode withRemovedOutEdgeIdentifier(final Long lessOutEdgeIdentifier)
+    {
+        this.outEdgeIdentifiers.remove(lessOutEdgeIdentifier);
+        this.explicitlyExcludedOutEdgeIdentifiers.add(lessOutEdgeIdentifier);
         return this;
     }
 

@@ -6,18 +6,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptor;
+import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.GenericSetChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.GeometryChangeDescriptor;
-import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ParentRelationChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.TagChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEntity;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
-import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
 /**
  * @author lcram
@@ -39,13 +39,42 @@ public class ChangeDescriptorGenerator
 
         descriptors.addAll(generateTagDescriptors());
         descriptors.addAll(generateGeometryDescriptors());
-        descriptors.addAll(generateParentRelationDescriptors());
+        descriptors.addAll(generateParentRelationDescriptors(CompleteEntity::relationIdentifiers));
+        if (this.afterView.getType() == ItemType.NODE)
+        {
+            descriptors
+                    .addAll(generateNodeSetDescriptors("IN_EDGE", CompleteNode::inEdgeIdentifiers));
+            descriptors.addAll(
+                    generateNodeSetDescriptors("OUT_EDGE", CompleteNode::outEdgeIdentifiers));
+        }
 
         /*
-         * TODO need to generate relationMembers, in/out edges, start/end nodes, and other special
-         * relation fields.
+         * TODO need to generate relationMembers, start/end nodes, and other special relation
+         * fields.
          */
 
+        return descriptors;
+    }
+
+    private List<GenericSetChangeDescriptor<Long>> generateGenericLongSetDescriptors(
+            final String name, final Set<Long> beforeSet, final Set<Long> afterSet)
+    {
+        final List<GenericSetChangeDescriptor<Long>> descriptors = new ArrayList<>();
+
+        final Set<Long> removedFromAfterView = com.google.common.collect.Sets.difference(beforeSet,
+                afterSet);
+        final Set<Long> addedToAfterView = com.google.common.collect.Sets.difference(afterSet,
+                beforeSet);
+        for (final Long identifier : removedFromAfterView)
+        {
+            descriptors.add(new GenericSetChangeDescriptor<>(ChangeDescriptorType.REMOVE,
+                    identifier, name));
+        }
+        for (final Long identifier : addedToAfterView)
+        {
+            descriptors.add(
+                    new GenericSetChangeDescriptor<>(ChangeDescriptorType.ADD, identifier, name));
+        }
         return descriptors;
     }
 
@@ -90,52 +119,76 @@ public class ChangeDescriptorGenerator
         return descriptors;
     }
 
-    private List<ChangeDescriptor> generateParentRelationDescriptors()
+    private List<GenericSetChangeDescriptor<Long>> generateNodeSetDescriptors(final String name,
+            final Function<CompleteNode, Set<Long>> memberExtractor)
     {
-        final List<ChangeDescriptor> descriptors = new ArrayList<>();
+        final CompleteNode beforeEntity = (CompleteNode) this.beforeView;
+        final CompleteNode afterEntity = (CompleteNode) this.afterView;
+
+        /*
+         * If the afterView set was null, then we know that they were not updated. We can just
+         * return nothing.
+         */
+        if (memberExtractor.apply(afterEntity) == null)
+        {
+            return new ArrayList<>();
+        }
+
+        final Set<Long> beforeSet;
+        if (beforeEntity != null)
+        {
+            if (memberExtractor.apply(beforeEntity) == null)
+            {
+                throw new CoreException(
+                        "Corrupted FeatureChange: afterView {} were non-null but beforeView {} were null",
+                        name);
+            }
+            beforeSet = memberExtractor.apply(beforeEntity);
+        }
+        else
+        {
+            beforeSet = new HashSet<>();
+        }
+        final Set<Long> afterSet = memberExtractor.apply(afterEntity);
+
+        return generateGenericLongSetDescriptors(name, beforeSet, afterSet);
+    }
+
+    private List<GenericSetChangeDescriptor<Long>> generateParentRelationDescriptors(
+            final Function<CompleteEntity, Set<Long>> memberExtractor)
+    {
+        final String name = "PARENT_RELATION";
+
+        final CompleteEntity<? extends CompleteEntity<?>> beforeEntity = (CompleteEntity<? extends CompleteEntity<?>>) this.beforeView;
+        final CompleteEntity<? extends CompleteEntity<?>> afterEntity = (CompleteEntity<? extends CompleteEntity<?>>) this.afterView;
 
         /*
          * If the afterView parent relations were null, then we know that they were not updated. We
          * can just return nothing.
          */
-        if (this.afterView.relations() == null)
+        if (memberExtractor.apply(afterEntity) == null)
         {
-            return descriptors;
+            return new ArrayList<>();
         }
 
-        final Set<Long> beforeRelations;
-        if (this.beforeView != null)
+        final Set<Long> beforeSet;
+        if (beforeEntity != null)
         {
-            if (this.beforeView.relations() == null)
+            if (memberExtractor.apply(beforeEntity) == null)
             {
                 throw new CoreException(
-                        "Corrupted FeatureChange: afterView parent relations were non-null but beforeView parent relations were null");
+                        "Corrupted FeatureChange: afterView {} were non-null but beforeView {} were null",
+                        name);
             }
-            beforeRelations = this.beforeView.relations().stream().map(Relation::getIdentifier)
-                    .collect(Collectors.toSet());
+            beforeSet = memberExtractor.apply(beforeEntity);
         }
         else
         {
-            beforeRelations = new HashSet<>();
+            beforeSet = new HashSet<>();
         }
-        final Set<Long> afterRelations = this.afterView.relations().stream()
-                .map(Relation::getIdentifier).collect(Collectors.toSet());
+        final Set<Long> afterSet = memberExtractor.apply(afterEntity);
 
-        final Set<Long> relationsRemovedFromAfterView = com.google.common.collect.Sets
-                .difference(beforeRelations, afterRelations);
-        final Set<Long> relationsAddedToAfterView = com.google.common.collect.Sets
-                .difference(afterRelations, beforeRelations);
-        for (final Long identifier : relationsRemovedFromAfterView)
-        {
-            descriptors.add(
-                    new ParentRelationChangeDescriptor(ChangeDescriptorType.REMOVE, identifier));
-        }
-        for (final Long identifier : relationsAddedToAfterView)
-        {
-            descriptors
-                    .add(new ParentRelationChangeDescriptor(ChangeDescriptorType.ADD, identifier));
-        }
-        return descriptors;
+        return generateGenericLongSetDescriptors(name, beforeSet, afterSet);
     }
 
     private List<ChangeDescriptor> generateTagDescriptors()
