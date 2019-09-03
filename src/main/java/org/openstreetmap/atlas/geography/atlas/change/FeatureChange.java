@@ -298,9 +298,17 @@ public class FeatureChange implements Located, Serializable
     public Rectangle bounds()
     {
         final Rectangle updatedBounds = this.afterView.bounds();
+        if (updatedBounds == null)
+        {
+            throw new CoreException("Corrupted FeatureChange: afterView bounds were null");
+        }
         if (this.beforeView == null)
         {
             return updatedBounds;
+        }
+        if (this.beforeView.bounds() == null)
+        {
+            throw new CoreException("Corrupted FeatureChange: beforeView bounds were null");
         }
         return Rectangle.forLocated(this.beforeView.bounds(), updatedBounds);
     }
@@ -325,11 +333,9 @@ public class FeatureChange implements Located, Serializable
      */
     public ChangeDescription explain()
     {
-        if (this.beforeView == null)
+        if (this.afterView == null)
         {
-            // TODO fix this
-            throw new CoreException(
-                    "TODO FeatureChange explain() is not yet supported for FeatureChanges without a beforeView");
+            throw new CoreException("Cannot explain a FeatureChange with a null afterView!");
         }
         final ChangeDescription description = new ChangeDescription(getIdentifier(), getItemType());
         new ChangeDescriptorGenerator(this.beforeView, this.afterView).generate()

@@ -67,6 +67,11 @@ public class GeometryChangeDescriptor implements ChangeDescriptor
         return this.diff;
     }
 
+    public boolean isEmpty()
+    {
+        return this.diff.getDeltas().isEmpty();
+    }
+
     @Override
     public String toString()
     {

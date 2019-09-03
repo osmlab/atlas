@@ -1,10 +1,12 @@
 package org.openstreetmap.atlas.geography.atlas.change.description;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.GeometryChangeDescriptor;
@@ -34,6 +36,11 @@ public class ChangeDescriptorGenerator
         descriptors.addAll(generateTagDescriptors());
         descriptors.addAll(generateGeometryDescriptors());
 
+        /*
+         * TODO need to generate parentRelations, relationMembers, in/out edges, start/end nodes,
+         * and other special relation fields.
+         */
+
         return descriptors;
     }
 
@@ -52,14 +59,31 @@ public class ChangeDescriptorGenerator
         final CompleteEntity<? extends CompleteEntity<?>> beforeEntity = (CompleteEntity<? extends CompleteEntity<?>>) this.beforeView;
         final CompleteEntity<? extends CompleteEntity<?>> afterEntity = (CompleteEntity<? extends CompleteEntity<?>>) this.afterView;
 
-        if (beforeEntity.getGeometry() != null && afterEntity.getGeometry() != null)
+        /*
+         * If the afterView geometry is null, then we know the geometry was not updated.
+         */
+        if (afterEntity.getGeometry() == null)
         {
-            final List<Location> beforeGeometry = new ArrayList<>();
+            return descriptors;
+        }
+
+        final List<Location> beforeGeometry = new ArrayList<>();
+        final List<Location> afterGeometry = new ArrayList<>();
+        afterEntity.getGeometry().forEach(afterGeometry::add);
+        if (beforeEntity != null)
+        {
+            if (beforeEntity.getGeometry() == null)
+            {
+                throw new CoreException(
+                        "Corrupted FeatureChange: afterView geometry was non-null but beforeView geometry was null");
+            }
             beforeEntity.getGeometry().forEach(beforeGeometry::add);
-            final List<Location> afterGeometry = new ArrayList<>();
-            afterEntity.getGeometry().forEach(afterGeometry::add);
-            descriptors.add(new GeometryChangeDescriptor(ChangeDescriptorType.UPDATE,
-                    beforeGeometry, afterGeometry));
+        }
+        final GeometryChangeDescriptor descriptor = new GeometryChangeDescriptor(
+                ChangeDescriptorType.UPDATE, beforeGeometry, afterGeometry);
+        if (!descriptor.isEmpty())
+        {
+            descriptors.add(descriptor);
         }
 
         return descriptors;
@@ -69,9 +93,6 @@ public class ChangeDescriptorGenerator
     {
         final List<ChangeDescriptor> descriptors = new ArrayList<>();
 
-        final Map<String, String> beforeTags = this.beforeView.getTags();
-        final Map<String, String> afterTags = this.afterView.getTags();
-
         /*
          * If the afterView tags were null, then we know that the tags were not updated. We can just
          * return nothing.
@@ -80,6 +101,22 @@ public class ChangeDescriptorGenerator
         {
             return descriptors;
         }
+
+        final Map<String, String> beforeTags;
+        if (this.beforeView != null)
+        {
+            if (this.beforeView.getTags() == null)
+            {
+                throw new CoreException(
+                        "Corrupted FeatureChange: afterView tags were non-null but beforeView tags were null");
+            }
+            beforeTags = this.beforeView.getTags();
+        }
+        else
+        {
+            beforeTags = new HashMap<>();
+        }
+        final Map<String, String> afterTags = this.afterView.getTags();
 
         final Set<String> keysRemovedFromAfterView = com.google.common.collect.Sets
                 .difference(beforeTags.keySet(), afterTags.keySet());
