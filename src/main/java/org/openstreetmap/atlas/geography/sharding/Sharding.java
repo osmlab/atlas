@@ -71,6 +71,15 @@ public interface Sharding extends Serializable
     Iterable<Shard> neighbors(Shard shard);
 
     /**
+     * Get a shard given its name
+     * 
+     * @param name
+     *            The name of the shard
+     * @return The corresponding shard
+     */
+    Shard shardForName(String name);
+
+    /**
      * Generate shards for the whole planet. This needs to be deterministic!
      *
      * @return The shards {@link Iterable}, covering the whole planet.

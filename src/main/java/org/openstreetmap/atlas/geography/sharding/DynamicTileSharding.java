@@ -428,6 +428,17 @@ public class DynamicTileSharding extends Command implements Sharding
     }
 
     @Override
+    public Shard shardForName(final String name)
+    {
+        final SlippyTile result = SlippyTile.forName(name);
+        if (!this.root.leafNodesCovering(result.bounds().center()).equals(result))
+        {
+            throw new CoreException("This tree does not contain tile {}", name);
+        }
+        return result;
+    }
+
+    @Override
     public Iterable<Shard> shards(final GeometricSurface surface)
     {
         return Iterables.stream(this.root.leafNodes(surface)).map(Node::getTile);
