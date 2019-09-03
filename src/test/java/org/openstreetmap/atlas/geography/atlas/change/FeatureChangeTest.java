@@ -179,10 +179,12 @@ public class FeatureChangeTest
     public void testChangeDescription()
     {
         final PolyLine polyline1 = new PolyLine(Location.forString("1,1"),
-                Location.forString("2,2"), Location.forString("3,3"), Location.forString("4,4"));
+                Location.forString("2,2"), Location.forString("3,3"), Location.forString("10,10"),
+                Location.forString("20,20"), Location.forString("4,4"), Location.forString("5,5"));
         final PolyLine polyline2 = new PolyLine(Location.forString("1,1"),
-                Location.forString("2,2"), Location.forString("10,10"), Location.forString("4,4"),
-                Location.forString("5,5"));
+                Location.forString("2,2"), Location.forString("3,3"), Location.forString("-10,-10"),
+                Location.forString("-20,-20"), Location.forString("4,4"), Location.forString("5,5"),
+                Location.forString("6,6"));
 
         final CompleteLine before = new CompleteLine(123L, polyline1,
                 Maps.hashMap("key0", "value0", "key1", "value1"), null);
