@@ -26,6 +26,9 @@ import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgume
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 
 /**
+ * This command provides an easy way to change the sharding in which a folder of atlas files is
+ * described.
+ * 
  * @author matthieun
  */
 public class AtlasShardingConverterCommand extends AbstractAtlasShellToolsCommand
@@ -41,6 +44,7 @@ public class AtlasShardingConverterCommand extends AbstractAtlasShellToolsComman
 
     private static final Pattern FILE_MATCHER = Pattern
             .compile("^[A-Za-z0-9]+_{1}([A-Za-z0-9]|-)+\\.atlas$");
+    private static final String EXCEPTION_MESSAGE = "{} needs to be specified.";
 
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
@@ -60,9 +64,9 @@ public class AtlasShardingConverterCommand extends AbstractAtlasShellToolsComman
     public int execute()
     {
         final File inputFolder = new File(this.optionAndArgumentDelegate.getOptionArgument(INPUT)
-                .orElseThrow(() -> new CoreException("{} needs to be specified.", INPUT)));
+                .orElseThrow(() -> new CoreException(EXCEPTION_MESSAGE, INPUT)));
         final File outputFolder = new File(this.optionAndArgumentDelegate.getOptionArgument(OUTPUT)
-                .orElseThrow(() -> new CoreException("{} needs to be specified.", OUTPUT)));
+                .orElseThrow(() -> new CoreException(EXCEPTION_MESSAGE, OUTPUT)));
         if (!inputFolder.exists())
         {
             throw new CoreException("{} does not exist.", inputFolder);
@@ -71,12 +75,12 @@ public class AtlasShardingConverterCommand extends AbstractAtlasShellToolsComman
         {
             throw new CoreException("{} already exists.", outputFolder);
         }
-        final Sharding inputSharding = Sharding.forString(
-                this.optionAndArgumentDelegate.getOptionArgument(INPUT_SHARDING).orElseThrow(
-                        () -> new CoreException("{} needs to be specified.", INPUT_SHARDING)));
-        final Sharding outputSharding = Sharding.forString(
-                this.optionAndArgumentDelegate.getOptionArgument(OUTPUT_SHARDING).orElseThrow(
-                        () -> new CoreException("{} needs to be specified.", OUTPUT_SHARDING)));
+        final Sharding inputSharding = Sharding
+                .forString(this.optionAndArgumentDelegate.getOptionArgument(INPUT_SHARDING)
+                        .orElseThrow(() -> new CoreException(EXCEPTION_MESSAGE, INPUT_SHARDING)));
+        final Sharding outputSharding = Sharding
+                .forString(this.optionAndArgumentDelegate.getOptionArgument(OUTPUT_SHARDING)
+                        .orElseThrow(() -> new CoreException(EXCEPTION_MESSAGE, OUTPUT_SHARDING)));
         final List<File> inputFiles = inputFolder.listFilesRecursively().stream()
                 .filter(file -> FILE_MATCHER.matcher(file.getName()).matches())
                 .collect(Collectors.toList());
@@ -161,9 +165,9 @@ public class AtlasShardingConverterCommand extends AbstractAtlasShellToolsComman
         registerOptionWithRequiredArgument(OUTPUT, OUTPUT_DESCRIPTION, OptionOptionality.REQUIRED,
                 "/path/to/output");
         registerOptionWithRequiredArgument(INPUT_SHARDING, INPUT_SHARDING_DESCRIPTION,
-                OptionOptionality.REQUIRED, "slippy@10");
+                OptionOptionality.REQUIRED, "type@parameter");
         registerOptionWithRequiredArgument(OUTPUT_SHARDING, OUTPUT_SHARDING_DESCRIPTION,
-                OptionOptionality.REQUIRED, "geohash@4");
+                OptionOptionality.REQUIRED, "type@parameter");
         super.registerOptionsAndArguments();
     }
 }
