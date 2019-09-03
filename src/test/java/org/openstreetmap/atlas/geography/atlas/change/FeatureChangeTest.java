@@ -35,6 +35,9 @@ import org.openstreetmap.atlas.utilities.collections.Sets;
 public class FeatureChangeTest
 {
     @Rule
+    public ChangeAtlasTestRule rule = new ChangeAtlasTestRule();
+
+    @Rule
     public final ExpectedException expectedException = ExpectedException.none();
 
     @Test
@@ -196,11 +199,32 @@ public class FeatureChangeTest
         final CompleteNode before2 = new CompleteNode(123L, Location.forString("1,1"),
                 Maps.hashMap("key0", "value0"), Sets.treeSet(1L, 2L), Sets.treeSet(3L, 4L),
                 Sets.hashSet(1L, 2L, 3L));
-        final CompleteNode after2 = new CompleteNode(123L, Location.forString("1,1"),
-                Maps.hashMap("key0", "value0"), Sets.treeSet(2L, 100L),
+        final CompleteNode after2 = new CompleteNode(123L, Location.forString("2,2"),
+                Maps.hashMap("key0", "value0", "key1", "value1"), Sets.treeSet(2L, 100L),
                 Sets.treeSet(3L, 4L, 5L, 6L), Sets.hashSet(1L, 2L, 3L, 4L));
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, after2, before2);
         System.out.println(featureChange2.explain().toString());
+
+        final CompleteEdge before3 = new CompleteEdge(123L, polyline1,
+                Maps.hashMap("key0", "value0"), 1L, 2L, Sets.hashSet(1L, 2L, 3L));
+        final CompleteEdge after3 = new CompleteEdge(123L, polyline1,
+                Maps.hashMap("key0", "value0", "key1", "value1"), 10L, 20L,
+                Sets.hashSet(1L, 2L, 4L));
+        final FeatureChange featureChange3 = new FeatureChange(ChangeType.ADD, after3, before3);
+        System.out.println(featureChange3.explain().toString());
+
+        final CompleteLine after4 = new CompleteLine(123L, polyline2,
+                Maps.hashMap("key1", "value1Prime", "key2", "value2"), Sets.hashSet(1L, 2L));
+        final FeatureChange featureChange4 = FeatureChange.add(after4);
+        System.out.println(featureChange4.explain().toString());
+
+        CompletePoint point = CompletePoint.shallowFrom(this.rule.getPointAtlas().point(1L));
+        final FeatureChange featureChange5 = FeatureChange.remove(point);
+        System.out.println(featureChange5.explain().toString());
+
+        point = CompletePoint.shallowFrom(this.rule.getPointAtlas().point(1L));
+        final FeatureChange featureChange6 = FeatureChange.remove(point, this.rule.getPointAtlas());
+        System.out.println(featureChange6.explain().toString());
         // TODO finish test
     }
 

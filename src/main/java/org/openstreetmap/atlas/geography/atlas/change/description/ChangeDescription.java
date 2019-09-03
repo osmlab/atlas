@@ -16,18 +16,26 @@ public class ChangeDescription
 
     private final long identifier;
     private final ItemType itemType;
+    private final ChangeDescriptorType changeDescriptorType;
     private final List<ChangeDescriptor> descriptors;
 
-    public ChangeDescription(final long identifier, final ItemType itemType)
+    public ChangeDescription(final long identifier, final ItemType itemType,
+            final ChangeDescriptorType changeDescriptorType)
     {
         this.identifier = identifier;
         this.itemType = itemType;
+        this.changeDescriptorType = changeDescriptorType;
         this.descriptors = new ArrayList<>();
     }
 
     public void addChangeDescriptor(final ChangeDescriptor descriptor)
     {
         this.descriptors.add(descriptor);
+    }
+
+    public ChangeDescriptorType getChangeDescriptorType()
+    {
+        return this.changeDescriptorType;
     }
 
     public List<ChangeDescriptor> getChangeDescriptors()
@@ -56,26 +64,19 @@ public class ChangeDescription
         return this.itemType;
     }
 
-    public String toSingleLineString()
-    {
-        return toString(false);
-    }
-
     @Override
     public String toString()
-    {
-        return toString(true);
-    }
-
-    private String toString(final boolean multiLine)
     {
         this.descriptors.sort(COMPARATOR);
         final StringBuilder builder = new StringBuilder();
         builder.append("ChangeDescription [");
-        if (multiLine)
-        {
-            builder.append("\n");
-        }
+        builder.append("\n");
+        builder.append(this.changeDescriptorType);
+        builder.append(" ");
+        builder.append(this.itemType);
+        builder.append(" ");
+        builder.append(this.getIdentifier());
+        builder.append("\n");
 
         if (this.descriptors.isEmpty())
         {
@@ -86,20 +87,10 @@ public class ChangeDescription
         for (int i = 0; i < this.descriptors.size() - 1; i++)
         {
             builder.append(this.descriptors.get(i).toString());
-            if (multiLine)
-            {
-                builder.append("\n");
-            }
-            else
-            {
-                builder.append(", ");
-            }
-        }
-        builder.append(this.descriptors.get(this.descriptors.size() - 1).toString());
-        if (multiLine)
-        {
             builder.append("\n");
         }
+        builder.append(this.descriptors.get(this.descriptors.size() - 1).toString());
+        builder.append("\n");
         builder.append("]");
 
         return builder.toString();

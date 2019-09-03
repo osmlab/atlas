@@ -10,10 +10,12 @@ import java.util.function.Function;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptor;
-import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.GenericSetChangeDescriptor;
+import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.GenericElementChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.GeometryChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.TagChangeDescriptor;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEntity;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
@@ -26,56 +28,107 @@ public class ChangeDescriptorGenerator
 {
     private final AtlasEntity beforeView;
     private final AtlasEntity afterView;
+    private final ChangeDescriptorType changeDescriptorType;
 
-    public ChangeDescriptorGenerator(final AtlasEntity beforeView, final AtlasEntity afterView)
+    public ChangeDescriptorGenerator(final AtlasEntity beforeView, final AtlasEntity afterView,
+            final ChangeType sourceFeatureChangeType)
     {
         this.beforeView = beforeView;
         this.afterView = afterView;
+
+        if (sourceFeatureChangeType == ChangeType.ADD)
+        {
+            if (this.beforeView != null)
+            {
+                this.changeDescriptorType = ChangeDescriptorType.UPDATE;
+            }
+            else
+            {
+                this.changeDescriptorType = ChangeDescriptorType.ADD;
+            }
+        }
+        else
+        {
+            this.changeDescriptorType = ChangeDescriptorType.REMOVE;
+        }
     }
 
     public List<ChangeDescriptor> generate()
     {
         final List<ChangeDescriptor> descriptors = new ArrayList<>();
 
+        /*
+         * For the REMOVE case, there's no point showing any details. Users can just look at the
+         * FeatureChange output itself to see the beforeView and afterView.
+         */
+        if (this.changeDescriptorType == ChangeDescriptorType.REMOVE)
+        {
+            return descriptors;
+        }
+
         descriptors.addAll(generateTagDescriptors());
         descriptors.addAll(generateGeometryDescriptors());
         descriptors.addAll(generateParentRelationDescriptors(CompleteEntity::relationIdentifiers));
         if (this.afterView.getType() == ItemType.NODE)
         {
-            descriptors
-                    .addAll(generateNodeSetDescriptors("IN_EDGE", CompleteNode::inEdgeIdentifiers));
             descriptors.addAll(
-                    generateNodeSetDescriptors("OUT_EDGE", CompleteNode::outEdgeIdentifiers));
+                    generateNodeInOutDescriptors("IN_EDGE", CompleteNode::inEdgeIdentifiers));
+            descriptors.addAll(
+                    generateNodeInOutDescriptors("OUT_EDGE", CompleteNode::outEdgeIdentifiers));
+        }
+        if (this.afterView.getType() == ItemType.EDGE)
+        {
+            descriptors.addAll(generateEdgeStartEndDescriptors("START_NODE",
+                    CompleteEdge::startNodeIdentifier));
+            descriptors.addAll(
+                    generateEdgeStartEndDescriptors("END_NODE", CompleteEdge::endNodeIdentifier));
         }
 
         /*
-         * TODO need to generate relationMembers, start/end nodes, and other special relation
-         * fields.
+         * TODO need to generate relationMembers, and other special relation fields.
          */
 
         return descriptors;
     }
 
-    private List<GenericSetChangeDescriptor<Long>> generateGenericLongSetDescriptors(
-            final String name, final Set<Long> beforeSet, final Set<Long> afterSet)
+    public ChangeDescriptorType getChangeDescriptorType()
     {
-        final List<GenericSetChangeDescriptor<Long>> descriptors = new ArrayList<>();
+        return this.changeDescriptorType;
+    }
 
-        final Set<Long> removedFromAfterView = com.google.common.collect.Sets.difference(beforeSet,
-                afterSet);
-        final Set<Long> addedToAfterView = com.google.common.collect.Sets.difference(afterSet,
-                beforeSet);
-        for (final Long identifier : removedFromAfterView)
+    private List<GenericElementChangeDescriptor<Long>> generateEdgeStartEndDescriptors(
+            final String name, final Function<CompleteEdge, Long> memberExtractor)
+    {
+        final CompleteEdge beforeEntity = (CompleteEdge) this.beforeView;
+        final CompleteEdge afterEntity = (CompleteEdge) this.afterView;
+
+        /*
+         * If the afterView identifier was null, then we know that it was not updated. We can just
+         * return nothing.
+         */
+        if (memberExtractor.apply(afterEntity) == null)
         {
-            descriptors.add(new GenericSetChangeDescriptor<>(ChangeDescriptorType.REMOVE,
-                    identifier, name));
+            return new ArrayList<>();
         }
-        for (final Long identifier : addedToAfterView)
+
+        final Long beforeIdentifier;
+        if (beforeEntity != null)
         {
-            descriptors.add(
-                    new GenericSetChangeDescriptor<>(ChangeDescriptorType.ADD, identifier, name));
+            if (memberExtractor.apply(beforeEntity) == null)
+            {
+                throw new CoreException(
+                        "Corrupted FeatureChange: afterView {} were non-null but beforeView {} were null",
+                        name);
+            }
+            beforeIdentifier = memberExtractor.apply(beforeEntity);
         }
-        return descriptors;
+        else
+        {
+            beforeIdentifier = null;
+        }
+        final Long afterIdentifier = memberExtractor.apply(afterEntity);
+
+        return generateLongValueDescriptors(name, beforeIdentifier, afterIdentifier);
     }
 
     private List<ChangeDescriptor> generateGeometryDescriptors()
@@ -119,8 +172,53 @@ public class ChangeDescriptorGenerator
         return descriptors;
     }
 
-    private List<GenericSetChangeDescriptor<Long>> generateNodeSetDescriptors(final String name,
-            final Function<CompleteNode, Set<Long>> memberExtractor)
+    private List<GenericElementChangeDescriptor<Long>> generateLongSetDescriptors(final String name,
+            final Set<Long> beforeSet, final Set<Long> afterSet)
+    {
+        final List<GenericElementChangeDescriptor<Long>> descriptors = new ArrayList<>();
+
+        final Set<Long> removedFromAfterView = com.google.common.collect.Sets.difference(beforeSet,
+                afterSet);
+        final Set<Long> addedToAfterView = com.google.common.collect.Sets.difference(afterSet,
+                beforeSet);
+        for (final Long identifier : removedFromAfterView)
+        {
+            descriptors.add(new GenericElementChangeDescriptor<>(ChangeDescriptorType.REMOVE,
+                    identifier, name));
+        }
+        for (final Long identifier : addedToAfterView)
+        {
+            descriptors.add(new GenericElementChangeDescriptor<>(ChangeDescriptorType.ADD,
+                    identifier, name));
+        }
+        return descriptors;
+    }
+
+    private List<GenericElementChangeDescriptor<Long>> generateLongValueDescriptors(
+            final String name, final Long beforeIdentifier, final Long afterIdentifier)
+    {
+        final List<GenericElementChangeDescriptor<Long>> descriptors = new ArrayList<>();
+
+        /*
+         * This case occurs when an brand new Long value (e.g. startNode, endNode, etc.) is being
+         * added, and so there is no beforeElement.
+         */
+        if (beforeIdentifier == null)
+        {
+            descriptors.add(new GenericElementChangeDescriptor<>(ChangeDescriptorType.ADD, null,
+                    afterIdentifier, name));
+        }
+        else
+        {
+            descriptors.add(new GenericElementChangeDescriptor<>(ChangeDescriptorType.UPDATE,
+                    beforeIdentifier, afterIdentifier, name));
+        }
+
+        return descriptors;
+    }
+
+    private List<GenericElementChangeDescriptor<Long>> generateNodeInOutDescriptors(
+            final String name, final Function<CompleteNode, Set<Long>> memberExtractor)
     {
         final CompleteNode beforeEntity = (CompleteNode) this.beforeView;
         final CompleteNode afterEntity = (CompleteNode) this.afterView;
@@ -151,10 +249,10 @@ public class ChangeDescriptorGenerator
         }
         final Set<Long> afterSet = memberExtractor.apply(afterEntity);
 
-        return generateGenericLongSetDescriptors(name, beforeSet, afterSet);
+        return generateLongSetDescriptors(name, beforeSet, afterSet);
     }
 
-    private List<GenericSetChangeDescriptor<Long>> generateParentRelationDescriptors(
+    private List<GenericElementChangeDescriptor<Long>> generateParentRelationDescriptors(
             final Function<CompleteEntity, Set<Long>> memberExtractor)
     {
         final String name = "PARENT_RELATION";
@@ -188,7 +286,7 @@ public class ChangeDescriptorGenerator
         }
         final Set<Long> afterSet = memberExtractor.apply(afterEntity);
 
-        return generateGenericLongSetDescriptors(name, beforeSet, afterSet);
+        return generateLongSetDescriptors(name, beforeSet, afterSet);
     }
 
     private List<ChangeDescriptor> generateTagDescriptors()

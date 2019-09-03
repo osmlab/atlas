@@ -30,25 +30,29 @@ public class ChangeDescriptorComparator implements Comparator<ChangeDescriptor>
             return geometryChangeCompare((GeometryChangeDescriptor) left,
                     (GeometryChangeDescriptor) right);
         }
-        if (left instanceof GenericSetChangeDescriptor
-                && right instanceof GenericSetChangeDescriptor)
+        if (left instanceof GenericElementChangeDescriptor
+                && right instanceof GenericElementChangeDescriptor)
         {
-            return genericSetChangeCompare((GenericSetChangeDescriptor) left,
-                    (GenericSetChangeDescriptor) right);
+            return genericSetChangeCompare((GenericElementChangeDescriptor) left,
+                    (GenericElementChangeDescriptor) right);
         }
 
         throw new CoreException("Could not compare {} vs {}", left, right);
     }
 
-    private int genericSetChangeCompare(final GenericSetChangeDescriptor left,
-            final GenericSetChangeDescriptor right)
+    private int genericSetChangeCompare(final GenericElementChangeDescriptor left,
+            final GenericElementChangeDescriptor right)
     {
+        if (!left.getDescription().equals(right.getDescription()))
+        {
+            return left.getDescription().compareTo(right.getDescription());
+        }
         if (left.getChangeDescriptorType() != right.getChangeDescriptorType())
         {
             return left.getChangeDescriptorType().compareTo(right.getChangeDescriptorType());
         }
-        final Comparable leftComparable = (Comparable) left.getElement();
-        final Comparable rightComparable = (Comparable) right.getElement();
+        final Comparable leftComparable = (Comparable) left.getAfterElement();
+        final Comparable rightComparable = (Comparable) right.getAfterElement();
         return leftComparable.compareTo(rightComparable);
     }
 

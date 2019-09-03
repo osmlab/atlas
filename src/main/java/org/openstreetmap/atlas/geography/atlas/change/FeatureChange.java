@@ -337,9 +337,11 @@ public class FeatureChange implements Located, Serializable
         {
             throw new CoreException("Cannot explain a FeatureChange with a null afterView!");
         }
-        final ChangeDescription description = new ChangeDescription(getIdentifier(), getItemType());
-        new ChangeDescriptorGenerator(this.beforeView, this.afterView).generate()
-                .forEach(description::addChangeDescriptor);
+        final ChangeDescriptorGenerator generator = new ChangeDescriptorGenerator(this.beforeView,
+                this.afterView, this.changeType);
+        final ChangeDescription description = new ChangeDescription(getIdentifier(), getItemType(),
+                generator.getChangeDescriptorType());
+        generator.generate().forEach(description::addChangeDescriptor);
 
         return description;
     }
@@ -597,6 +599,8 @@ public class FeatureChange implements Located, Serializable
                 + ((CompleteEntity<?>) this.afterView).prettify(completeEntityFormat) + ", ");
         builder.append(separator);
         builder.append("metadata: " + this.metaData);
+        builder.append(separator);
+        builder.append(this.explain());
         builder.append(separator);
         builder.append("]");
 

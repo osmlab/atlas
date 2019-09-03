@@ -142,6 +142,11 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
         return this.endNodeIdentifier == null ? null : new CompleteNode(this.endNodeIdentifier);
     }
 
+    public Long endNodeIdentifier()
+    {
+        return this.endNodeIdentifier;
+    }
+
     @Override
     public boolean equals(final Object other)
     {
@@ -284,6 +289,11 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
          * since it has null bounds.
          */
         return this.startNodeIdentifier == null ? null : new CompleteNode(this.startNodeIdentifier);
+    }
+
+    public Long startNodeIdentifier()
+    {
+        return this.startNodeIdentifier;
     }
 
     @Override
