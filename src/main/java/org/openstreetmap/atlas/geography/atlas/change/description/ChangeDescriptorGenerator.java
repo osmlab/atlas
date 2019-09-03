@@ -10,7 +10,6 @@ import java.util.function.Function;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
-import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.GenericElementChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.GeometryChangeDescriptor;
@@ -31,26 +30,11 @@ public class ChangeDescriptorGenerator
     private final ChangeDescriptorType changeDescriptorType;
 
     public ChangeDescriptorGenerator(final AtlasEntity beforeView, final AtlasEntity afterView,
-            final ChangeType sourceFeatureChangeType)
+            final ChangeDescriptorType changeDescriptorType)
     {
         this.beforeView = beforeView;
         this.afterView = afterView;
-
-        if (sourceFeatureChangeType == ChangeType.ADD)
-        {
-            if (this.beforeView != null)
-            {
-                this.changeDescriptorType = ChangeDescriptorType.UPDATE;
-            }
-            else
-            {
-                this.changeDescriptorType = ChangeDescriptorType.ADD;
-            }
-        }
-        else
-        {
-            this.changeDescriptorType = ChangeDescriptorType.REMOVE;
-        }
+        this.changeDescriptorType = changeDescriptorType;
     }
 
     public List<ChangeDescriptor> generate()

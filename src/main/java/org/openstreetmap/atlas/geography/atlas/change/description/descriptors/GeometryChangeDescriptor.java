@@ -19,6 +19,7 @@ public final class GeometryChangeDescriptor implements ChangeDescriptor
 {
     private final ChangeDescriptorType changeType;
     private final AbstractDelta<Location> delta;
+    private final int sourceMaterialSize;
 
     public static List<GeometryChangeDescriptor> getDescriptorsForGeometry(
             final List<Location> beforeList, final List<Location> afterList)
@@ -37,7 +38,7 @@ public final class GeometryChangeDescriptor implements ChangeDescriptor
         final List<GeometryChangeDescriptor> descriptors = new ArrayList<>();
         for (final AbstractDelta<Location> delta : diff.getDeltas())
         {
-            descriptors.add(new GeometryChangeDescriptor(delta));
+            descriptors.add(new GeometryChangeDescriptor(delta, beforeList.size()));
         }
 
         return descriptors;
@@ -53,7 +54,7 @@ public final class GeometryChangeDescriptor implements ChangeDescriptor
         return patch;
     }
 
-    private GeometryChangeDescriptor(final AbstractDelta<Location> delta)
+    private GeometryChangeDescriptor(final AbstractDelta<Location> delta, final int sourceMaterialSize)
     {
         switch (delta.getType())
         {
@@ -70,6 +71,7 @@ public final class GeometryChangeDescriptor implements ChangeDescriptor
                 throw new CoreException("Unexpected Delta value: " + delta.getType());
         }
         this.delta = delta;
+        this.sourceMaterialSize = sourceMaterialSize;
     }
 
     @Override
@@ -95,6 +97,8 @@ public final class GeometryChangeDescriptor implements ChangeDescriptor
         diffString.append(this.changeType.toString());
         diffString.append(", ");
         diffString.append(this.delta.getSource().getPosition());
+        diffString.append("/");
+        diffString.append(this.sourceMaterialSize);
         switch (this.changeType)
         {
             case UPDATE:

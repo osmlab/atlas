@@ -17,7 +17,6 @@ import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescription;
-import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescriptorGenerator;
 import org.openstreetmap.atlas.geography.atlas.change.serializer.FeatureChangeGeoJsonSerializer;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
@@ -337,13 +336,8 @@ public class FeatureChange implements Located, Serializable
         {
             throw new CoreException("Cannot explain a FeatureChange with a null afterView!");
         }
-        final ChangeDescriptorGenerator generator = new ChangeDescriptorGenerator(this.beforeView,
+        return new ChangeDescription(getIdentifier(), getItemType(), this.beforeView,
                 this.afterView, this.changeType);
-        final ChangeDescription description = new ChangeDescription(getIdentifier(), getItemType(),
-                generator.getChangeDescriptorType());
-        generator.generate().forEach(description::addChangeDescriptor);
-
-        return description;
     }
 
     public AtlasEntity getAfterView()
