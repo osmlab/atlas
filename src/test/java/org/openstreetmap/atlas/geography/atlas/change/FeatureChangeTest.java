@@ -201,9 +201,9 @@ public class FeatureChangeTest
                 Location.forString("5,5"));
 
         final CompleteLine before2 = new CompleteLine(123L, polyline3,
-                Maps.hashMap("key0", "value0"), null);
+                Maps.hashMap("key0", "value0"), Sets.hashSet(1L, 2L, 3L));
         final CompleteLine after2 = new CompleteLine(123L, polyline4,
-                Maps.hashMap("key0", "value0", "key1", "value1"), null);
+                Maps.hashMap("key0", "value0", "key1", "value1"), Sets.hashSet(3L, 10L, 11L));
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, after2, before2);
         System.out.println(featureChange2.explain().toString());
         // TODO finish test

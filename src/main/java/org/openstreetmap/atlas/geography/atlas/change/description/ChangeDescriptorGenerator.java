@@ -2,18 +2,22 @@ package org.openstreetmap.atlas.geography.atlas.change.description;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.GeometryChangeDescriptor;
+import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ParentRelationChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.TagChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEntity;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
 /**
  * @author lcram
@@ -35,10 +39,11 @@ public class ChangeDescriptorGenerator
 
         descriptors.addAll(generateTagDescriptors());
         descriptors.addAll(generateGeometryDescriptors());
+        descriptors.addAll(generateParentRelationDescriptors());
 
         /*
-         * TODO need to generate parentRelations, relationMembers, in/out edges, start/end nodes,
-         * and other special relation fields.
+         * TODO need to generate relationMembers, in/out edges, start/end nodes, and other special
+         * relation fields.
          */
 
         return descriptors;
@@ -79,13 +84,57 @@ public class ChangeDescriptorGenerator
             }
             beforeEntity.getGeometry().forEach(beforeGeometry::add);
         }
-        final GeometryChangeDescriptor descriptor = new GeometryChangeDescriptor(
-                ChangeDescriptorType.UPDATE, beforeGeometry, afterGeometry);
-        if (!descriptor.isEmpty())
+        descriptors.addAll(
+                GeometryChangeDescriptor.getDescriptorsForGeometry(beforeGeometry, afterGeometry));
+
+        return descriptors;
+    }
+
+    private List<ChangeDescriptor> generateParentRelationDescriptors()
+    {
+        final List<ChangeDescriptor> descriptors = new ArrayList<>();
+
+        /*
+         * If the afterView parent relations were null, then we know that they were not updated. We
+         * can just return nothing.
+         */
+        if (this.afterView.relations() == null)
         {
-            descriptors.add(descriptor);
+            return descriptors;
         }
 
+        final Set<Long> beforeRelations;
+        if (this.beforeView != null)
+        {
+            if (this.beforeView.relations() == null)
+            {
+                throw new CoreException(
+                        "Corrupted FeatureChange: afterView parent relations were non-null but beforeView parent relations were null");
+            }
+            beforeRelations = this.beforeView.relations().stream().map(Relation::getIdentifier)
+                    .collect(Collectors.toSet());
+        }
+        else
+        {
+            beforeRelations = new HashSet<>();
+        }
+        final Set<Long> afterRelations = this.afterView.relations().stream()
+                .map(Relation::getIdentifier).collect(Collectors.toSet());
+
+        final Set<Long> relationsRemovedFromAfterView = com.google.common.collect.Sets
+                .difference(beforeRelations, afterRelations);
+        final Set<Long> relationsAddedToAfterView = com.google.common.collect.Sets
+                .difference(afterRelations, beforeRelations);
+        for (final Long identifier : relationsRemovedFromAfterView)
+        {
+            descriptors.add(
+                    new ParentRelationChangeDescriptor(ChangeDescriptorType.REMOVE, identifier));
+        }
+        for (final Long identifier : relationsAddedToAfterView)
+        {
+            descriptors
+                    .add(new ParentRelationChangeDescriptor(ChangeDescriptorType.ADD, identifier));
+        }
         return descriptors;
     }
 

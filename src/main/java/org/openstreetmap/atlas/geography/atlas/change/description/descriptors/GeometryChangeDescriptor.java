@@ -5,55 +5,71 @@ import java.util.List;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
-import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescriptorType;
 
 import com.github.difflib.DiffUtils;
 import com.github.difflib.algorithm.DiffException;
 import com.github.difflib.patch.AbstractDelta;
-import com.github.difflib.patch.DeltaType;
 import com.github.difflib.patch.Patch;
 
 /**
  * @author lcram
  */
-public class GeometryChangeDescriptor implements ChangeDescriptor
+public final class GeometryChangeDescriptor implements ChangeDescriptor
 {
     private final ChangeDescriptorType changeType;
-    private final Patch<Location> diff;
+    private final AbstractDelta<Location> delta;
 
-    private static List<Location> makeList(final Location location)
-    {
-        final List<Location> list = new ArrayList<>();
-        list.add(location);
-        return list;
-    }
-
-    public GeometryChangeDescriptor(final ChangeDescriptorType changeType, final Location before,
-            final Location after)
-    {
-        this(changeType, makeList(before), makeList(after));
-    }
-
-    public GeometryChangeDescriptor(final ChangeDescriptorType changeType, final PolyLine before,
-            final PolyLine after)
-    {
-        this(changeType, new ArrayList<>(before), new ArrayList<>(after));
-    }
-
-    public GeometryChangeDescriptor(final ChangeDescriptorType changeType,
+    public static List<GeometryChangeDescriptor> getDescriptorsForGeometry(
             final List<Location> beforeList, final List<Location> afterList)
     {
-        this.changeType = changeType;
+        final Patch<Location> diff;
         try
         {
-            this.diff = DiffUtils.diff(beforeList, afterList);
+            diff = DiffUtils.diff(beforeList, afterList);
         }
         catch (final DiffException exception)
         {
             throw new CoreException("Failed to compute diff for GeometryChangeDescriptor",
                     exception);
         }
+
+        final List<GeometryChangeDescriptor> descriptors = new ArrayList<>();
+        for (final AbstractDelta<Location> delta : diff.getDeltas())
+        {
+            descriptors.add(new GeometryChangeDescriptor(delta));
+        }
+
+        return descriptors;
+    }
+
+    public static Patch getPatch(final List<GeometryChangeDescriptor> descriptors)
+    {
+        final Patch<Location> patch = new Patch<>();
+        for (final GeometryChangeDescriptor descriptor : descriptors)
+        {
+            patch.addDelta(descriptor.getDelta());
+        }
+        return patch;
+    }
+
+    private GeometryChangeDescriptor(final AbstractDelta<Location> delta)
+    {
+        switch (delta.getType())
+        {
+            case CHANGE:
+                this.changeType = ChangeDescriptorType.UPDATE;
+                break;
+            case DELETE:
+                this.changeType = ChangeDescriptorType.REMOVE;
+                break;
+            case INSERT:
+                this.changeType = ChangeDescriptorType.ADD;
+                break;
+            default:
+                throw new CoreException("Unexpected Delta value: " + delta.getType());
+        }
+        this.delta = delta;
     }
 
     @Override
@@ -62,63 +78,41 @@ public class GeometryChangeDescriptor implements ChangeDescriptor
         return this.changeType;
     }
 
-    public Patch<Location> getDiff()
+    public AbstractDelta<Location> getDelta()
     {
-        return this.diff;
+        return this.delta;
     }
 
-    public boolean isEmpty()
+    public int getSourcePosition()
     {
-        return this.diff.getDeltas().isEmpty();
+        return this.delta.getSource().getPosition();
     }
 
     @Override
     public String toString()
     {
         final StringBuilder diffString = new StringBuilder();
-        for (int i = 0; i < this.diff.getDeltas().size(); i++)
+        diffString.append(this.changeType.toString());
+        diffString.append(", ");
+        diffString.append(this.delta.getSource().getPosition());
+        switch (this.changeType)
         {
-            final AbstractDelta<Location> delta = this.diff.getDeltas().get(i);
-            diffString.append("{");
-            switch (delta.getType())
-            {
-                case CHANGE:
-                    diffString.append(ChangeDescriptorType.UPDATE.toString());
-                    diffString.append(", ");
-                    diffString.append(delta.getSource().getPosition());
-                    diffString.append(", ");
-                    diffString.append(delta.getSource().getLines());
-                    diffString.append(" => ");
-                    diffString.append(delta.getTarget().getLines());
-                    break;
-                case DELETE:
-                    diffString.append(ChangeDescriptorType.REMOVE.toString());
-                    diffString.append(", ");
-                    diffString.append(delta.getSource().getPosition());
-                    diffString.append(", ");
-                    diffString.append(delta.getSource().getLines());
-                    break;
-                case INSERT:
-                    diffString.append(ChangeDescriptorType.ADD.toString());
-                    diffString.append(", ");
-                    diffString.append(delta.getSource().getPosition());
-                    diffString.append(", ");
-                    diffString.append(delta.getTarget().getLines());
-                    break;
-                case EQUAL:
-                    diffString.append(DeltaType.EQUAL.toString());
-                    break;
-                default:
-                    throw new CoreException("Unexpected Delta value: " + delta.getType());
-            }
-            if (i == this.diff.getDeltas().size() - 1)
-            {
-                diffString.append("}");
-            }
-            else
-            {
-                diffString.append("}, ");
-            }
+            case UPDATE:
+                diffString.append(", ");
+                diffString.append(this.delta.getSource().getLines());
+                diffString.append(" => ");
+                diffString.append(this.delta.getTarget().getLines());
+                break;
+            case REMOVE:
+                diffString.append(", ");
+                diffString.append(this.delta.getSource().getLines());
+                break;
+            case ADD:
+                diffString.append(", ");
+                diffString.append(this.delta.getTarget().getLines());
+                break;
+            default:
+                throw new CoreException("Unexpected ChangeType value: " + this.delta.getType());
         }
         return "GEOM(" + diffString.toString() + ")";
     }
