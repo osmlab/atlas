@@ -16,6 +16,20 @@ public class GeoHashShardingTest
     private final Sharding sharding = Sharding.forString("geohash@7");
 
     @Test
+    public void testForName()
+    {
+        final Sharding sharding = Sharding.forString("geohash@4");
+        Assert.assertEquals(GeoHashTile.forName("gbsf"), sharding.shardForName("gbsf"));
+    }
+
+    @Test(expected = CoreException.class)
+    public void testForNameError()
+    {
+        final Sharding sharding = Sharding.forString("geohash@4");
+        sharding.shardForName("something");
+    }
+
+    @Test
     public void testGetPrecision()
     {
         Assert.assertEquals(7, ((GeoHashSharding) this.sharding).getPrecision());

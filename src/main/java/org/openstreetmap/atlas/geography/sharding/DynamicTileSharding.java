@@ -431,7 +431,7 @@ public class DynamicTileSharding extends Command implements Sharding
     public Shard shardForName(final String name)
     {
         final SlippyTile result = SlippyTile.forName(name);
-        if (!this.root.leafNodesCovering(result.bounds().center()).equals(result))
+        if (!this.root.leafNodesCovering(result.bounds().center()).contains(new Node(result)))
         {
             throw new CoreException("This tree does not contain tile {}", name);
         }

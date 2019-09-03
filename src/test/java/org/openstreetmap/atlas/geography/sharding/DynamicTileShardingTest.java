@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
 
@@ -23,6 +24,8 @@ public class DynamicTileShardingTest
     {
         final Map<SlippyTile, Long> countsAtZoom2 = new HashMap<SlippyTile, Long>()
         {
+            private static final long serialVersionUID = 8166718906410476661L;
+
             {
                 put(new SlippyTile(0, 0, 2), (long) 5);
                 put(new SlippyTile(1, 0, 2), (long) 3);
@@ -89,5 +92,24 @@ public class DynamicTileShardingTest
         Assert.assertNotEquals(shardingTreeOriginal, missingChildren);
         // child order ignore
         Assert.assertEquals(shardingTreeOriginal, differentChildOrdering);
+    }
+
+    @Test
+    public void testForName()
+    {
+        final DynamicTileSharding shardingTreeOriginal = new DynamicTileSharding(
+                new InputStreamResource(() -> DynamicTileShardingTest.class
+                        .getResourceAsStream("testDynamicSharding.txt")));
+        Assert.assertEquals(SlippyTile.forName("8-13-39"),
+                shardingTreeOriginal.shardForName("8-13-39"));
+    }
+
+    @Test(expected = CoreException.class)
+    public void testForNameError()
+    {
+        final DynamicTileSharding shardingTreeOriginal = new DynamicTileSharding(
+                new InputStreamResource(() -> DynamicTileShardingTest.class
+                        .getResourceAsStream("testDynamicSharding.txt")));
+        shardingTreeOriginal.shardForName("7-6-19");
     }
 }
