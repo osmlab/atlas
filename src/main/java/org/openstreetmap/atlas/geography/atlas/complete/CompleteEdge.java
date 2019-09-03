@@ -299,6 +299,13 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
         return this.polyLine.toWkt();
     }
 
+    @Override
+    public CompleteEdge withAddedRelationIdentifier(final Long relationIdentifier)
+    {
+        this.relationIdentifiers.add(relationIdentifier);
+        return this;
+    }
+
     public CompleteEdge withBoundsExtendedBy(final Rectangle bounds)
     {
         if (this.bounds == null)
@@ -348,6 +355,15 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
     public CompleteEdge withRelations(final Set<Relation> relations)
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
+                .collect(Collectors.toSet());
+        return this;
+    }
+
+    @Override
+    public CompleteEdge withRemovedRelationIdentifier(final Long relationIdentifier)
+    {
+        this.relationIdentifiers = this.relationIdentifiers.stream()
+                .filter(keepId -> keepId != relationIdentifier.longValue())
                 .collect(Collectors.toSet());
         return this;
     }

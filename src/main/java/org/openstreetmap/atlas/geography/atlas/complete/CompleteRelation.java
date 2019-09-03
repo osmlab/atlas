@@ -322,6 +322,13 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
         return this.bounds.toWkt();
     }
 
+    @Override
+    public CompleteRelation withAddedRelationIdentifier(final Long relationIdentifier)
+    {
+        this.relationIdentifiers.add(relationIdentifier);
+        return this;
+    }
+
     public CompleteRelation withAllKnownOsmMembers(final RelationBean allKnownOsmMembers)
     {
         this.allKnownOsmMembers = allKnownOsmMembers;
@@ -507,6 +514,36 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     public CompleteRelation withRelations(final Set<Relation> relations)
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
+                .collect(Collectors.toSet());
+        return this;
+    }
+
+    public CompleteRelation withRemovedMember(final AtlasEntity memberToRemove)
+    {
+        final List<String> roles = this.members
+                .removeAllMatchingItems(memberToRemove.getIdentifier(), memberToRemove.getType());
+        roles.forEach(role -> this.members.addItemExplicitlyExcluded(memberToRemove.getIdentifier(),
+                role, memberToRemove.getType()));
+        return this;
+    }
+
+    public CompleteRelation withRemovedMember(final AtlasEntity memberToRemove, final String role)
+    {
+        final boolean success = this.members.removeItem(memberToRemove.getIdentifier(), role,
+                memberToRemove.getType());
+        if (success)
+        {
+            this.members.addItemExplicitlyExcluded(memberToRemove.getIdentifier(), role,
+                    memberToRemove.getType());
+        }
+        return this;
+    }
+
+    @Override
+    public CompleteRelation withRemovedRelationIdentifier(final Long relationIdentifier)
+    {
+        this.relationIdentifiers = this.relationIdentifiers.stream()
+                .filter(keepId -> keepId != relationIdentifier.longValue())
                 .collect(Collectors.toSet());
         return this;
     }

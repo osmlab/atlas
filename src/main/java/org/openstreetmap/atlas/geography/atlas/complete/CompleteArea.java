@@ -254,6 +254,13 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
         return this.polygon.toWkt();
     }
 
+    @Override
+    public CompleteArea withAddedRelationIdentifier(final Long relationIdentifier)
+    {
+        this.relationIdentifiers.add(relationIdentifier);
+        return this;
+    }
+
     public CompleteArea withBoundsExtendedBy(final Rectangle bounds)
     {
         if (this.bounds == null)
@@ -296,6 +303,15 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
     public CompleteArea withRelations(final Set<Relation> relations)
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
+                .collect(Collectors.toSet());
+        return this;
+    }
+
+    @Override
+    public CompleteArea withRemovedRelationIdentifier(final Long relationIdentifier)
+    {
+        this.relationIdentifiers = this.relationIdentifiers.stream()
+                .filter(keepId -> keepId != relationIdentifier.longValue())
                 .collect(Collectors.toSet());
         return this;
     }

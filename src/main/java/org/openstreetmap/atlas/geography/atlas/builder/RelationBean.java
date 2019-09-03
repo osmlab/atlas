@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
@@ -39,6 +40,13 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
             this.identifier = identifier;
             this.role = role;
             this.type = type;
+        }
+
+        public RelationBeanItem(final RelationBeanItem item)
+        {
+            this.identifier = item.identifier;
+            this.role = item.role;
+            this.type = item.type;
         }
 
         @Override
@@ -78,16 +86,13 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
         @Override
         public String toString()
         {
-            return this.type + ", " + this.identifier + ", " + this.role;
+            return "[" + this.type + ", " + this.identifier + ", " + this.role + "]";
         }
     }
 
     private static final long serialVersionUID = 8511830231633569713L;
 
-    private final List<Long> memberIdentifiers;
-
-    private final List<String> memberRoles;
-    private final List<ItemType> memberTypes;
+    private List<RelationBeanItem> beanItems;
     /**
      * This set has no concept of how many {@link RelationBeanItem}s of a given value have been
      * removed. Technically, OSM allows for duplicate {@link RelationBeanItem}s in a given relation.
@@ -139,10 +144,7 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
 
     public RelationBean()
     {
-        this.memberIdentifiers = new ArrayList<>();
-        this.memberRoles = new ArrayList<>();
-        this.memberTypes = new ArrayList<>();
-
+        this.beanItems = new ArrayList<>();
         this.explicitlyExcluded = new HashSet<>();
     }
 
@@ -155,9 +157,7 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
 
     public void addItem(final Long identifier, final String role, final ItemType itemType)
     {
-        this.memberIdentifiers.add(identifier);
-        this.memberRoles.add(role);
-        this.memberTypes.add(itemType);
+        this.beanItems.add(new RelationBeanItem(identifier, role, itemType));
     }
 
     public void addItem(final RelationBeanItem item)
@@ -183,13 +183,7 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
      */
     public List<RelationBeanItem> asList()
     {
-        final List<RelationBeanItem> result = new ArrayList<>();
-        for (int index = 0; index < size(); index++)
-        {
-            result.add(new RelationBeanItem(this.memberIdentifiers.get(index),
-                    this.memberRoles.get(index), this.memberTypes.get(index)));
-        }
-        return result;
+        return new ArrayList<>(this.beanItems);
     }
 
     /**
@@ -279,10 +273,10 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
 
     public Optional<RelationBeanItem> getItemFor(final long identifier, final ItemType type)
     {
-        for (int index = 0; index < this.memberIdentifiers.size(); index++)
+        for (int index = 0; index < this.beanItems.size(); index++)
         {
-            if (this.memberIdentifiers.get(index) == identifier
-                    && this.memberTypes.get(index) == type)
+            if (this.beanItems.get(index).getIdentifier() == identifier
+                    && this.beanItems.get(index).getType() == type)
             {
                 return Optional.of(getItemFor(index));
             }
@@ -293,11 +287,11 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
     public Optional<RelationBeanItem> getItemFor(final long identifier, final String role,
             final ItemType type)
     {
-        for (int index = 0; index < this.memberIdentifiers.size(); index++)
+        for (int index = 0; index < this.beanItems.size(); index++)
         {
-            if (this.memberIdentifiers.get(index) == identifier
-                    && role.equals(this.memberRoles.get(index))
-                    && this.memberTypes.get(index) == type)
+            if (this.beanItems.get(index).getIdentifier() == identifier
+                    && role.equals(this.beanItems.get(index).getRole())
+                    && this.beanItems.get(index).getType() == type)
             {
                 return Optional.of(getItemFor(index));
             }
@@ -307,17 +301,18 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
 
     public List<Long> getMemberIdentifiers()
     {
-        return this.memberIdentifiers;
+        return this.beanItems.stream().map(RelationBeanItem::getIdentifier)
+                .collect(Collectors.toList());
     }
 
     public List<String> getMemberRoles()
     {
-        return this.memberRoles;
+        return this.beanItems.stream().map(RelationBeanItem::getRole).collect(Collectors.toList());
     }
 
     public List<ItemType> getMemberTypes()
     {
-        return this.memberTypes;
+        return this.beanItems.stream().map(RelationBeanItem::getType).collect(Collectors.toList());
     }
 
     @Override
@@ -333,19 +328,13 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
     @Override
     public boolean isEmpty()
     {
-        return this.memberIdentifiers.isEmpty();
+        return this.beanItems.isEmpty();
     }
 
     @Override
     public Iterator<RelationBeanItem> iterator()
     {
-        final List<RelationBeanItem> result = new ArrayList<>();
-        for (int index = 0; index < this.memberIdentifiers.size(); index++)
-        {
-            result.add(new RelationBeanItem(this.memberIdentifiers.get(index),
-                    this.memberRoles.get(index), this.memberTypes.get(index)));
-        }
-        return result.iterator();
+        return this.beanItems.iterator();
     }
 
     public RelationBean merge(final RelationBean other)
@@ -354,29 +343,72 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
     }
 
     /**
+     * Remove all matching item from this {@link RelationBean} with a given identifier and
+     * {@link ItemType}. If item(s) are actually removed, this method will return a {@link List} of
+     * their roles. If nothing was removed, then the {@link List} will be empty.
+     * 
+     * @param identifier
+     *            the id to remove
+     * @param itemType
+     *            the type to remove
+     * @return a {@link List} containing the roles of the removed items
+     */
+    public List<String> removeAllMatchingItems(final Long identifier, final ItemType itemType)
+    {
+        final List<RelationBeanItem> newBeanItems = new ArrayList<>();
+        final List<String> removedRoles = new ArrayList<>();
+
+        for (final RelationBeanItem item : this.beanItems)
+        {
+            if (item.getIdentifier().equals(identifier) && item.getType().equals(itemType))
+            {
+                removedRoles.add(item.getRole());
+            }
+            else
+            {
+                newBeanItems.add(
+                        new RelationBeanItem(item.getIdentifier(), item.getRole(), item.getType()));
+            }
+        }
+        if (!removedRoles.isEmpty())
+        {
+            this.beanItems = newBeanItems;
+        }
+        return removedRoles;
+    }
+
+    public boolean removeItem(final Long identifier, final String role, final ItemType itemType)
+    {
+        return removeItem(new RelationBeanItem(identifier, role, itemType));
+    }
+
+    public boolean removeItem(final RelationBeanItem item)
+    {
+        return this.beanItems.remove(item);
+    }
+
+    /**
      * @return The number of members in this {@link RelationBean}
      */
     @Override
     public int size()
     {
-        return this.memberIdentifiers.size();
+        return this.beanItems.size();
     }
 
     @Override
     public String toString()
     {
-        return "RelationBean [memberIdentifiers=" + this.memberIdentifiers + ", memberRoles="
-                + this.memberRoles + ", memberTypes=" + this.memberTypes + "]";
+        return "RelationBean [" + this.beanItems + "]";
     }
 
     private RelationBeanItem getItemFor(final int index)
     {
-        if (index < 0 || index > this.memberIdentifiers.size())
+        if (index < 0 || index >= size())
         {
             throw new CoreException("Invalid index {}", index);
         }
-        return new RelationBeanItem(this.memberIdentifiers.get(index), this.memberRoles.get(index),
-                this.memberTypes.get(index));
+        return new RelationBeanItem(this.beanItems.get(index));
     }
 
     private boolean isExplicitlyExcluded(final RelationBeanItem relationBeanItem)

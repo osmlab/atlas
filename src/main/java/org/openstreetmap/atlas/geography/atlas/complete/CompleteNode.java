@@ -345,6 +345,13 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         return this.location.toWkt();
     }
 
+    @Override
+    public CompleteNode withAddedRelationIdentifier(final Long relationIdentifier)
+    {
+        this.relationIdentifiers.add(relationIdentifier);
+        return this;
+    }
+
     public CompleteNode withBoundsExtendedBy(final Rectangle bounds)
     {
         if (this.bounds == null)
@@ -482,6 +489,15 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     public CompleteNode withRelations(final Set<Relation> relations)
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
+                .collect(Collectors.toSet());
+        return this;
+    }
+
+    @Override
+    public CompleteNode withRemovedRelationIdentifier(final Long relationIdentifier)
+    {
+        this.relationIdentifiers = this.relationIdentifiers.stream()
+                .filter(keepId -> keepId != relationIdentifier.longValue())
                 .collect(Collectors.toSet());
         return this;
     }
