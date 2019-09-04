@@ -21,7 +21,7 @@ public class CompleteEntityTest
 
         Assert.assertEquals(one, new CompleteArea(1L, null, null, null).truncate(one));
         Assert.assertEquals(2100, two.length());
-        Assert.assertEquals(CompleteEntity.TRUNCATE_LENGTH,
+        Assert.assertEquals(PrettifyStringFormat.TRUNCATE_LENGTH,
                 new CompleteArea(1L, null, null, null).truncate(two).length());
     }
 }
