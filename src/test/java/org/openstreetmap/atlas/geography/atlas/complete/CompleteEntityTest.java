@@ -3,6 +3,9 @@ package org.openstreetmap.atlas.geography.atlas.complete;
 import org.junit.Assert;
 import org.junit.Test;
 
+/**
+ * @author matthieun
+ */
 public class CompleteEntityTest
 {
     @Test
