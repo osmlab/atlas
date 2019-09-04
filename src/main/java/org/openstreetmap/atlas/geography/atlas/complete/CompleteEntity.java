@@ -294,6 +294,11 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
      */
     String toWkt();
 
+    default String truncate(final String input)
+    {
+        return input.substring(0, Math.min(input.length(), PrettifyStringFormat.TRUNCATE_LENGTH));
+    }
+
     CompleteEntity withAddedRelationIdentifier(Long relationIdentifier);
 
     default C withAddedTag(final String key, final String value)
