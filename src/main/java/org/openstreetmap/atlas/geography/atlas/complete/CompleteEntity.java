@@ -32,6 +32,8 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  */
 public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeListenable
 {
+    int TRUNCATE_LENGTH = 2000;
+
     static Map<String, String> addNewTag(final Map<String, String> tags, final String key,
             final String value)
     {
@@ -293,6 +295,11 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
      * @return the WKT of this entity's geometry, null if the geometry is null
      */
     String toWkt();
+
+    default String truncate(final String input)
+    {
+        return input.substring(0, Math.min(input.length(), TRUNCATE_LENGTH));
+    }
 
     CompleteEntity withAddedRelationIdentifier(Long relationIdentifier);
 

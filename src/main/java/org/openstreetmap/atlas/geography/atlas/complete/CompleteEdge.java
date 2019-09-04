@@ -218,7 +218,7 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
         builder.append(separator);
         if (this.polyLine != null)
         {
-            builder.append("polyLine: " + this.polyLine + ", ");
+            builder.append("polyLine: " + truncate(this.polyLine.toString()) + ", ");
             builder.append(separator);
         }
         if (this.startNodeIdentifier != null)
