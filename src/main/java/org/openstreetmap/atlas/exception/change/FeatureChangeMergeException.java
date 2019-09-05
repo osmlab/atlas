@@ -14,11 +14,11 @@ import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
 public class FeatureChangeMergeException extends CoreException
 {
     private static final long serialVersionUID = -3583945839922744755L;
-    private static final int MAXIMUM_MESSAGE_SIZE = 2000;
+    static final int MAXIMUM_MESSAGE_SIZE = 2000;
 
     private final List<MergeFailureType> failureTypeTrace;
 
-    private static String truncate(final String input)
+    static String truncate(final String input)
     {
         return input.substring(0, Math.min(input.length(), MAXIMUM_MESSAGE_SIZE));
     }
