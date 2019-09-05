@@ -14,13 +14,19 @@ import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
 public class FeatureChangeMergeException extends CoreException
 {
     private static final long serialVersionUID = -3583945839922744755L;
+    static final int MAXIMUM_MESSAGE_SIZE = 2000;
 
     private final List<MergeFailureType> failureTypeTrace;
+
+    static String truncate(final String input)
+    {
+        return input.substring(0, Math.min(input.length(), MAXIMUM_MESSAGE_SIZE));
+    }
 
     public FeatureChangeMergeException(final List<MergeFailureType> failureTypeTrace,
             final String message)
     {
-        super(message);
+        super(truncate(message));
         this.failureTypeTrace = failureTypeTrace;
         if (this.failureTypeTrace == null || this.failureTypeTrace.isEmpty())
         {
@@ -31,7 +37,7 @@ public class FeatureChangeMergeException extends CoreException
     public FeatureChangeMergeException(final List<MergeFailureType> failureTypeTrace,
             final String message, final Object... arguments)
     {
-        super(message, arguments);
+        super(truncate(message), arguments);
         this.failureTypeTrace = failureTypeTrace;
         if (this.failureTypeTrace == null || this.failureTypeTrace.isEmpty())
         {
@@ -42,7 +48,7 @@ public class FeatureChangeMergeException extends CoreException
     public FeatureChangeMergeException(final MergeFailureType rootLevelFailure,
             final String message, final Object... arguments)
     {
-        super(message, arguments);
+        super(truncate(message), arguments);
         if (rootLevelFailure == null)
         {
             throw new CoreException("rootLevelFailure cannot be null");
@@ -54,7 +60,7 @@ public class FeatureChangeMergeException extends CoreException
     public FeatureChangeMergeException(final MergeFailureType rootLevelFailure,
             final String message)
     {
-        super(message);
+        super(truncate(message));
         if (rootLevelFailure == null)
         {
             throw new CoreException("rootLevelFailure cannot be null");
