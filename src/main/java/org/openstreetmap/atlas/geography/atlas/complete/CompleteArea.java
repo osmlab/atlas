@@ -288,7 +288,10 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
     public CompleteArea withPolygon(final Polygon polygon)
     {
         this.polygon = polygon;
-        this.bounds = polygon.bounds();
+        if (this.polygon != null)
+        {
+            this.bounds = polygon.bounds();
+        }
         return this;
     }
 
