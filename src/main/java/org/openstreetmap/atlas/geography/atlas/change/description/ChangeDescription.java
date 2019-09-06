@@ -19,9 +19,6 @@ public class ChangeDescription
     private final long identifier;
     private final ItemType itemType;
     private final ChangeDescriptorType changeDescriptorType;
-    private final ChangeType sourceFeatureChangeType;
-    private final AtlasEntity beforeView;
-    private final AtlasEntity afterView;
     private final List<ChangeDescriptor> descriptors;
 
     public ChangeDescription(final long identifier, final ItemType itemType,
@@ -30,14 +27,11 @@ public class ChangeDescription
     {
         this.identifier = identifier;
         this.itemType = itemType;
-        this.beforeView = beforeView;
-        this.afterView = afterView;
-        this.sourceFeatureChangeType = sourceFeatureChangeType;
         this.descriptors = new ArrayList<>();
 
         if (sourceFeatureChangeType == ChangeType.ADD)
         {
-            if (this.beforeView != null)
+            if (beforeView != null)
             {
                 this.changeDescriptorType = ChangeDescriptorType.UPDATE;
             }
@@ -51,8 +45,9 @@ public class ChangeDescription
             this.changeDescriptorType = ChangeDescriptorType.REMOVE;
         }
 
-        this.descriptors.addAll(new ChangeDescriptorGenerator(this.beforeView, this.afterView,
-                this.changeDescriptorType).generate());
+        this.descriptors.addAll(
+                new ChangeDescriptorGenerator(beforeView, afterView, this.changeDescriptorType)
+                        .generate());
     }
 
     public void addChangeDescriptor(final ChangeDescriptor descriptor)

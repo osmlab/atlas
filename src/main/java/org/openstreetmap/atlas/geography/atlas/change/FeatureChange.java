@@ -328,7 +328,7 @@ public class FeatureChange implements Located, Serializable
      * Return a {@link ChangeDescription} object that explains the differences represented by this
      * {@link FeatureChange}.
      *
-     * @return the description
+     * @return the {@link ChangeDescription} representing this {@link FeatureChange}
      */
     public ChangeDescription explain()
     {
