@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescriptorType;
 
 import com.github.difflib.DiffUtils;
@@ -54,7 +55,8 @@ public final class GeometryChangeDescriptor implements ChangeDescriptor
         return patch;
     }
 
-    private GeometryChangeDescriptor(final AbstractDelta<Location> delta, final int sourceMaterialSize)
+    private GeometryChangeDescriptor(final AbstractDelta<Location> delta,
+            final int sourceMaterialSize)
     {
         switch (delta.getType())
         {
@@ -103,17 +105,17 @@ public final class GeometryChangeDescriptor implements ChangeDescriptor
         {
             case UPDATE:
                 diffString.append(", ");
-                diffString.append(this.delta.getSource().getLines());
+                diffString.append(new PolyLine(this.delta.getSource().getLines()).toWkt());
                 diffString.append(" => ");
-                diffString.append(this.delta.getTarget().getLines());
+                diffString.append(new PolyLine(this.delta.getTarget().getLines()).toWkt());
                 break;
             case REMOVE:
                 diffString.append(", ");
-                diffString.append(this.delta.getSource().getLines());
+                diffString.append(new PolyLine(this.delta.getSource().getLines()).toWkt());
                 break;
             case ADD:
                 diffString.append(", ");
-                diffString.append(this.delta.getTarget().getLines());
+                diffString.append(new PolyLine(this.delta.getTarget().getLines()).toWkt());
                 break;
             default:
                 throw new CoreException("Unexpected ChangeType value: " + this.delta.getType());
