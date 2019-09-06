@@ -25,6 +25,8 @@ import org.openstreetmap.atlas.geography.atlas.items.ItemType;
  */
 public class ChangeDescriptorGenerator
 {
+    private static final String CORRUPTED_FEATURECHANGE_MESSAGE = "Corrupted FeatureChange: afterView {} != null but beforeView {} == null";
+
     private final AtlasEntity beforeView;
     private final AtlasEntity afterView;
     private final ChangeDescriptorType changeDescriptorType;
@@ -67,10 +69,13 @@ public class ChangeDescriptorGenerator
             descriptors.addAll(
                     generateEdgeStartEndDescriptors("END_NODE", CompleteEdge::endNodeIdentifier));
         }
-
-        /*
-         * TODO need to generate relationMembers, and other special relation fields.
-         */
+        if (this.afterView.getType() == ItemType.RELATION)
+        {
+            descriptors.addAll(generateRelationMemberDescriptors());
+            /*
+             * TODO other special relation fields.
+             */
+        }
 
         return descriptors;
     }
@@ -81,7 +86,7 @@ public class ChangeDescriptorGenerator
     }
 
     private List<GenericElementChangeDescriptor<Long>> generateEdgeStartEndDescriptors(
-            final String name, final Function<CompleteEdge, Long> memberExtractor)
+            final String description, final Function<CompleteEdge, Long> memberExtractor)
     {
         final CompleteEdge beforeEntity = (CompleteEdge) this.beforeView;
         final CompleteEdge afterEntity = (CompleteEdge) this.afterView;
@@ -100,9 +105,7 @@ public class ChangeDescriptorGenerator
         {
             if (memberExtractor.apply(beforeEntity) == null)
             {
-                throw new CoreException(
-                        "Corrupted FeatureChange: afterView {} were non-null but beforeView {} were null",
-                        name);
+                throw new CoreException(CORRUPTED_FEATURECHANGE_MESSAGE, description, description);
             }
             beforeIdentifier = memberExtractor.apply(beforeEntity);
         }
@@ -112,7 +115,7 @@ public class ChangeDescriptorGenerator
         }
         final Long afterIdentifier = memberExtractor.apply(afterEntity);
 
-        return generateLongValueDescriptors(name, beforeIdentifier, afterIdentifier);
+        return generateLongValueDescriptors(description, beforeIdentifier, afterIdentifier);
     }
 
     private List<ChangeDescriptor> generateGeometryDescriptors()
@@ -145,8 +148,7 @@ public class ChangeDescriptorGenerator
         {
             if (beforeEntity.getGeometry() == null)
             {
-                throw new CoreException(
-                        "Corrupted FeatureChange: afterView geometry was non-null but beforeView geometry was null");
+                throw new CoreException(CORRUPTED_FEATURECHANGE_MESSAGE, "geometry", "geometry");
             }
             beforeEntity.getGeometry().forEach(beforeGeometry::add);
         }
@@ -179,7 +181,7 @@ public class ChangeDescriptorGenerator
     }
 
     private List<GenericElementChangeDescriptor<Long>> generateLongValueDescriptors(
-            final String name, final Long beforeIdentifier, final Long afterIdentifier)
+            final String description, final Long beforeIdentifier, final Long afterIdentifier)
     {
         final List<GenericElementChangeDescriptor<Long>> descriptors = new ArrayList<>();
 
@@ -190,19 +192,19 @@ public class ChangeDescriptorGenerator
         if (beforeIdentifier == null)
         {
             descriptors.add(new GenericElementChangeDescriptor<>(ChangeDescriptorType.ADD, null,
-                    afterIdentifier, name));
+                    afterIdentifier, description));
         }
         else
         {
             descriptors.add(new GenericElementChangeDescriptor<>(ChangeDescriptorType.UPDATE,
-                    beforeIdentifier, afterIdentifier, name));
+                    beforeIdentifier, afterIdentifier, description));
         }
 
         return descriptors;
     }
 
     private List<GenericElementChangeDescriptor<Long>> generateNodeInOutDescriptors(
-            final String name, final Function<CompleteNode, Set<Long>> memberExtractor)
+            final String description, final Function<CompleteNode, Set<Long>> memberExtractor)
     {
         final CompleteNode beforeEntity = (CompleteNode) this.beforeView;
         final CompleteNode afterEntity = (CompleteNode) this.afterView;
@@ -221,9 +223,7 @@ public class ChangeDescriptorGenerator
         {
             if (memberExtractor.apply(beforeEntity) == null)
             {
-                throw new CoreException(
-                        "Corrupted FeatureChange: afterView {} were non-null but beforeView {} were null",
-                        name);
+                throw new CoreException(CORRUPTED_FEATURECHANGE_MESSAGE, description, description);
             }
             beforeSet = memberExtractor.apply(beforeEntity);
         }
@@ -233,13 +233,13 @@ public class ChangeDescriptorGenerator
         }
         final Set<Long> afterSet = memberExtractor.apply(afterEntity);
 
-        return generateLongSetDescriptors(name, beforeSet, afterSet);
+        return generateLongSetDescriptors(description, beforeSet, afterSet);
     }
 
     private List<GenericElementChangeDescriptor<Long>> generateParentRelationDescriptors(
             final Function<CompleteEntity, Set<Long>> memberExtractor)
     {
-        final String name = "PARENT_RELATION";
+        final String description = "PARENT_RELATION";
 
         final CompleteEntity<? extends CompleteEntity<?>> beforeEntity = (CompleteEntity<? extends CompleteEntity<?>>) this.beforeView;
         final CompleteEntity<? extends CompleteEntity<?>> afterEntity = (CompleteEntity<? extends CompleteEntity<?>>) this.afterView;
@@ -258,9 +258,7 @@ public class ChangeDescriptorGenerator
         {
             if (memberExtractor.apply(beforeEntity) == null)
             {
-                throw new CoreException(
-                        "Corrupted FeatureChange: afterView {} were non-null but beforeView {} were null",
-                        name);
+                throw new CoreException(CORRUPTED_FEATURECHANGE_MESSAGE, description, description);
             }
             beforeSet = memberExtractor.apply(beforeEntity);
         }
@@ -270,7 +268,14 @@ public class ChangeDescriptorGenerator
         }
         final Set<Long> afterSet = memberExtractor.apply(afterEntity);
 
-        return generateLongSetDescriptors(name, beforeSet, afterSet);
+        return generateLongSetDescriptors(description, beforeSet, afterSet);
+    }
+
+    private List<ChangeDescriptor> generateRelationMemberDescriptors()
+    {
+        final List<ChangeDescriptor> descriptors = new ArrayList<>();
+
+        return descriptors;
     }
 
     private List<ChangeDescriptor> generateTagDescriptors()
@@ -291,8 +296,7 @@ public class ChangeDescriptorGenerator
         {
             if (this.beforeView.getTags() == null)
             {
-                throw new CoreException(
-                        "Corrupted FeatureChange: afterView tags were non-null but beforeView tags were null");
+                throw new CoreException(CORRUPTED_FEATURECHANGE_MESSAGE, "tags", "tags");
             }
             beforeTags = this.beforeView.getTags();
         }
