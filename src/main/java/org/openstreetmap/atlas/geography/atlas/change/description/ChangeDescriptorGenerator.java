@@ -20,7 +20,6 @@ import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEntity;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
-import org.openstreetmap.atlas.geography.atlas.complete.PrettifyStringFormat;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 
@@ -154,11 +153,6 @@ public final class ChangeDescriptorGenerator
         {
             if (beforeEntity.getGeometry() == null)
             {
-                // TODO remove
-                System.out.println("BEFORE_ENT:");
-                System.out.println(beforeEntity.prettify(PrettifyStringFormat.MINIMAL_MULTI_LINE));
-                System.out.println("AFTER_ENT:");
-                System.out.println(afterEntity.prettify(PrettifyStringFormat.MINIMAL_MULTI_LINE));
                 throw new CoreException(CORRUPTED_FEATURECHANGE_MESSAGE, "geometry", "geometry");
             }
             beforeEntity.getGeometry().forEach(beforeGeometry::add);

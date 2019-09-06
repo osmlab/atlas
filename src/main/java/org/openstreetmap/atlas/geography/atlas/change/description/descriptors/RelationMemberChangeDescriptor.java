@@ -33,14 +33,14 @@ public class RelationMemberChangeDescriptor implements ChangeDescriptor
         return this.identifier;
     }
 
+    public ItemType getItemType()
+    {
+        return this.type;
+    }
+
     public String getRole()
     {
         return this.role;
-    }
-
-    public ItemType getType()
-    {
-        return this.type;
     }
 
     @Override
