@@ -818,14 +818,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                 final CompletePoint afterPoint = CompletePoint.shallowFrom(point)
                         .withTags(point.getTags());
                 createPointTags(point.getLocation(), true).forEach(afterPoint::withAddedTag);
-                if (isInsideWorkingBound(afterPoint))
-                {
-                    pointChanges.add(FeatureChange.add(afterPoint, lineSlicedAtlas));
-                }
-                else
-                {
-                    pointChanges.add(FeatureChange.remove(CompletePoint.shallowFrom(point)));
-                }
+                pointChanges.add(FeatureChange.add(afterPoint, lineSlicedAtlas));
             }
         });
         if (pointChanges.peekNumberOfChanges() == 0)
