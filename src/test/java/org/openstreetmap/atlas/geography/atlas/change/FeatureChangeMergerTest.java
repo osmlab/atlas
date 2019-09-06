@@ -41,6 +41,12 @@ public class FeatureChangeMergerTest
     private static final Logger logger = LoggerFactory.getLogger(FeatureChangeMergerTest.class);
 
     @Test
+    public void testBeforeViewMerge()
+    {
+        Assert.fail("TODO implement");
+    }
+
+    @Test
     public void testMergeAreasFail()
     {
         final CompleteArea beforeArea1 = new CompleteArea(123L, Polygon.CENTER,
