@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteEntity;
+import org.openstreetmap.atlas.geography.atlas.complete.PrettifyStringFormat;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
@@ -390,8 +392,8 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                 this.outputDelegate.printlnStdout(
                         "Found entity matching criteria in " + atlasResource.getPath() + ":",
                         TTYAttribute.BOLD);
-                this.outputDelegate.printlnStdout(entity.toDiffViewFriendlyString(),
-                        TTYAttribute.GREEN);
+                this.outputDelegate.printlnStdout(((CompleteEntity) CompleteEntity.from(entity))
+                        .prettify(PrettifyStringFormat.MINIMAL_MULTI_LINE), TTYAttribute.GREEN);
                 this.outputDelegate.printlnStdout("");
                 this.matchingAtlases.add(atlas);
                 if (this.unitTestMode)

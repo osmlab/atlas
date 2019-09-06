@@ -41,6 +41,120 @@ public class FeatureChangeMergerTest
     private static final Logger logger = LoggerFactory.getLogger(FeatureChangeMergerTest.class);
 
     @Test
+    public void testBeforeViewAreaMerge()
+    {
+        final CompleteArea before1 = new CompleteArea(123L, null, Maps.hashMap("a", "1", "b", "2"),
+                null).withBoundsExtendedBy(Polygon.SILICON_VALLEY.bounds());
+        final CompleteArea after1 = new CompleteArea(123L, null,
+                Maps.hashMap("a", "1", "b", "2", "c", "3"), null)
+                        .withBoundsExtendedBy(Polygon.SILICON_VALLEY.bounds());
+        final CompleteArea before2 = new CompleteArea(123L, Polygon.SILICON_VALLEY, null, null);
+        final CompleteArea after2 = new CompleteArea(123L, Polygon.SILICON_VALLEY_2, null, null);
+
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD, after1, before1);
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, after2, before2);
+        final FeatureChange mergedFeatureChange = featureChange1.merge(featureChange2);
+        final CompleteArea mergedBefore = (CompleteArea) mergedFeatureChange.getBeforeView();
+        final CompleteArea mergedAfter = (CompleteArea) mergedFeatureChange.getAfterView();
+        Assert.assertEquals(Polygon.SILICON_VALLEY, mergedBefore.asPolygon());
+        Assert.assertEquals(Maps.hashMap("a", "1", "b", "2"), mergedBefore.getTags());
+        Assert.assertEquals(Polygon.SILICON_VALLEY_2, mergedAfter.asPolygon());
+        Assert.assertEquals(Maps.hashMap("a", "1", "b", "2", "c", "3"), mergedAfter.getTags());
+    }
+
+    @Test
+    public void testBeforeViewEdgeMerge()
+    {
+        final CompleteEdge before1 = new CompleteEdge(123L, null, Maps.hashMap("a", "1", "b", "2"),
+                null, null, null).withBoundsExtendedBy(PolyLine.TEST_POLYLINE.bounds());
+        final CompleteEdge after1 = new CompleteEdge(123L, null,
+                Maps.hashMap("a", "1", "b", "2", "c", "3"), null, null, null)
+                        .withBoundsExtendedBy(PolyLine.TEST_POLYLINE.bounds());
+        final CompleteEdge before2 = new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, null,
+                null, null);
+        final CompleteEdge after2 = new CompleteEdge(123L, PolyLine.TEST_POLYLINE_2, null, null,
+                null, null);
+
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD, after1, before1);
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, after2, before2);
+        final FeatureChange mergedFeatureChange = featureChange1.merge(featureChange2);
+        final CompleteEdge mergedBefore = (CompleteEdge) mergedFeatureChange.getBeforeView();
+        final CompleteEdge mergedAfter = (CompleteEdge) mergedFeatureChange.getAfterView();
+        Assert.assertEquals(PolyLine.TEST_POLYLINE, mergedBefore.asPolyLine());
+        Assert.assertEquals(Maps.hashMap("a", "1", "b", "2"), mergedBefore.getTags());
+        Assert.assertEquals(PolyLine.TEST_POLYLINE_2, mergedAfter.asPolyLine());
+        Assert.assertEquals(Maps.hashMap("a", "1", "b", "2", "c", "3"), mergedAfter.getTags());
+    }
+
+    @Test
+    public void testBeforeViewLineMerge()
+    {
+        final CompleteLine before1 = new CompleteLine(123L, null, Maps.hashMap("a", "1", "b", "2"),
+                null).withBoundsExtendedBy(PolyLine.TEST_POLYLINE.bounds());
+        final CompleteLine after1 = new CompleteLine(123L, null,
+                Maps.hashMap("a", "1", "b", "2", "c", "3"), null)
+                        .withBoundsExtendedBy(PolyLine.TEST_POLYLINE.bounds());
+        final CompleteLine before2 = new CompleteLine(123L, PolyLine.TEST_POLYLINE, null, null);
+        final CompleteLine after2 = new CompleteLine(123L, PolyLine.TEST_POLYLINE_2, null, null);
+
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD, after1, before1);
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, after2, before2);
+        final FeatureChange mergedFeatureChange = featureChange1.merge(featureChange2);
+        final CompleteLine mergedBefore = (CompleteLine) mergedFeatureChange.getBeforeView();
+        final CompleteLine mergedAfter = (CompleteLine) mergedFeatureChange.getAfterView();
+        Assert.assertEquals(PolyLine.TEST_POLYLINE, mergedBefore.asPolyLine());
+        Assert.assertEquals(Maps.hashMap("a", "1", "b", "2"), mergedBefore.getTags());
+        Assert.assertEquals(PolyLine.TEST_POLYLINE_2, mergedAfter.asPolyLine());
+        Assert.assertEquals(Maps.hashMap("a", "1", "b", "2", "c", "3"), mergedAfter.getTags());
+    }
+
+    @Test
+    public void testBeforeViewNodeMerge()
+    {
+        final CompleteNode before1 = new CompleteNode(123L, null, Maps.hashMap("a", "1", "b", "2"),
+                null, null, null).withBoundsExtendedBy(Location.TEST_1.bounds());
+        final CompleteNode after1 = new CompleteNode(123L, null,
+                Maps.hashMap("a", "1", "b", "2", "c", "3"), null, null, null)
+                        .withBoundsExtendedBy(Location.TEST_1.bounds());
+        final CompleteNode before2 = new CompleteNode(123L, Location.TEST_1, null, null, null,
+                null);
+        final CompleteNode after2 = new CompleteNode(123L, Location.TEST_2, null, null, null, null);
+
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD, after1, before1);
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, after2, before2);
+        final FeatureChange mergedFeatureChange = featureChange1.merge(featureChange2);
+        final CompleteNode mergedBefore = (CompleteNode) mergedFeatureChange.getBeforeView();
+        final CompleteNode mergedAfter = (CompleteNode) mergedFeatureChange.getAfterView();
+        Assert.assertEquals(Location.TEST_1, mergedBefore.getLocation());
+        Assert.assertEquals(Maps.hashMap("a", "1", "b", "2"), mergedBefore.getTags());
+        Assert.assertEquals(Location.TEST_2, mergedAfter.getLocation());
+        Assert.assertEquals(Maps.hashMap("a", "1", "b", "2", "c", "3"), mergedAfter.getTags());
+    }
+
+    @Test
+    public void testBeforeViewPointMerge()
+    {
+        final CompletePoint before1 = new CompletePoint(123L, null,
+                Maps.hashMap("a", "1", "b", "2"), null)
+                        .withBoundsExtendedBy(Location.TEST_1.bounds());
+        final CompletePoint after1 = new CompletePoint(123L, null,
+                Maps.hashMap("a", "1", "b", "2", "c", "3"), null)
+                        .withBoundsExtendedBy(Location.TEST_1.bounds());
+        final CompletePoint before2 = new CompletePoint(123L, Location.TEST_1, null, null);
+        final CompletePoint after2 = new CompletePoint(123L, Location.TEST_2, null, null);
+
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD, after1, before1);
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, after2, before2);
+        final FeatureChange mergedFeatureChange = featureChange1.merge(featureChange2);
+        final CompletePoint mergedBefore = (CompletePoint) mergedFeatureChange.getBeforeView();
+        final CompletePoint mergedAfter = (CompletePoint) mergedFeatureChange.getAfterView();
+        Assert.assertEquals(Location.TEST_1, mergedBefore.getLocation());
+        Assert.assertEquals(Maps.hashMap("a", "1", "b", "2"), mergedBefore.getTags());
+        Assert.assertEquals(Location.TEST_2, mergedAfter.getLocation());
+        Assert.assertEquals(Maps.hashMap("a", "1", "b", "2", "c", "3"), mergedAfter.getTags());
+    }
+
+    @Test
     public void testMergeAreasFail()
     {
         final CompleteArea beforeArea1 = new CompleteArea(123L, Polygon.CENTER,
