@@ -10,13 +10,16 @@ import java.util.function.Function;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.GenericElementChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.GeometryChangeDescriptor;
+import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.RelationMemberChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.TagChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEntity;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 
@@ -73,7 +76,9 @@ public class ChangeDescriptorGenerator
         {
             descriptors.addAll(generateRelationMemberDescriptors());
             /*
-             * TODO other special relation fields.
+             * Should we handle the other special relation fields here?
+             * allRelationsWithSameOsmIdentifier, allKnownOsmMembers, and osmRelationIdentifier are
+             * fields that may be altered.
              */
         }
 
@@ -210,8 +215,8 @@ public class ChangeDescriptorGenerator
         final CompleteNode afterEntity = (CompleteNode) this.afterView;
 
         /*
-         * If the afterView set was null, then we know that they were not updated. We can just
-         * return nothing.
+         * If the afterView in/out edge set was null, then we know that it was not updated. We can
+         * just return nothing.
          */
         if (memberExtractor.apply(afterEntity) == null)
         {
@@ -274,6 +279,51 @@ public class ChangeDescriptorGenerator
     private List<ChangeDescriptor> generateRelationMemberDescriptors()
     {
         final List<ChangeDescriptor> descriptors = new ArrayList<>();
+
+        final CompleteRelation beforeEntity = (CompleteRelation) this.beforeView;
+        final CompleteRelation afterEntity = (CompleteRelation) this.afterView;
+
+        /*
+         * If the afterView members were null, then we know that the members were not updated. We
+         * can just return nothing.
+         */
+        if (afterEntity.members() == null)
+        {
+            return descriptors;
+        }
+
+        final Set<RelationBean.RelationBeanItem> beforeBeanSet;
+        if (beforeEntity != null)
+        {
+            if (beforeEntity.members() == null)
+            {
+                throw new CoreException(CORRUPTED_FEATURECHANGE_MESSAGE, "relation members",
+                        "relation members");
+            }
+            beforeBeanSet = beforeEntity.members().asBean().asSet();
+        }
+        else
+        {
+            beforeBeanSet = new HashSet<>();
+        }
+        final Set<RelationBean.RelationBeanItem> afterBeanSet = afterEntity.members().asBean()
+                .asSet();
+
+        final Set<RelationBean.RelationBeanItem> itemsRemovedFromAfterView = com.google.common.collect.Sets
+                .difference(beforeBeanSet, afterBeanSet);
+        final Set<RelationBean.RelationBeanItem> itemsAddedToAfterView = com.google.common.collect.Sets
+                .difference(afterBeanSet, beforeBeanSet);
+
+        for (final RelationBean.RelationBeanItem item : itemsRemovedFromAfterView)
+        {
+            descriptors.add(new RelationMemberChangeDescriptor(ChangeDescriptorType.REMOVE,
+                    item.getIdentifier(), item.getType(), item.getRole()));
+        }
+        for (final RelationBean.RelationBeanItem item : itemsAddedToAfterView)
+        {
+            descriptors.add(new RelationMemberChangeDescriptor(ChangeDescriptorType.ADD,
+                    item.getIdentifier(), item.getType(), item.getRole()));
+        }
 
         return descriptors;
     }
