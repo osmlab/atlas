@@ -299,7 +299,10 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
     public CompletePoint withLocation(final Location location)
     {
         this.location = location;
-        this.bounds = location.bounds();
+        if (this.location != null)
+        {
+            this.bounds = location.bounds();
+        }
         return this;
     }
 

@@ -356,7 +356,10 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
     public CompleteEdge withPolyLine(final PolyLine polyLine)
     {
         this.polyLine = polyLine;
-        this.bounds = polyLine.bounds();
+        if (this.polyLine != null)
+        {
+            this.bounds = polyLine.bounds();
+        }
         return this;
     }
 

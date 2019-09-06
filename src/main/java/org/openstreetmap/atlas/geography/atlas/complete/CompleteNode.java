@@ -447,11 +447,20 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         return this;
     }
 
+    public CompleteNode withInEdgesAndSource(final Set<Edge> inEdges, final Node source)
+    {
+        return withInEdgeIdentifiersAndSource(inEdges.stream().map(Edge::getIdentifier)
+                .collect(Collectors.toCollection(TreeSet::new)), source);
+    }
+
     @Override
     public CompleteNode withLocation(final Location location)
     {
         this.location = location;
-        this.bounds = location.bounds();
+        if (this.location != null)
+        {
+            this.bounds = location.bounds();
+        }
         return this;
     }
 
@@ -485,6 +494,12 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         this.outEdgeIdentifiers = outEdges.stream().map(Edge::getIdentifier)
                 .collect(Collectors.toCollection(TreeSet::new));
         return this;
+    }
+
+    public CompleteNode withOutEdgesAndSource(final Set<Edge> outEdges, final Node source)
+    {
+        return withOutEdgeIdentifiersAndSource(outEdges.stream().map(Edge::getIdentifier)
+                .collect(Collectors.toCollection(TreeSet::new)), source);
     }
 
     @Override

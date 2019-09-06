@@ -296,7 +296,10 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
     public CompleteLine withPolyLine(final PolyLine polyLine)
     {
         this.polyLine = polyLine;
-        this.bounds = polyLine.bounds();
+        if (this.polyLine != null)
+        {
+            this.bounds = polyLine.bounds();
+        }
         return this;
     }
 
