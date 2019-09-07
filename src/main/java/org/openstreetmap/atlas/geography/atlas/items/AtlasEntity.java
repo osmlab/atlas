@@ -249,40 +249,44 @@ public abstract class AtlasEntity
      */
     public abstract LocationIterableProperties toGeoJsonBuildingBlock();
 
-    protected String parentRelationsAsDiffViewFriendlyString()
-    {
-        final StringList relationIds = new StringList();
-        for (final Relation relation : this.relations())
-        {
-            relationIds.add(relation.getIdentifier());
-        }
-        final String relationsString = relationIds.join(",");
-
-        return relationsString;
-    }
-
     protected String tagString()
     {
         final StringBuilder builder = new StringBuilder();
         final Map<String, String> tags = getTags();
         int index = 0;
         builder.append("[Tags: ");
-        for (final String key : tags.keySet())
+        if (tags != null)
         {
-            final String value = tags.get(key);
-            builder.append("[");
-            builder.append(key);
-            builder.append(" => ");
-            builder.append(value);
-            builder.append("]");
-            if (index < tags.size() - 1)
+            for (final String key : tags.keySet())
             {
-                builder.append(", ");
+                final String value = tags.get(key);
+                builder.append("[");
+                builder.append(key);
+                builder.append(" => ");
+                builder.append(value);
+                builder.append("]");
+                if (index < tags.size() - 1)
+                {
+                    builder.append(", ");
+                }
+                index++;
             }
-            index++;
         }
         builder.append("]");
         return builder.toString();
+    }
+
+    String parentRelationsAsDiffViewFriendlyString()
+    {
+        final StringList relationIds = new StringList();
+        if (this.relations() != null)
+        {
+            for (final Relation relation : this.relations())
+            {
+                relationIds.add(relation.getIdentifier());
+            }
+        }
+        return relationIds.join(",");
     }
 
 }

@@ -332,7 +332,7 @@ public class ChangeAtlasTest
         node2FromFullAtlas
                 .withOutEdgeIdentifiers(fullSizedAtlas.node(2L).outEdges().stream()
                         .map(Edge::getIdentifier).collect(Collectors.toCollection(TreeSet::new)))
-                .withOutEdgeIdentifierLess(-1L);
+                .withRemovedOutEdgeIdentifier(-1L);
         changeBuilder.add(FeatureChange.add(node2FromFullAtlas, fullSizedAtlas));
 
         // change a tag in node 2, but use a different atlas context that cannot see edge -1

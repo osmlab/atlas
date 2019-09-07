@@ -304,6 +304,7 @@ public final class FeatureChangeMergingHelpers
         {
             mergedBeforeArea = CompleteArea.shallowFrom((Area) beforeEntityLeft)
                     .withTags(mergedTagsBean.getMergedBeforeMember())
+                    .withPolygon(mergedPolygonBean.getMergedBeforeMember())
                     .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
         }
         else
@@ -380,6 +381,7 @@ public final class FeatureChangeMergingHelpers
                     .withStartNodeIdentifier(mergedStartNodeIdentifierBean.getMergedBeforeMember())
                     .withEndNodeIdentifier(mergedEndNodeIdentifierBean.getMergedBeforeMember())
                     .withTags(mergedTagsBean.getMergedBeforeMember())
+                    .withPolyLine(mergedPolyLineBean.getMergedBeforeMember())
                     .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
         }
         else
@@ -478,6 +480,7 @@ public final class FeatureChangeMergingHelpers
         {
             mergedBeforeLine = CompleteLine.shallowFrom((Line) beforeEntityLeft)
                     .withTags(mergedTagsBean.getMergedBeforeMember())
+                    .withPolyLine(mergedPolyLineBean.getMergedBeforeMember())
                     .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
         }
         else
@@ -628,6 +631,7 @@ public final class FeatureChangeMergingHelpers
                     .withInEdgeIdentifiers(mergedInEdgeIdentifiersBean.getMergedBeforeMember())
                     .withOutEdgeIdentifiers(mergedOutEdgeIdentifiersBean.getMergedBeforeMember())
                     .withTags(mergedTagsBean.getMergedBeforeMember())
+                    .withLocation(mergedLocationBean.getMergedBeforeMember())
                     .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
         }
         else
@@ -673,6 +677,7 @@ public final class FeatureChangeMergingHelpers
         {
             mergedBeforePoint = CompletePoint.shallowFrom((Point) beforeEntityLeft)
                     .withTags(mergedTagsBean.getMergedBeforeMember())
+                    .withLocation(mergedLocationBean.getMergedBeforeMember())
                     .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
         }
         else
