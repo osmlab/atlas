@@ -207,7 +207,7 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
                         .getOptionArgument(COMPLETE_ENTITY_FORMAT_OPTION_LONG,
                                 PrettifyStringFormat::valueOf)
                         .orElse(DEFAULT_PRETTY_COMPLETE_ENTITY_FORMAT);
-                serializedString = change.prettify(featureChangeFormat, completeEntityFormat)
+                serializedString = change.prettify(featureChangeFormat, completeEntityFormat, false)
                         + "\n";
             }
             else
@@ -277,37 +277,5 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
         registerArgument(AFTER_ATLAS_ARGUMENT, ArgumentArity.UNARY, ArgumentOptionality.REQUIRED,
                 DEFAULT_CONTEXT, LDGEOJSON_CONTEXT, GEOJSON_CONTEXT, FULL_CONTEXT);
         super.registerOptionsAndArguments();
-    }
-
-    private Optional<Long> getIdParameter()
-    {
-        final String idString = this.optionAndArgumentDelegate.getOptionArgument(ID_OPTION_LONG)
-                .orElseThrow(AtlasShellToolsException::new);
-        try
-        {
-            final long idLong = Long.parseLong(idString);
-            return Optional.of(idLong);
-        }
-        catch (final Exception exception)
-        {
-            this.outputDelegate.printlnErrorMessage("could not parse id " + idString);
-            return Optional.empty();
-        }
-    }
-
-    private Optional<ItemType> getTypeParameter()
-    {
-        final String typeString = this.optionAndArgumentDelegate.getOptionArgument(TYPE_OPTION_LONG)
-                .orElseThrow(AtlasShellToolsException::new).toUpperCase();
-        try
-        {
-            final ItemType type = ItemType.valueOf(typeString);
-            return Optional.of(type);
-        }
-        catch (final Exception exception)
-        {
-            this.outputDelegate.printlnErrorMessage("could not parse ItemType " + typeString);
-            return Optional.empty();
-        }
     }
 }

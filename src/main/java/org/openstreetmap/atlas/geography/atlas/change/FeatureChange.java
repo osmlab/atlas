@@ -556,10 +556,12 @@ public class FeatureChange implements Located, Serializable
      *            the format type for the this {@link FeatureChange}
      * @param completeEntityFormat
      *            the format type for the constituent {@link CompleteEntity}s
+     * @param truncate
+     *            whether or not to truncate long fields
      * @return the pretty string
      */
     public String prettify(final PrettifyStringFormat format,
-            final PrettifyStringFormat completeEntityFormat)
+            final PrettifyStringFormat completeEntityFormat, final boolean truncate)
     {
         String separator = "";
         if (format == PrettifyStringFormat.MINIMAL_SINGLE_LINE)
@@ -586,11 +588,13 @@ public class FeatureChange implements Located, Serializable
         if (this.beforeView != null)
         {
             builder.append("bfView: "
-                    + ((CompleteEntity<?>) this.beforeView).prettify(completeEntityFormat) + ", ");
+                    + ((CompleteEntity<?>) this.beforeView).prettify(completeEntityFormat, truncate)
+                    + ", ");
             builder.append(separator);
         }
         builder.append("afView: "
-                + ((CompleteEntity<?>) this.afterView).prettify(completeEntityFormat) + ", ");
+                + ((CompleteEntity<?>) this.afterView).prettify(completeEntityFormat, truncate)
+                + ", ");
         builder.append(separator);
         builder.append("metadata: " + this.metaData);
         builder.append(separator);
@@ -599,6 +603,25 @@ public class FeatureChange implements Located, Serializable
         builder.append("]");
 
         return builder.toString();
+    }
+
+    /**
+     * Transform this {@link FeatureChange} into a pretty string. This will use the pretty strings
+     * for {@link CompleteEntity} classes. If you are unsure about which
+     * {@link PrettifyStringFormat}s to use, try {@link FeatureChange#prettify()} which has some
+     * sane defaults.
+     *
+     * @param format
+     *            the format type for the this {@link FeatureChange}
+     * @param completeEntityFormat
+     *            the format type for the constituent {@link CompleteEntity}s
+     * @return the pretty string
+     */
+    public String prettify(final PrettifyStringFormat format,
+            final PrettifyStringFormat completeEntityFormat)
+    {
+        return this.prettify(PrettifyStringFormat.MINIMAL_MULTI_LINE,
+                PrettifyStringFormat.MINIMAL_SINGLE_LINE, true);
     }
 
     /**
