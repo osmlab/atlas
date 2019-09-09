@@ -296,7 +296,8 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
 
     default String truncate(final String input)
     {
-        return input.substring(0, Math.min(input.length(), PrettifyStringFormat.TRUNCATE_LENGTH));
+        return input.substring(0, Math.min(input.length(), PrettifyStringFormat.TRUNCATE_LENGTH))
+                + PrettifyStringFormat.TRUNCATE_ELLIPSES;
     }
 
     CompleteEntity withAddedRelationIdentifier(Long relationIdentifier);

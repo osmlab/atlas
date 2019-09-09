@@ -19,9 +19,12 @@ public class CompleteEntityTest
         }
         final String two = twoBuilder.toString();
 
-        Assert.assertEquals(one, new CompleteArea(1L, null, null, null).truncate(one));
+        Assert.assertEquals(one + PrettifyStringFormat.TRUNCATE_ELLIPSES,
+                new CompleteArea(1L, null, null, null).truncate(one));
         Assert.assertEquals(2100, two.length());
-        Assert.assertEquals(PrettifyStringFormat.TRUNCATE_LENGTH,
+        Assert.assertEquals(
+                PrettifyStringFormat.TRUNCATE_LENGTH
+                        + PrettifyStringFormat.TRUNCATE_ELLIPSES.length(),
                 new CompleteArea(1L, null, null, null).truncate(two).length());
     }
 }
