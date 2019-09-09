@@ -345,12 +345,6 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         return this.location.toWkt();
     }
 
-    public CompleteNode withAddedOutEdgeIdentifier(final Long extraOutEdgeIdentifier)
-    {
-        this.outEdgeIdentifiers.add(extraOutEdgeIdentifier);
-        return this;
-    }
-
     @Override
     public CompleteNode withAddedRelationIdentifier(final Long relationIdentifier)
     {
@@ -448,11 +442,24 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         return this;
     }
 
+    public CompleteNode withOutEdgeIdentifierExtra(final Long extraOutEdgeIdentifier)
+    {
+        this.outEdgeIdentifiers.add(extraOutEdgeIdentifier);
+        return this;
+    }
+
+    public CompleteNode withOutEdgeIdentifierLess(final Long lessOutEdgeIdentifier)
+    {
+        this.outEdgeIdentifiers.remove(lessOutEdgeIdentifier);
+        this.explicitlyExcludedOutEdgeIdentifiers.add(lessOutEdgeIdentifier);
+        return this;
+    }
+
     public CompleteNode withOutEdgeIdentifierReplaced(final Long beforeOutEdgeIdentifier,
             final Long afterOutEdgeIdentifier)
     {
-        return this.withRemovedOutEdgeIdentifier(beforeOutEdgeIdentifier)
-                .withAddedOutEdgeIdentifier(afterOutEdgeIdentifier);
+        return this.withOutEdgeIdentifierLess(beforeOutEdgeIdentifier)
+                .withOutEdgeIdentifierExtra(afterOutEdgeIdentifier);
     }
 
     public CompleteNode withOutEdgeIdentifiers(final SortedSet<Long> outEdgeIdentifiers)
@@ -498,13 +505,6 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
                 .collect(Collectors.toSet());
-        return this;
-    }
-
-    public CompleteNode withRemovedOutEdgeIdentifier(final Long lessOutEdgeIdentifier)
-    {
-        this.outEdgeIdentifiers.remove(lessOutEdgeIdentifier);
-        this.explicitlyExcludedOutEdgeIdentifiers.add(lessOutEdgeIdentifier);
         return this;
     }
 

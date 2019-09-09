@@ -679,8 +679,8 @@ public class FeatureChangeMergerTest
         final CompleteNode afterNode1 = new CompleteNode(123L, Location.COLOSSEUM, null,
                 Sets.treeSet(1L, 2L), Sets.treeSet(10L, 11L, 12L, 13L), null);
         afterNode1.withInEdgeIdentifierLess(1L);
-        afterNode1.withRemovedOutEdgeIdentifier(12L);
-        afterNode1.withRemovedOutEdgeIdentifier(13L);
+        afterNode1.withOutEdgeIdentifierLess(12L);
+        afterNode1.withOutEdgeIdentifierLess(13L);
 
         final CompleteNode afterNode2 = new CompleteNode(123L, Location.COLOSSEUM, null,
                 Sets.treeSet(2L, 3L), Sets.treeSet(11L), null);
