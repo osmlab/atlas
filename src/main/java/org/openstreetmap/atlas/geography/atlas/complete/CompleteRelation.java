@@ -244,7 +244,7 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     }
 
     @Override
-    public String prettify(final PrettifyStringFormat format)
+    public String prettify(final PrettifyStringFormat format, final boolean truncate)
     {
         String separator = "";
         if (format == PrettifyStringFormat.MINIMAL_SINGLE_LINE)

@@ -240,7 +240,7 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     }
 
     @Override
-    public String prettify(final PrettifyStringFormat format)
+    public String prettify(final PrettifyStringFormat format, final boolean truncate)
     {
         String separator = "";
         if (format == PrettifyStringFormat.MINIMAL_SINGLE_LINE)

@@ -175,7 +175,7 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
     }
 
     @Override
-    public String prettify(final PrettifyStringFormat format)
+    public String prettify(final PrettifyStringFormat format, final boolean truncate)
     {
         String separator = "";
         if (format == PrettifyStringFormat.MINIMAL_SINGLE_LINE)
@@ -195,7 +195,14 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
         builder.append(separator);
         if (this.polyLine != null)
         {
-            builder.append("polyLine: " + truncate(this.polyLine.toString()) + ", ");
+            if (truncate)
+            {
+                builder.append("polyLine: " + truncate(this.polyLine.toString()) + ", ");
+            }
+            else
+            {
+                builder.append("polyLine: " + this.polyLine.toString() + ", ");
+            }
             builder.append(separator);
         }
         if (this.tags != null)
