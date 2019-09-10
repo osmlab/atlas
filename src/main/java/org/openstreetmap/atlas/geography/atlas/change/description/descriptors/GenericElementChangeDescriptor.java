@@ -3,9 +3,12 @@ package org.openstreetmap.atlas.geography.atlas.change.description.descriptors;
 import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescriptorType;
 
 /**
+ * A {@link ChangeDescriptor} for any kind of generic element. For e.g. a {@link Long} in cases of
+ * startNodeIdentifier or inEdgeIdentifier.
+ * 
  * @author lcram
  * @param <T>
- *            the type of the set elements
+ *            the type of the element
  */
 public class GenericElementChangeDescriptor<T> implements ChangeDescriptor
 {

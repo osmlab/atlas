@@ -4,12 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
+import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptorComparator;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 
 /**
+ * A basic description of the internal contents of a {@link FeatureChange}. A
+ * {@link ChangeDescription} consists of a {@link List} of {@link ChangeDescriptor}s as well as some
+ * other details (like an identifier, an {@link ItemType}, and a {@link ChangeDescriptorType}).
+ * 
  * @author lcram
  */
 public class ChangeDescription
@@ -50,16 +55,16 @@ public class ChangeDescription
                         .generate());
     }
 
-    public void addChangeDescriptor(final ChangeDescriptor descriptor)
-    {
-        this.descriptors.add(descriptor);
-    }
-
     public ChangeDescriptorType getChangeDescriptorType()
     {
         return this.changeDescriptorType;
     }
 
+    /**
+     * Get a sorted copy of the underlying {@link ChangeDescriptor} list.
+     * 
+     * @return the sorted list
+     */
     public List<ChangeDescriptor> getChangeDescriptors()
     {
         this.descriptors.sort(COMPARATOR);

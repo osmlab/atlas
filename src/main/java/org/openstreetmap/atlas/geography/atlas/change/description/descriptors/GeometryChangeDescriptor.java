@@ -14,6 +14,9 @@ import com.github.difflib.patch.AbstractDelta;
 import com.github.difflib.patch.Patch;
 
 /**
+ * A {@link ChangeDescriptor} for geometry changes. Utilizes a granular diff algorithm to show the
+ * individual {@link Location}s within the linestring that actually changed.
+ * 
  * @author lcram
  */
 public final class GeometryChangeDescriptor implements ChangeDescriptor

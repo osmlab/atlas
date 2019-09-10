@@ -24,6 +24,9 @@ import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 
 /**
+ * A helper class for generating a list of {@link ChangeDescriptor}s based on some
+ * {@link AtlasEntity} beforeView and afterView.
+ * 
  * @author lcram
  */
 public final class ChangeDescriptorGenerator

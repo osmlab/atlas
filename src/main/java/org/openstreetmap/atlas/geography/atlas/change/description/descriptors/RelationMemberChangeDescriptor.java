@@ -4,6 +4,8 @@ import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescript
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 
 /**
+ * A {@link ChangeDescriptor} for relation member changes.
+ * 
  * @author lcram
  */
 public class RelationMemberChangeDescriptor implements ChangeDescriptor

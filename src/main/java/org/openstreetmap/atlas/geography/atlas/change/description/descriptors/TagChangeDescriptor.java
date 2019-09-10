@@ -5,6 +5,8 @@ import java.util.Optional;
 import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescriptorType;
 
 /**
+ * A {@link ChangeDescriptor} for tag related changes.
+ * 
  * @author lcram
  */
 public class TagChangeDescriptor implements ChangeDescriptor

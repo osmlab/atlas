@@ -3,8 +3,12 @@ package org.openstreetmap.atlas.geography.atlas.change.description.descriptors;
 import java.util.Comparator;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescription;
 
 /**
+ * A {@link Comparator} for {@link ChangeDescriptor}s, which defines an ordering. This is useful
+ * when printing {@link ChangeDescription}s, so the display can show a consistent element ordering
+ * 
  * @author lcram
  */
 public class ChangeDescriptorComparator implements Comparator<ChangeDescriptor>
