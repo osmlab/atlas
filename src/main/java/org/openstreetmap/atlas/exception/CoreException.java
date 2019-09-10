@@ -1,7 +1,9 @@
 package org.openstreetmap.atlas.exception;
 
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 import org.slf4j.helpers.MessageFormatter;
 
@@ -29,7 +31,7 @@ public class CoreException extends RuntimeException
 {
     public static final String TOKEN = CoreException.class.getSimpleName();
     private static final long serialVersionUID = 5019327451085548495L;
-    private static final Function<Object[], Object[]> refineArguments = arguments ->
+    protected static final UnaryOperator<Object[]> REFINE_ARGUMENTS = arguments ->
     {
         if (arguments.length > 0 && arguments[arguments.length - 1] instanceof Throwable)
         {
@@ -45,6 +47,9 @@ public class CoreException extends RuntimeException
             return arguments;
         }
     };
+    protected static final Function<Object[], Optional<Throwable>> CAUSE_FROM = arguments -> arguments.length != REFINE_ARGUMENTS
+            .apply(arguments).length ? Optional.of((Throwable) arguments[arguments.length - 1])
+                    : Optional.empty();
 
     public static Supplier<CoreException> supplier(final String message)
     {
@@ -75,10 +80,8 @@ public class CoreException extends RuntimeException
 
     public CoreException(final String message, final Object... arguments)
     {
-        super(MessageFormatter.arrayFormat(message, refineArguments.apply(arguments)).getMessage(),
-                arguments.length != refineArguments.apply(arguments).length
-                        ? (Throwable) arguments[arguments.length - 1]
-                        : null);
+        super(MessageFormatter.arrayFormat(message, REFINE_ARGUMENTS.apply(arguments)).getMessage(),
+                CAUSE_FROM.apply(arguments).orElse(null));
     }
 
     public CoreException(final String message, final Throwable cause)

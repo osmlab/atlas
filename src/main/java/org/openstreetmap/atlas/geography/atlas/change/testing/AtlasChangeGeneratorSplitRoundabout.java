@@ -65,7 +65,7 @@ public class AtlasChangeGeneratorSplitRoundabout implements AtlasChangeGenerator
                     return CompleteRelation.shallowFrom(relation)
                             .withMembersAndSource(newMembers, relation)
                             // With the new relation members
-                            .withExtraMember(firstEdge, edge).withExtraMember(secondEdge, edge);
+                            .withAddedMember(firstEdge, edge).withAddedMember(secondEdge, edge);
                 }).map(relation -> FeatureChange.add(relation, atlas)).forEach(result::add);
 
                 // Add the two new edges.
@@ -80,12 +80,12 @@ public class AtlasChangeGeneratorSplitRoundabout implements AtlasChangeGenerator
 
                 // End node has a replaced start edge identifier
                 result.add(FeatureChange.add(CompleteNode.shallowFrom(edge.end())
-                        .withInEdges(edge.end().inEdges()).withInEdgeIdentifierReplaced(
+                        .withInEdges(edge.end().inEdges()).withReplacedInEdgeIdentifier(
                                 oldEdgeIdentifier, newEdgeIdentifier2),
                         atlas));
                 // Start node has a replaced end edge identifier
                 result.add(FeatureChange.add(CompleteNode.shallowFrom(edge.start())
-                        .withOutEdges(edge.start().outEdges()).withOutEdgeIdentifierReplaced(
+                        .withOutEdges(edge.start().outEdges()).withReplacedOutEdgeIdentifier(
                                 oldEdgeIdentifier, newEdgeIdentifier1),
                         atlas));
             }

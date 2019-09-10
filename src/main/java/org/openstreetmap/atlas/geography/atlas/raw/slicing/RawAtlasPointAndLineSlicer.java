@@ -435,7 +435,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                     for (final Relation relation : line.relations())
                     {
                         final CompleteRelation updatedRelation = CompleteRelation.from(relation)
-                                .withExtraMember(newLineSlice, line);
+                                .withAddedMember(newLineSlice, line);
                         lineChanges.add(FeatureChange.add(updatedRelation, atlas));
                     }
                 }

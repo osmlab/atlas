@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
+import org.slf4j.helpers.MessageFormatter;
 
 /**
  * A special exception for {@link FeatureChange} merge errors.
@@ -37,7 +38,8 @@ public class FeatureChangeMergeException extends CoreException
     public FeatureChangeMergeException(final List<MergeFailureType> failureTypeTrace,
             final String message, final Object... arguments)
     {
-        super(truncate(message), arguments);
+        super(truncate(MessageFormatter.arrayFormat(message, REFINE_ARGUMENTS.apply(arguments))
+                .getMessage()), CAUSE_FROM.apply(arguments).orElse(null));
         this.failureTypeTrace = failureTypeTrace;
         if (this.failureTypeTrace == null || this.failureTypeTrace.isEmpty())
         {
@@ -48,7 +50,8 @@ public class FeatureChangeMergeException extends CoreException
     public FeatureChangeMergeException(final MergeFailureType rootLevelFailure,
             final String message, final Object... arguments)
     {
-        super(truncate(message), arguments);
+        super(truncate(MessageFormatter.arrayFormat(message, REFINE_ARGUMENTS.apply(arguments))
+                .getMessage()), CAUSE_FROM.apply(arguments).orElse(null));
         if (rootLevelFailure == null)
         {
             throw new CoreException("rootLevelFailure cannot be null");
