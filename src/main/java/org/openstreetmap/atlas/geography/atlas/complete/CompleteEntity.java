@@ -26,7 +26,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
  * (Node, Edge, Area, ...) this cannot be an abstract class.
  *
  * @param <C>
- *            - the {@link CompleteEntity} implementation.
+ *            the {@link CompleteEntity} implementation
  * @author matthieun
  * @author Yazad Khambata
  */
