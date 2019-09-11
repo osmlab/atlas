@@ -345,6 +345,18 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         return this.location.toWkt();
     }
 
+    public CompleteNode withAddedInEdgeIdentifier(final Long inEdgeIdentifier)
+    {
+        this.inEdgeIdentifiers.add(inEdgeIdentifier);
+        return this;
+    }
+
+    public CompleteNode withAddedOutEdgeIdentifier(final Long inEdgeIdentifier)
+    {
+        this.outEdgeIdentifiers.add(inEdgeIdentifier);
+        return this;
+    }
+
     @Override
     public CompleteNode withAddedRelationIdentifier(final Long relationIdentifier)
     {
@@ -378,26 +390,6 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     {
         this.identifier = identifier;
         return this;
-    }
-
-    public CompleteNode withInEdgeIdentifierExtra(final Long extraInEdgeIdentifier)
-    {
-        this.inEdgeIdentifiers.add(extraInEdgeIdentifier);
-        return this;
-    }
-
-    public CompleteNode withInEdgeIdentifierLess(final Long lessInEdgeIdentifier)
-    {
-        this.inEdgeIdentifiers.remove(lessInEdgeIdentifier);
-        this.explicitlyExcludedInEdgeIdentifiers.add(lessInEdgeIdentifier);
-        return this;
-    }
-
-    public CompleteNode withInEdgeIdentifierReplaced(final Long beforeInEdgeIdentifier,
-            final Long afterInEdgeIdentifier)
-    {
-        return this.withInEdgeIdentifierLess(beforeInEdgeIdentifier)
-                .withInEdgeIdentifierExtra(afterInEdgeIdentifier);
     }
 
     public CompleteNode withInEdgeIdentifiers(final SortedSet<Long> inEdgeIdentifiers)
@@ -440,26 +432,6 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
             this.bounds = location.bounds();
         }
         return this;
-    }
-
-    public CompleteNode withOutEdgeIdentifierExtra(final Long extraOutEdgeIdentifier)
-    {
-        this.outEdgeIdentifiers.add(extraOutEdgeIdentifier);
-        return this;
-    }
-
-    public CompleteNode withOutEdgeIdentifierLess(final Long lessOutEdgeIdentifier)
-    {
-        this.outEdgeIdentifiers.remove(lessOutEdgeIdentifier);
-        this.explicitlyExcludedOutEdgeIdentifiers.add(lessOutEdgeIdentifier);
-        return this;
-    }
-
-    public CompleteNode withOutEdgeIdentifierReplaced(final Long beforeOutEdgeIdentifier,
-            final Long afterOutEdgeIdentifier)
-    {
-        return this.withOutEdgeIdentifierLess(beforeOutEdgeIdentifier)
-                .withOutEdgeIdentifierExtra(afterOutEdgeIdentifier);
     }
 
     public CompleteNode withOutEdgeIdentifiers(final SortedSet<Long> outEdgeIdentifiers)
@@ -508,6 +480,20 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         return this;
     }
 
+    public CompleteNode withRemovedInEdgeIdentifier(final Long inEdgeIdentifier)
+    {
+        this.inEdgeIdentifiers.remove(inEdgeIdentifier);
+        this.explicitlyExcludedInEdgeIdentifiers.add(inEdgeIdentifier);
+        return this;
+    }
+
+    public CompleteNode withRemovedOutEdgeIdentifier(final Long outEdgeIdentifier)
+    {
+        this.outEdgeIdentifiers.remove(outEdgeIdentifier);
+        this.explicitlyExcludedOutEdgeIdentifiers.add(outEdgeIdentifier);
+        return this;
+    }
+
     @Override
     public CompleteNode withRemovedRelationIdentifier(final Long relationIdentifier)
     {
@@ -515,5 +501,19 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
                 .filter(keepId -> keepId != relationIdentifier.longValue())
                 .collect(Collectors.toSet());
         return this;
+    }
+
+    public CompleteNode withReplacedInEdgeIdentifier(final Long beforeInEdgeIdentifier,
+            final Long afterInEdgeIdentifier)
+    {
+        return this.withRemovedInEdgeIdentifier(beforeInEdgeIdentifier)
+                .withAddedInEdgeIdentifier(afterInEdgeIdentifier);
+    }
+
+    public CompleteNode withReplacedOutEdgeIdentifier(final Long beforeOutEdgeIdentifier,
+            final Long afterOutEdgeIdentifier)
+    {
+        return this.withRemovedOutEdgeIdentifier(beforeOutEdgeIdentifier)
+                .withAddedOutEdgeIdentifier(afterOutEdgeIdentifier);
     }
 }

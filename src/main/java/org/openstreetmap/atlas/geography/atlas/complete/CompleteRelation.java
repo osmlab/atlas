@@ -322,6 +322,35 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
         return this.bounds.toWkt();
     }
 
+    public CompleteRelation withAddedMember(final AtlasEntity newMember,
+            final AtlasEntity memberFromWhichToCopyRole)
+    {
+        final Relation parentRelation = Iterables.stream(memberFromWhichToCopyRole.relations())
+                .firstMatching(relation -> relation.getIdentifier() == this.getIdentifier())
+                .orElseThrow(() -> new CoreException(
+                        "Cannot copy role from {} {} as it does not have relation {} as parent",
+                        memberFromWhichToCopyRole.getType(),
+                        memberFromWhichToCopyRole.getIdentifier(), this.getIdentifier()));
+        final String role = parentRelation.members().asBean()
+                .getItemFor(memberFromWhichToCopyRole.getIdentifier(),
+                        memberFromWhichToCopyRole.getType())
+                .orElseThrow(() -> new CoreException(
+                        "Cannot copy role from {} {} as it is not a member of {} {}",
+                        memberFromWhichToCopyRole.getType(),
+                        memberFromWhichToCopyRole.getIdentifier(), this.getClass().getSimpleName(),
+                        this))
+                .getRole();
+        return withAddedMember(newMember, role);
+    }
+
+    public CompleteRelation withAddedMember(final AtlasEntity newMember, final String role)
+    {
+        this.members.addItem(
+                new RelationBeanItem(newMember.getIdentifier(), role, newMember.getType()));
+        this.withBoundsExtendedBy(newMember.bounds());
+        return this;
+    }
+
     @Override
     public CompleteRelation withAddedRelationIdentifier(final Long relationIdentifier)
     {
@@ -356,35 +385,6 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
             return this;
         }
         this.bounds = Rectangle.forLocated(this.bounds, bounds);
-        return this;
-    }
-
-    public CompleteRelation withExtraMember(final AtlasEntity newMember,
-            final AtlasEntity memberFromWhichToCopyRole)
-    {
-        final Relation parentRelation = Iterables.stream(memberFromWhichToCopyRole.relations())
-                .firstMatching(relation -> relation.getIdentifier() == this.getIdentifier())
-                .orElseThrow(() -> new CoreException(
-                        "Cannot copy role from {} {} as it does not have relation {} as parent",
-                        memberFromWhichToCopyRole.getType(),
-                        memberFromWhichToCopyRole.getIdentifier(), this.getIdentifier()));
-        final String role = parentRelation.members().asBean()
-                .getItemFor(memberFromWhichToCopyRole.getIdentifier(),
-                        memberFromWhichToCopyRole.getType())
-                .orElseThrow(() -> new CoreException(
-                        "Cannot copy role from {} {} as it is not a member of {} {}",
-                        memberFromWhichToCopyRole.getType(),
-                        memberFromWhichToCopyRole.getIdentifier(), this.getClass().getSimpleName(),
-                        this))
-                .getRole();
-        return withExtraMember(newMember, role);
-    }
-
-    public CompleteRelation withExtraMember(final AtlasEntity newMember, final String role)
-    {
-        this.members.addItem(
-                new RelationBeanItem(newMember.getIdentifier(), role, newMember.getType()));
-        this.withBoundsExtendedBy(newMember.bounds());
         return this;
     }
 
