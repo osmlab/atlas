@@ -86,7 +86,7 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
     }
 
     @Override
-    public int execute()
+    public int execute() // NOSONAR
     {
         final String beforeAtlasPath = this.optionAndArgumentDelegate
                 .getUnaryArgument(BEFORE_ATLAS_ARGUMENT).orElseThrow(AtlasShellToolsException::new);
