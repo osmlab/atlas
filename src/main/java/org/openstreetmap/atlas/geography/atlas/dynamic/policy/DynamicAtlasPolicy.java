@@ -98,14 +98,7 @@ public class DynamicAtlasPolicy
         {
             if (this.maximumBounds.overlaps(shard.bounds()))
             {
-                try
-                {
-                    return this.atlasFetcher.apply(shard);
-                }
-                catch (final Throwable error)
-                {
-                    logger.error("Could not load shard {}, skipping.", shard.getName(), error);
-                }
+                return this.atlasFetcher.apply(shard);
             }
             else
             {
