@@ -15,8 +15,7 @@ public class ProtoByteArrayOfArraysAdapterTest
 {
     private static final Logger logger = LoggerFactory
             .getLogger(ProtoByteArrayOfArraysAdapterTest.class);
-    private static final int TEST_ARRAY_SIZE = 2000;
-    private static final int TEST_SUBARRAY_SIZE = 10_000;
+    private static final int TEST_ARRAY_SIZE = 5000;
     private static final String TEST_NAME = "testarray";
     private final ProtoByteArrayOfArraysAdapter adapter = new ProtoByteArrayOfArraysAdapter();
 
@@ -24,11 +23,11 @@ public class ProtoByteArrayOfArraysAdapterTest
     public void testConsistency()
     {
         final ByteArrayOfArrays byteArrayOfArrays = new ByteArrayOfArrays(TEST_ARRAY_SIZE,
-                TEST_SUBARRAY_SIZE, TEST_SUBARRAY_SIZE);
+                TEST_ARRAY_SIZE, TEST_ARRAY_SIZE);
         for (int index = 0; index < TEST_ARRAY_SIZE; index++)
         {
-            final byte[] items = new byte[TEST_SUBARRAY_SIZE];
-            for (int subIndex = 0; subIndex < TEST_SUBARRAY_SIZE; subIndex++)
+            final byte[] items = new byte[TEST_ARRAY_SIZE];
+            for (int subIndex = 0; subIndex < TEST_ARRAY_SIZE; subIndex++)
             {
                 items[subIndex] = 1;
             }
