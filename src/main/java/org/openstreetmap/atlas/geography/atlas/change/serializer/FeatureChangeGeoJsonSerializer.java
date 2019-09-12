@@ -11,6 +11,7 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometryPrintable;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
+import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescription;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -70,6 +71,7 @@ public class FeatureChangeGeoJsonSerializer
             final JsonObject properties = new JsonObject();
             properties.addProperty("featureChangeType", source.getChangeType().toString());
             add(properties, "meta-data", source.getMetaData(), tagPrinter);
+            add(properties, "description", source.explain(), ChangeDescription::toJsonElement);
             new AtlasEntityPropertiesConverter().convert(source.getAfterView()).entrySet()
                     .forEach(entry -> properties.add(entry.getKey(), entry.getValue()));
             addGeometryWkt(properties, geometryPrintable);

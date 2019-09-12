@@ -10,11 +10,14 @@ import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.Ch
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
 /**
  * A basic description of the internal contents of a {@link FeatureChange}. A
  * {@link ChangeDescription} consists of a {@link List} of {@link ChangeDescriptor}s as well as some
  * other details (like an identifier, an {@link ItemType}, and a {@link ChangeDescriptorType}).
- * 
+ *
  * @author lcram
  */
 public class ChangeDescription
@@ -62,7 +65,7 @@ public class ChangeDescription
 
     /**
      * Get a sorted copy of the underlying {@link ChangeDescriptor} list.
-     * 
+     *
      * @return the sorted list
      */
     public List<ChangeDescriptor> getChangeDescriptors()
@@ -89,6 +92,14 @@ public class ChangeDescription
     public ItemType getItemType()
     {
         return this.itemType;
+    }
+
+    public JsonElement toJsonElement()
+    {
+        final JsonObject description = new JsonObject();
+        // TODO design this
+        description.addProperty("TODO", "add some stuff");
+        return description;
     }
 
     @Override
