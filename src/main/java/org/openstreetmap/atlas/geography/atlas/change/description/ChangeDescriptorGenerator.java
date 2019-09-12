@@ -94,7 +94,7 @@ public final class ChangeDescriptorGenerator
     }
 
     private List<GenericElementChangeDescriptor<Long>> generateEdgeStartEndDescriptors(
-            final String description, final Function<CompleteEdge, Long> memberExtractor)
+            final String description, final Function<CompleteEdge, Long> memberExtractor) // NOSONAR
     {
         final CompleteEdge beforeEntity = (CompleteEdge) this.beforeView;
         final CompleteEdge afterEntity = (CompleteEdge) this.afterView;
