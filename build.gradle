@@ -65,6 +65,7 @@ dependencies
     compile packages.artifact
     compile packages.groovy
     compile packages.checkstyle
+    compile packages.diff_utils
 
     testCompile packages.checkstyle_tests
 

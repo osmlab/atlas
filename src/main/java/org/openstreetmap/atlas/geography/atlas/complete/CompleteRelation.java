@@ -190,6 +190,13 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     }
 
     @Override
+    public Iterable<Location> getGeometry()
+    {
+        throw new UnsupportedOperationException("Relations do not have an explicit geometry."
+                + " Please instead use bounds to check the apparent geometry.");
+    }
+
+    @Override
     public long getIdentifier()
     {
         return this.identifier;
@@ -237,7 +244,7 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     }
 
     @Override
-    public String prettify(final PrettifyStringFormat format)
+    public String prettify(final PrettifyStringFormat format, final boolean truncate)
     {
         String separator = "";
         if (format == PrettifyStringFormat.MINIMAL_SINGLE_LINE)
@@ -278,6 +285,12 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
         builder.append("]");
 
         return builder.toString();
+    }
+
+    @Override
+    public Set<Long> relationIdentifiers()
+    {
+        return this.relationIdentifiers;
     }
 
     @Override

@@ -78,6 +78,14 @@ public class CompletePointTest
     }
 
     @Test
+    public void testGetGeometry()
+    {
+        final Location location = Location.forString("1,1");
+        final CompletePoint point = new CompletePoint(123L, location, null, null);
+        Assert.assertEquals(Arrays.asList(Location.forString("1,1")), point.getGeometry());
+    }
+
+    @Test
     public void testIsCompletelyShallow()
     {
         final CompletePoint superShallow = new CompletePoint(123L, null, null, null);

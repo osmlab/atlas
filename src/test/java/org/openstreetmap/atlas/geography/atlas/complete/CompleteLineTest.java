@@ -79,6 +79,16 @@ public class CompleteLineTest
     }
 
     @Test
+    public void testGetGeometry()
+    {
+        final PolyLine polyLine = new PolyLine(Location.forString("1,1"), Location.forString("2,2"),
+                Location.forString("3,3"));
+        final CompleteLine line = new CompleteLine(123L, polyLine, null, null);
+        Assert.assertEquals(Arrays.asList(Location.forString("1,1"), Location.forString("2,2"),
+                Location.forString("3,3")), line.getGeometry());
+    }
+
+    @Test
     public void testIsCompletelyShallow()
     {
         final CompleteLine superShallow = new CompleteLine(123L, null, null, null);

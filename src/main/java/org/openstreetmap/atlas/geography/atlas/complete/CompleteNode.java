@@ -189,6 +189,11 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         return super.hashCode();
     }
 
+    public Set<Long> inEdgeIdentifiers()
+    {
+        return this.inEdgeIdentifiers;
+    }
+
     @Override
     public SortedSet<Edge> inEdges()
     {
@@ -217,6 +222,11 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
                 && this.relationIdentifiers == null;
     }
 
+    public Set<Long> outEdgeIdentifiers()
+    {
+        return this.outEdgeIdentifiers;
+    }
+
     @Override
     public SortedSet<Edge> outEdges()
     {
@@ -230,7 +240,7 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     }
 
     @Override
-    public String prettify(final PrettifyStringFormat format)
+    public String prettify(final PrettifyStringFormat format, final boolean truncate)
     {
         String separator = "";
         if (format == PrettifyStringFormat.MINIMAL_SINGLE_LINE)
@@ -290,6 +300,12 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         builder.append("]");
 
         return builder.toString();
+    }
+
+    @Override
+    public Set<Long> relationIdentifiers()
+    {
+        return this.relationIdentifiers;
     }
 
     @Override
