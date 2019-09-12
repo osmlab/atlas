@@ -109,6 +109,16 @@ public class CompleteEdgeTest
     }
 
     @Test
+    public void testGetGeometry()
+    {
+        final PolyLine polyLine = new PolyLine(Location.forString("1,1"), Location.forString("2,2"),
+                Location.forString("3,3"));
+        final CompleteEdge edge = new CompleteEdge(123L, polyLine, null, null, null, null);
+        Assert.assertEquals(Arrays.asList(Location.forString("1,1"), Location.forString("2,2"),
+                Location.forString("3,3")), edge.getGeometry());
+    }
+
+    @Test
     public void testIsCompletelyShallow()
     {
         final CompleteEdge superShallow = new CompleteEdge(123L, null, null, null, null, null);

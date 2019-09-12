@@ -1,5 +1,8 @@
 package org.openstreetmap.atlas.geography.atlas.complete;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.openstreetmap.atlas.geography.Location;
 
 /**
@@ -12,5 +15,19 @@ import org.openstreetmap.atlas.geography.Location;
  */
 public interface CompleteLocationItem<E extends CompleteLocationItem<E>> extends CompleteEntity<E>
 {
+    @Override
+    default Iterable<Location> getGeometry()
+    {
+        if (getLocation() != null)
+        {
+            final List<Location> geometry = new ArrayList<>();
+            geometry.add(getLocation());
+            return geometry;
+        }
+        return null;
+    }
+
+    Location getLocation();
+
     CompleteLocationItem withLocation(Location location);
 }

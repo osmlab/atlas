@@ -29,6 +29,7 @@ project.ext.versions = [
     artifact:'3.5.4',
     groovy: '2.5.4',
     atlas_checkstyle: '5.6.9',
+    diff_utils: '4.0',
 ]
 
 project.ext.packages = [
@@ -75,4 +76,5 @@ project.ext.packages = [
     checkstyle: "com.puppycrawl.tools:checkstyle:${versions.checkstyle}",
     checkstyle_tests: "com.puppycrawl.tools:checkstyle:${versions.checkstyle}:tests",
     atlas_checkstyle: "org.openstreetmap.atlas:atlas:${versions.atlas_checkstyle}",
+    diff_utils: "io.github.java-diff-utils:java-diff-utils:${versions.diff_utils}",
 ]

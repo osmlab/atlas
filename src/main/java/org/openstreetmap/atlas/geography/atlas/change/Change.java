@@ -188,10 +188,12 @@ public class Change implements Located, Serializable
      *            the format type for the the constituent {@link FeatureChange}s
      * @param completeEntityFormat
      *            the format type for the constituent {@link CompleteEntity}s
+     * @param truncate
+     *            whether or not to truncate long fields
      * @return the pretty string
      */
     public String prettify(final PrettifyStringFormat featureChangeFormat,
-            final PrettifyStringFormat completeEntityFormat)
+            final PrettifyStringFormat completeEntityFormat, final boolean truncate)
     {
         final StringBuilder builder = new StringBuilder();
 
@@ -199,12 +201,30 @@ public class Change implements Located, Serializable
         builder.append("\n");
         for (final FeatureChange featureChange : this.featureChanges)
         {
-            builder.append(featureChange.prettify(featureChangeFormat, completeEntityFormat));
+            builder.append(
+                    featureChange.prettify(featureChangeFormat, completeEntityFormat, truncate));
             builder.append("\n");
         }
         builder.append("]");
 
         return builder.toString();
+    }
+
+    /**
+     * Transform this {@link Change} into a pretty string. This will use the pretty strings for
+     * {@link CompleteEntity} classes that make up this {@link Change}'s constituent
+     * {@link FeatureChange}s.
+     *
+     * @param featureChangeFormat
+     *            the format type for the the constituent {@link FeatureChange}s
+     * @param completeEntityFormat
+     *            the format type for the constituent {@link CompleteEntity}s
+     * @return the pretty string
+     */
+    public String prettify(final PrettifyStringFormat featureChangeFormat,
+            final PrettifyStringFormat completeEntityFormat)
+    {
+        return this.prettify(featureChangeFormat, completeEntityFormat, true);
     }
 
     /**

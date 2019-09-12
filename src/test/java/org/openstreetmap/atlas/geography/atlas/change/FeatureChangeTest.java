@@ -18,6 +18,7 @@ import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
+import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescription;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
@@ -34,6 +35,9 @@ import org.openstreetmap.atlas.utilities.collections.Sets;
  */
 public class FeatureChangeTest
 {
+    @Rule
+    public ChangeAtlasTestRule rule = new ChangeAtlasTestRule();
+
     @Rule
     public final ExpectedException expectedException = ExpectedException.none();
 
@@ -173,6 +177,128 @@ public class FeatureChangeTest
         this.expectedException.expectMessage("is not useful");
         new FeatureChangeUsefulnessValidator(new FeatureChange(ChangeType.ADD, after, before))
                 .validate();
+    }
+
+    @Test
+    public void testChangeDescriptionGeometry()
+    {
+        final PolyLine polyline1 = PolyLine
+                .wkt("LINESTRING(1 1, 2 2, 3 3, 10 10, 20 20, 4 4, 5 5)");
+        final PolyLine polyline2 = PolyLine
+                .wkt("LINESTRING(1 1, 3 3, -10 -10, -20 -20, 4 4, 5 5, 6 6)");
+
+        final CompleteLine before1 = new CompleteLine(123L, polyline1, null, null);
+        final CompleteLine after1 = new CompleteLine(123L, polyline2, null, null);
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD, after1, before1);
+        final ChangeDescription description = featureChange1.explain();
+
+        final String goldenString = "ChangeDescription [\n" + "UPDATE LINE 123\n"
+                + "GEOM(REMOVE, 1/7, POINT (2 2))\n"
+                + "GEOM(UPDATE, 3/7, LINESTRING (10 10, 20 20) => LINESTRING (-10 -10, -20 -20))\n"
+                + "GEOM(ADD, 7/7, POINT (6 6))\n" + "]";
+
+        Assert.assertEquals(goldenString, description.toString());
+    }
+
+    @Test
+    public void testChangeDescriptionInOutEdges()
+    {
+        final CompleteNode before2 = new CompleteNode(123L, Location.forString("1,1"), null,
+                Sets.treeSet(1L, 2L), Sets.treeSet(3L, 4L), null);
+        final CompleteNode after2 = new CompleteNode(123L, Location.forString("1,1"), null,
+                Sets.treeSet(2L, 3L), Sets.treeSet(4L, 5L), null);
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD, after2, before2);
+        final ChangeDescription description = featureChange2.explain();
+
+        final String goldenString = "ChangeDescription [\n" + "UPDATE NODE 123\n"
+                + "IN_EDGE(ADD, 3)\n" + "IN_EDGE(REMOVE, 1)\n" + "OUT_EDGE(ADD, 5)\n"
+                + "OUT_EDGE(REMOVE, 3)\n" + "]";
+
+        Assert.assertEquals(goldenString, description.toString());
+    }
+
+    @Test
+    public void testChangeDescriptionParentRelations()
+    {
+        final PolyLine polyline1 = PolyLine.wkt("LINESTRING(1 1, 2 2, 3 3, 4 4, 5 5)");
+
+        final CompleteLine before1 = new CompleteLine(123L, polyline1, null,
+                Sets.hashSet(1L, 2L, 3L));
+        final CompleteLine after1 = new CompleteLine(123L, polyline1, null,
+                Sets.hashSet(2L, 3L, 4L));
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD, after1, before1);
+        final ChangeDescription description = featureChange1.explain();
+
+        final String goldenString = "ChangeDescription [\n" + "UPDATE LINE 123\n"
+                + "PARENT_RELATION(ADD, 4)\n" + "PARENT_RELATION(REMOVE, 1)\n" + "]";
+
+        Assert.assertEquals(goldenString, description.toString());
+    }
+
+    @Test
+    public void testChangeDescriptionRelationMember()
+    {
+        final CompleteRelation before1 = new CompleteRelation(123L, null, Rectangle.TEST_RECTANGLE,
+                null, null, null, null, null);
+        final CompleteRelation after1 = new CompleteRelation(123L, null, Rectangle.TEST_RECTANGLE,
+                null, null, null, null, null);
+
+        final RelationBean bean1 = new RelationBean();
+        bean1.addItem(123L, "myRole", ItemType.AREA);
+        bean1.addItem(456L, "myRole", ItemType.AREA);
+        final RelationBean bean2 = new RelationBean();
+        bean2.addItem(456L, "myRole", ItemType.AREA);
+        bean2.addItem(789L, "myRole", ItemType.AREA);
+
+        before1.withMembers(bean1, Rectangle.TEST_RECTANGLE);
+        after1.withMembers(bean2, Rectangle.TEST_RECTANGLE);
+
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD, after1, before1);
+        final ChangeDescription description = featureChange1.explain();
+        System.out.println(description);
+
+        final String goldenString = "ChangeDescription [\n" + "UPDATE RELATION 123\n"
+                + "RELATION_MEMBER(ADD, AREA, 789, myRole)\n"
+                + "RELATION_MEMBER(REMOVE, AREA, 123, myRole)\n" + "]";
+
+        Assert.assertEquals(goldenString, description.toString());
+    }
+
+    @Test
+    public void testChangeDescriptionStartEndNodes()
+    {
+        final PolyLine polyline1 = PolyLine
+                .wkt("LINESTRING(1 1, 2 2, 3 3, 10 10, 20 20, 4 4, 5 5)");
+
+        final CompleteEdge before3 = new CompleteEdge(123L, polyline1, null, 1L, 2L, null);
+        final CompleteEdge after3 = new CompleteEdge(123L, polyline1, null, 10L, 20L, null);
+        final FeatureChange featureChange3 = new FeatureChange(ChangeType.ADD, after3, before3);
+        final ChangeDescription description = featureChange3.explain();
+
+        final String goldenString = "ChangeDescription [\n" + "UPDATE EDGE 123\n"
+                + "END_NODE(UPDATE, 2 => 20)\n" + "START_NODE(UPDATE, 1 => 10)\n" + "]";
+
+        Assert.assertEquals(goldenString, description.toString());
+    }
+
+    @Test
+    public void testChangeDescriptionTag()
+    {
+        final PolyLine polyline1 = PolyLine
+                .wkt("LINESTRING(1 1, 2 2, 3 3, 10 10, 20 20, 4 4, 5 5)");
+
+        final CompleteEdge before3 = new CompleteEdge(123L, polyline1,
+                Maps.hashMap("key0", "value0", "key1", "value1"), null, null, null);
+        final CompleteEdge after3 = new CompleteEdge(123L, polyline1,
+                Maps.hashMap("key1", "newValue1", "key2", "value2"), null, null, null);
+        final FeatureChange featureChange3 = new FeatureChange(ChangeType.ADD, after3, before3);
+        final ChangeDescription description = featureChange3.explain();
+
+        final String goldenString = "ChangeDescription [\n" + "UPDATE EDGE 123\n"
+                + "TAG(ADD, key2, value2)\n" + "TAG(UPDATE, key1, value1 => newValue1)\n"
+                + "TAG(REMOVE, key0, value0)\n" + "]";
+
+        Assert.assertEquals(goldenString, description.toString());
     }
 
     @Test

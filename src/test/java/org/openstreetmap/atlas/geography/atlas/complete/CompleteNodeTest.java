@@ -115,6 +115,14 @@ public class CompleteNodeTest
     }
 
     @Test
+    public void testGetGeometry()
+    {
+        final Location location = Location.forString("1,1");
+        final CompleteNode node = new CompleteNode(123L, location, null, null, null, null);
+        Assert.assertEquals(Arrays.asList(Location.forString("1,1")), node.getGeometry());
+    }
+
+    @Test
     public void testIsCompletelyShallow()
     {
         final CompleteNode superShallow = new CompleteNode(123L, null, null, null, null, null);

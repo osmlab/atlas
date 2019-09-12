@@ -89,6 +89,16 @@ public class CompleteAreaTest
     }
 
     @Test
+    public void testGetGeometry()
+    {
+        final Polygon polygon = new Polygon(Location.forString("1,1"), Location.forString("2,2"),
+                Location.forString("3,3"), Location.forString("1,1"));
+        final CompleteArea area = new CompleteArea(123L, polygon, null, null);
+        Assert.assertEquals(Arrays.asList(Location.forString("1,1"), Location.forString("2,2"),
+                Location.forString("3,3"), Location.forString("1,1")), area.getGeometry());
+    }
+
+    @Test
     public void testIsCompletelyShallow()
     {
         final CompleteArea superShallow = new CompleteArea(123L, null, null, null);

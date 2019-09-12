@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.complete;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -143,6 +144,16 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
     }
 
     @Override
+    public Iterable<Location> getGeometry()
+    {
+        if (this.polygon != null)
+        {
+            return new ArrayList<>(this.polygon);
+        }
+        return null;
+    }
+
+    @Override
     public long getIdentifier()
     {
         return this.identifier;
@@ -174,7 +185,7 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
     }
 
     @Override
-    public String prettify(final PrettifyStringFormat format)
+    public String prettify(final PrettifyStringFormat format, final boolean truncate)
     {
         String separator = "";
         if (format == PrettifyStringFormat.MINIMAL_SINGLE_LINE)
@@ -194,7 +205,14 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
         builder.append(separator);
         if (this.polygon != null)
         {
-            builder.append("polygon: " + truncate(this.polygon.toString()) + ", ");
+            if (truncate)
+            {
+                builder.append("polygon: " + truncate(this.polygon.toString()) + ", ");
+            }
+            else
+            {
+                builder.append("polygon: " + this.polygon.toString() + ", ");
+            }
             builder.append(separator);
         }
         if (this.tags != null)
@@ -210,6 +228,12 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
         builder.append("]");
 
         return builder.toString();
+    }
+
+    @Override
+    public Set<Long> relationIdentifiers()
+    {
+        return this.relationIdentifiers;
     }
 
     @Override

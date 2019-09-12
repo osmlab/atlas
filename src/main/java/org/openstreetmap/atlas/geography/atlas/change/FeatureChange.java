@@ -16,6 +16,7 @@ import org.openstreetmap.atlas.exception.change.MergeFailureType;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescription;
 import org.openstreetmap.atlas.geography.atlas.change.serializer.FeatureChangeGeoJsonSerializer;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
@@ -296,9 +297,17 @@ public class FeatureChange implements Located, Serializable
     public Rectangle bounds()
     {
         final Rectangle updatedBounds = this.afterView.bounds();
+        if (updatedBounds == null)
+        {
+            throw new CoreException("Corrupted FeatureChange: afterView bounds were null");
+        }
         if (this.beforeView == null)
         {
             return updatedBounds;
+        }
+        if (this.beforeView.bounds() == null)
+        {
+            throw new CoreException("Corrupted FeatureChange: beforeView bounds were null");
         }
         return Rectangle.forLocated(this.beforeView.bounds(), updatedBounds);
     }
@@ -313,6 +322,22 @@ public class FeatureChange implements Located, Serializable
                     && this.getAfterView().equals(that.getAfterView());
         }
         return false;
+    }
+
+    /**
+     * Return a {@link ChangeDescription} object that explains the differences represented by this
+     * {@link FeatureChange}.
+     *
+     * @return the {@link ChangeDescription} representing this {@link FeatureChange}
+     */
+    public ChangeDescription explain()
+    {
+        if (this.afterView == null)
+        {
+            throw new CoreException("Cannot explain a FeatureChange with a null afterView!");
+        }
+        return new ChangeDescription(getIdentifier(), getItemType(), this.beforeView,
+                this.afterView, this.changeType);
     }
 
     public AtlasEntity getAfterView()
@@ -531,10 +556,12 @@ public class FeatureChange implements Located, Serializable
      *            the format type for the this {@link FeatureChange}
      * @param completeEntityFormat
      *            the format type for the constituent {@link CompleteEntity}s
+     * @param truncate
+     *            whether or not to truncate long fields
      * @return the pretty string
      */
     public String prettify(final PrettifyStringFormat format,
-            final PrettifyStringFormat completeEntityFormat)
+            final PrettifyStringFormat completeEntityFormat, final boolean truncate)
     {
         String separator = "";
         if (format == PrettifyStringFormat.MINIMAL_SINGLE_LINE)
@@ -561,17 +588,40 @@ public class FeatureChange implements Located, Serializable
         if (this.beforeView != null)
         {
             builder.append("bfView: "
-                    + ((CompleteEntity<?>) this.beforeView).prettify(completeEntityFormat) + ", ");
+                    + ((CompleteEntity<?>) this.beforeView).prettify(completeEntityFormat, truncate)
+                    + ", ");
             builder.append(separator);
         }
         builder.append("afView: "
-                + ((CompleteEntity<?>) this.afterView).prettify(completeEntityFormat) + ", ");
+                + ((CompleteEntity<?>) this.afterView).prettify(completeEntityFormat, truncate)
+                + ", ");
         builder.append(separator);
         builder.append("metadata: " + this.metaData);
+        builder.append(separator);
+        builder.append(this.explain());
         builder.append(separator);
         builder.append("]");
 
         return builder.toString();
+    }
+
+    /**
+     * Transform this {@link FeatureChange} into a pretty string. This will use the pretty strings
+     * for {@link CompleteEntity} classes. If you are unsure about which
+     * {@link PrettifyStringFormat}s to use, try {@link FeatureChange#prettify()} which has some
+     * sane defaults.
+     *
+     * @param format
+     *            the format type for the this {@link FeatureChange}
+     * @param completeEntityFormat
+     *            the format type for the constituent {@link CompleteEntity}s
+     * @return the pretty string
+     */
+    public String prettify(final PrettifyStringFormat format,
+            final PrettifyStringFormat completeEntityFormat)
+    {
+        return this.prettify(PrettifyStringFormat.MINIMAL_MULTI_LINE,
+                PrettifyStringFormat.MINIMAL_SINGLE_LINE, true);
     }
 
     /**
