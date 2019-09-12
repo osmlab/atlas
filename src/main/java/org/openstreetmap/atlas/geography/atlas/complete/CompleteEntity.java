@@ -244,6 +244,8 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
 
     CompleteItemType completeItemType();
 
+    Iterable<Location> getGeometry();
+
     long getIdentifier();
 
     Map<String, String> getTags();
@@ -270,9 +272,24 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
      *
      * @param format
      *            the format type for the pretty string
+     * @param truncate
+     *            if the string should be truncated
      * @return the pretty string
      */
-    String prettify(PrettifyStringFormat format);
+    String prettify(PrettifyStringFormat format, boolean truncate);
+
+    /**
+     * Transform this {@link CompleteEntity} into a pretty string. The pretty string for a
+     * {@link CompleteEntity} can be customized using different available formats.
+     *
+     * @param format
+     *            the format type for the pretty string
+     * @return the pretty string
+     */
+    default String prettify(final PrettifyStringFormat format)
+    {
+        return prettify(PrettifyStringFormat.MINIMAL_SINGLE_LINE, true);
+    }
 
     /**
      * Transform this {@link CompleteEntity} into a pretty string. This method uses the default
@@ -284,6 +301,8 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
     {
         return prettify(PrettifyStringFormat.MINIMAL_SINGLE_LINE);
     }
+
+    Set<Long> relationIdentifiers();
 
     void setTags(Map<String, String> tags);
 
