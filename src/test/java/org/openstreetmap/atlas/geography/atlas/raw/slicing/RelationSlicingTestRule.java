@@ -58,6 +58,39 @@ public class RelationSlicingTestRule extends CoreTestRule
     private static final String LOCATION_37 = "6.87407883746,-8.34039743242";
     private static final String LOCATION_38 = "6.87822317845,-8.33993631058";
 
+    private static final String LOCATION_39 = "6.876712, -8.331375";
+
+    @TestAtlas(
+
+            points = { @Point(id = "214776000000", coordinates = @Loc(value = LOCATION_30)),
+                    @Point(id = "214775000000", coordinates = @Loc(value = LOCATION_31)),
+                    @Point(id = "214774000000", coordinates = @Loc(value = LOCATION_32)),
+                    @Point(id = "214773000000", coordinates = @Loc(value = LOCATION_33)),
+                    @Point(id = "214772000000", coordinates = @Loc(value = LOCATION_34)),
+                    @Point(id = "214771000000", coordinates = @Loc(value = LOCATION_35)),
+                    @Point(id = "214770000000", coordinates = @Loc(value = LOCATION_36)),
+                    @Point(id = "214769000000", coordinates = @Loc(value = LOCATION_37)),
+                    @Point(id = "214768000000", coordinates = @Loc(value = LOCATION_38)),
+                    @Point(id = "214708000000", coordinates = @Loc(value = LOCATION_39)),
+                    @Point(id = "214718000000", coordinates = @Loc(value = LOCATION_39)) },
+
+            lines = {
+                    @Line(id = "214778000000", coordinates = { @Loc(value = LOCATION_38),
+                            @Loc(value = LOCATION_31),
+                            @Loc(value = LOCATION_32) }, tags = { "highway=residential" }),
+                    @Line(id = "214777000000", coordinates = { @Loc(value = LOCATION_38),
+                            @Loc(value = LOCATION_37), @Loc(value = LOCATION_30),
+                            @Loc(value = LOCATION_34), @Loc(value = LOCATION_35),
+                            @Loc(value = LOCATION_32) }, tags = { "highway=primary" }) },
+
+            relations = {
+
+                    @Relation(id = "214805000000", tags = { "type=multipolygon",
+                            "leisure=park" }, members = {
+                                    @Member(id = "214777000000", role = "outer", type = "line"),
+                                    @Member(id = "214778000000", role = "outer", type = "line") }) })
+    private Atlas singleOuterMadeOfOpenLinesSpanningTwoCountriesWithDuplicatePoints;
+
     @TestAtlas(
 
             points = { @Point(id = "214776000000", coordinates = @Loc(value = LOCATION_30)),
@@ -334,6 +367,11 @@ public class RelationSlicingTestRule extends CoreTestRule
     public Atlas getSingleOuterMadeOfOpenLinesSpanningTwoCountriesAtlas()
     {
         return this.singleOuterMadeOfOpenLinesSpanningTwoCountries;
+    }
+
+    public Atlas getSingleOuterMadeOfOpenLinesSpanningTwoCountriesAtlasWithDuplicatePoints()
+    {
+        return this.singleOuterMadeOfOpenLinesSpanningTwoCountriesWithDuplicatePoints;
     }
 
     public Atlas getSingleOuterNonWaterSpanningTwoAtlases1()
