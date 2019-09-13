@@ -1,12 +1,14 @@
 package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.complex.Finder;
@@ -245,6 +247,38 @@ public class RelationSlicingTest
         Assert.assertEquals(16, slicedAtlas.numberOfPoints());
         Assert.assertEquals(6, slicedAtlas.numberOfLines());
         Assert.assertEquals(2, slicedAtlas.numberOfRelations());
+
+        slicedAtlas.lines().forEach(System.out::println);
+    }
+
+    @Test
+    public void testSingleOuterMadeOfOpenLinesSpanningTwoCountriesWithDuplicatePoints()
+    {
+        // This relation is made up of two open lines, both crossing the country boundary and
+        // forming a multi-polygon with one outer.
+        final Atlas rawAtlas = this.setup
+                .getSingleOuterMadeOfOpenLinesSpanningTwoCountriesAtlasWithDuplicatePoints();
+        Assert.assertEquals(2, rawAtlas.numberOfLines());
+        Assert.assertEquals(11, rawAtlas.numberOfPoints());
+        Assert.assertEquals(1, rawAtlas.numberOfRelations());
+
+        final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
+
+        Assert.assertEquals(17, slicedAtlas.numberOfPoints());
+        Assert.assertEquals(6, slicedAtlas.numberOfLines());
+        Assert.assertEquals(2, slicedAtlas.numberOfRelations());
+
+        slicedAtlas.lines().forEach(line ->
+        {
+            final Iterator<Location> lineLocations = line.iterator();
+            Location previous = lineLocations.next();
+            while (lineLocations.hasNext())
+            {
+                final Location current = lineLocations.next();
+                Assert.assertFalse(current.equals(previous));
+                previous = current;
+            }
+        });
     }
 
     @Test
