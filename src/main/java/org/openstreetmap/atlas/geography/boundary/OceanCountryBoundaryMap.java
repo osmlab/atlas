@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.boundary;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -34,6 +35,7 @@ public class OceanCountryBoundaryMap extends Command
     // ocean boundary slippytile zoom level
     private static final int OCEAN_BOUNDARY_ZOOM_LEVEL = 3;
     private static final double JTS_SNAP_PRECISION = .000000000000001;
+    private static int returnCode = 0;
 
     private static final Logger logger = LoggerFactory.getLogger(OceanCountryBoundaryMap.class);
 
@@ -80,7 +82,19 @@ public class OceanCountryBoundaryMap extends Command
         return finalBoundaryMap;
     }
 
-    public static Geometry geometryForShard(final Rectangle shardBounds,
+    private static CountryBoundaryMap initalizeGridIndex(CountryBoundaryMap boundaryMap, String parentDirectory)
+    {
+        // generate the grid index
+        logger.info("Generating the grid index");
+        File tempFile = new File(parentDirectory + "/temp.txt");
+        writeToFile(boundaryMap, tempFile);
+        CountryBoundaryMap boundaryWithGridIndex = CountryBoundaryMap.fromPlainText(tempFile);
+        final Set<String> allCountries = new HashSet<>(boundaryWithGridIndex.allCountryNames());
+        boundaryWithGridIndex.initializeGridIndex(allCountries);
+        return boundaryWithGridIndex;
+    }
+    
+    private static Geometry geometryForShard(final Rectangle shardBounds,
             final CountryBoundaryMap boundaryMap)
     {
         final JtsMultiPolygonConverter multiPolyConverter = new JtsMultiPolygonConverter();
@@ -102,6 +116,19 @@ public class OceanCountryBoundaryMap extends Command
         }
         return shardPolyJts;
     }
+    
+    private static void writeToFile(CountryBoundaryMap boundaryMap, File file)
+    {
+        try
+        {
+            boundaryMap.writeToFile(file);
+        }
+        catch(Exception e)
+        {
+            logger.error("Error while writing the boundary map to file", e);
+            returnCode = 1;
+        }
+    }
 
     public static void main(final String[] args)
     {
@@ -115,17 +142,11 @@ public class OceanCountryBoundaryMap extends Command
         final CountryBoundaryMap boundaryMap = CountryBoundaryMap.fromPlainText(boundaryFile);
         final File outputFile = (File) command.get(OUTPUT);
         final Iterable<SlippyTile> allTiles = SlippyTile.allTiles(OCEAN_BOUNDARY_ZOOM_LEVEL);
-        final CountryBoundaryMap finalBoundaryMap = generateOceanBoundaryMap(boundaryMap, allTiles);
-        try
-        {
-            finalBoundaryMap.writeToFile(outputFile);
-            return 0;
-        }
-        catch (final IOException e)
-        {
-            logger.error("Error while writing the boundary map to file", e);
-            return 1;
-        }
+        final String parentDirectory = boundaryFile.getParent();
+        CountryBoundaryMap combinedBoundaryMap = generateOceanBoundaryMap(boundaryMap, allTiles);
+        combinedBoundaryMap  = initalizeGridIndex(combinedBoundaryMap, parentDirectory);
+        writeToFile(combinedBoundaryMap, outputFile);
+        return returnCode;
     }
 
     @Override
