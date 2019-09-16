@@ -309,22 +309,16 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                     }
                     else
                     {
-                        for (final Point rawAtlasPoint : rawAtlasPointsAtScaledCoordinate)
-                        {
-                            // Add all point identifiers to make up the new Line
-                            newLineShapePoints.add(rawAtlasPoint.getIdentifier());
-                        }
+                        newLineShapePoints.add(
+                                rawAtlasPointsAtScaledCoordinate.iterator().next().getIdentifier());
                     }
                 }
             }
 
             else
             {
-                for (final Point rawAtlasPoint : rawAtlasPointsAtCoordinate)
-                {
-                    // Add all point identifiers to make up the new Line
-                    newLineShapePoints.add(rawAtlasPoint.getIdentifier());
-                }
+                newLineShapePoints
+                        .add(rawAtlasPointsAtCoordinate.iterator().next().getIdentifier());
             }
         }
 
@@ -1047,10 +1041,13 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
             final boolean isNewPoint = this.slicedRelationChanges.getCreatedPoints()
                     .containsKey(identifier);
 
+            final boolean isPartOfRelation = !getStartingAtlas().point(identifier).relations()
+                    .isEmpty();
+
             final boolean newLineUsesExistingPoint = isPartOfNewLine && !isNewPoint;
 
             // All lines that contain this point have been deleted, delete the point
-            if (!partOfExistingNonDeletedLine && !newLineUsesExistingPoint)
+            if (!partOfExistingNonDeletedLine && !newLineUsesExistingPoint && !isPartOfRelation)
             {
                 this.slicedRelationChanges.deletePoint(identifier);
             }
