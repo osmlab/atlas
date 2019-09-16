@@ -109,6 +109,25 @@ public final class GeometryChangeDescriptor implements ChangeDescriptor
         final JsonObject descriptor = (JsonObject) ChangeDescriptor.super.toJsonElement();
         descriptor.addProperty("position",
                 this.delta.getSource().getPosition() + "/" + this.sourceMaterialSize);
+        switch (this.changeType)
+        {
+            case UPDATE:
+                descriptor.addProperty("oldValue",
+                        new PolyLine(this.delta.getSource().getLines()).toWkt());
+                descriptor.addProperty("newValue",
+                        new PolyLine(this.delta.getTarget().getLines()).toWkt());
+                break;
+            case REMOVE:
+                descriptor.addProperty("oldValue",
+                        new PolyLine(this.delta.getSource().getLines()).toWkt());
+                break;
+            case ADD:
+                descriptor.addProperty("newValue",
+                        new PolyLine(this.delta.getTarget().getLines()).toWkt());
+                break;
+            default:
+                throw new CoreException("Unexpected ChangeType value: " + this.delta.getType());
+        }
         return descriptor;
     }
 
