@@ -1,6 +1,5 @@
 package org.openstreetmap.atlas.geography.boundary;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -81,17 +80,10 @@ public class OceanCountryBoundaryMap extends Command
         }
         return finalBoundaryMap;
     }
-
-    private static CountryBoundaryMap initalizeGridIndex(CountryBoundaryMap boundaryMap, String parentDirectory)
+    
+    public static void main(final String[] args)
     {
-        // generate the grid index
-        logger.info("Generating the grid index");
-        File tempFile = new File(parentDirectory + "/temp.txt");
-        writeToFile(boundaryMap, tempFile);
-        CountryBoundaryMap boundaryWithGridIndex = CountryBoundaryMap.fromPlainText(tempFile);
-        final Set<String> allCountries = new HashSet<>(boundaryWithGridIndex.allCountryNames());
-        boundaryWithGridIndex.initializeGridIndex(allCountries);
-        return boundaryWithGridIndex;
+        new OceanCountryBoundaryMap().run(args);
     }
     
     private static Geometry geometryForShard(final Rectangle shardBounds,
@@ -117,22 +109,29 @@ public class OceanCountryBoundaryMap extends Command
         return shardPolyJts;
     }
     
-    private static void writeToFile(CountryBoundaryMap boundaryMap, File file)
+    private static CountryBoundaryMap initalizeGridIndex(final CountryBoundaryMap boundaryMap, final String parentDirectory)
+    {
+        // generate the grid index
+        logger.info("Generating the grid index");
+        final File tempFile = new File(parentDirectory + "/temp.txt");
+        writeToFile(boundaryMap, tempFile);
+        final CountryBoundaryMap boundaryWithGridIndex = CountryBoundaryMap.fromPlainText(tempFile);
+        final Set<String> allCountries = new HashSet<>(boundaryWithGridIndex.allCountryNames());
+        boundaryWithGridIndex.initializeGridIndex(allCountries);
+        return boundaryWithGridIndex;
+    }
+    
+    private static void writeToFile(final CountryBoundaryMap boundaryMap, final File file)
     {
         try
         {
             boundaryMap.writeToFile(file);
         }
-        catch(Exception e)
+        catch(final Exception e)
         {
             logger.error("Error while writing the boundary map to file", e);
             returnCode = 1;
         }
-    }
-
-    public static void main(final String[] args)
-    {
-        new OceanCountryBoundaryMap().run(args);
     }
 
     @Override
