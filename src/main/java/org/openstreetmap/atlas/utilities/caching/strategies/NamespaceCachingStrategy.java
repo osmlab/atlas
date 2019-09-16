@@ -152,8 +152,8 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
                 {
                     throw new CoreException(
                             "StrategyID {}: something went wrong copying {} to temporary local file {}",
-                            this.getStrategyID(), resourceFromDefaultFetcher.toString(),
-                            temporaryLocalFile.toString(), exception);
+                            this.getStrategyID(), resourceFromDefaultFetcher, temporaryLocalFile,
+                            exception);
                 }
             });
 
@@ -176,8 +176,7 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
                 catch (final Exception exception)
                 {
                     throw new CoreException("StrategyID {}: something went wrong moving {} to {}",
-                            this.getStrategyID(), temporaryLocalFile.toString(),
-                            cachedFile.toString(), exception);
+                            this.getStrategyID(), temporaryLocalFile, cachedFile, exception);
                 }
             }
         }
