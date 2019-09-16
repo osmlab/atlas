@@ -12,6 +12,8 @@ import com.github.difflib.DiffUtils;
 import com.github.difflib.algorithm.DiffException;
 import com.github.difflib.patch.AbstractDelta;
 import com.github.difflib.patch.Patch;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 /**
  * A {@link ChangeDescriptor} for geometry changes. Utilizes a granular diff algorithm to show the
@@ -90,9 +92,24 @@ public final class GeometryChangeDescriptor implements ChangeDescriptor
         return this.delta;
     }
 
+    @Override
+    public ChangeDescriptorName getName()
+    {
+        return ChangeDescriptorName.GEOMETRY;
+    }
+
     public int getSourcePosition()
     {
         return this.delta.getSource().getPosition();
+    }
+
+    @Override
+    public JsonElement toJsonElement()
+    {
+        final JsonObject descriptor = (JsonObject) ChangeDescriptor.super.toJsonElement();
+        descriptor.addProperty("position",
+                this.delta.getSource().getPosition() + "/" + this.sourceMaterialSize);
+        return descriptor;
     }
 
     @Override
@@ -123,6 +140,6 @@ public final class GeometryChangeDescriptor implements ChangeDescriptor
             default:
                 throw new CoreException("Unexpected ChangeType value: " + this.delta.getType());
         }
-        return "GEOM(" + diffString.toString() + ")";
+        return getName().toString() + "(" + diffString.toString() + ")";
     }
 }

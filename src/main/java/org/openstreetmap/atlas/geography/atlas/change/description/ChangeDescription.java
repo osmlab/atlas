@@ -10,6 +10,7 @@ import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.Ch
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -97,8 +98,13 @@ public class ChangeDescription
     public JsonElement toJsonElement()
     {
         final JsonObject description = new JsonObject();
-        // TODO design this
-        description.addProperty("TODO", "add some stuff");
+        description.addProperty("type", this.changeDescriptorType.toString());
+        final JsonArray descriptorArray = new JsonArray();
+        for (final ChangeDescriptor descriptor : this.descriptors)
+        {
+            descriptorArray.add(descriptor.toJsonElement());
+        }
+        description.add("descriptors", descriptorArray);
         return description;
     }
 

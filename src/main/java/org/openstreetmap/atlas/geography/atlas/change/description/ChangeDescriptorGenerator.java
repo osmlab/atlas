@@ -12,6 +12,7 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptor;
+import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptorName;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.GenericElementChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.GeometryChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.RelationMemberChangeDescriptor;
@@ -63,17 +64,17 @@ public final class ChangeDescriptorGenerator
         descriptors.addAll(generateParentRelationDescriptors(CompleteEntity::relationIdentifiers));
         if (this.afterView.getType() == ItemType.NODE)
         {
-            descriptors.addAll(
-                    generateNodeInOutDescriptors("IN_EDGE", CompleteNode::inEdgeIdentifiers));
-            descriptors.addAll(
-                    generateNodeInOutDescriptors("OUT_EDGE", CompleteNode::outEdgeIdentifiers));
+            descriptors.addAll(generateNodeInOutDescriptors(ChangeDescriptorName.IN_EDGE,
+                    CompleteNode::inEdgeIdentifiers));
+            descriptors.addAll(generateNodeInOutDescriptors(ChangeDescriptorName.OUT_EDGE,
+                    CompleteNode::outEdgeIdentifiers));
         }
         if (this.afterView.getType() == ItemType.EDGE)
         {
-            descriptors.addAll(generateEdgeStartEndDescriptors("START_NODE",
+            descriptors.addAll(generateEdgeStartEndDescriptors(ChangeDescriptorName.START_NODE,
                     CompleteEdge::startNodeIdentifier));
-            descriptors.addAll(
-                    generateEdgeStartEndDescriptors("END_NODE", CompleteEdge::endNodeIdentifier));
+            descriptors.addAll(generateEdgeStartEndDescriptors(ChangeDescriptorName.END_NODE,
+                    CompleteEdge::endNodeIdentifier));
         }
         if (this.afterView.getType() == ItemType.RELATION)
         {
@@ -94,7 +95,7 @@ public final class ChangeDescriptorGenerator
     }
 
     private List<GenericElementChangeDescriptor<Long>> generateEdgeStartEndDescriptors(
-            final String description, final Function<CompleteEdge, Long> memberExtractor) // NOSONAR
+            final ChangeDescriptorName name, final Function<CompleteEdge, Long> memberExtractor) // NOSONAR
     {
         final CompleteEdge beforeEntity = (CompleteEdge) this.beforeView;
         final CompleteEdge afterEntity = (CompleteEdge) this.afterView;
@@ -113,7 +114,7 @@ public final class ChangeDescriptorGenerator
         {
             if (memberExtractor.apply(beforeEntity) == null)
             {
-                throw new CoreException(CORRUPTED_FEATURECHANGE_MESSAGE, description, description);
+                throw new CoreException(CORRUPTED_FEATURECHANGE_MESSAGE, name, name);
             }
             beforeIdentifier = memberExtractor.apply(beforeEntity);
         }
@@ -123,7 +124,7 @@ public final class ChangeDescriptorGenerator
         }
         final Long afterIdentifier = memberExtractor.apply(afterEntity);
 
-        return generateLongValueDescriptors(description, beforeIdentifier, afterIdentifier);
+        return generateLongValueDescriptors(name, beforeIdentifier, afterIdentifier);
     }
 
     private List<ChangeDescriptor> generateGeometryDescriptors()
@@ -166,8 +167,8 @@ public final class ChangeDescriptorGenerator
         return descriptors;
     }
 
-    private List<GenericElementChangeDescriptor<Long>> generateLongSetDescriptors(final String name,
-            final Set<Long> beforeSet, final Set<Long> afterSet)
+    private List<GenericElementChangeDescriptor<Long>> generateLongSetDescriptors(
+            final ChangeDescriptorName name, final Set<Long> beforeSet, final Set<Long> afterSet)
     {
         final List<GenericElementChangeDescriptor<Long>> descriptors = new ArrayList<>();
 
@@ -189,7 +190,8 @@ public final class ChangeDescriptorGenerator
     }
 
     private List<GenericElementChangeDescriptor<Long>> generateLongValueDescriptors(
-            final String description, final Long beforeIdentifier, final Long afterIdentifier)
+            final ChangeDescriptorName name, final Long beforeIdentifier,
+            final Long afterIdentifier)
     {
         final List<GenericElementChangeDescriptor<Long>> descriptors = new ArrayList<>();
 
@@ -200,19 +202,20 @@ public final class ChangeDescriptorGenerator
         if (beforeIdentifier == null)
         {
             descriptors.add(new GenericElementChangeDescriptor<>(ChangeDescriptorType.ADD, null,
-                    afterIdentifier, description));
+                    afterIdentifier, name));
         }
         else
         {
             descriptors.add(new GenericElementChangeDescriptor<>(ChangeDescriptorType.UPDATE,
-                    beforeIdentifier, afterIdentifier, description));
+                    beforeIdentifier, afterIdentifier, name));
         }
 
         return descriptors;
     }
 
     private List<GenericElementChangeDescriptor<Long>> generateNodeInOutDescriptors(
-            final String description, final Function<CompleteNode, Set<Long>> memberExtractor)
+            final ChangeDescriptorName name,
+            final Function<CompleteNode, Set<Long>> memberExtractor)
     {
         final CompleteNode beforeEntity = (CompleteNode) this.beforeView;
         final CompleteNode afterEntity = (CompleteNode) this.afterView;
@@ -231,7 +234,7 @@ public final class ChangeDescriptorGenerator
         {
             if (memberExtractor.apply(beforeEntity) == null)
             {
-                throw new CoreException(CORRUPTED_FEATURECHANGE_MESSAGE, description, description);
+                throw new CoreException(CORRUPTED_FEATURECHANGE_MESSAGE, name, name);
             }
             beforeSet = memberExtractor.apply(beforeEntity);
         }
@@ -241,13 +244,13 @@ public final class ChangeDescriptorGenerator
         }
         final Set<Long> afterSet = memberExtractor.apply(afterEntity);
 
-        return generateLongSetDescriptors(description, beforeSet, afterSet);
+        return generateLongSetDescriptors(name, beforeSet, afterSet);
     }
 
     private List<GenericElementChangeDescriptor<Long>> generateParentRelationDescriptors(
             final Function<CompleteEntity, Set<Long>> memberExtractor)
     {
-        final String description = "PARENT_RELATION";
+        final ChangeDescriptorName name = ChangeDescriptorName.PARENT_RELATION;
 
         final CompleteEntity<? extends CompleteEntity<?>> beforeEntity = (CompleteEntity<? extends CompleteEntity<?>>) this.beforeView;
         final CompleteEntity<? extends CompleteEntity<?>> afterEntity = (CompleteEntity<? extends CompleteEntity<?>>) this.afterView;
@@ -266,7 +269,7 @@ public final class ChangeDescriptorGenerator
         {
             if (memberExtractor.apply(beforeEntity) == null)
             {
-                throw new CoreException(CORRUPTED_FEATURECHANGE_MESSAGE, description, description);
+                throw new CoreException(CORRUPTED_FEATURECHANGE_MESSAGE, name, name);
             }
             beforeSet = memberExtractor.apply(beforeEntity);
         }
@@ -276,7 +279,7 @@ public final class ChangeDescriptorGenerator
         }
         final Set<Long> afterSet = memberExtractor.apply(afterEntity);
 
-        return generateLongSetDescriptors(description, beforeSet, afterSet);
+        return generateLongSetDescriptors(name, beforeSet, afterSet);
     }
 
     private List<ChangeDescriptor> generateRelationMemberDescriptors()
