@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.atlas.change.description.descriptors;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.openstreetmap.atlas.exception.CoreException;
@@ -82,6 +83,26 @@ public final class GeometryChangeDescriptor implements ChangeDescriptor
         }
         this.delta = delta;
         this.sourceMaterialSize = sourceMaterialSize;
+    }
+
+    public Optional<String> getAfterViewWkt()
+    {
+        if (this.changeType == ChangeDescriptorType.ADD
+                || this.changeType == ChangeDescriptorType.UPDATE)
+        {
+            return Optional.of(new PolyLine(this.delta.getTarget().getLines()).toWkt());
+        }
+        return Optional.empty();
+    }
+
+    public Optional<String> getBeforeViewWkt()
+    {
+        if (this.changeType == ChangeDescriptorType.REMOVE
+                || this.changeType == ChangeDescriptorType.UPDATE)
+        {
+            return Optional.of(new PolyLine(this.delta.getSource().getLines()).toWkt());
+        }
+        return Optional.empty();
     }
 
     @Override

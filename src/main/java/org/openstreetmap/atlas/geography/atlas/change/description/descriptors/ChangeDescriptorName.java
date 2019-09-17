@@ -9,9 +9,9 @@ package org.openstreetmap.atlas.geography.atlas.change.description.descriptors;
 public enum ChangeDescriptorName
 {
     TAG,
-    RELATION_MEMBER,
-    PARENT_RELATION,
     GEOMETRY,
+    PARENT_RELATION,
+    RELATION_MEMBER,
     IN_EDGE,
     OUT_EDGE,
     START_NODE,

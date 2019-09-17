@@ -16,11 +16,11 @@ public class ChangeDescriptorComparator implements Comparator<ChangeDescriptor>
     @Override
     public int compare(final ChangeDescriptor left, final ChangeDescriptor right)
     {
-        if (left.getClass().isAssignableFrom(right.getClass()))
+        if (left.getName() != right.getName())
         {
-            return complexCompare(left, right);
+            return left.getName().compareTo(right.getName());
         }
-        return left.getClass().getSimpleName().compareTo(right.getClass().getSimpleName());
+        return complexCompare(left, right);
     }
 
     private int complexCompare(final ChangeDescriptor left, final ChangeDescriptor right)
@@ -60,7 +60,6 @@ public class ChangeDescriptorComparator implements Comparator<ChangeDescriptor>
         if (left.getChangeDescriptorType() != right.getChangeDescriptorType())
         {
             return left.getChangeDescriptorType().compareTo(right.getChangeDescriptorType());
-
         }
         final Comparable leftBeforeComparable = (Comparable) left.getBeforeElement();
         final Comparable rightBeforeComparable = (Comparable) right.getBeforeElement();
@@ -90,7 +89,20 @@ public class ChangeDescriptorComparator implements Comparator<ChangeDescriptor>
     private int geometryChangeCompare(final GeometryChangeDescriptor left,
             final GeometryChangeDescriptor right)
     {
-        return Integer.compare(left.getSourcePosition(), right.getSourcePosition());
+        if (left.getChangeDescriptorType() != right.getChangeDescriptorType())
+        {
+            return left.getChangeDescriptorType().compareTo(right.getChangeDescriptorType());
+        }
+        if (left.getSourcePosition() != right.getSourcePosition())
+        {
+            return Integer.compare(left.getSourcePosition(), right.getSourcePosition());
+        }
+        if (left.getBeforeViewWkt().isPresent() && right.getBeforeViewWkt().isPresent()
+                && !left.getBeforeViewWkt().get().equals(right.getBeforeViewWkt().get()))
+        {
+            return left.getBeforeViewWkt().get().compareTo(right.getBeforeViewWkt().get());
+        }
+        return left.getAfterViewWkt().get().compareTo(right.getAfterViewWkt().get());
     }
 
     private int relationMemberChangeCompare(final RelationMemberChangeDescriptor left,
