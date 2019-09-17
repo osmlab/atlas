@@ -48,13 +48,22 @@ public class FeatureChangeGeoJsonSerializerTest
     @Test
     public void testDescriptionSerializationAddRelation()
     {
-        Assert.fail("TODO implement");
+        final RelationBean bean = new RelationBean();
+        bean.add(new RelationBean.RelationBeanItem(500L, "a", ItemType.POINT));
+        bean.add(new RelationBean.RelationBeanItem(600L, "a", ItemType.AREA));
+        final CompleteRelation relation = new CompleteRelation(123L, Maps.hashMap("a", "1"),
+                Rectangle.TEST_RECTANGLE, bean, null, null, null, Sets.hashSet(1L, 2L));
+        final FeatureChange featureChange = FeatureChange.add(relation);
+        assertResourceEquals(featureChange, "serializedAddRelationWithDescription.json", true);
     }
 
     @Test
     public void testDescriptionSerializationRemoveArea()
     {
-        Assert.fail("TODO implement");
+        final CompleteArea area = new CompleteArea(123L, Polygon.SILICON_VALLEY,
+                Maps.hashMap("a", "1"), Sets.hashSet(1L));
+        final FeatureChange featureChange = FeatureChange.remove(area);
+        assertResourceEquals(featureChange, "serializedRemoveAreaWithDescription.json", true);
     }
 
     @Test

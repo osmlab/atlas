@@ -71,7 +71,6 @@ public class ChangeDescription
      */
     public List<ChangeDescriptor> getChangeDescriptors()
     {
-        this.descriptors.sort(COMPARATOR);
         return new ArrayList<>(this.descriptors);
     }
 

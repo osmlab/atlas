@@ -12,6 +12,7 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptor;
+import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptorComparator;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptorName;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.GenericElementChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.GeometryChangeDescriptor;
@@ -32,6 +33,7 @@ import org.openstreetmap.atlas.geography.atlas.items.ItemType;
  */
 public final class ChangeDescriptorGenerator
 {
+    private static final ChangeDescriptorComparator COMPARATOR = new ChangeDescriptorComparator();
     private static final String CORRUPTED_FEATURECHANGE_MESSAGE = "Corrupted FeatureChange: afterView {} != null but beforeView {} == null";
 
     private final AtlasEntity beforeView;
@@ -86,6 +88,7 @@ public final class ChangeDescriptorGenerator
              */
         }
 
+        descriptors.sort(COMPARATOR);
         return descriptors;
     }
 

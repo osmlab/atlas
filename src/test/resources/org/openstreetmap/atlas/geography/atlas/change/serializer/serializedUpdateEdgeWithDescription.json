@@ -38,10 +38,38 @@
       "type": "UPDATE",
       "descriptors": [
         {
-          "name": "TAG",
+          "name": "PARENT_RELATION",
+          "type": "ADD",
+          "afterView": "3"
+        },
+        {
+          "name": "PARENT_RELATION",
           "type": "REMOVE",
-          "key": "a",
-          "value": "1"
+          "beforeView": "1"
+        },
+        {
+          "name": "START_NODE",
+          "type": "UPDATE",
+          "beforeView": "1",
+          "afterView": "10"
+        },
+        {
+          "name": "END_NODE",
+          "type": "UPDATE",
+          "beforeView": "2",
+          "afterView": "20"
+        },
+        {
+          "name": "GEOMETRY",
+          "type": "REMOVE",
+          "position": "0/5",
+          "beforeView": "LINESTRING (-122.052138 37.317585, -122.0304871 37.3314171, -122.028932 37.332451)"
+        },
+        {
+          "name": "GEOMETRY",
+          "type": "ADD",
+          "position": "5/5",
+          "afterView": "LINESTRING (-122.028932 37.332451, -122.052138 37.317585, -122.0304871 37.3314171)"
         },
         {
           "name": "TAG",
@@ -57,38 +85,10 @@
           "originalValue": "2"
         },
         {
-          "name": "GEOMETRY",
+          "name": "TAG",
           "type": "REMOVE",
-          "position": "0/5",
-          "beforeView": "LINESTRING (-122.052138 37.317585, -122.0304871 37.3314171, -122.028932 37.332451)"
-        },
-        {
-          "name": "GEOMETRY",
-          "type": "ADD",
-          "position": "5/5",
-          "afterView": "LINESTRING (-122.028932 37.332451, -122.052138 37.317585, -122.0304871 37.3314171)"
-        },
-        {
-          "name": "PARENT_RELATION",
-          "type": "REMOVE",
-          "beforeView": "1"
-        },
-        {
-          "name": "PARENT_RELATION",
-          "type": "ADD",
-          "afterView": "3"
-        },
-        {
-          "name": "START_NODE",
-          "type": "UPDATE",
-          "beforeView": "1",
-          "afterView": "10"
-        },
-        {
-          "name": "END_NODE",
-          "type": "UPDATE",
-          "beforeView": "2",
-          "afterView": "20"
+          "key": "a",
+          "value": "1"
         }
       ]
     },

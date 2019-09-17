@@ -58,8 +58,9 @@ public class RelationMemberChangeDescriptor implements ChangeDescriptor
     public JsonElement toJsonElement()
     {
         final JsonObject descriptor = (JsonObject) ChangeDescriptor.super.toJsonElement();
-        descriptor.addProperty("id", this.identifier);
         descriptor.addProperty("itemType", this.type.toString());
+        descriptor.addProperty("id", this.identifier);
+        descriptor.addProperty("role", this.role);
         return descriptor;
     }
 
