@@ -10,9 +10,12 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.utilities.caching.ConcurrentResourceCache;
+import org.openstreetmap.atlas.utilities.runtime.Retry;
+import org.openstreetmap.atlas.utilities.scalars.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +39,7 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
     private static final String PROPERTY_LOCAL_TEMPORARY_DIRECTORY = "java.io.tmpdir";
     private static final String TEMPORARY_DIRECTORY_STRING = System
             .getProperty(PROPERTY_LOCAL_TEMPORARY_DIRECTORY);
+    private static final Retry RETRY = new Retry(5, Duration.ONE_SECOND);
 
     private final String namespace;
 
@@ -126,7 +130,7 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
         if (!cachedFile.exists())
         {
             logger.trace("StrategyID {}: attempting to cache resource {} in temporary file {}",
-                    this.getStrategyID(), resourceURI, cachedFile.toString());
+                    this.getStrategyID(), resourceURI, cachedFile);
 
             final Optional<Resource> resourceFromDefaultFetcher = defaultFetcher.apply(resourceURI);
             if (!resourceFromDefaultFetcher.isPresent())
@@ -138,18 +142,20 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
             }
 
             final File temporaryLocalFile = File.temporary();
-            try
+            RETRY.run(() ->
             {
-                resourceFromDefaultFetcher.get().copyTo(temporaryLocalFile);
-            }
-            catch (final Exception exception)
-            {
-                logger.error(
-                        "StrategyID {}: something went wrong copying {} to temporary local file {}",
-                        this.getStrategyID(), resourceFromDefaultFetcher.toString(),
-                        temporaryLocalFile.toString(), exception);
-                return;
-            }
+                try
+                {
+                    resourceFromDefaultFetcher.get().copyTo(temporaryLocalFile);
+                }
+                catch (final Exception exception)
+                {
+                    throw new CoreException(
+                            "StrategyID {}: something went wrong copying {} to temporary local file {}",
+                            this.getStrategyID(), resourceFromDefaultFetcher, temporaryLocalFile,
+                            exception);
+                }
+            });
 
             // now that we have pulled down the file to a unique temporary location, attempt to
             // atomically move it to the cache after re-checking for existence
@@ -165,14 +171,12 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
                 catch (final FileAlreadyExistsException exception)
                 {
                     logger.trace("StrategyID {}: file {} is already cached", this.getStrategyID(),
-                            cachedFile.toString());
-                    return;
+                            cachedFile);
                 }
                 catch (final Exception exception)
                 {
-                    logger.error("StrategyID {}: something went wrong moving {} to {}",
-                            this.getStrategyID(), temporaryLocalFile.toString(),
-                            cachedFile.toString(), exception);
+                    throw new CoreException("StrategyID {}: something went wrong moving {} to {}",
+                            this.getStrategyID(), temporaryLocalFile, cachedFile, exception);
                 }
             }
         }
