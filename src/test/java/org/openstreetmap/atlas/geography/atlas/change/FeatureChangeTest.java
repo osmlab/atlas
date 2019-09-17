@@ -193,9 +193,9 @@ public class FeatureChangeTest
         final ChangeDescription description = featureChange1.explain();
 
         final String goldenString = "ChangeDescription [\n" + "UPDATE LINE 123\n"
-                + "GEOMETRY(REMOVE, 1/7, POINT (2 2))\n"
+                + "GEOMETRY(ADD, 7/7, POINT (6 6))\n"
                 + "GEOMETRY(UPDATE, 3/7, LINESTRING (10 10, 20 20) => LINESTRING (-10 -10, -20 -20))\n"
-                + "GEOMETRY(ADD, 7/7, POINT (6 6))\n" + "]";
+                + "GEOMETRY(REMOVE, 1/7, POINT (2 2))\n" + "]";
 
         Assert.assertEquals(goldenString, description.toString());
     }
