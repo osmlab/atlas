@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.change.description.descriptors;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -23,6 +24,8 @@ import com.google.gson.JsonObject;
  */
 public final class GeometryChangeDescriptor implements ChangeDescriptor
 {
+    private static final int TRUNCATE_WIDTH = 200;
+
     private final ChangeDescriptorType changeType;
     private final AbstractDelta<Location> delta;
     private final int sourceMaterialSize;
@@ -112,18 +115,18 @@ public final class GeometryChangeDescriptor implements ChangeDescriptor
         switch (this.changeType)
         {
             case UPDATE:
-                descriptor.addProperty("beforeView",
-                        new PolyLine(this.delta.getSource().getLines()).toWkt());
-                descriptor.addProperty("afterView",
-                        new PolyLine(this.delta.getTarget().getLines()).toWkt());
+                descriptor.addProperty("beforeView", StringUtils.truncate(
+                        new PolyLine(this.delta.getSource().getLines()).toWkt(), TRUNCATE_WIDTH));
+                descriptor.addProperty("afterView", StringUtils.truncate(
+                        new PolyLine(this.delta.getTarget().getLines()).toWkt(), TRUNCATE_WIDTH));
                 break;
             case REMOVE:
-                descriptor.addProperty("beforeView",
-                        new PolyLine(this.delta.getSource().getLines()).toWkt());
+                descriptor.addProperty("beforeView", StringUtils.truncate(
+                        new PolyLine(this.delta.getSource().getLines()).toWkt(), TRUNCATE_WIDTH));
                 break;
             case ADD:
-                descriptor.addProperty("afterView",
-                        new PolyLine(this.delta.getTarget().getLines()).toWkt());
+                descriptor.addProperty("afterView", StringUtils.truncate(
+                        new PolyLine(this.delta.getTarget().getLines()).toWkt(), TRUNCATE_WIDTH));
                 break;
             default:
                 throw new CoreException("Unexpected ChangeType value: " + this.delta.getType());
