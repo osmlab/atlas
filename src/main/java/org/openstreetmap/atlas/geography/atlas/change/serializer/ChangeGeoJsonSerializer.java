@@ -32,11 +32,9 @@ public class ChangeGeoJsonSerializer
     private static class ChangeTypeHierarchyAdapter implements JsonSerializer<Change>
     {
         private final FeatureChangeTypeHierarchyAdapter featureChangeTypeHierarchyAdapter;
-        private final boolean showDescription;
 
         ChangeTypeHierarchyAdapter(final boolean showDescription)
         {
-            this.showDescription = showDescription;
             this.featureChangeTypeHierarchyAdapter = new FeatureChangeTypeHierarchyAdapter(
                     showDescription);
         }
@@ -85,7 +83,7 @@ public class ChangeGeoJsonSerializer
 
     public ChangeGeoJsonSerializer(final boolean prettyPrint)
     {
-        this(true, true);
+        this(prettyPrint, true);
     }
 
     @Override
