@@ -66,11 +66,11 @@ public class TagChangeDescriptor implements ChangeDescriptor
     {
         final JsonObject descriptor = (JsonObject) ChangeDescriptor.super.toJsonElement();
         descriptor.addProperty("key", this.key);
+        descriptor.addProperty("value", this.value);
         if (this.originalValue != null)
         {
             descriptor.addProperty("originalValue", this.originalValue);
         }
-        descriptor.addProperty("value", this.value);
         return descriptor;
     }
 

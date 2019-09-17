@@ -112,17 +112,17 @@ public final class GeometryChangeDescriptor implements ChangeDescriptor
         switch (this.changeType)
         {
             case UPDATE:
-                descriptor.addProperty("oldValue",
+                descriptor.addProperty("beforeView",
                         new PolyLine(this.delta.getSource().getLines()).toWkt());
-                descriptor.addProperty("newValue",
+                descriptor.addProperty("afterView",
                         new PolyLine(this.delta.getTarget().getLines()).toWkt());
                 break;
             case REMOVE:
-                descriptor.addProperty("oldValue",
+                descriptor.addProperty("beforeView",
                         new PolyLine(this.delta.getSource().getLines()).toWkt());
                 break;
             case ADD:
-                descriptor.addProperty("newValue",
+                descriptor.addProperty("afterView",
                         new PolyLine(this.delta.getTarget().getLines()).toWkt());
                 break;
             default:

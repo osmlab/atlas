@@ -10,7 +10,9 @@ import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
+import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
 import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
+import org.openstreetmap.atlas.geography.atlas.change.FeatureChangeUnitTestFactory;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
@@ -33,6 +35,39 @@ public class FeatureChangeGeoJsonSerializerTest
     private static final Map<String, String> TAGS = Maps.hashMap("tagKey1", "tagValue1", "tagKey2",
             "tagValue2");
     private static final Set<Long> RELATIONS = Sets.hashSet(444L, 555L);
+
+    @Test
+    public void testDescriptionSerializationAddEdge()
+    {
+        final CompleteEdge edge = new CompleteEdge(123L, PolyLine.TEST_POLYLINE,
+                Maps.hashMap("a", "1", "b", "2"), 1L, 2L, Sets.hashSet(1L, 2L));
+        final FeatureChange featureChange = FeatureChange.add(edge);
+        assertResourceEquals(featureChange, "serializedAddEdgeWithDescription.json", true);
+    }
+
+    @Test
+    public void testDescriptionSerializationAddRelation()
+    {
+        Assert.fail("TODO implement");
+    }
+
+    @Test
+    public void testDescriptionSerializationRemoveArea()
+    {
+        Assert.fail("TODO implement");
+    }
+
+    @Test
+    public void testDescriptionSerializationUpdateEdge()
+    {
+        final CompleteEdge beforeEdge = new CompleteEdge(123L, PolyLine.TEST_POLYLINE,
+                Maps.hashMap("a", "1", "b", "2"), 1L, 2L, Sets.hashSet(1L, 2L));
+        final CompleteEdge afterEdge = new CompleteEdge(123L, PolyLine.TEST_POLYLINE_2,
+                Maps.hashMap("b", "2a", "c", "3"), 10L, 20L, Sets.hashSet(2L, 3L));
+        final FeatureChange featureChange = FeatureChangeUnitTestFactory.build(ChangeType.ADD,
+                afterEdge, beforeEdge);
+        assertResourceEquals(featureChange, "serializedUpdateEdgeWithDescription.json", true);
+    }
 
     @Test
     public void testFullAreaSerialization()

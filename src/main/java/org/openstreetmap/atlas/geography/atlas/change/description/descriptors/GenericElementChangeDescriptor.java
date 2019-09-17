@@ -66,9 +66,12 @@ public class GenericElementChangeDescriptor<T> implements ChangeDescriptor
         final JsonObject descriptor = (JsonObject) ChangeDescriptor.super.toJsonElement();
         if (this.beforeElement != null)
         {
-            descriptor.addProperty("before", this.beforeElement.toString());
+            descriptor.addProperty("beforeView", this.beforeElement.toString());
         }
-        descriptor.addProperty("after", this.afterElement.toString());
+        if (this.afterElement != null)
+        {
+            descriptor.addProperty("afterView", this.afterElement.toString());
+        }
         return descriptor;
     }
 
@@ -79,6 +82,11 @@ public class GenericElementChangeDescriptor<T> implements ChangeDescriptor
         {
             return this.name + "(" + this.getChangeDescriptorType() + ", " + this.getBeforeElement()
                     + " => " + this.getAfterElement() + ")";
+        }
+        if (this.changeType == ChangeDescriptorType.REMOVE)
+        {
+            return this.name + "(" + this.getChangeDescriptorType() + ", " + this.getBeforeElement()
+                    + ")";
         }
         return this.name + "(" + this.getChangeDescriptorType() + ", " + this.getAfterElement()
                 + ")";

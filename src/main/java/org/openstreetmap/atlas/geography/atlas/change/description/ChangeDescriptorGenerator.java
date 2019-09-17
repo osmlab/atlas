@@ -179,7 +179,7 @@ public final class ChangeDescriptorGenerator
         for (final Long identifier : removedFromAfterView)
         {
             descriptors.add(new GenericElementChangeDescriptor<>(ChangeDescriptorType.REMOVE,
-                    identifier, name));
+                    identifier, null, name));
         }
         for (final Long identifier : addedToAfterView)
         {

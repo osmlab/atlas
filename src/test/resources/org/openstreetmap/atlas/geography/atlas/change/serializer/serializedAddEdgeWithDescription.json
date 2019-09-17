@@ -1,0 +1,96 @@
+{
+  "type": "Feature",
+  "bbox": [
+    -122.052138,
+    37.317585,
+    -122.009566,
+    37.390535
+  ],
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [
+      [
+        -122.052138,
+        37.317585
+      ],
+      [
+        -122.0304871,
+        37.3314171
+      ],
+      [
+        -122.028932,
+        37.332451
+      ],
+      [
+        -122.009566,
+        37.33531
+      ],
+      [
+        -122.031007,
+        37.390535
+      ]
+    ]
+  },
+  "properties": {
+    "featureChangeType": "ADD",
+    "meta-data": {},
+    "description": {
+      "type": "ADD",
+      "descriptors": [
+        {
+          "name": "TAG",
+          "type": "ADD",
+          "key": "a",
+          "value": "1"
+        },
+        {
+          "name": "TAG",
+          "type": "ADD",
+          "key": "b",
+          "value": "2"
+        },
+        {
+          "name": "GEOMETRY",
+          "type": "ADD",
+          "position": "0/0",
+          "afterView": "LINESTRING (-122.052138 37.317585, -122.0304871 37.3314171, -122.028932 37.332451, -122.009566 37.33531, -122.031007 37.390535)"
+        },
+        {
+          "name": "PARENT_RELATION",
+          "type": "ADD",
+          "afterView": "1"
+        },
+        {
+          "name": "PARENT_RELATION",
+          "type": "ADD",
+          "afterView": "2"
+        },
+        {
+          "name": "START_NODE",
+          "type": "ADD",
+          "afterView": "1"
+        },
+        {
+          "name": "END_NODE",
+          "type": "ADD",
+          "afterView": "2"
+        }
+      ]
+    },
+    "entityType": "EDGE",
+    "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge",
+    "identifier": 123,
+    "tags": {
+      "a": "1",
+      "b": "2"
+    },
+    "relations": [
+      1,
+      2
+    ],
+    "startNode": "1",
+    "endNode": "2",
+    "WKT": "LINESTRING (-122.052138 37.317585, -122.0304871 37.3314171, -122.028932 37.332451, -122.009566 37.33531, -122.031007 37.390535)",
+    "bboxWKT": "POLYGON ((-122.052138 37.317585, -122.052138 37.390535, -122.009566 37.390535, -122.009566 37.317585, -122.052138 37.317585))"
+  }
+}
