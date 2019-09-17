@@ -60,10 +60,31 @@ public class ChangeDescriptorComparator implements Comparator<ChangeDescriptor>
         if (left.getChangeDescriptorType() != right.getChangeDescriptorType())
         {
             return left.getChangeDescriptorType().compareTo(right.getChangeDescriptorType());
+
         }
-        final Comparable leftComparable = (Comparable) left.getAfterElement();
-        final Comparable rightComparable = (Comparable) right.getAfterElement();
-        return leftComparable.compareTo(rightComparable);
+        final Comparable leftBeforeComparable = (Comparable) left.getBeforeElement();
+        final Comparable rightBeforeComparable = (Comparable) right.getBeforeElement();
+        if (leftBeforeComparable != null && rightBeforeComparable != null
+                && !leftBeforeComparable.equals(rightBeforeComparable))
+        {
+            return leftBeforeComparable.compareTo(rightBeforeComparable);
+        }
+        final Comparable leftAfterComparable = (Comparable) left.getAfterElement();
+        final Comparable rightAfterComparable = (Comparable) right.getAfterElement();
+        if (leftAfterComparable != null && rightAfterComparable != null
+                && !leftAfterComparable.equals(rightAfterComparable))
+        {
+            return leftAfterComparable.compareTo(rightAfterComparable);
+        }
+        else
+        {
+            /*
+             * If we start seeing this message in production, then that means either this comparison
+             * logic or ChangeDescriptor generation is dubious. But based on the way
+             * ChangeDescriptors are generated, we really should never see this.
+             */
+            throw new CoreException("No comparable criteria for {} vs {}", left, right);
+        }
     }
 
     private int geometryChangeCompare(final GeometryChangeDescriptor left,
