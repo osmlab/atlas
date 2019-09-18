@@ -3,6 +3,9 @@ package org.openstreetmap.atlas.geography.atlas.change.description.descriptors;
 import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescriptorType;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
 /**
  * A {@link ChangeDescriptor} for relation member changes.
  * 
@@ -40,15 +43,31 @@ public class RelationMemberChangeDescriptor implements ChangeDescriptor
         return this.type;
     }
 
+    @Override
+    public ChangeDescriptorName getName()
+    {
+        return ChangeDescriptorName.RELATION_MEMBER;
+    }
+
     public String getRole()
     {
         return this.role;
     }
 
     @Override
+    public JsonElement toJsonElement()
+    {
+        final JsonObject descriptor = (JsonObject) ChangeDescriptor.super.toJsonElement();
+        descriptor.addProperty("itemType", this.type.toString());
+        descriptor.addProperty("id", this.identifier);
+        descriptor.addProperty("role", this.role);
+        return descriptor;
+    }
+
+    @Override
     public String toString()
     {
-        return "RELATION_MEMBER(" + this.changeType + ", " + this.type + ", " + this.identifier
-                + ", " + this.role + ")";
+        return getName().toString() + "(" + this.changeType + ", " + this.type + ", "
+                + this.identifier + ", " + this.role + ")";
     }
 }

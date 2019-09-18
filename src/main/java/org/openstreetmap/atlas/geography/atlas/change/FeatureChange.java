@@ -635,14 +635,37 @@ public class FeatureChange implements Located, Serializable
         new FeatureChangeGeoJsonSerializer(true).accept(this, resource);
     }
 
+    /**
+     * Save a GeoJSON representation of that feature change.
+     *
+     * @param resource
+     *            The {@link WritableResource} to save the GeoJSON to.
+     * @param showDescription
+     *            whether or not to show the {@link ChangeDescription}
+     */
+    public void save(final WritableResource resource, final boolean showDescription)
+    {
+        new FeatureChangeGeoJsonSerializer(true, showDescription).accept(this, resource);
+    }
+
     public String toGeoJson()
     {
         return new FeatureChangeGeoJsonSerializer(false).convert(this);
     }
 
+    public String toGeoJson(final boolean showDescription)
+    {
+        return new FeatureChangeGeoJsonSerializer(false, showDescription).convert(this);
+    }
+
     public String toPrettyGeoJson()
     {
-        return new FeatureChangeGeoJsonSerializer(true).convert(this);
+        return new FeatureChangeGeoJsonSerializer(true, true).convert(this);
+    }
+
+    public String toPrettyGeoJson(final boolean showDescription)
+    {
+        return new FeatureChangeGeoJsonSerializer(true, showDescription).convert(this);
     }
 
     @Override

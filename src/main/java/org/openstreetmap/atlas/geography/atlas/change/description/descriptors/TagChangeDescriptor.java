@@ -4,6 +4,9 @@ import java.util.Optional;
 
 import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescriptorType;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
 /**
  * A {@link ChangeDescriptor} for tag related changes.
  * 
@@ -42,6 +45,12 @@ public class TagChangeDescriptor implements ChangeDescriptor
         return this.key;
     }
 
+    @Override
+    public ChangeDescriptorName getName()
+    {
+        return ChangeDescriptorName.TAG;
+    }
+
     public Optional<String> getOriginalValue()
     {
         return Optional.ofNullable(this.originalValue);
@@ -53,9 +62,22 @@ public class TagChangeDescriptor implements ChangeDescriptor
     }
 
     @Override
+    public JsonElement toJsonElement()
+    {
+        final JsonObject descriptor = (JsonObject) ChangeDescriptor.super.toJsonElement();
+        descriptor.addProperty("key", this.key);
+        descriptor.addProperty("value", this.value);
+        if (this.originalValue != null)
+        {
+            descriptor.addProperty("originalValue", this.originalValue);
+        }
+        return descriptor;
+    }
+
+    @Override
     public String toString()
     {
-        String string = "TAG(" + this.changeType + ", " + this.key + ", ";
+        String string = getName().toString() + "(" + this.changeType + ", " + this.key + ", ";
         if (this.originalValue == null)
         {
             string += this.value + ")";

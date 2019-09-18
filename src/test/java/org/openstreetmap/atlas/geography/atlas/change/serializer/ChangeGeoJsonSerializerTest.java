@@ -68,18 +68,17 @@ public class ChangeGeoJsonSerializerTest
 
         final Change change = changeBuilder.get();
         assertEquals(change, "change.json");
-
     }
 
     private void assertEquals(final Change change, final String fileName)
     {
         final String expected = new InputStreamResource(
                 () -> ChangeGeoJsonSerializerTest.class.getResourceAsStream(fileName)).all();
-        Assert.assertEquals(expected, change.toJson());
+        Assert.assertEquals(expected, change.toJson(false));
         final File temporary = File.temporary();
         try
         {
-            change.save(temporary);
+            change.save(temporary, false);
             Assert.assertEquals(expected, temporary.all());
         }
         finally

@@ -1,0 +1,111 @@
+{
+  "type": "Feature",
+  "bbox": [
+    -122.052138,
+    37.317585,
+    -122.009566,
+    37.390535
+  ],
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [
+      [
+        -122.009566,
+        37.33531
+      ],
+      [
+        -122.031007,
+        37.390535
+      ],
+      [
+        -122.028932,
+        37.332451
+      ],
+      [
+        -122.052138,
+        37.317585
+      ],
+      [
+        -122.0304871,
+        37.3314171
+      ]
+    ]
+  },
+  "properties": {
+    "featureChangeType": "ADD",
+    "meta-data": {},
+    "description": {
+      "type": "UPDATE",
+      "descriptors": [
+        {
+          "name": "TAG",
+          "type": "ADD",
+          "key": "c",
+          "value": "3"
+        },
+        {
+          "name": "TAG",
+          "type": "UPDATE",
+          "key": "b",
+          "value": "2a",
+          "originalValue": "2"
+        },
+        {
+          "name": "TAG",
+          "type": "REMOVE",
+          "key": "a",
+          "value": "1"
+        },
+        {
+          "name": "GEOMETRY",
+          "type": "ADD",
+          "position": "5/5",
+          "afterView": "LINESTRING (-122.028932 37.332451, -122.052138 37.317585, -122.0304871 37.3314171)"
+        },
+        {
+          "name": "GEOMETRY",
+          "type": "REMOVE",
+          "position": "0/5",
+          "beforeView": "LINESTRING (-122.052138 37.317585, -122.0304871 37.3314171, -122.028932 37.332451)"
+        },
+        {
+          "name": "PARENT_RELATION",
+          "type": "ADD",
+          "afterView": "3"
+        },
+        {
+          "name": "PARENT_RELATION",
+          "type": "REMOVE",
+          "beforeView": "1"
+        },
+        {
+          "name": "START_NODE",
+          "type": "UPDATE",
+          "beforeView": "1",
+          "afterView": "10"
+        },
+        {
+          "name": "END_NODE",
+          "type": "UPDATE",
+          "beforeView": "2",
+          "afterView": "20"
+        }
+      ]
+    },
+    "entityType": "EDGE",
+    "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge",
+    "identifier": 123,
+    "tags": {
+      "b": "2a",
+      "c": "3"
+    },
+    "relations": [
+      2,
+      3
+    ],
+    "startNode": "10",
+    "endNode": "20",
+    "WKT": "LINESTRING (-122.009566 37.33531, -122.031007 37.390535, -122.028932 37.332451, -122.052138 37.317585, -122.0304871 37.3314171)",
+    "bboxWKT": "POLYGON ((-122.052138 37.317585, -122.052138 37.390535, -122.009566 37.390535, -122.009566 37.317585, -122.052138 37.317585))"
+  }
+}

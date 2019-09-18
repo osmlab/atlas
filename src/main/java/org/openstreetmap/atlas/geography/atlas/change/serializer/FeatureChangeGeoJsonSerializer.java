@@ -11,6 +11,7 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometryPrintable;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
+import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescription;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -43,6 +44,8 @@ public class FeatureChangeGeoJsonSerializer
     protected static class FeatureChangeTypeHierarchyAdapter
             implements JsonSerializer<FeatureChange>
     {
+        private final boolean showDescription;
+
         private static void addGeometryGeojson(final JsonObject result,
                 final GeometryPrintable property)
         {
@@ -53,6 +56,11 @@ public class FeatureChangeGeoJsonSerializer
                 final GeometryPrintable property)
         {
             addProperty(result, "WKT", property, GeometryPrintable::toWkt);
+        }
+
+        FeatureChangeTypeHierarchyAdapter(final boolean showDescription)
+        {
+            this.showDescription = showDescription;
         }
 
         public JsonElement serialize(final FeatureChange source)
@@ -70,6 +78,10 @@ public class FeatureChangeGeoJsonSerializer
             final JsonObject properties = new JsonObject();
             properties.addProperty("featureChangeType", source.getChangeType().toString());
             add(properties, "meta-data", source.getMetaData(), tagPrinter);
+            if (this.showDescription)
+            {
+                add(properties, "description", source.explain(), ChangeDescription::toJsonElement);
+            }
             new AtlasEntityPropertiesConverter().convert(source.getAfterView()).entrySet()
                     .forEach(entry -> properties.add(entry.getKey(), entry.getValue()));
             addGeometryWkt(properties, geometryPrintable);
@@ -212,7 +224,7 @@ public class FeatureChangeGeoJsonSerializer
         result.addProperty(name, property == null ? NULL : writer.apply(property).toString());
     }
 
-    public FeatureChangeGeoJsonSerializer(final boolean prettyPrint)
+    public FeatureChangeGeoJsonSerializer(final boolean prettyPrint, final boolean showDescription)
     {
         final GsonBuilder gsonBuilder = new GsonBuilder();
         if (prettyPrint)
@@ -221,8 +233,13 @@ public class FeatureChangeGeoJsonSerializer
         }
         gsonBuilder.disableHtmlEscaping();
         gsonBuilder.registerTypeHierarchyAdapter(FeatureChange.class,
-                new FeatureChangeTypeHierarchyAdapter());
+                new FeatureChangeTypeHierarchyAdapter(showDescription));
         this.jsonSerializer = gsonBuilder.create();
+    }
+
+    public FeatureChangeGeoJsonSerializer(final boolean prettyPrint)
+    {
+        this(prettyPrint, true);
     }
 
     @Override

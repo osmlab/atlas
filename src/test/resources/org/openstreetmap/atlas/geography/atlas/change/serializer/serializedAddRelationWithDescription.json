@@ -1,0 +1,91 @@
+{
+  "type": "Feature",
+  "bbox": [
+    -122.031905,
+    37.328167,
+    -122.029051,
+    37.330394
+  ],
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          -122.031905,
+          37.328167
+        ],
+        [
+          -122.031905,
+          37.330394
+        ],
+        [
+          -122.029051,
+          37.330394
+        ],
+        [
+          -122.029051,
+          37.328167
+        ],
+        [
+          -122.031905,
+          37.328167
+        ]
+      ]
+    ]
+  },
+  "properties": {
+    "featureChangeType": "ADD",
+    "meta-data": {},
+    "description": {
+      "type": "ADD",
+      "descriptors": [
+        {
+          "name": "TAG",
+          "type": "ADD",
+          "key": "a",
+          "value": "1"
+        },
+        {
+          "name": "PARENT_RELATION",
+          "type": "ADD",
+          "afterView": "1"
+        },
+        {
+          "name": "PARENT_RELATION",
+          "type": "ADD",
+          "afterView": "2"
+        },
+        {
+          "name": "RELATION_MEMBER",
+          "type": "ADD",
+          "itemType": "AREA",
+          "id": 600,
+          "role": "a"
+        },
+        {
+          "name": "RELATION_MEMBER",
+          "type": "ADD",
+          "itemType": "POINT",
+          "id": 500,
+          "role": "a"
+        }
+      ]
+    },
+    "entityType": "RELATION",
+    "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation",
+    "identifier": 123,
+    "tags": {
+      "a": "1"
+    },
+    "relations": [
+      1,
+      2
+    ],
+    "members": [
+      "{Member: ID = 500, Type = POINT, Role = a}",
+      "{Member: ID = 600, Type = AREA, Role = a}"
+    ],
+    "WKT": "POLYGON ((-122.031905 37.328167, -122.031905 37.330394, -122.029051 37.330394, -122.029051 37.328167, -122.031905 37.328167))",
+    "bboxWKT": "POLYGON ((-122.031905 37.328167, -122.031905 37.330394, -122.029051 37.330394, -122.029051 37.328167, -122.031905 37.328167))"
+  }
+}

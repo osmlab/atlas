@@ -2,7 +2,9 @@ package org.openstreetmap.atlas.geography.atlas.change.description.descriptors;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+import org.apache.commons.lang3.StringUtils;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -12,6 +14,8 @@ import com.github.difflib.DiffUtils;
 import com.github.difflib.algorithm.DiffException;
 import com.github.difflib.patch.AbstractDelta;
 import com.github.difflib.patch.Patch;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 /**
  * A {@link ChangeDescriptor} for geometry changes. Utilizes a granular diff algorithm to show the
@@ -21,6 +25,8 @@ import com.github.difflib.patch.Patch;
  */
 public final class GeometryChangeDescriptor implements ChangeDescriptor
 {
+    private static final int TRUNCATE_WIDTH = 200;
+
     private final ChangeDescriptorType changeType;
     private final AbstractDelta<Location> delta;
     private final int sourceMaterialSize;
@@ -79,6 +85,26 @@ public final class GeometryChangeDescriptor implements ChangeDescriptor
         this.sourceMaterialSize = sourceMaterialSize;
     }
 
+    public Optional<String> getAfterViewWkt()
+    {
+        if (this.changeType == ChangeDescriptorType.ADD
+                || this.changeType == ChangeDescriptorType.UPDATE)
+        {
+            return Optional.of(new PolyLine(this.delta.getTarget().getLines()).toWkt());
+        }
+        return Optional.empty();
+    }
+
+    public Optional<String> getBeforeViewWkt()
+    {
+        if (this.changeType == ChangeDescriptorType.REMOVE
+                || this.changeType == ChangeDescriptorType.UPDATE)
+        {
+            return Optional.of(new PolyLine(this.delta.getSource().getLines()).toWkt());
+        }
+        return Optional.empty();
+    }
+
     @Override
     public ChangeDescriptorType getChangeDescriptorType()
     {
@@ -90,9 +116,43 @@ public final class GeometryChangeDescriptor implements ChangeDescriptor
         return this.delta;
     }
 
+    @Override
+    public ChangeDescriptorName getName()
+    {
+        return ChangeDescriptorName.GEOMETRY;
+    }
+
     public int getSourcePosition()
     {
         return this.delta.getSource().getPosition();
+    }
+
+    @Override
+    public JsonElement toJsonElement()
+    {
+        final JsonObject descriptor = (JsonObject) ChangeDescriptor.super.toJsonElement();
+        descriptor.addProperty("position",
+                this.delta.getSource().getPosition() + "/" + this.sourceMaterialSize);
+        switch (this.changeType)
+        {
+            case UPDATE:
+                descriptor.addProperty("beforeView", StringUtils.truncate(
+                        new PolyLine(this.delta.getSource().getLines()).toWkt(), TRUNCATE_WIDTH));
+                descriptor.addProperty("afterView", StringUtils.truncate(
+                        new PolyLine(this.delta.getTarget().getLines()).toWkt(), TRUNCATE_WIDTH));
+                break;
+            case REMOVE:
+                descriptor.addProperty("beforeView", StringUtils.truncate(
+                        new PolyLine(this.delta.getSource().getLines()).toWkt(), TRUNCATE_WIDTH));
+                break;
+            case ADD:
+                descriptor.addProperty("afterView", StringUtils.truncate(
+                        new PolyLine(this.delta.getTarget().getLines()).toWkt(), TRUNCATE_WIDTH));
+                break;
+            default:
+                throw new CoreException("Unexpected ChangeType value: " + this.delta.getType());
+        }
+        return descriptor;
     }
 
     @Override
@@ -123,6 +183,6 @@ public final class GeometryChangeDescriptor implements ChangeDescriptor
             default:
                 throw new CoreException("Unexpected ChangeType value: " + this.delta.getType());
         }
-        return "GEOM(" + diffString.toString() + ")";
+        return getName().toString() + "(" + diffString.toString() + ")";
     }
 }

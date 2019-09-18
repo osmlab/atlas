@@ -31,7 +31,13 @@ public class ChangeGeoJsonSerializer
      */
     private static class ChangeTypeHierarchyAdapter implements JsonSerializer<Change>
     {
-        private static FeatureChangeTypeHierarchyAdapter featureChangeTypeHierarchyAdapter = new FeatureChangeTypeHierarchyAdapter();
+        private final FeatureChangeTypeHierarchyAdapter featureChangeTypeHierarchyAdapter;
+
+        ChangeTypeHierarchyAdapter(final boolean showDescription)
+        {
+            this.featureChangeTypeHierarchyAdapter = new FeatureChangeTypeHierarchyAdapter(
+                    showDescription);
+        }
 
         @Override
         public JsonElement serialize(final Change source, final Type typeOfSource,
@@ -44,7 +50,7 @@ public class ChangeGeoJsonSerializer
             result.add("bbox", bounds.asGeoJsonBbox());
 
             final JsonArray features = new JsonArray();
-            source.changes().map(featureChangeTypeHierarchyAdapter::serialize)
+            source.changes().map(this.featureChangeTypeHierarchyAdapter::serialize)
                     .forEach(features::add);
             result.add("features", features);
 
@@ -62,7 +68,7 @@ public class ChangeGeoJsonSerializer
         this(true);
     }
 
-    public ChangeGeoJsonSerializer(final boolean prettyPrint)
+    public ChangeGeoJsonSerializer(final boolean prettyPrint, final boolean showDescription)
     {
         final GsonBuilder gsonBuilder = new GsonBuilder();
         if (prettyPrint)
@@ -70,8 +76,14 @@ public class ChangeGeoJsonSerializer
             gsonBuilder.setPrettyPrinting();
         }
         gsonBuilder.disableHtmlEscaping();
-        gsonBuilder.registerTypeHierarchyAdapter(Change.class, new ChangeTypeHierarchyAdapter());
+        gsonBuilder.registerTypeHierarchyAdapter(Change.class,
+                new ChangeTypeHierarchyAdapter(showDescription));
         this.jsonSerializer = gsonBuilder.create();
+    }
+
+    public ChangeGeoJsonSerializer(final boolean prettyPrint)
+    {
+        this(prettyPrint, true);
     }
 
     @Override

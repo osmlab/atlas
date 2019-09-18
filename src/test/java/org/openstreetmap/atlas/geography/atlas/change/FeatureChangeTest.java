@@ -193,9 +193,9 @@ public class FeatureChangeTest
         final ChangeDescription description = featureChange1.explain();
 
         final String goldenString = "ChangeDescription [\n" + "UPDATE LINE 123\n"
-                + "GEOM(REMOVE, 1/7, POINT (2 2))\n"
-                + "GEOM(UPDATE, 3/7, LINESTRING (10 10, 20 20) => LINESTRING (-10 -10, -20 -20))\n"
-                + "GEOM(ADD, 7/7, POINT (6 6))\n" + "]";
+                + "GEOMETRY(ADD, 7/7, POINT (6 6))\n"
+                + "GEOMETRY(UPDATE, 3/7, LINESTRING (10 10, 20 20) => LINESTRING (-10 -10, -20 -20))\n"
+                + "GEOMETRY(REMOVE, 1/7, POINT (2 2))\n" + "]";
 
         Assert.assertEquals(goldenString, description.toString());
     }
@@ -276,7 +276,7 @@ public class FeatureChangeTest
         final ChangeDescription description = featureChange3.explain();
 
         final String goldenString = "ChangeDescription [\n" + "UPDATE EDGE 123\n"
-                + "END_NODE(UPDATE, 2 => 20)\n" + "START_NODE(UPDATE, 1 => 10)\n" + "]";
+                + "START_NODE(UPDATE, 1 => 10)\n" + "END_NODE(UPDATE, 2 => 20)\n" + "]";
 
         Assert.assertEquals(goldenString, description.toString());
     }

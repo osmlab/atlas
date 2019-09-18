@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescription;
 import org.openstreetmap.atlas.geography.atlas.change.serializer.ChangeGeoJsonSerializer;
 import org.openstreetmap.atlas.geography.atlas.change.serializer.FeatureChangeGeoJsonSerializer;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEntity;
@@ -238,9 +239,28 @@ public class Change implements Located, Serializable
         new ChangeGeoJsonSerializer().accept(this, resource);
     }
 
+    /**
+     * Save a JSON representation of that change.
+     *
+     * @param resource
+     *            The {@link WritableResource} to save the JSON to.
+     * @param showDescription
+     *            whether or not to show the {@link ChangeDescription} for each component
+     *            {@link FeatureChange}
+     */
+    public void save(final WritableResource resource, final boolean showDescription)
+    {
+        new ChangeGeoJsonSerializer(true, showDescription).accept(this, resource);
+    }
+
     public String toJson()
     {
         return new ChangeGeoJsonSerializer().convert(this);
+    }
+
+    public String toJson(final boolean showDescription)
+    {
+        return new ChangeGeoJsonSerializer(true, showDescription).convert(this);
     }
 
     public String toLineDelimitedFeatureChanges()
