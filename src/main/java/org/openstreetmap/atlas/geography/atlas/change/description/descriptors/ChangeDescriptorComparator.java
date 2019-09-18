@@ -79,9 +79,9 @@ public class ChangeDescriptorComparator implements Comparator<ChangeDescriptor>
         else
         {
             /*
-             * If we start seeing this message in production, then that means either this comparison
-             * logic or ChangeDescriptor generation is dubious. But based on the way
-             * ChangeDescriptors are generated, we really should never see this.
+             * If this message appears in production, then that means either this comparison logic
+             * or ChangeDescriptor generation is dubious. But based on the way ChangeDescriptors are
+             * generated, it should never show up in practice.
              */
             throw new CoreException("No comparable criteria for {} vs {}", left, right);
         }
@@ -114,9 +114,9 @@ public class ChangeDescriptorComparator implements Comparator<ChangeDescriptor>
         else
         {
             /*
-             * If we start seeing this message in production, then that means either this comparison
-             * logic or ChangeDescriptor generation is dubious. But based on the way
-             * ChangeDescriptors are generated, we really should never see this.
+             * If this message appears in production, then that means either this comparison logic
+             * or ChangeDescriptor generation is dubious. But based on the way ChangeDescriptors are
+             * generated, it should never show up in practice.
              */
             throw new CoreException("No comparable criteria for {} vs {}", left, right);
         }

@@ -4,8 +4,8 @@ import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 
 /**
  * A class that exposes the package private {@link FeatureChange} constructor for testing purposes
- * only. We want to keep this constructor package private since it is not for general use. However,
- * we occasionally have tests in subpackages that need to access the constructor.
+ * only. This constructor should remain package private since it is not for general use. However,
+ * subpackages occasionally have tests that need to access the constructor.
  * 
  * @author lcram
  */
