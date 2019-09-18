@@ -240,7 +240,7 @@ public class Change implements Located, Serializable
     }
 
     /**
-     * Save a JSON representation of that feature change.
+     * Save a JSON representation of that change.
      *
      * @param resource
      *            The {@link WritableResource} to save the JSON to.

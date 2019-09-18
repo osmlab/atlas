@@ -54,7 +54,7 @@ public class ChangeDescriptorComparator implements Comparator<ChangeDescriptor>
     private int genericSetChangeCompare(final GenericElementChangeDescriptor left,
             final GenericElementChangeDescriptor right)
     {
-        if (!left.getName().equals(right.getName()))
+        if (left.getName() != right.getName())
         {
             return left.getName().compareTo(right.getName());
         }
