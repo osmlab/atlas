@@ -4,6 +4,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
+import org.openstreetmap.atlas.geography.sharding.converters.StringToShardConverter;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 
 import com.google.gson.JsonObject;
@@ -22,8 +23,8 @@ public class CountryShard implements Shard
 
     public static CountryShard forName(final String name)
     {
-        final StringList split = StringList.split(name, Shard.SHARD_DATA_SEPARATOR);
-        return new CountryShard(split.get(0), SlippyTile.forName(split.get(1)));
+        final StringList split = StringList.split(name, Shard.SHARD_DATA_SEPARATOR, 2);
+        return new CountryShard(split.get(0), new StringToShardConverter().convert(split.get(1)));
     }
 
     public CountryShard(final String country, final Shard shard)
