@@ -17,16 +17,12 @@ public class CountryShard implements Shard
 {
     private static final long serialVersionUID = -4158215940506552768L;
 
-    // This is the separator between the country code and the shard name: COUNTRY_Z-X-Y in case of a
-    // SlippyTile for a Shard.
-    public static final String COUNTRY_SHARD_SEPARATOR = "_";
-
     private final Shard shard;
     private final String country;
 
     public static CountryShard forName(final String name)
     {
-        final StringList split = StringList.split(name, COUNTRY_SHARD_SEPARATOR);
+        final StringList split = StringList.split(name, Shard.SHARD_DATA_SEPARATOR);
         return new CountryShard(split.get(0), SlippyTile.forName(split.get(1)));
     }
 
@@ -79,7 +75,7 @@ public class CountryShard implements Shard
     @Override
     public String getName()
     {
-        return this.country + COUNTRY_SHARD_SEPARATOR + this.shard.getName();
+        return this.country + Shard.SHARD_DATA_SEPARATOR + this.shard.getName();
     }
 
     public Shard getShard()
@@ -96,7 +92,8 @@ public class CountryShard implements Shard
     @Override
     public String toString()
     {
-        return getName();
+        return "[CountryShard: country = " + this.country + ", shard = " + this.shard.toString()
+                + "]";
     }
 
     @Override

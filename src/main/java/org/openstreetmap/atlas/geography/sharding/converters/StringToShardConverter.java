@@ -11,11 +11,6 @@ import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.conversion.Converter;
 import org.openstreetmap.atlas.utilities.tuples.Tuple;
 
-/*
- * TODO debug and comment, also perhaps add in special code to Shard implementations so that this
- * class can automatically handle new implementations. This means we need to add methods to the
- * Shard interface.
- */
 /**
  * Convert a string representation of a {@link Shard} to a concrete {@link Shard} object. Any time a
  * new {@link Shard} implementation is added, this class needs to be updated. See the Javadoc for
@@ -27,7 +22,7 @@ public class StringToShardConverter implements Converter<String, Shard>
 {
     private static final String COUNTRY_CODE_REGEX = "^[A-Z][A-Z0-9][A-Z0-9]$";
     private static final String SLIPPY_TILE_REGEX = "^[0-9]+\\-[0-9]+\\-[0-9]+$";
-    private static final String GEOHASH_TILE_REGEX = "^[0-9b|c|d|e|f|g|h|j|k|m|n|o|p|q|r|s|t|u|v|w|x|y|z]+$";
+    private static final String GEOHASH_TILE_REGEX = "^(?:(?![ailo])[0-9a-z])+$";
 
     /**
      * Convert a string into a concrete {@link Shard} object. This method attempts to handle all
@@ -55,8 +50,7 @@ public class StringToShardConverter implements Converter<String, Shard>
      */
     public Tuple<Shard, Optional<String>> convertWithMetadata(final String shardString)
     {
-        final StringList shardSplit = StringList.split(shardString,
-                CountryShard.COUNTRY_SHARD_SEPARATOR, 2);
+        final StringList shardSplit = StringList.split(shardString, Shard.SHARD_DATA_SEPARATOR, 2);
 
         try
         {
@@ -76,7 +70,7 @@ public class StringToShardConverter implements Converter<String, Shard>
          */
         if (shardSplit.size() == 1)
         {
-            return nonCountryShardFromSplit(shardSplit);
+            return shardFromSplitExcludingCountryShard(shardSplit);
         }
         /*
          * In this case, the shardSplit should contain a country code, a shard string, and
@@ -85,20 +79,21 @@ public class StringToShardConverter implements Converter<String, Shard>
          * shard parsing, we ignore the additional metadata. Note that we use a recursive call to
          * recover the subshard, in the case of a nested CountryShard (e.g.
          * ABC_DEF_1-2-3_somemetadata). It is also possible the the shardSplit is just a shard
-         * string and some metadata. In that case, we ignore country code parsing.
+         * string and some metadata (e.g. 1-2-3_somemetadata). In that case, we ignore country code
+         * parsing.
          */
         else if (shardSplit.size() > 1)
         {
             if (shardSplit.get(0).matches(COUNTRY_CODE_REGEX))
             {
-                final StringList newListWithoutCountryCode = StringList.split(shardSplit.get(1),
-                        CountryShard.COUNTRY_SHARD_SEPARATOR, 2);
+                final StringList newListWithoutLeadingCountryCode = StringList
+                        .split(shardSplit.get(1), Shard.SHARD_DATA_SEPARATOR, 2);
                 final Tuple<Shard, Optional<String>> conversionResult = convertHelper(
-                        newListWithoutCountryCode);
+                        newListWithoutLeadingCountryCode);
                 return new Tuple<>(new CountryShard(shardSplit.get(0), conversionResult.getFirst()),
                         conversionResult.getSecond());
             }
-            return nonCountryShardFromSplit(shardSplit);
+            return shardFromSplitExcludingCountryShard(shardSplit);
         }
         /*
          * Otherwise we have to fail.
@@ -118,7 +113,8 @@ public class StringToShardConverter implements Converter<String, Shard>
      *            the {@link StringList} containing the shard info
      * @return the constructed {@link Shard}
      */
-    private Tuple<Shard, Optional<String>> nonCountryShardFromSplit(final StringList shardSplit)
+    private Tuple<Shard, Optional<String>> shardFromSplitExcludingCountryShard(
+            final StringList shardSplit)
     {
         if (shardSplit.size() < 1)
         {

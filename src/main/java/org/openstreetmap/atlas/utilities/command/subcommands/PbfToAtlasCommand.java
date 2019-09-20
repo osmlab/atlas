@@ -12,7 +12,7 @@ import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas.AtlasSerializa
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
 import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
-import org.openstreetmap.atlas.geography.sharding.CountryShard;
+import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
@@ -82,7 +82,7 @@ public class PbfToAtlasCommand extends MultipleOutputCommand
                     AtlasLoadingOption.createOptionWithOnlySectioning(), getBounds()).build();
             final String pbfName = pbf.getName().replace(FileSuffix.PBF.toString(), "");
             final String rawAtlasFilename = String.format("%s%s%s%s", countryName,
-                    CountryShard.COUNTRY_SHARD_SEPARATOR, pbfName, FileSuffix.ATLAS);
+                    Shard.SHARD_DATA_SEPARATOR, pbfName, FileSuffix.ATLAS);
             if (!stopAtRaw())
             {
                 final WaySectionProcessor waySectionProcessor = new WaySectionProcessor(atlas,

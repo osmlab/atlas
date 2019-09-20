@@ -18,7 +18,12 @@ public class StringToShardConverterTest
     @Test
     public void testConverter()
     {
-        Assert.fail("TODO fill in rest");
+        final Shard shard1 = new StringToShardConverter().convert("ABC_1-2-3");
+        Assert.assertTrue(shard1 instanceof CountryShard);
+        Assert.assertEquals("ABC", ((CountryShard) shard1).getCountry());
+        Assert.assertTrue(((CountryShard) shard1).getShard() instanceof SlippyTile);
+        Assert.assertEquals("[SlippyTile: zoom = 1, x = 2, y = 3]",
+                ((CountryShard) shard1).getShard().toString());
     }
 
     @Test
@@ -34,6 +39,8 @@ public class StringToShardConverterTest
                 .convertWithMetadata("1-2-3");
         final Tuple<Shard, Optional<String>> tuple5 = new StringToShardConverter()
                 .convertWithMetadata("1-2-3_zz/_moremetadata");
+        final Tuple<Shard, Optional<String>> tuple6 = new StringToShardConverter()
+                .convertWithMetadata("ABC_DEF_1-2-3_zz/xx/yy");
 
         Assert.assertTrue(tuple1.getFirst() instanceof CountryShard);
         Assert.assertEquals("ABC", ((CountryShard) tuple1.getFirst()).getCountry());
@@ -47,6 +54,34 @@ public class StringToShardConverterTest
         Assert.assertEquals("[GeoHashTile: value = bb54tp9]",
                 ((CountryShard) tuple2.getFirst()).getShard().toString());
 
-        Assert.fail("TODO fill in rest");
+        Assert.assertTrue(tuple3.getFirst() instanceof CountryShard);
+        Assert.assertEquals("ABC", ((CountryShard) tuple3.getFirst()).getCountry());
+        Assert.assertTrue(((CountryShard) tuple3.getFirst()).getShard() instanceof SlippyTile);
+        Assert.assertEquals("[SlippyTile: zoom = 1, x = 2, y = 3]",
+                ((CountryShard) tuple3.getFirst()).getShard().toString());
+        Assert.assertTrue(tuple3.getSecond().isPresent());
+        Assert.assertEquals("zz/xx/yy", tuple3.getSecond().get());
+
+        Assert.assertTrue(tuple4.getFirst() instanceof SlippyTile);
+        Assert.assertEquals("[SlippyTile: zoom = 1, x = 2, y = 3]", tuple4.getFirst().toString());
+        Assert.assertFalse(tuple4.getSecond().isPresent());
+
+        Assert.assertTrue(tuple5.getFirst() instanceof SlippyTile);
+        Assert.assertEquals("[SlippyTile: zoom = 1, x = 2, y = 3]", tuple5.getFirst().toString());
+        Assert.assertTrue(tuple5.getSecond().isPresent());
+        Assert.assertEquals("zz/_moremetadata", tuple5.getSecond().get());
+
+        Assert.assertTrue(tuple6.getFirst() instanceof CountryShard);
+        Assert.assertEquals("ABC", ((CountryShard) tuple6.getFirst()).getCountry());
+        Assert.assertTrue(((CountryShard) tuple6.getFirst()).getShard() instanceof CountryShard);
+        Assert.assertEquals("DEF",
+                ((CountryShard) ((CountryShard) tuple6.getFirst()).getShard()).getCountry());
+        Assert.assertTrue(((CountryShard) ((CountryShard) tuple6.getFirst()).getShard())
+                .getShard() instanceof SlippyTile);
+        Assert.assertEquals("[SlippyTile: zoom = 1, x = 2, y = 3]",
+                ((CountryShard) ((CountryShard) tuple6.getFirst()).getShard()).getShard()
+                        .toString());
+        Assert.assertTrue(tuple6.getSecond().isPresent());
+        Assert.assertEquals("zz/xx/yy", tuple6.getSecond().get());
     }
 }

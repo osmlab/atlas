@@ -30,6 +30,8 @@ public class SlippyTile implements Shard, Comparable<SlippyTile>
 {
     public static final SlippyTile ROOT = new SlippyTile(0, 0, 0);
     public static final int MAX_ZOOM = 30;
+    public static final String COORDINATE_SEPARATOR = "-";
+
     private static final long serialVersionUID = -3752920878013084039L;
     private static final SlippyTileConverter CONVERTER = new SlippyTileConverter();
     private static final double CIRCULAR_MULTIPLIER = 2.0;
