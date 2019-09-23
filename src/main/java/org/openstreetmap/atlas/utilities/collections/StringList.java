@@ -173,6 +173,11 @@ public class StringList implements Iterable<String>, Serializable
         return Optional.of(this.get(size() - 1));
     }
 
+    public void remove(final int index)
+    {
+        this.list.remove(index);
+    }
+
     public int size()
     {
         return this.list.size();

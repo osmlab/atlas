@@ -1,2 +1,6 @@
-Get the boundaries of some shards:
+Get the boundaries of some SlippyTile shards:
 #$ shard-bounds 9-168-233 9-168-234
+Get the boundary of a GeoHashTile shard:
+#$ shard-bounds dd4fb
+Get the boundaries of an assortment of shards:
+#$ shard-bounds DMA_9-168-233 1-2-3 f45tkp8n

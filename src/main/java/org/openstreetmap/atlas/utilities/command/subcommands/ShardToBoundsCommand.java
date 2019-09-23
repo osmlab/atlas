@@ -2,7 +2,8 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 
 import java.util.List;
 
-import org.openstreetmap.atlas.geography.sharding.SlippyTile;
+import org.openstreetmap.atlas.geography.sharding.Shard;
+import org.openstreetmap.atlas.geography.sharding.converters.StringToShardConverter;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
@@ -84,19 +85,19 @@ public class ShardToBoundsCommand extends AbstractAtlasShellToolsCommand
         super.registerOptionsAndArguments();
     }
 
-    private void parseShardAndPrintOutput(final String shard)
+    private void parseShardAndPrintOutput(final String shardName)
     {
-        this.outputDelegate.printlnStdout(shard + " bounds: ", TTYAttribute.BOLD);
-        final SlippyTile tile;
+        this.outputDelegate.printlnStdout(shardName + " bounds: ", TTYAttribute.BOLD);
+        final Shard shard;
         try
         {
-            tile = SlippyTile.forName(shard);
+            shard = new StringToShardConverter().convert(shardName);
         }
         catch (final Exception exception)
         {
-            logger.error("unable to parse {}", shard, exception);
+            logger.error("unable to parse {}", shardName, exception);
             return;
         }
-        this.outputDelegate.printlnStdout(tile.bounds().toWkt(), TTYAttribute.GREEN);
+        this.outputDelegate.printlnStdout(shard.bounds().toWkt(), TTYAttribute.GREEN);
     }
 }

@@ -19,14 +19,16 @@ import com.google.gson.JsonObject;
  */
 public class GeoHashTile implements Shard
 {
-    private static final long serialVersionUID = 525101912087621541L;
-    private static final RectangleToSpatial4JRectangleConverter RECTANGLE_TO_SPATIAL_4_J_RECTANGLE_CONVERTER = new RectangleToSpatial4JRectangleConverter();
     public static final int MAXIMUM_PRECISION = 12;
+    public static final GeoHashTile ROOT = new GeoHashTile("");
+
     static final char[] GEOHASH_CHARACTERS = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
             'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k', 'm', 'n', 'p', 'q', 'r', 's', 't', 'u',
             'v', 'w', 'x', 'y', 'z' };
     static final BiMap<Integer, Character> GEOHASH_CHARACTER_MAP = HashBiMap.create();
-    public static final GeoHashTile ROOT = new GeoHashTile("");
+
+    private static final long serialVersionUID = 525101912087621541L;
+    private static final RectangleToSpatial4JRectangleConverter RECTANGLE_TO_SPATIAL_4_J_RECTANGLE_CONVERTER = new RectangleToSpatial4JRectangleConverter();
 
     static
     {
@@ -169,7 +171,7 @@ public class GeoHashTile implements Shard
     @Override
     public String toString()
     {
-        return getName();
+        return "[GeoHashTile: value = " + this.value + "]";
     }
 
     @Override
