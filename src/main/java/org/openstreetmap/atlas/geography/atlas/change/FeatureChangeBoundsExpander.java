@@ -1,0 +1,238 @@
+package org.openstreetmap.atlas.geography.atlas.change;
+
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Predicate;
+
+import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
+import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
+import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
+import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.geography.atlas.items.Node;
+import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
+import org.openstreetmap.atlas.utilities.maps.MultiMapWithSet;
+
+/**
+ * Expand the size of bounds for features that belong to a relation, or for nodes that are connected
+ * to edges, thus expanding the full geographical impact of a FeatureChange
+ * 
+ * @author matthieun
+ */
+public class FeatureChangeBoundsExpander
+{
+    /**
+     * @author matthieun
+     */
+    private static final class TypeAndIdentifier
+    {
+        private final ItemType itemType;
+        private final long identifier;
+
+        TypeAndIdentifier(final ItemType itemType, final long identifier)
+        {
+            this.itemType = itemType;
+            this.identifier = identifier;
+        }
+
+        @Override
+        public boolean equals(final Object other)
+        {
+            if (this == other)
+            {
+                return true;
+            }
+            if (other == null || getClass() != other.getClass())
+            {
+                return false;
+            }
+            final TypeAndIdentifier that = (TypeAndIdentifier) other;
+            return getIdentifier() == that.getIdentifier() && getItemType() == that.getItemType();
+        }
+
+        public long getIdentifier()
+        {
+            return this.identifier;
+        }
+
+        public ItemType getItemType()
+        {
+            return this.itemType;
+        }
+
+        @Override
+        public int hashCode()
+        {
+            return Objects.hash(getItemType(), getIdentifier());
+        }
+    }
+
+    private final Set<FeatureChange> featureChanges;
+    private Atlas atlas;
+    private final Predicate<FeatureChange> needsUpdate = featureChange ->
+    {
+        if (featureChange.getItemType() == ItemType.NODE)
+        {
+            return true;
+        }
+        if (featureChange.getChangeType() == ChangeType.ADD)
+        {
+            // For relation members, only look at removes
+            return false;
+        }
+        final Set<Relation> relations = featureChange.getAfterView().relations();
+        if (relations != null && !relations.isEmpty())
+        {
+            return true;
+        }
+        final AtlasEntity entity = this.atlas.entity(featureChange.getIdentifier(),
+                featureChange.getItemType());
+        if (entity != null && !entity.relations().isEmpty())
+        {
+            return true;
+        }
+        return false;
+    };
+    private final Set<FeatureChange> result = new HashSet<>();
+    private final Set<FeatureChange> featureChangesToUpdate = new HashSet<>();
+    private final MultiMapWithSet<TypeAndIdentifier, Rectangle> typeIdentifiToEextensionBounds = new MultiMapWithSet<>();
+
+    public FeatureChangeBoundsExpander(final Set<FeatureChange> featureChanges, final Atlas atlas)
+    {
+        this.featureChanges = featureChanges;
+        this.atlas = atlas;
+    }
+
+    public Set<FeatureChange> apply()
+    {
+        if (!this.result.isEmpty())
+        {
+            throw new CoreException("Cannot apply the same bounds expander twice!");
+        }
+        findBounds();
+        for (final FeatureChange featureChange : this.featureChangesToUpdate)
+        {
+            final Set<Rectangle> expansionRectangles = this.typeIdentifiToEextensionBounds
+                    .get(new TypeAndIdentifier(featureChange.getItemType(),
+                            featureChange.getIdentifier()));
+            FeatureChange newFeatureChange = featureChange;
+            if (expansionRectangles != null)
+            {
+                newFeatureChange = new FeatureChange(featureChange.getChangeType(),
+                        expanded(featureChange.getAfterView(), expansionRectangles),
+                        featureChange.getBeforeView());
+            }
+
+            this.result.add(newFeatureChange);
+        }
+        return this.result;
+    }
+
+    private AtlasEntity expanded(final AtlasEntity other, final Set<Rectangle> expansionRectangles)
+    {
+        final Rectangle newBounds = Rectangle.forLocated(expansionRectangles);
+        if (other instanceof CompleteNode)
+        {
+            return ((CompleteNode) other).withBoundsExtendedBy(newBounds);
+        }
+        if (other instanceof CompleteEdge)
+        {
+            return ((CompleteEdge) other).withBoundsExtendedBy(newBounds);
+        }
+        if (other instanceof CompleteArea)
+        {
+            return ((CompleteArea) other).withBoundsExtendedBy(newBounds);
+        }
+        if (other instanceof CompleteLine)
+        {
+            return ((CompleteLine) other).withBoundsExtendedBy(newBounds);
+        }
+        if (other instanceof CompletePoint)
+        {
+            return ((CompletePoint) other).withBoundsExtendedBy(newBounds);
+        }
+        if (other instanceof CompleteRelation)
+        {
+            return ((CompleteRelation) other).withBoundsExtendedBy(newBounds);
+        }
+        throw new CoreException("AtlasEntity is of a non-workable type: {}",
+                other.getClass().getName());
+    }
+
+    private void findBounds()
+    {
+        for (final FeatureChange featureChange : this.featureChanges)
+        {
+            final ItemType itemType = featureChange.getItemType();
+            if (this.needsUpdate.test(featureChange))
+            {
+                this.featureChangesToUpdate.add(featureChange);
+            }
+            else
+            {
+                this.result.add(featureChange);
+            }
+            if (itemType == ItemType.RELATION)
+            {
+                findBoundsFromRelation((Relation) featureChange.getAfterView());
+                final Relation relationFromAtlas = this.atlas
+                        .relation(featureChange.getIdentifier());
+                if (relationFromAtlas != null)
+                {
+                    findBoundsFromRelation(relationFromAtlas);
+                }
+
+            }
+            if (itemType == ItemType.EDGE)
+            {
+                findBoundsFromEdge((Edge) featureChange.getAfterView());
+                final Edge edgeFromAtlas = this.atlas.edge(featureChange.getIdentifier());
+                if (edgeFromAtlas != null)
+                {
+                    findBoundsFromEdge(edgeFromAtlas);
+                }
+            }
+        }
+    }
+
+    private void findBoundsFromEdge(final Edge edge)
+    {
+        final Node start = edge.start();
+        final Node end = edge.end();
+        final Rectangle bounds = edge.bounds();
+        if (start != null)
+        {
+            this.typeIdentifiToEextensionBounds
+                    .add(new TypeAndIdentifier(ItemType.NODE, start.getIdentifier()), bounds);
+        }
+        if (end != null)
+        {
+            this.typeIdentifiToEextensionBounds
+                    .add(new TypeAndIdentifier(ItemType.NODE, end.getIdentifier()), bounds);
+        }
+    }
+
+    private void findBoundsFromRelation(final Relation relation)
+    {
+        final RelationMemberList members = relation.members();
+        if (members != null && !members.isEmpty())
+        {
+            final Rectangle bounds = relation.bounds();
+            members.forEach(relationMember ->
+            {
+                final AtlasEntity entity = relationMember.getEntity();
+                this.typeIdentifiToEextensionBounds.add(
+                        new TypeAndIdentifier(entity.getType(), entity.getIdentifier()), bounds);
+            });
+        }
+    }
+}
