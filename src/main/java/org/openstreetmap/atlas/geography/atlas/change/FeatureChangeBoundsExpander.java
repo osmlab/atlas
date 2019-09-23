@@ -1,7 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -30,52 +29,6 @@ import org.openstreetmap.atlas.utilities.maps.MultiMapWithSet;
  */
 public class FeatureChangeBoundsExpander
 {
-    /**
-     * @author matthieun
-     */
-    private static final class TypeAndIdentifier
-    {
-        private final ItemType itemType;
-        private final long identifier;
-
-        TypeAndIdentifier(final ItemType itemType, final long identifier)
-        {
-            this.itemType = itemType;
-            this.identifier = identifier;
-        }
-
-        @Override
-        public boolean equals(final Object other)
-        {
-            if (this == other)
-            {
-                return true;
-            }
-            if (other == null || getClass() != other.getClass())
-            {
-                return false;
-            }
-            final TypeAndIdentifier that = (TypeAndIdentifier) other;
-            return getIdentifier() == that.getIdentifier() && getItemType() == that.getItemType();
-        }
-
-        public long getIdentifier()
-        {
-            return this.identifier;
-        }
-
-        public ItemType getItemType()
-        {
-            return this.itemType;
-        }
-
-        @Override
-        public int hashCode()
-        {
-            return Objects.hash(getItemType(), getIdentifier());
-        }
-    }
-
     private final Set<FeatureChange> featureChanges;
     private Atlas atlas;
     private final Predicate<FeatureChange> needsUpdate = featureChange ->
@@ -104,7 +57,7 @@ public class FeatureChangeBoundsExpander
     };
     private final Set<FeatureChange> result = new HashSet<>();
     private final Set<FeatureChange> featureChangesToUpdate = new HashSet<>();
-    private final MultiMapWithSet<TypeAndIdentifier, Rectangle> typeIdentifiToEextensionBounds = new MultiMapWithSet<>();
+    private final MultiMapWithSet<AtlasEntityKey, Rectangle> typeIdentifiToEextensionBounds = new MultiMapWithSet<>();
 
     public FeatureChangeBoundsExpander(final Set<FeatureChange> featureChanges, final Atlas atlas)
     {
@@ -122,7 +75,7 @@ public class FeatureChangeBoundsExpander
         for (final FeatureChange featureChange : this.featureChangesToUpdate)
         {
             final Set<Rectangle> expansionRectangles = this.typeIdentifiToEextensionBounds
-                    .get(new TypeAndIdentifier(featureChange.getItemType(),
+                    .get(AtlasEntityKey.from(featureChange.getItemType(),
                             featureChange.getIdentifier()));
             FeatureChange newFeatureChange = featureChange;
             if (expansionRectangles != null)
@@ -212,12 +165,12 @@ public class FeatureChangeBoundsExpander
         if (start != null)
         {
             this.typeIdentifiToEextensionBounds
-                    .add(new TypeAndIdentifier(ItemType.NODE, start.getIdentifier()), bounds);
+                    .add(AtlasEntityKey.from(ItemType.NODE, start.getIdentifier()), bounds);
         }
         if (end != null)
         {
             this.typeIdentifiToEextensionBounds
-                    .add(new TypeAndIdentifier(ItemType.NODE, end.getIdentifier()), bounds);
+                    .add(AtlasEntityKey.from(ItemType.NODE, end.getIdentifier()), bounds);
         }
     }
 
@@ -230,8 +183,8 @@ public class FeatureChangeBoundsExpander
             members.forEach(relationMember ->
             {
                 final AtlasEntity entity = relationMember.getEntity();
-                this.typeIdentifiToEextensionBounds.add(
-                        new TypeAndIdentifier(entity.getType(), entity.getIdentifier()), bounds);
+                this.typeIdentifiToEextensionBounds
+                        .add(AtlasEntityKey.from(entity.getType(), entity.getIdentifier()), bounds);
             });
         }
     }
