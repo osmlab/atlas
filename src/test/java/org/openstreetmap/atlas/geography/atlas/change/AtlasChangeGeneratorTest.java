@@ -35,13 +35,13 @@ public class AtlasChangeGeneratorTest
         for (final Node node : source.nodes())
         {
             final CompleteNode completeNode = CompleteNode.shallowFrom(node)
-                    .withTags(node.getTags());
+                    .withLocation(node.getLocation()).withTags(node.getTags());
             result.add(FeatureChange.add(completeNode));
         }
-        final Set<FeatureChange> changes = AtlasChangeGenerator.expandNodeBounds(source, result);
+        final Set<FeatureChange> changes = new FeatureChangeBoundsExpander(result, source).apply();
         for (final FeatureChange featureChange : changes)
         {
-            if (featureChange.getIdentifier() == 177633000000L)
+            if (featureChange.getIdentifier() == 250641000000L)
             {
                 Assert.assertEquals(Location.forWkt("POINT (4.2194855 38.8231656)"),
                         ((CompleteNode) featureChange.getAfterView()).getLocation());
@@ -82,7 +82,7 @@ public class AtlasChangeGeneratorTest
         result.add(FeatureChange.add(new CompleteNode(456L,
                 Location.forWkt("POINT (4.2200000 38.8235147)"), Maps.hashMap(HIGHWAY, "primary"),
                 Sets.treeSet(), Sets.treeSet(123L), Sets.hashSet())));
-        final Set<FeatureChange> changes = AtlasChangeGenerator.expandNodeBounds(source, result);
+        final Set<FeatureChange> changes = new FeatureChangeBoundsExpander(result, source).apply();
         for (final FeatureChange featureChange : changes)
         {
             if (featureChange.getIdentifier() == 177633000000L)

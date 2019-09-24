@@ -1,6 +1,8 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -57,7 +59,8 @@ public class FeatureChangeBoundsExpander
     };
     private final Set<FeatureChange> result = new HashSet<>();
     private final Set<FeatureChange> featureChangesToUpdate = new HashSet<>();
-    private final MultiMapWithSet<AtlasEntityKey, Rectangle> typeIdentifiToEextensionBounds = new MultiMapWithSet<>();
+    private final MultiMapWithSet<AtlasEntityKey, Rectangle> typeIdentifierToExtensionBounds = new MultiMapWithSet<>();
+    private final Map<AtlasEntityKey, FeatureChange> typeIdentifierToFeatureChange = new HashMap<>();
 
     public FeatureChangeBoundsExpander(final Set<FeatureChange> featureChanges, final Atlas atlas)
     {
@@ -71,10 +74,13 @@ public class FeatureChangeBoundsExpander
         {
             throw new CoreException("Cannot apply the same bounds expander twice!");
         }
+        this.featureChanges.forEach(featureChange -> this.typeIdentifierToFeatureChange.put(
+                AtlasEntityKey.from(featureChange.getItemType(), featureChange.getIdentifier()),
+                featureChange));
         findBounds();
         for (final FeatureChange featureChange : this.featureChangesToUpdate)
         {
-            final Set<Rectangle> expansionRectangles = this.typeIdentifiToEextensionBounds
+            final Set<Rectangle> expansionRectangles = this.typeIdentifierToExtensionBounds
                     .get(AtlasEntityKey.from(featureChange.getItemType(),
                             featureChange.getIdentifier()));
             FeatureChange newFeatureChange = featureChange;
@@ -121,7 +127,7 @@ public class FeatureChangeBoundsExpander
                 other.getClass().getName());
     }
 
-    private void findBounds()
+    private void findBounds() // NOSONAR
     {
         for (final FeatureChange featureChange : this.featureChanges)
         {
@@ -143,7 +149,6 @@ public class FeatureChangeBoundsExpander
                 {
                     findBoundsFromRelation(relationFromAtlas);
                 }
-
             }
             if (itemType == ItemType.EDGE)
             {
@@ -155,6 +160,28 @@ public class FeatureChangeBoundsExpander
                 }
             }
         }
+        for (final Edge edge : this.atlas.edges())
+        {
+            final AtlasEntityKey startKey = AtlasEntityKey.from(ItemType.NODE,
+                    edge.start().getIdentifier());
+            final AtlasEntityKey endKey = AtlasEntityKey.from(ItemType.NODE,
+                    edge.end().getIdentifier());
+            if (this.typeIdentifierToFeatureChange.containsKey(startKey)
+                    || this.typeIdentifierToFeatureChange.containsKey(endKey))
+            {
+                findBoundsFromEdge(edge);
+            }
+        }
+        for (final Relation relation : this.atlas.relations())
+        {
+            final Set<AtlasEntityKey> memberKeys = new HashSet<>();
+            relation.members().forEach(member -> memberKeys.add(AtlasEntityKey
+                    .from(member.getEntity().getType(), member.getEntity().getIdentifier())));
+            if (memberKeys.stream().anyMatch(this.typeIdentifierToFeatureChange::containsKey))
+            {
+                findBoundsFromRelation(relation);
+            }
+        }
     }
 
     private void findBoundsFromEdge(final Edge edge)
@@ -164,12 +191,12 @@ public class FeatureChangeBoundsExpander
         final Rectangle bounds = edge.bounds();
         if (start != null)
         {
-            this.typeIdentifiToEextensionBounds
+            this.typeIdentifierToExtensionBounds
                     .add(AtlasEntityKey.from(ItemType.NODE, start.getIdentifier()), bounds);
         }
         if (end != null)
         {
-            this.typeIdentifiToEextensionBounds
+            this.typeIdentifierToExtensionBounds
                     .add(AtlasEntityKey.from(ItemType.NODE, end.getIdentifier()), bounds);
         }
     }
@@ -183,7 +210,7 @@ public class FeatureChangeBoundsExpander
             members.forEach(relationMember ->
             {
                 final AtlasEntity entity = relationMember.getEntity();
-                this.typeIdentifiToEextensionBounds
+                this.typeIdentifierToExtensionBounds
                         .add(AtlasEntityKey.from(entity.getType(), entity.getIdentifier()), bounds);
             });
         }
