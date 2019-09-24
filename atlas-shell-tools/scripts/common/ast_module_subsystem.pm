@@ -37,6 +37,7 @@ our @EXPORT = qw(
     remove_active_module_index
 );
 
+our $METADATA_SUFFIX = '.metadata';
 our $MODULE_SUFFIX = '.jar';
 our $DEACTIVATED_SUFFIX = '.deactivated';
 our $DEACTIVATED_MODULE_SUFFIX = $MODULE_SUFFIX . $DEACTIVATED_SUFFIX;

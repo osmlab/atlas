@@ -37,6 +37,8 @@ our @EXPORT = qw(
     get_man
     string_starts_with
     is_dir_empty
+    levenshtein
+    read_command_output
 );
 
 our $ATLAS_SHELL_TOOLS_VERSION = "atlas-shell-tools version 0.0.1";
@@ -391,6 +393,27 @@ sub levenshtein {
     }
 
     return $distance[@letters1][@letters2];
+}
+
+# Read the output of a given command array.
+# Params:
+#   $command_ref: a reference to an array containing the command args
+# Return: the output of a given command array
+sub read_command_output {
+    my $command_ref = shift;
+
+    my @command = @{$command_ref};
+    open COMMAND, "-|", @command or die $!;
+    my $output = '';
+    while (<COMMAND>) {
+        # Not the most efficient way to do things.
+        # Perhaps some kind of slurp is needed. File::Slurp could work but does
+        # have an outstanding Unicode bug. Need to investigate more.
+        $output = $output . $_;
+    }
+    close COMMAND;
+
+    return $output;
 }
 
 # Perl modules must return a value. Returning a value perl considers "truthy"

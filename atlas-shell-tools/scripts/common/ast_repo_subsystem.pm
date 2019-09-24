@@ -279,10 +279,32 @@ sub install_repo {
         ast_utilities::error_output($program_name, "repo install operation failed");
         return 0;
     }
+    my $ref_to_use;
+    if ($ref_override eq '') {
+        $ref_to_use = $ref;
+    }
+    else {
+        $ref_to_use = $ref_override;
+    }
 
     my $tmpdir = tempdir(CLEANUP => 1);
 
     my @command = ();
+    push @command, "git";
+    push @command, "ls-remote";
+    push @command, "${url}";
+    push @command, "${ref_to_use}";
+    my $lsremote_result = ast_utilities::read_command_output(\@command);
+    my @remote_ref = split /\s+/, $lsremote_result;
+    my $commit_hash;
+    if (scalar @remote_ref > 0) {
+        $commit_hash = $remote_ref[0];
+    }
+    # TODO debug remove this
+    print "TODO DEBUG hash: $commit_hash\n";
+    return 0;
+
+    @command = ();
     push @command, "git";
     push @command, "clone";
     push @command, "${url}";
@@ -295,13 +317,6 @@ sub install_repo {
 
     chdir $tmpdir or die "$!";
 
-    my $ref_to_use;
-    if ($ref_override eq '') {
-        $ref_to_use = $ref;
-    }
-    else {
-        $ref_to_use = $ref_override;
-    }
     @command = ();
     push @command, "git";
     push @command, "checkout";
