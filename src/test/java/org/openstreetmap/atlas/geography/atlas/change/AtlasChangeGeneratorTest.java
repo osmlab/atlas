@@ -41,7 +41,7 @@ public class AtlasChangeGeneratorTest
         final Set<FeatureChange> changes = new FeatureChangeBoundsExpander(result, source).apply();
         for (final FeatureChange featureChange : changes)
         {
-            if (featureChange.getIdentifier() == 250641000000L)
+            if (featureChange.getIdentifier() == 177633000000L)
             {
                 Assert.assertEquals(Location.forWkt("POINT (4.2194855 38.8231656)"),
                         ((CompleteNode) featureChange.getAfterView()).getLocation());
@@ -90,6 +90,25 @@ public class AtlasChangeGeneratorTest
                 Assert.assertEquals(
                         "POLYGON ((4.2177433 38.8228217, 4.2177433 38.8235147, 4.2202479 38.8235147,"
                                 + " 4.2202479 38.8228217, 4.2177433 38.8228217))",
+                        featureChange.bounds().toWkt());
+            }
+        }
+    }
+
+    @Test
+    public void testExpandRelation()
+    {
+        final Atlas source = this.rule.getNodeBoundsExpansionAtlas();
+        final Set<FeatureChange> result = new HashSet<>();
+        result.add(FeatureChange.add(CompleteEdge.from(source.edge(177630000000L))));
+        final Set<FeatureChange> changes = new FeatureChangeBoundsExpander(result, source).apply();
+        for (final FeatureChange featureChange : changes)
+        {
+            if (featureChange.getIdentifier() == 177763000000L)
+            {
+                Assert.assertEquals(
+                        "POLYGON ((4.2177433 38.8228217, 4.2177433 38.8235147, 4.2197697 38.8235147,"
+                                + " 4.2197697 38.8228217, 4.2177433 38.8228217))",
                         featureChange.bounds().toWkt());
             }
         }
