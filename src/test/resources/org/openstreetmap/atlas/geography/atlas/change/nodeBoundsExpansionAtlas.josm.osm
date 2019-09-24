@@ -20,4 +20,9 @@
     <nd ref='-177649' />
     <tag k='highway' v='footway' />
   </way>
+  <relation id='-250654' action='modify' visible='true'>
+    <member type='way' ref='-177648' role='one' />
+    <member type='way' ref='-177630' role='two' />
+    <tag k='type' v='test' />
+  </relation>
 </osm>
