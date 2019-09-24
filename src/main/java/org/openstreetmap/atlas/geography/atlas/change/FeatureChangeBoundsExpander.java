@@ -51,11 +51,7 @@ public class FeatureChangeBoundsExpander
         }
         final AtlasEntity entity = this.atlas.entity(featureChange.getIdentifier(),
                 featureChange.getItemType());
-        if (entity != null && !entity.relations().isEmpty())
-        {
-            return true;
-        }
-        return false;
+        return entity != null && !entity.relations().isEmpty();
     };
     private final Set<FeatureChange> result = new HashSet<>();
     private final Set<FeatureChange> featureChangesToUpdate = new HashSet<>();
