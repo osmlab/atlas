@@ -14,7 +14,7 @@ import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
  */
 public class PagerHelper
 {
-    private static final String PAGER_ENVIRONMENT_VARIABLE = "PAGER";
+    private static final String PAGER_ENVIRONMENT_VARIABLE = "ATLAS_SHELL_TOOLS_PAGER";
     private static final String DEFAULT_PAGER = "less";
     private static final String DEFAULT_PAGER_FLAGS = "-cSRMis";
 
@@ -30,7 +30,8 @@ public class PagerHelper
         final String pagerVariable = System.getenv(PAGER_ENVIRONMENT_VARIABLE);
         if (pagerVariable != null && !pagerVariable.isEmpty())
         {
-            System.err.println("TODO: respect for PAGER env var currently unimplemented!"); // NOSONAR
+            System.err.println( // NOSONAR
+                    "TODO: respect for ATLAS_SHELL_TOOLS_PAGER env var currently unimplemented!"); // NOSONAR
         }
 
         final Optional<String> pagerProgram = callWhichOnPager(DEFAULT_PAGER);
