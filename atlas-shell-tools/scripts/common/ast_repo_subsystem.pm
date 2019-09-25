@@ -4,6 +4,7 @@ use warnings;
 use strict;
 
 use Exporter qw(import);
+use File::Basename qw(basename);
 use File::Path qw(make_path rmtree);
 use File::Temp qw(tempdir tempfile);
 use ast_tty;
@@ -271,6 +272,8 @@ sub install_repo {
         return 0;
     }
 
+    my %module_metadata = ast_module_subsystem::get_module_to_metadata_hash($ast_path);
+
     my $url = read_single_config_variable($ast_path, $program_name, $quiet, $repo, 'url');
     my $ref = read_single_config_variable($ast_path, $program_name, $quiet, $repo, 'ref');
     my @excludes = read_multiple_config_variables($ast_path, $program_name, $quiet, $repo, 'exclude');
@@ -289,6 +292,10 @@ sub install_repo {
 
     my $tmpdir = tempdir(CLEANUP => 1);
 
+    # First, we can check to see if the provided ref is already represented in one of the installed
+    # modules. Since this uses git ls-remote, this only works when the ref is a tag or a branch. If
+    # the ref was a commit hash, then we will need to clone the repo first to determine if an install
+    # is necessary.
     my @command = ();
     push @command, "git";
     push @command, "ls-remote";
@@ -296,13 +303,22 @@ sub install_repo {
     push @command, "${ref_to_use}";
     my $lsremote_result = ast_utilities::read_command_output(\@command);
     my @remote_ref = split /\s+/, $lsremote_result;
-    my $commit_hash;
+    my $remote_commit_hash;
     if (scalar @remote_ref > 0) {
-        $commit_hash = $remote_ref[0];
+        $remote_commit_hash = $remote_ref[0];
     }
-    # TODO debug remove this
-    print "TODO DEBUG hash: $commit_hash\n";
-    return 0;
+    if (defined $remote_commit_hash) {
+        foreach my $module_key (keys %module_metadata) {
+            my %metadata = %{$module_metadata{$module_key}};
+            my $module_commit_hash = $metadata{$ast_module_subsystem::REPO_COMMIT_KEY};
+            if (defined $module_commit_hash && $module_commit_hash eq $remote_commit_hash) {
+                ast_utilities::warn_output($program_name, "nothing to do");
+                print STDERR "Repo ${bold_stderr}${repo}${reset_stderr} ref ${bold_stderr}${ref_to_use}${reset_stderr} refers to commit ${bold_stderr}${remote_commit_hash}${reset_stderr}\n";
+                print STDERR "Installed module ${bold_stderr}${module_key}${reset_stderr} was already built from this commit.\n";
+                return 1;
+            }
+        }
+    }
 
     @command = ();
     push @command, "git";
@@ -326,17 +342,20 @@ sub install_repo {
         ast_utilities::error_output($program_name, "repo install operation failed");
         return 0;
     }
-    my $commit = `git rev-parse --short HEAD`;
-    chomp $commit;
+    my $installed_commit_hash = `git rev-parse HEAD`;
+    my $installed_commit_hash_short = `git rev-parse --short HEAD`;
+    chomp $installed_commit_hash;
+    chomp $installed_commit_hash_short;
 
-    my $tentative_module_name = "${repo}-${commit}";
+    my $tentative_module_name = "${repo}-${installed_commit_hash_short}";
     my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
     my @module_names = keys %modules;
     foreach my $module_name (@module_names) {
         if ($tentative_module_name eq $module_name) {
             print STDERR "\n";
-            ast_utilities::warn_output($ast_utilities::CONFIG_PROGRAM, "nothing to do");
-            print STDERR "Repo ${bold_stderr}${repo}${reset_stderr} with ref ${bold_stderr}${ref_to_use}${reset_stderr} already up-to-date through installed module ${bold_stderr}${tentative_module_name}${reset_stderr}\n";
+            ast_utilities::warn_output($program_name, "nothing to do");
+            print STDERR "Repo ${bold_stderr}${repo}${reset_stderr} ref ${bold_stderr}${ref_to_use}${reset_stderr} refers to commit ${bold_stderr}${installed_commit_hash}${reset_stderr}\n";
+            print STDERR "Installed module ${bold_stderr}${module_name}${reset_stderr} already was built from this commit.\n";
             return 1;
         }
     }
@@ -402,27 +421,38 @@ sub install_repo {
         return 0;
     }
 
-    @command = ();
-    push @command, "find";
-    push @command, ".";
-    push @command, "-type";
-    push @command, "f";
-    push @command, "-name";
-    push @command, "*-AST.jar";
-    push @command, "-exec";
-    push @command, "atlas-config";
-    push @command, "install";
-    push @command, "{}";
-    push @command, "--force";
-    push @command, "--name";
-    push @command, "${repo}-${commit}";
-    push @command, ";";
-    $success = system {$command[0]} @command;
-    unless ($success == 0) {
-        ast_utilities::error_output($program_name, "repo install operation failed");
-        return 0;
-    }
+    my @find_command=(
+        "find", ".",
+        "-type", "f",
+        "-name", "*-AST.jar",
+        "-print0"
+    );
+    open FIND, "-|", @find_command;
+    # TODO 'local' modifier makes sense here? confirm this, 'my' may make more sense
+    # see https://www.perlmonks.org/?node_id=94007
+    local $/ = "\0";
+    while (<FIND>) {
+        # FIND command is printing full paths, we just want the basename.
+        # Also, we must chomp to remove the terminating null byte left over from
+        # the '-print0' flag given to 'find'.
+        my $module = $_;
+        chomp $module;
+        my $module_basename = basename($module);
 
+        my %local_metadata;
+        $local_metadata{$ast_module_subsystem::SOURCE_KEY} = "repo";
+        $local_metadata{$ast_module_subsystem::URI_KEY} = "${url}";
+        $local_metadata{$ast_module_subsystem::REPO_NAME_KEY} = "${repo}";
+        $local_metadata{$ast_module_subsystem::REPO_COMMIT_KEY} = "${installed_commit_hash}";
+        # install the module!
+        my $success = ast_module_subsystem::perform_install($module, $ast_path, $program_name,
+                                              "${repo}-${installed_commit_hash_short}", 0, 0, 1, 0, \%local_metadata, 0);
+
+        unless ($success) {
+            ast_utilities::error_output($program_name, "repo install operation failed");
+            return 0;
+        }
+    }
     return 1;
 }
 

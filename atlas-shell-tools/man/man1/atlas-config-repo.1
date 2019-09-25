@@ -70,7 +70,8 @@ Add a new repo object with a given <repo\-name>, \fBgit\fR(1) remote <URL>, and 
 optional default [ref]. Here, [ref] is a \fBgit\fR(1) ref (e.g. a branch name, a tag, or
 even a commit hash). If no explicit [ref] is provided, \fIadd\fR defaults to 'master'. The ref
 associated with a repo object is used by \fIinstall\fR as the default. See \fIinstall\fR for more
-information.
+information. Note that for <URL>, you can use any git\-clonable URL, i.e. an https:// URL, a file://
+URL, or even a local path like /Users/you/somerepo.
 .RE
 
 .PP
