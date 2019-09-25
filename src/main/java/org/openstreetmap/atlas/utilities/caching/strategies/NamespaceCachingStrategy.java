@@ -173,6 +173,7 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
                     final Path cachedFilePath = Paths.get(cachedFile.getPath());
                     Files.move(temporaryLocalFilePath, cachedFilePath,
                             StandardCopyOption.ATOMIC_MOVE);
+                    validateLocalFile(cachedFile);
                 }
                 catch (final FileAlreadyExistsException exception)
                 {
