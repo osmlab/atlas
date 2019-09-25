@@ -313,8 +313,9 @@ sub install_repo {
             my $module_commit_hash = $metadata{$ast_module_subsystem::REPO_COMMIT_KEY};
             if (defined $module_commit_hash && $module_commit_hash eq $remote_commit_hash) {
                 ast_utilities::warn_output($program_name, "nothing to do");
-                print STDERR "Repo ${bold_stderr}${repo}${reset_stderr} ref ${bold_stderr}${ref_to_use}${reset_stderr} refers to commit ${bold_stderr}${remote_commit_hash}${reset_stderr}\n";
-                print STDERR "Installed module ${bold_stderr}${module_key}${reset_stderr} was already built from this commit.\n";
+                print STDERR "Ref ${bold_stderr}${ref_to_use}${reset_stderr} in repo ${bold_stderr}${repo}${reset_stderr} refers to commit ${bold_stderr}${remote_commit_hash}${reset_stderr}.\n";
+                print STDERR "Installed module ${bold_stderr}${module_key}${reset_stderr} was built from this commit.\n";
+                print STDERR "Try \'${bold_stderr}${ast_utilities::CONFIG_PROGRAM} activate ${module_key}${reset_stderr}\' to use this version.\n";
                 return 1;
             }
         }
@@ -354,8 +355,9 @@ sub install_repo {
         if ($tentative_module_name eq $module_name) {
             print STDERR "\n";
             ast_utilities::warn_output($program_name, "nothing to do");
-            print STDERR "Repo ${bold_stderr}${repo}${reset_stderr} ref ${bold_stderr}${ref_to_use}${reset_stderr} refers to commit ${bold_stderr}${installed_commit_hash}${reset_stderr}\n";
-            print STDERR "Installed module ${bold_stderr}${module_name}${reset_stderr} already was built from this commit.\n";
+            print STDERR "Ref ${bold_stderr}${ref_to_use}${reset_stderr} in repo ${bold_stderr}${repo}${reset_stderr} refers to commit ${bold_stderr}${installed_commit_hash}${reset_stderr}.\n";
+            print STDERR "Installed module ${bold_stderr}${module_name}${reset_stderr} was built from this commit.\n";
+            print STDERR "Try \'${bold_stderr}${ast_utilities::CONFIG_PROGRAM} activate ${module_name}${reset_stderr}\' to use this version.\n";
             return 1;
         }
     }
