@@ -109,7 +109,7 @@ public final class PackedAtlasSerializer
         final AtlasSerializationFormat[] possibleFormats = AtlasSerializationFormat.values();
         for (final AtlasSerializationFormat candidateFormat : possibleFormats)
         {
-            logger.debug("Trying load format {}", candidateFormat);
+            logger.trace("Trying load format {} for atlas {}", candidateFormat, atlas.getName());
             atlas.setLoadSerializationFormat(candidateFormat);
             try
             {
@@ -117,15 +117,17 @@ public final class PackedAtlasSerializer
             }
             catch (final CoreException exception)
             {
-                logger.debug("Load format {} invalid", candidateFormat, exception);
+                logger.debug("Load format {} invalid for atlas {}", candidateFormat,
+                        atlas.getName(), exception);
                 continue;
             }
             // If we make it here, then we found the appropriate format and we can bail out
-            logger.debug("Using load format {}", candidateFormat);
+            logger.trace("Using load format {} for atlas {}", candidateFormat, atlas.getName());
             return;
         }
 
-        throw new CoreException("Could not determine a valid load format for atlas");
+        throw new CoreException("Could not determine a valid load format for atlas {}",
+                atlas.getName());
     }
 
     /**
