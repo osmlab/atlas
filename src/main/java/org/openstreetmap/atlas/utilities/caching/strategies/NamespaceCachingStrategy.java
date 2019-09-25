@@ -124,6 +124,11 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
         }
     }
 
+    protected void validateLocalFile(final File localFile)
+    {
+        // Do nothing here, leave to extensions to decide.
+    }
+
     private void attemptToCacheFileLocally(final File cachedFile,
             final Function<URI, Optional<Resource>> defaultFetcher, final URI resourceURI)
     {
@@ -147,6 +152,7 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
                 try
                 {
                     resourceFromDefaultFetcher.get().copyTo(temporaryLocalFile);
+                    validateLocalFile(temporaryLocalFile);
                 }
                 catch (final Exception exception)
                 {
@@ -167,6 +173,7 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
                     final Path cachedFilePath = Paths.get(cachedFile.getPath());
                     Files.move(temporaryLocalFilePath, cachedFilePath,
                             StandardCopyOption.ATOMIC_MOVE);
+                    validateLocalFile(cachedFile);
                 }
                 catch (final FileAlreadyExistsException exception)
                 {
