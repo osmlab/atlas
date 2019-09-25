@@ -295,6 +295,142 @@ sub get_deactivated_modules {
     return @deactivated_modules;
 }
 
+# Install a module with a given name.
+# Params:
+#   $module_to_install: the path to the module to install
+#   $ast_path: the path to the atlas-shell-tools data folder
+#   $program_name: the name of the running program
+#   $alternate_name: an alternate name for the module, empty to use path basename
+#   $syminstall: install using a symlink instead of a copy
+#   $skip_install: skip installation if module exists
+#   $force_install: force overwrite if module exists
+#   $install_deactivated: install module but do not activate
+#   $quiet: suppress non-essential output
+#
+# Return: 1 on success, 0 on failure
+sub perform_install {
+    my $module_to_install = shift;
+    my $ast_path = shift;
+    my $program_name = shift;
+    my $alternate_name = shift;
+    my $syminstall = shift;
+    my $skip_install = shift;
+    my $force_install = shift;
+    my $install_deactivated = shift;
+    my $quiet = shift;
+
+    unless (-f $module_to_install || -l $module_to_install) {
+        ast_utilities::error_output($program_name, "no such file ${bold_stderr}${module_to_install}${reset_stderr}");
+        return 0;
+    }
+
+    my $modules_folder = File::Spec->catfile($ast_path, $MODULES_FOLDER);
+
+    # Create the module name, respecting the alternate name if provided.
+    my $module_basename;
+    if (!$alternate_name eq "") {
+        $module_basename = $alternate_name . $MODULE_SUFFIX;
+    }
+    else {
+        $module_basename = basename($module_to_install);
+    }
+    # TODO: figure out how to interpolate $MODULE_SUFFIX into this regex
+    unless ($module_basename =~ /.*\.jar$/) {
+        ast_utilities::error_output($program_name, "module must end with '.jar' extension");
+        return 0;
+    }
+    $module_basename =~ s{$MODULE_SUFFIX}{};
+
+    # Handle the case where the module is already installed
+    my %modules =get_module_to_status_hash($ast_path);
+    if (defined $modules{$module_basename}) {
+        ast_utilities::warn_output($program_name, "module ${bold_stderr}${module_basename}${reset_stderr} is already installed");
+        if ($skip_install) {
+            print STDERR "Skipping installation.\n";
+            return 0;
+        }
+        unless ($force_install) {
+            my $overwrite = ast_utilities::prompt_yn("Overwrite?");
+            unless ($overwrite) {
+                print STDERR "Skipping installation.\n";
+                return 0;
+            }
+        }
+        ast_utilities::warn_output($program_name, "overwriting ${bold_stderr}${module_basename}${reset_stderr}");
+    }
+
+    # Construct the new module paths.
+    # We create a path for both an activated and deactivated version.
+    my $module_new_path =
+        File::Spec->catfile($modules_folder, $module_basename . $MODULE_SUFFIX);
+    my $module_new_path_deactivated =
+        File::Spec->catfile($modules_folder, $module_basename . $DEACTIVATED_MODULE_SUFFIX);
+    my $module_new_path_metadata =
+        File::Spec->catfile($modules_folder, $module_basename . $METADATA_SUFFIX);
+
+    # If we made it here we are go to overwrite, so clean up any matching existing modules.
+    unlink $module_new_path;
+    unlink $module_new_path_deactivated;
+
+    my $exitcode;
+    if ($syminstall) {
+        my $module_to_install_abs = Cwd::realpath($module_to_install);
+        my $module_to_install_rel = File::Spec->abs2rel($module_to_install_abs, $modules_folder);
+
+        if ($install_deactivated) {
+            symlink($module_to_install_rel, $module_new_path_deactivated);
+        }
+        else {
+            symlink($module_to_install_rel, $module_new_path);
+        }
+        $exitcode = $? >> 8;
+    }
+    else {
+        my @command = ();
+        push @command, "cp";
+        push @command, "$module_to_install";
+        if ($install_deactivated) {
+            push @command, "$module_new_path_deactivated";
+            system { $command[0] } @command;
+        }
+        else {
+            push @command, "$module_new_path";
+            system { $command[0] } @command;
+        }
+        $exitcode = $? >> 8;
+    }
+
+    if ($exitcode) {
+        print STDERR "${red_stderr}${bold_stderr}Installation of module ${module_basename} failed.${reset_stderr} Operation exited with $exitcode.\n";
+        return 0;
+    }
+    else {
+        unless ($install_deactivated) {
+            my %modules = get_module_to_status_hash($ast_path);
+            foreach my $module (keys %modules) {
+                if ($modules{$module} == $ACTIVATED
+                    && $module ne $module_basename) {
+                    my $success = perform_deactivate($module, $ast_path, $program_name, $quiet);
+                    unless ($success) {
+                        ast_utilities::warn_output($program_name, "installation may not function properly");
+                    }
+                }
+            }
+            remove_active_module_index($ast_path, $program_name, $quiet);
+            my $success = generate_active_module_index($ast_path, $program_name, $quiet, 0);
+            unless ($success) {
+                ast_utilities::warn_output($program_name, "partial installation may not function properly");
+            }
+        }
+
+        unless ($quiet) {
+            print "Module ${green_stdout}${bold_stdout}${module_basename}${reset_stdout} installed.\n";
+        }
+    }
+
+    return 1;
+}
+
 # Uninstall a module with a given name.
 # Params:
 #   $module_to_uninstall: the name of the module to uninstall
@@ -328,6 +464,8 @@ sub perform_uninstall {
         File::Spec->catfile($modules_folder, $module_to_uninstall . $MODULE_SUFFIX);
     my $module_remove_path_deactivated =
         File::Spec->catfile($modules_folder, $module_to_uninstall . $DEACTIVATED_MODULE_SUFFIX);
+    my $module_remove_path_metadata =
+        File::Spec->catfile($modules_folder, $module_to_uninstall . $METADATA_SUFFIX);
 
     unlink $module_remove_path;
     unlink $module_remove_path_deactivated;
@@ -373,7 +511,7 @@ sub perform_activate {
     rename $old_module_path, $new_module_path;
     my $exitcode = $? >> 8;
     if ($exitcode) {
-        print STDERR "${red_stderr}${bold_stderr}Activation failed.${reset_stderr} Rename exited with $exitcode.\n";
+        print STDERR "${red_stderr}${bold_stderr}Activation of module ${module_to_activate} failed.${reset_stderr} Rename exited with $exitcode.\n";
         return 0;
     }
     else {
@@ -421,8 +559,9 @@ sub perform_deactivate {
 
     rename $old_module_path, $new_module_path;
     my $exitcode = $? >> 8;
+    $exitcode = 1;
     if ($exitcode) {
-        print STDERR "${red_stderr}${bold_stderr}Deactivation failed.${reset_stderr} Rename exited with $exitcode.\n";
+        print STDERR "${red_stderr}${bold_stderr}Deactivation of module ${module_to_deactivate} failed.${reset_stderr} Rename exited with $exitcode.\n";
         return 0;
     }
     else {

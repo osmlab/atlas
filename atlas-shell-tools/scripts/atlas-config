@@ -249,7 +249,7 @@ sub execute_command_install {
     my $force_install = 0;
     my $skip_install = 0;
     my $install_deactivated = 0;
-    my $alternate_name;
+    my $alternate_name = "";
     my $help_flag;
     my $repo;
     GetOptions(
@@ -281,111 +281,11 @@ sub execute_command_install {
         ast_utilities::getopt_failure_and_exit($program_name, "install");
     }
 
-    unless (-f $module_to_install || -l $module_to_install) {
-        ast_utilities::error_output($program_name . ": install", "no such file ${bold_stderr}${module_to_install}${reset_stderr}");
+    my $success = ast_module_subsystem::perform_install($module_to_install, $ast_path, $program_name,
+                                                        $alternate_name, $syminstall, $skip_install,
+                                                        $force_install, $install_deactivated, $quiet);
+    unless ($success) {
         return 0;
-    }
-
-    my $modules_folder = File::Spec->catfile($ast_path, $ast_module_subsystem::MODULES_FOLDER);
-
-    # Create the module name, respecting the --name flag if present.
-    my $module_basename;
-    if (defined $alternate_name) {
-        $module_basename = $alternate_name . $ast_module_subsystem::MODULE_SUFFIX;
-    }
-    else {
-        $module_basename = basename($module_to_install);
-    }
-    # TODO: figure out how to interpolate $MODULE_SUFFIX into this regex
-    unless ($module_basename =~ /.*\.jar$/) {
-        ast_utilities::error_output($program_name . ": install", "module must end with '.jar' extension");
-        return 0;
-    }
-    $module_basename =~ s{$ast_module_subsystem::MODULE_SUFFIX}{};
-
-    # Handle the case where the module is already installed
-    my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
-    if (defined $modules{$module_basename}) {
-        ast_utilities::warn_output($program_name . ": install", "module ${bold_stderr}${module_basename}${reset_stderr} is already installed");
-        if ($skip_install) {
-            print STDERR "Skipping installation.\n";
-            return 0;
-        }
-        unless ($force_install) {
-            my $overwrite = ast_utilities::prompt_yn("Overwrite?");
-            unless ($overwrite) {
-                print STDERR "Skipping installation.\n";
-                return 0;
-            }
-        }
-        ast_utilities::warn_output($program_name . ": install", "overwriting ${bold_stderr}${module_basename}${reset_stderr}");
-    }
-
-    # Construct the new module paths.
-    # We create a path for both an activated and deactivated version.
-    my $module_new_path =
-        File::Spec->catfile($modules_folder, $module_basename . $ast_module_subsystem::MODULE_SUFFIX);
-    my $module_new_path_deactivated =
-        File::Spec->catfile($modules_folder, $module_basename . $ast_module_subsystem::DEACTIVATED_MODULE_SUFFIX);
-
-    # If we made it here we are go to overwrite, so clean up any matching existing modules.
-    unlink $module_new_path;
-    unlink $module_new_path_deactivated;
-
-    my $exitcode;
-    if ($syminstall) {
-        my $module_to_install_abs = Cwd::realpath($module_to_install);
-        my $module_to_install_rel = File::Spec->abs2rel($module_to_install_abs, $modules_folder);
-
-        if ($install_deactivated) {
-            symlink($module_to_install_rel, $module_new_path_deactivated);
-        }
-        else {
-            symlink($module_to_install_rel, $module_new_path);
-        }
-        $exitcode = $? >> 8;
-    }
-    else {
-        my @command = ();
-        push @command, "cp";
-        push @command, "$module_to_install";
-        if ($install_deactivated) {
-            push @command, "$module_new_path_deactivated";
-            system { $command[0] } @command;
-        }
-        else {
-            push @command, "$module_new_path";
-            system { $command[0] } @command;
-        }
-        $exitcode = $? >> 8;
-    }
-
-    if ($exitcode) {
-        print STDERR "${red_stderr}${bold_stderr}Installation failed.${reset_stderr} Operation exited with $exitcode.\n";
-        return 0;
-    }
-    else {
-        unless ($install_deactivated) {
-            my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
-            foreach my $module (keys %modules) {
-                if ($modules{$module} == $ast_module_subsystem::ACTIVATED
-                    && $module ne $module_basename) {
-                    ast_module_subsystem::perform_deactivate($module, $ast_path, $program_name, $quiet);
-                }
-            }
-        }
-
-        unless($install_deactivated) {
-            ast_module_subsystem::remove_active_module_index($ast_path, $program_name, $quiet);
-            my $success = ast_module_subsystem::generate_active_module_index($ast_path, $program_name, $quiet, 0);
-            unless ($success) {
-                ast_utilities::warn_output($program_name . ": install", "partial installation may not function properly");
-            }
-        }
-
-        unless ($quiet) {
-            print "Module ${green_stdout}${bold_stdout}${module_basename}${reset_stdout} installed.\n";
-        }
     }
 
     return 1;
