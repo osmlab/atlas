@@ -24,10 +24,11 @@ our @EXPORT = qw(
     BROKEN_SYMLINK
     REAL_FILE
     SOURCE_KEY
+    URI_KEY
+    DATE_TIME_KEY
     REPO_NAME_KEY
     REPO_REF_KEY
     REPO_COMMIT_KEY
-    URI_KEY
     METADATA_SEPARATOR
     get_subcommand_to_class_hash
     get_subcommand_to_description_hash
@@ -59,12 +60,13 @@ our $GOOD_SYMLINK = 1;
 our $BROKEN_SYMLINK = -1;
 our $REAL_FILE = 0;
 
-# Module metadata keys
-our $SOURCE_KEY = "source";
-our $REPO_NAME_KEY = "repo_name";
-our $REPO_REF_KEY = "repo_ref";
-our $REPO_COMMIT_KEY = "repo_commit";
+# Module metadata keys/data
+our $SOURCE_KEY = "source-type";
 our $URI_KEY = "URI";
+our $DATE_TIME_KEY = "date-time";
+our $REPO_NAME_KEY = "repo-name";
+our $REPO_REF_KEY = "repo-ref";
+our $REPO_COMMIT_KEY = "repo-commit";
 our $METADATA_SEPARATOR = ":";
 
 # Use ASCII record separator as delimiter.
@@ -546,8 +548,20 @@ sub write_module_metadata {
         unlink $module_new_path_metadata;
         return 0;
     }
+    if (defined $metadata{$DATE_TIME_KEY}) {
+        print $metadata_handle $DATE_TIME_KEY . $METADATA_SEPARATOR . $metadata{$DATE_TIME_KEY} . "\n";
+    }
+    else {
+        ast_utilities::warn_output($program_name, "bad metadata: missing DATE_TIME_KEY");
+        close $metadata_handle;
+        unlink $module_new_path_metadata;
+        return 0;
+    }
     if (defined $metadata{$REPO_NAME_KEY}) {
         print $metadata_handle $REPO_NAME_KEY . $METADATA_SEPARATOR . $metadata{$REPO_NAME_KEY} . "\n";
+    }
+    if (defined $metadata{$REPO_REF_KEY}) {
+        print $metadata_handle $REPO_REF_KEY . $METADATA_SEPARATOR . $metadata{$REPO_REF_KEY} . "\n";
     }
     if (defined $metadata{$REPO_COMMIT_KEY}) {
         print $metadata_handle $REPO_COMMIT_KEY . $METADATA_SEPARATOR . $metadata{$REPO_COMMIT_KEY} . "\n";

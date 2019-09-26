@@ -7,6 +7,7 @@ use Exporter qw(import);
 use File::Basename qw(basename);
 use File::Path qw(make_path rmtree);
 use File::Temp qw(tempdir tempfile);
+use POSIX qw(strftime);
 use ast_tty;
 use ast_module_subsystem;
 use ast_utilities;
@@ -445,7 +446,9 @@ sub install_repo {
         $local_metadata{$ast_module_subsystem::SOURCE_KEY} = "repo";
         $local_metadata{$ast_module_subsystem::URI_KEY} = "${url}";
         $local_metadata{$ast_module_subsystem::REPO_NAME_KEY} = "${repo}";
+        $local_metadata{$ast_module_subsystem::REPO_REF_KEY} = "${ref_to_use}";
         $local_metadata{$ast_module_subsystem::REPO_COMMIT_KEY} = "${installed_commit_hash}";
+        $local_metadata{$ast_module_subsystem::DATE_TIME_KEY} = strftime("%Y-%m-%d %H:%M:%S", localtime time);
         # install the module!
         my $success = ast_module_subsystem::perform_install($module, $ast_path, $program_name,
                                               "${repo}-${installed_commit_hash_short}", 0, 0, 1, 0, \%local_metadata, 0);

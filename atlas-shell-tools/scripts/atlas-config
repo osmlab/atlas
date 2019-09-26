@@ -279,6 +279,7 @@ sub execute_command_install {
     }
     my $uri_abs = Cwd::realpath($module_to_install);
     $metadata{$ast_module_subsystem::URI_KEY} = "file://" . $uri_abs;
+    $metadata{$ast_module_subsystem::DATE_TIME_KEY} = POSIX::strftime("%Y-%m-%d %H:%M:%S", localtime time);
     my $success = ast_module_subsystem::perform_install($module_to_install, $ast_path, $program_name,
                                                         $alternate_name, $syminstall, $skip_install,
                                                         $force_install, $install_deactivated, \%metadata, $quiet);
