@@ -128,7 +128,7 @@ sub save_preset {
     my $preset_subfolder = File::Spec->catfile($ast_path, $PRESETS_FOLDER, $namespace, $command);
     make_path("$preset_subfolder", {
         verbose => 0,
-        mode => 0755
+        mode    => 0755
     });
     my $preset_file = File::Spec->catfile($preset_subfolder, $preset);
 
@@ -399,7 +399,7 @@ sub edit_preset {
     my $preset_subfolder = File::Spec->catfile($ast_path, $PRESETS_FOLDER, $namespace, $command);
     make_path("$preset_subfolder", {
         verbose => 0,
-        mode => 0755
+        mode    => 0755
     });
     my $preset_file = File::Spec->catfile($preset_subfolder, $preset);
 
@@ -439,7 +439,7 @@ sub edit_preset {
     my @editor = ast_utilities::get_editor();
 
     push @editor, "$tmpfile";
-    system { $editor[0] } @editor;
+    system {$editor[0]} @editor;
 
     open $handle, '<', "$tmpfile";
     open $stage_handle, '>', "$preset_stage_file";
@@ -494,7 +494,7 @@ sub edit_preset {
     push @command, "cp";
     push @command, "$preset_stage_file";
     push @command, "$preset_file";
-    system { $command[0] } @command;
+    system {$command[0]} @command;
     close $tmpdir;
     show_preset($ast_path, $program_name, $quiet, $preset, $command, $namespace);
 
@@ -538,7 +538,7 @@ sub copy_preset {
     push @command, "cp";
     push @command, "$source_file";
     push @command, "$dest_file";
-    system { $command[0] } @command;
+    system {$command[0]} @command;
 
     unless ($quiet) {
         print "Copied contents of preset ${bold_stdout}${src_preset}${reset_stdout} into new preset ${bold_stdout}${dest_preset}${reset_stdout}.\n";
@@ -612,7 +612,7 @@ sub read_preset {
     my $preset_file = File::Spec->catfile($preset_subfolder, $preset);
 
     unless (-f $preset_file) {
-        return ();
+        return();
     }
 
     my @options = ();
@@ -650,7 +650,7 @@ sub get_namespaces_array {
     my @filtered_namespaces = ();
     for my $found_namespace (@namespaces) {
         unless ($found_namespace eq '.' || $found_namespace eq '..'
-                || $found_namespace eq $CURRENT_NAMESPACE_FILE) {
+            || $found_namespace eq $CURRENT_NAMESPACE_FILE) {
             push @filtered_namespaces, $found_namespace;
         }
     }
@@ -719,7 +719,7 @@ sub create_namespace {
 
     make_path("$new_namespace_folder", {
         verbose => 0,
-        mode => 0755
+        mode    => 0755
     });
 
     unless ($quiet) {

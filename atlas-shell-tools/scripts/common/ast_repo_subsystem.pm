@@ -91,7 +91,7 @@ sub create_repo {
 
     make_path("$repo_subfolder", {
         verbose => 0,
-        mode => 0755
+        mode    => 0755
     });
 
     my $repo_config_file = File::Spec->catfile($repo_subfolder, $REPO_CONFIG);
@@ -161,7 +161,7 @@ sub edit_repo {
     # open the staging file in the user's editor
     my @editor = ast_utilities::get_editor();
     push @editor, "$staging_file";
-    system { $editor[0] } @editor;
+    system {$editor[0]} @editor;
 
     # confirm that the staging file is not malformed, i.e. it must have a valid URL and ref
     $url = read_single_config_variable_from_arbitrary_file($staging_file, 'url');
@@ -424,7 +424,7 @@ sub install_repo {
         return 0;
     }
 
-    my @find_command=(
+    my @find_command = (
         "find", ".",
         "-type", "f",
         "-name", "*-AST.jar",
@@ -448,10 +448,10 @@ sub install_repo {
         $local_metadata{$ast_module_subsystem::REPO_NAME_KEY} = "${repo}";
         $local_metadata{$ast_module_subsystem::REPO_REF_KEY} = "${ref_to_use}";
         $local_metadata{$ast_module_subsystem::REPO_COMMIT_KEY} = "${installed_commit_hash}";
-        $local_metadata{$ast_module_subsystem::DATE_TIME_KEY} = strftime("%Y-%m-%d %H:%M:%S", localtime time);
+        $local_metadata{$ast_module_subsystem::DATE_TIME_KEY} = strftime("%Y-%m-%d %H:%M:%S UTC", gmtime(time));
         # install the module!
         my $success = ast_module_subsystem::perform_install($module, $ast_path, $program_name,
-                                              "${repo}-${installed_commit_hash_short}", 0, 0, 1, 0, \%local_metadata, 0);
+            "${repo}-${installed_commit_hash_short}", 0, 0, 1, 0, \%local_metadata, 0);
 
         unless ($success) {
             ast_utilities::error_output($program_name, "repo install operation failed");
@@ -545,13 +545,13 @@ sub get_repo_settings {
     my $repo_subfolder = File::Spec->catfile($ast_path, $REPOS_FOLDER, $repo);
     unless (-d $repo_subfolder) {
         ast_utilities::error_output($program_name, "repo ${bold_stderr}${repo}${reset_stderr} does not exist");
-        return ();
+        return();
     }
 
     my $repo_config_file = File::Spec->catfile($repo_subfolder, $REPO_CONFIG);
     unless (-f $repo_config_file) {
         ast_utilities::error_output($program_name, "could not find config file for repo ${bold_stderr}${repo}${reset_stderr}");
-        return ();
+        return();
     }
 
     my @settings = ();

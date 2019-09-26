@@ -68,14 +68,14 @@ my $program_version = "$ast_utilities::ATLAS_SHELL_TOOLS_VERSION ($program_name 
 
 # logging definitions
 my %valid_levels = (
-    "ALL" => 1,
+    "ALL"   => 1,
     "TRACE" => 1,
     "DEBUG" => 1,
-    "INFO" => 1,
-    "WARN" => 1,
+    "INFO"  => 1,
+    "WARN"  => 1,
     "ERROR" => 1,
     "FATAL" => 1,
-    "OFF" => 1
+    "OFF"   => 1
 );
 my @valid_level_keys = keys %valid_levels;
 
@@ -108,7 +108,7 @@ sub show_submanpage_and_exit {
     else {
         push @command, "$program_name-$subpage";
     }
-    system { $command[0] } @command;
+    system {$command[0]} @command;
     exit 0;
 }
 
@@ -252,12 +252,12 @@ sub execute_command_install {
     my $alternate_name = "";
     my $help_flag;
     GetOptions(
-        'symlink|s' => \$syminstall,
+        'symlink|s'   => \$syminstall,
         'deactivated' => \$install_deactivated,
-        'force' => \$force_install,
-        'skip' => \$skip_install,
-        'name=s' => \$alternate_name,
-        'help|h' => \$help_flag
+        'force'       => \$force_install,
+        'skip'        => \$skip_install,
+        'name=s'      => \$alternate_name,
+        'help|h'      => \$help_flag
     ) or ast_utilities::getopt_failure_and_exit($program_name, "install");
 
     if (defined $help_flag) {
@@ -279,10 +279,11 @@ sub execute_command_install {
     }
     my $uri_abs = Cwd::realpath($module_to_install);
     $metadata{$ast_module_subsystem::URI_KEY} = "file://" . $uri_abs;
-    $metadata{$ast_module_subsystem::DATE_TIME_KEY} = POSIX::strftime("%Y-%m-%d %H:%M:%S", localtime time);
+    $metadata{$ast_module_subsystem::DATE_TIME_KEY} = POSIX::strftime("%Y-%m-%d %H:%M:%S UTC", gmtime(time));
     my $success = ast_module_subsystem::perform_install($module_to_install, $ast_path, $program_name,
-                                                        $alternate_name, $syminstall, $skip_install,
-                                                        $force_install, $install_deactivated, \%metadata, $quiet);
+        $alternate_name, $syminstall, $skip_install,
+        $force_install, $install_deactivated, \%metadata, $quiet);
+
     unless ($success) {
         return 0;
     }
@@ -291,18 +292,25 @@ sub execute_command_install {
 }
 
 sub execute_command_list {
+    my $current = 0;
     my $help_flag;
+    my $verbose = 0;
     GetOptions(
-        'help|h' => \$help_flag
+        'current|c' => \$current,
+        'help|h'    => \$help_flag,
+        'verbose|v' => \$verbose
     ) or ast_utilities::getopt_failure_and_exit($program_name, "list");
 
     if (defined $help_flag) {
         show_submanpage_and_exit('list');
     }
 
+    my $modules_folder = File::Spec->catfile($ast_path, $ast_module_subsystem::MODULES_FOLDER);
+
     my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
     my %symlinks = ast_module_subsystem::get_module_to_symlink_hash($ast_path);
     my %targets = ast_module_subsystem::get_module_to_target_hash($ast_path);
+    my %metadata = ast_module_subsystem::get_module_to_metadata_hash($ast_path);
 
     unless (keys %modules) {
         ast_utilities::error_output($program_name . ": list", "found no installed modules");
@@ -310,14 +318,30 @@ sub execute_command_list {
         return 0;
     }
 
-    print "${bold_stdout}Installed modules:${reset_stdout}\n\n";
+    if ($current) {
+        print "${bold_stdout}Currently active module:${reset_stdout}\n\n";
+    }
+    else {
+        print "${bold_stdout}Installed modules:${reset_stdout}\n\n";
+    }
     # Sort the module names alphabetically. We use 'lc' to convert them to
     # lowercase, since by default 'sort' uses ASCII ordering.
     foreach my $module (sort {lc $a cmp lc $b} keys %modules) {
         my $status = $modules{$module};
         my $symlink = $symlinks{$module};
         my $target = $targets{$module};
+        my %module_metadata;
+        if (defined $metadata{$module}) {
+            %module_metadata = %{$metadata{$module}};
+        }
+        else {
+            %module_metadata = ();
+        }
         my $display = '    ';
+
+        if ($current && $status != 1) {
+            next;
+        }
 
         # if activated, place a star next to the name
         if ($status == 1) {
@@ -337,7 +361,7 @@ sub execute_command_list {
         }
 
         # show the module name!
-        $display = $display . " ${module}${reset_stdout}";
+        $display = $display . " ${bold_stdout}${module}${reset_stdout}";
 
         # show a big message if the symlink is broken, blink if also activated
         if ($symlink == $ast_module_subsystem::BROKEN_SYMLINK) {
@@ -355,8 +379,19 @@ sub execute_command_list {
         }
 
         print "$display\n";
+
+        if ($verbose) {
+            if (%module_metadata) {
+                foreach my $metadata_key (sort {lc $a cmp lc $b} keys %module_metadata) {
+                    print "          ${metadata_key}: $module_metadata{$metadata_key}\n";
+                }
+            }
+            print "\n";
+        }
     }
-    print "\n";
+    unless ($verbose) {
+        print "\n";
+    }
 
     return 1;
 }
@@ -446,8 +481,8 @@ sub execute_command_preset {
         'help|h' => \$help_flag,
         # This callback occurs the first time we see a non-option argument.
         # In our case, this will be the subcommand.
-        "<>" => sub {
-            my($arg) = @_;
+        "<>"     => sub {
+            my ($arg) = @_;
             if ($arg =~ m{^-}) {
                 unless ($arg eq '-') {
                     die "FATAL error: unhandled global option $arg";
@@ -618,7 +653,7 @@ sub execute_command_repo {
     my $ref_flag = '';
     GetOptions(
         'help|h' => \$help_flag,
-        'ref=s' => \$ref_flag
+        'ref=s'  => \$ref_flag
     ) or ast_utilities::getopt_failure_and_exit($program_name, "repo");
 
     if (defined $help_flag) {
@@ -866,8 +901,8 @@ sub execute_command_uninstall {
     my $forceflag = 0;
     my $help_flag;
     GetOptions(
-        'all|a' => \$allflag,
-        'force' => \$forceflag,
+        'all|a'  => \$allflag,
+        'force'  => \$forceflag,
         'help|h' => \$help_flag
     ) or ast_utilities::getopt_failure_and_exit($program_name, "uninstall");
 
@@ -954,15 +989,18 @@ my $help_argument;
 my $allow_run_as_root;
 Getopt::Long::Configure(qw(no_ignore_case_always));
 GetOptions(
-    "no-pager" => \$skip_paging,
-    "help|h:s" => \$help_argument,
-    "version|V" => sub { print "$program_version\n"; exit 0; },
-    "quiet|q" => \$quiet,
+    "no-pager"          => \$skip_paging,
+    "help|h:s"          => \$help_argument,
+    "version|V"         => sub {
+        print "$program_version\n";
+        exit 0;
+    },
+    "quiet|q"           => \$quiet,
     "allow-run-as-root" => \$allow_run_as_root,
     # This callback occurs the first time we see a non-option argument.
     # In our case, this will be the subcommand.
-    "<>" => sub {
-        my($arg) = @_;
+    "<>"                => sub {
+        my ($arg) = @_;
         if ($arg =~ m{^-}) {
             unless ($arg eq '-') {
                 die "FATAL error: unhandled global option $arg";

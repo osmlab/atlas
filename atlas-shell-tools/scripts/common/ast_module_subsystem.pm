@@ -101,7 +101,7 @@ sub get_subcommand_to_class_hash {
     my $ast_path = shift;
 
     my $index_path = File::Spec->catfile($ast_path, $ACTIVE_INDEX_PATH);
-    open my $index_fileIN, '<', $index_path or return ();
+    open my $index_fileIN, '<', $index_path or return();
     my %subcommand_to_class = ();
 
     while (<$index_fileIN>) {
@@ -123,7 +123,7 @@ sub get_subcommand_to_description_hash {
     my $ast_path = shift;
 
     my $index_path = File::Spec->catfile($ast_path, $ACTIVE_INDEX_PATH);
-    open my $index_fileIN, '<', $index_path or return ();
+    open my $index_fileIN, '<', $index_path or return();
     my %subcommand_to_description = ();
 
     while (<$index_fileIN>) {
@@ -145,7 +145,7 @@ sub get_subcommand_to_description_hash {
 sub get_module_to_status_hash {
     my $ast_path = shift;
 
-    my @find_command=(
+    my @find_command = (
         "find", "${ast_path}/${MODULES_FOLDER}",
         "-maxdepth", "1",
         "(", "-name", "*$MODULE_SUFFIX", "-o", "-name", "*$DEACTIVATED_SUFFIX", ")",
@@ -191,7 +191,7 @@ sub get_module_to_status_hash {
 sub get_module_to_symlink_hash {
     my $ast_path = shift;
 
-    my @find_command=(
+    my @find_command = (
         "find", "${ast_path}/${MODULES_FOLDER}",
         "-maxdepth", "1",
         "(", "-name", "*$MODULE_SUFFIX", "-o", "-name", "*$DEACTIVATED_SUFFIX", ")",
@@ -238,7 +238,7 @@ sub get_module_to_symlink_hash {
 sub get_module_to_target_hash {
     my $ast_path = shift;
 
-    my @find_command=(
+    my @find_command = (
         "find", "${ast_path}/${MODULES_FOLDER}",
         "-maxdepth", "1",
         "(", "-name", "*$MODULE_SUFFIX", "-o", "-name", "*$DEACTIVATED_SUFFIX", ")",
@@ -279,7 +279,7 @@ sub get_module_to_target_hash {
 sub get_module_to_metadata_hash {
     my $ast_path = shift;
 
-    my @find_command=(
+    my @find_command = (
         "find", "${ast_path}/${MODULES_FOLDER}",
         "-maxdepth", "1",
         "-name", "*$METADATA_SUFFIX",
@@ -466,11 +466,11 @@ sub perform_install {
         push @command, "$module_to_install";
         if ($install_deactivated) {
             push @command, "$module_new_path_deactivated";
-            system { $command[0] } @command;
+            system {$command[0]} @command;
         }
         else {
             push @command, "$module_new_path";
-            system { $command[0] } @command;
+            system {$command[0]} @command;
         }
         $exitcode = $? >> 8;
     }
@@ -507,66 +507,6 @@ sub perform_install {
             print "Module ${green_stdout}${bold_stdout}${module_basename}${reset_stdout} installed.\n";
         }
     }
-
-    return 1;
-}
-
-# Write a metadata hash for a module.
-# Params:
-#   $modules_folder: the path to the module folder
-#   $module_basename: the module basename
-#   $metadata_ref: a reference to the metadata hash
-#   $program_name: the name of the calling program
-# Return: 1 on success, 0 on failure
-sub write_module_metadata {
-    my $modules_folder = shift;
-    my $module_basename = shift;
-    my $metadata_ref = shift;
-    my $program_name = shift;
-
-    my %metadata = %{$metadata_ref};
-
-    my $module_new_path_metadata =
-        File::Spec->catfile($modules_folder, $module_basename . $METADATA_SUFFIX);
-
-    open my $metadata_handle, '>', "$module_new_path_metadata";
-    if (defined $metadata{$SOURCE_KEY}) {
-        print $metadata_handle $SOURCE_KEY . $METADATA_SEPARATOR . $metadata{$SOURCE_KEY} . "\n";
-    }
-    else {
-        ast_utilities::warn_output($program_name, "bad metadata: missing SOURCE_KEY");
-        close $metadata_handle;
-        unlink $module_new_path_metadata;
-        return 0;
-    }
-    if (defined $metadata{$URI_KEY}) {
-        print $metadata_handle $URI_KEY . $METADATA_SEPARATOR . $metadata{$URI_KEY} . "\n";
-    }
-    else {
-        ast_utilities::warn_output($program_name, "bad metadata: missing URI_KEY");
-        close $metadata_handle;
-        unlink $module_new_path_metadata;
-        return 0;
-    }
-    if (defined $metadata{$DATE_TIME_KEY}) {
-        print $metadata_handle $DATE_TIME_KEY . $METADATA_SEPARATOR . $metadata{$DATE_TIME_KEY} . "\n";
-    }
-    else {
-        ast_utilities::warn_output($program_name, "bad metadata: missing DATE_TIME_KEY");
-        close $metadata_handle;
-        unlink $module_new_path_metadata;
-        return 0;
-    }
-    if (defined $metadata{$REPO_NAME_KEY}) {
-        print $metadata_handle $REPO_NAME_KEY . $METADATA_SEPARATOR . $metadata{$REPO_NAME_KEY} . "\n";
-    }
-    if (defined $metadata{$REPO_REF_KEY}) {
-        print $metadata_handle $REPO_REF_KEY . $METADATA_SEPARATOR . $metadata{$REPO_REF_KEY} . "\n";
-    }
-    if (defined $metadata{$REPO_COMMIT_KEY}) {
-        print $metadata_handle $REPO_COMMIT_KEY . $METADATA_SEPARATOR . $metadata{$REPO_COMMIT_KEY} . "\n";
-    }
-    close $metadata_handle;
 
     return 1;
 }
@@ -759,7 +699,7 @@ sub generate_active_module_index {
         print "Generating new index...\n";
     }
 
-    system { $java_command[0] } @java_command;
+    system {$java_command[0]} @java_command;
     my $exitcode = $? >> 8;
     unless ($exitcode == 0) {
         ast_utilities::error_output($program_name, 'could not generate index');
@@ -790,6 +730,66 @@ sub remove_active_module_index {
     unless ($quiet) {
         print "Cleared index.\n";
     }
+}
+
+# Write a metadata hash for a module.
+# Params:
+#   $modules_folder: the path to the module folder
+#   $module_basename: the module basename
+#   $metadata_ref: a reference to the metadata hash
+#   $program_name: the name of the calling program
+# Return: 1 on success, 0 on failure
+sub write_module_metadata {
+    my $modules_folder = shift;
+    my $module_basename = shift;
+    my $metadata_ref = shift;
+    my $program_name = shift;
+
+    my %metadata = %{$metadata_ref};
+
+    my $module_new_path_metadata =
+        File::Spec->catfile($modules_folder, $module_basename . $METADATA_SUFFIX);
+
+    open my $metadata_handle, '>', "$module_new_path_metadata";
+    if (defined $metadata{$SOURCE_KEY}) {
+        print $metadata_handle $SOURCE_KEY . $METADATA_SEPARATOR . $metadata{$SOURCE_KEY} . "\n";
+    }
+    else {
+        ast_utilities::warn_output($program_name, "bad metadata: missing SOURCE_KEY");
+        close $metadata_handle;
+        unlink $module_new_path_metadata;
+        return 0;
+    }
+    if (defined $metadata{$URI_KEY}) {
+        print $metadata_handle $URI_KEY . $METADATA_SEPARATOR . $metadata{$URI_KEY} . "\n";
+    }
+    else {
+        ast_utilities::warn_output($program_name, "bad metadata: missing URI_KEY");
+        close $metadata_handle;
+        unlink $module_new_path_metadata;
+        return 0;
+    }
+    if (defined $metadata{$DATE_TIME_KEY}) {
+        print $metadata_handle $DATE_TIME_KEY . $METADATA_SEPARATOR . $metadata{$DATE_TIME_KEY} . "\n";
+    }
+    else {
+        ast_utilities::warn_output($program_name, "bad metadata: missing DATE_TIME_KEY");
+        close $metadata_handle;
+        unlink $module_new_path_metadata;
+        return 0;
+    }
+    if (defined $metadata{$REPO_NAME_KEY}) {
+        print $metadata_handle $REPO_NAME_KEY . $METADATA_SEPARATOR . $metadata{$REPO_NAME_KEY} . "\n";
+    }
+    if (defined $metadata{$REPO_REF_KEY}) {
+        print $metadata_handle $REPO_REF_KEY . $METADATA_SEPARATOR . $metadata{$REPO_REF_KEY} . "\n";
+    }
+    if (defined $metadata{$REPO_COMMIT_KEY}) {
+        print $metadata_handle $REPO_COMMIT_KEY . $METADATA_SEPARATOR . $metadata{$REPO_COMMIT_KEY} . "\n";
+    }
+    close $metadata_handle;
+
+    return 1;
 }
 
 # Perl modules must return a value. Returning a value perl considers "truthy"
