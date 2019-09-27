@@ -22,19 +22,21 @@
 
 .SH "NAME"
 .sp
-atlas\-config\-list \-- List all installed Atlas Shell Tools modules and module statuses
+atlas\-config\-list \-\- List installed Atlas Shell Tools modules and module statuses
 
 .SH "SYNOPSIS"
 .sp
 .nf
 \fIatlas\-config\fR \fIlist\fR \-\-help
-\fIatlas\-config\fR \fIlist\fR
+\fIatlas\-config\fR \fIlist\fR [\-\-current] [\-\-verbose]
 .fi
 
 .SH "DESCRIPTION"
 .sp
-List all installed modules with additional contextual information. This listing
-is also known as the module workspace.
+List installed modules with additional contextual information. This listing
+is also known as the module workspace. The \fB\-\-verbose\fR option can be used to
+display module metadata if present. The \fB\-\-current\fR option can be used to view
+only the current activated module, if there is one.
 
 A \fB*\fR next to a module denotes that the module is activated. Symlinked
 modules display their targets using the familiar arrow notation (\fB\->\fR). If a
@@ -45,9 +47,21 @@ module name.
 .sp
 
 .PP
+\fB\-\-current\fR, \fB-c\fR
+.RS 4
+Show only the currently activated module, if one is activated.
+.RE
+
+.PP
 \fB\-\-help\fR
 .RS 4
 Show this help menu.
+.RE
+
+.PP
+\fB\-\-verbose\fR, \fB-v\fR
+.RS 4
+Show module metadata information below each module listing.
 .RE
 
 .SH "SEE ALSO"

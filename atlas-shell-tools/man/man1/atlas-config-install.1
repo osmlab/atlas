@@ -22,24 +22,21 @@
 
 .SH "NAME"
 .sp
-atlas\-config\-install \-- Install a new Atlas Shell Tools module
+atlas\-config\-install \-\- Install a new Atlas Shell Tools module from a local JAR
 
 .SH "SYNOPSIS"
 .sp
 .nf
 \fIatlas\-config\fR \fIinstall\fR \-\-help
-\fIatlas\-config\fR \fIinstall\fR \-\-repo=<repo>
 \fIatlas\-config\fR \fIinstall\fR [\-\-symlink] [\-\-force] [\-\-skip] [\-\-deactivated]
                      [\-\-name=<\fIname\fR>] <\fIJARfile\fR>
 .fi
 
 .SH "DESCRIPTION"
 .sp
-Installs and activates a given <\fIJARfile\fR> as a new \fBatlas\fR module, or installs
-a module from the repo specified by \fB\-\-repo\fR. This will deactivate any currently
-activated module. When the \fB\-\-repo\fR option is specified, \fBatlas-config-install\fR(1)
-ignores all other command line options and installs the repo using its repo
-configuration.
+Installs and activates a given <\fIJARfile\fR> as a new \fBatlas\fR module.
+This will deactivate any currently activated module. If you are trying to install
+a module from a specific repo, please see \fBatlas-config-repo\fR(1) for more information.
 
 When installing directly from a <\fIJARfile\fR>, the \fB\-\-symlink\fR option
 can be enabled to install using a symbolic link. This is great for cases where
@@ -86,13 +83,6 @@ Install a module using a custom name.
 .RE
 
 .PP
-\fB\-\-repo\fR=<repo>
-.RS 4
-Install a module from a repo. This is equivalent to the 'install' directive of
-\fBatlas\-config\-repo\fR(1).
-.RE
-
-.PP
 \fB\-\-skip\fR
 .RS 4
 Skip installation when re-installing an existing module.
@@ -117,12 +107,6 @@ Install a symlinked module but do not activate it:
 .sp
 .RS 4
 $ atlas\-config install \-\-symlink \-\-deactivated ~/example.jar
-.RE
-.sp
-Install a module from a repo called 'MyRepo':
-.sp
-.RS 4
-$ atlas\-config install \-\-repo MyRepo
 .RE
 
 .SH "SEE ALSO"

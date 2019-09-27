@@ -22,7 +22,7 @@
 
 .SH "NAME"
 .sp
-atlas\-config\-preset \-- Create and manage Atlas Shell Tools command presets
+atlas\-config\-preset \-\- Create and manage Atlas Shell Tools command presets
 
 .SH "SYNOPSIS"
 .sp
@@ -41,7 +41,7 @@ atlas\-config\-preset \-- Create and manage Atlas Shell Tools command presets
 \fBatlas\-config\-preset\fR(1) provides a more granular preset management interface
 than the basic \fBatlas\fR(1) options (\fB\-\-preset\fR, \fB\-\-save\-preset\fR).
 It can handle more complex tasks like editing a preset in place, or managing the
-preset namespaces. For full details on the workings on \fBatlas\-config\-preset\fR(1),
+preset namespaces. For full details on the workings of \fBatlas\-config\-preset\fR(1),
 see the \fBTier 2\fR and \fBTier 3\fR sections in \fBatlas\-presets\fR(7).
 
 .SH "OPTIONS"
@@ -70,7 +70,7 @@ exist, else the copy will fail.
 .RS 4
 Edit preset <name> for <command>. If <name> does not exist, then it will be
 created when the edit is successfully saved. The default preset editor is \fBvim\fR,
-but this can be changed by setting the \fBEDITOR\fR environment variable.
+but this can be changed by setting the \fBATLAS_SHELL_TOOLS_EDITOR\fR environment variable.
 .RE
 
 .PP

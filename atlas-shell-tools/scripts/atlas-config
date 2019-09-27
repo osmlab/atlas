@@ -68,14 +68,14 @@ my $program_version = "$ast_utilities::ATLAS_SHELL_TOOLS_VERSION ($program_name 
 
 # logging definitions
 my %valid_levels = (
-    "ALL" => 1,
+    "ALL"   => 1,
     "TRACE" => 1,
     "DEBUG" => 1,
-    "INFO" => 1,
-    "WARN" => 1,
+    "INFO"  => 1,
+    "WARN"  => 1,
     "ERROR" => 1,
     "FATAL" => 1,
-    "OFF" => 1
+    "OFF"   => 1
 );
 my @valid_level_keys = keys %valid_levels;
 
@@ -108,7 +108,7 @@ sub show_submanpage_and_exit {
     else {
         push @command, "$program_name-$subpage";
     }
-    system { $command[0] } @command;
+    system {$command[0]} @command;
     exit 0;
 }
 
@@ -249,30 +249,19 @@ sub execute_command_install {
     my $force_install = 0;
     my $skip_install = 0;
     my $install_deactivated = 0;
-    my $alternate_name;
+    my $alternate_name = "";
     my $help_flag;
-    my $repo;
     GetOptions(
-        'symlink|s' => \$syminstall,
+        'symlink|s'   => \$syminstall,
         'deactivated' => \$install_deactivated,
-        'force' => \$force_install,
-        'skip' => \$skip_install,
-        'name=s' => \$alternate_name,
-        'repo=s' => \$repo,
-        'help|h' => \$help_flag
+        'force'       => \$force_install,
+        'skip'        => \$skip_install,
+        'name=s'      => \$alternate_name,
+        'help|h'      => \$help_flag
     ) or ast_utilities::getopt_failure_and_exit($program_name, "install");
 
     if (defined $help_flag) {
         show_submanpage_and_exit('install');
-    }
-
-    if (defined $repo) {
-        my $success = ast_repo_subsystem::install_repo($ast_path, $program_name, $quiet, $repo, '');
-        unless ($success) {
-            ast_utilities::error_output($program_name . ": install", "could not install repo ${bold_stderr}${repo}${reset_stderr}");
-            return 0;
-        }
-        return 1;
     }
 
     my $module_to_install = shift @ARGV;
@@ -281,129 +270,47 @@ sub execute_command_install {
         ast_utilities::getopt_failure_and_exit($program_name, "install");
     }
 
-    unless (-f $module_to_install || -l $module_to_install) {
-        ast_utilities::error_output($program_name . ": install", "no such file ${bold_stderr}${module_to_install}${reset_stderr}");
-        return 0;
-    }
-
-    my $modules_folder = File::Spec->catfile($ast_path, $ast_module_subsystem::MODULES_FOLDER);
-
-    # Create the module name, respecting the --name flag if present.
-    my $module_basename;
-    if (defined $alternate_name) {
-        $module_basename = $alternate_name . $ast_module_subsystem::MODULE_SUFFIX;
-    }
-    else {
-        $module_basename = basename($module_to_install);
-    }
-    # TODO: figure out how to interpolate $MODULE_SUFFIX into this regex
-    unless ($module_basename =~ /.*\.jar$/) {
-        ast_utilities::error_output($program_name . ": install", "module must end with '.jar' extension");
-        return 0;
-    }
-    $module_basename =~ s{$ast_module_subsystem::MODULE_SUFFIX}{};
-
-    # Handle the case where the module is already installed
-    my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
-    if (defined $modules{$module_basename}) {
-        ast_utilities::warn_output($program_name . ": install", "module ${bold_stderr}${module_basename}${reset_stderr} is already installed");
-        if ($skip_install) {
-            print STDERR "Skipping installation.\n";
-            return 0;
-        }
-        unless ($force_install) {
-            my $overwrite = ast_utilities::prompt_yn("Overwrite?");
-            unless ($overwrite) {
-                print STDERR "Skipping installation.\n";
-                return 0;
-            }
-        }
-        ast_utilities::warn_output($program_name . ": install", "overwriting ${bold_stderr}${module_basename}${reset_stderr}");
-    }
-
-    # Construct the new module paths.
-    # We create a path for both an activated and deactivated version.
-    my $module_new_path =
-        File::Spec->catfile($modules_folder, $module_basename . $ast_module_subsystem::MODULE_SUFFIX);
-    my $module_new_path_deactivated =
-        File::Spec->catfile($modules_folder, $module_basename . $ast_module_subsystem::DEACTIVATED_MODULE_SUFFIX);
-
-    # If we made it here we are go to overwrite, so clean up any matching existing modules.
-    unlink $module_new_path;
-    unlink $module_new_path_deactivated;
-
-    my $exitcode;
+    my %metadata;
     if ($syminstall) {
-        my $module_to_install_abs = Cwd::realpath($module_to_install);
-        my $module_to_install_rel = File::Spec->abs2rel($module_to_install_abs, $modules_folder);
-
-        if ($install_deactivated) {
-            symlink($module_to_install_rel, $module_new_path_deactivated);
-        }
-        else {
-            symlink($module_to_install_rel, $module_new_path);
-        }
-        $exitcode = $? >> 8;
+        $metadata{$ast_module_subsystem::SOURCE_KEY} = "symlink";
     }
     else {
-        my @command = ();
-        push @command, "cp";
-        push @command, "$module_to_install";
-        if ($install_deactivated) {
-            push @command, "$module_new_path_deactivated";
-            system { $command[0] } @command;
-        }
-        else {
-            push @command, "$module_new_path";
-            system { $command[0] } @command;
-        }
-        $exitcode = $? >> 8;
+        $metadata{$ast_module_subsystem::SOURCE_KEY} = "local_file";
     }
+    my $uri_abs = Cwd::realpath($module_to_install);
+    $metadata{$ast_module_subsystem::URI_KEY} = "file://" . $uri_abs;
+    $metadata{$ast_module_subsystem::DATE_TIME_KEY} = POSIX::strftime("%Y-%m-%d %H:%M:%S UTC", gmtime(time));
+    my $success = ast_module_subsystem::perform_install($module_to_install, $ast_path, $program_name,
+        $alternate_name, $syminstall, $skip_install,
+        $force_install, $install_deactivated, \%metadata, $quiet);
 
-    if ($exitcode) {
-        print STDERR "${red_stderr}${bold_stderr}Installation failed.${reset_stderr} Operation exited with $exitcode.\n";
+    unless ($success) {
         return 0;
-    }
-    else {
-        unless ($install_deactivated) {
-            my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
-            foreach my $module (keys %modules) {
-                if ($modules{$module} == $ast_module_subsystem::ACTIVATED
-                    && $module ne $module_basename) {
-                    ast_module_subsystem::perform_deactivate($module, $ast_path, $program_name, $quiet);
-                }
-            }
-        }
-
-        unless($install_deactivated) {
-            ast_module_subsystem::remove_active_module_index($ast_path, $program_name, $quiet);
-            my $success = ast_module_subsystem::generate_active_module_index($ast_path, $program_name, $quiet, 0);
-            unless ($success) {
-                ast_utilities::warn_output($program_name . ": install", "partial installation may not function properly");
-            }
-        }
-
-        unless ($quiet) {
-            print "Module ${green_stdout}${bold_stdout}${module_basename}${reset_stdout} installed.\n";
-        }
     }
 
     return 1;
 }
 
 sub execute_command_list {
+    my $current = 0;
     my $help_flag;
+    my $verbose = 0;
     GetOptions(
-        'help|h' => \$help_flag
+        'current|c' => \$current,
+        'help|h'    => \$help_flag,
+        'verbose|v' => \$verbose
     ) or ast_utilities::getopt_failure_and_exit($program_name, "list");
 
     if (defined $help_flag) {
         show_submanpage_and_exit('list');
     }
 
+    my $modules_folder = File::Spec->catfile($ast_path, $ast_module_subsystem::MODULES_FOLDER);
+
     my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
     my %symlinks = ast_module_subsystem::get_module_to_symlink_hash($ast_path);
     my %targets = ast_module_subsystem::get_module_to_target_hash($ast_path);
+    my %metadata = ast_module_subsystem::get_module_to_metadata_hash($ast_path);
 
     unless (keys %modules) {
         ast_utilities::error_output($program_name . ": list", "found no installed modules");
@@ -411,14 +318,30 @@ sub execute_command_list {
         return 0;
     }
 
-    print "${bold_stdout}Installed modules:${reset_stdout}\n\n";
+    if ($current) {
+        print "${bold_stdout}Currently active module:${reset_stdout}\n\n";
+    }
+    else {
+        print "${bold_stdout}Installed modules:${reset_stdout}\n\n";
+    }
     # Sort the module names alphabetically. We use 'lc' to convert them to
     # lowercase, since by default 'sort' uses ASCII ordering.
     foreach my $module (sort {lc $a cmp lc $b} keys %modules) {
         my $status = $modules{$module};
         my $symlink = $symlinks{$module};
         my $target = $targets{$module};
+        my %module_metadata;
+        if (defined $metadata{$module}) {
+            %module_metadata = %{$metadata{$module}};
+        }
+        else {
+            %module_metadata = ();
+        }
         my $display = '    ';
+
+        if ($current && $status != 1) {
+            next;
+        }
 
         # if activated, place a star next to the name
         if ($status == 1) {
@@ -438,7 +361,7 @@ sub execute_command_list {
         }
 
         # show the module name!
-        $display = $display . " ${module}${reset_stdout}";
+        $display = $display . " ${bold_stdout}${module}${reset_stdout}";
 
         # show a big message if the symlink is broken, blink if also activated
         if ($symlink == $ast_module_subsystem::BROKEN_SYMLINK) {
@@ -456,8 +379,19 @@ sub execute_command_list {
         }
 
         print "$display\n";
+
+        if ($verbose) {
+            if (%module_metadata) {
+                foreach my $metadata_key (sort {lc $a cmp lc $b} keys %module_metadata) {
+                    print "          ${metadata_key}: $module_metadata{$metadata_key}\n";
+                }
+            }
+            print "\n";
+        }
     }
-    print "\n";
+    unless ($verbose) {
+        print "\n";
+    }
 
     return 1;
 }
@@ -547,8 +481,8 @@ sub execute_command_preset {
         'help|h' => \$help_flag,
         # This callback occurs the first time we see a non-option argument.
         # In our case, this will be the subcommand.
-        "<>" => sub {
-            my($arg) = @_;
+        "<>"     => sub {
+            my ($arg) = @_;
             if ($arg =~ m{^-}) {
                 unless ($arg eq '-') {
                     die "FATAL error: unhandled global option $arg";
@@ -719,7 +653,7 @@ sub execute_command_repo {
     my $ref_flag = '';
     GetOptions(
         'help|h' => \$help_flag,
-        'ref=s' => \$ref_flag
+        'ref=s'  => \$ref_flag
     ) or ast_utilities::getopt_failure_and_exit($program_name, "repo");
 
     if (defined $help_flag) {
@@ -967,8 +901,8 @@ sub execute_command_uninstall {
     my $forceflag = 0;
     my $help_flag;
     GetOptions(
-        'all|a' => \$allflag,
-        'force' => \$forceflag,
+        'all|a'  => \$allflag,
+        'force'  => \$forceflag,
         'help|h' => \$help_flag
     ) or ast_utilities::getopt_failure_and_exit($program_name, "uninstall");
 
@@ -1055,15 +989,18 @@ my $help_argument;
 my $allow_run_as_root;
 Getopt::Long::Configure(qw(no_ignore_case_always));
 GetOptions(
-    "no-pager" => \$skip_paging,
-    "help|h:s" => \$help_argument,
-    "version|V" => sub { print "$program_version\n"; exit 0; },
-    "quiet|q" => \$quiet,
+    "no-pager"          => \$skip_paging,
+    "help|h:s"          => \$help_argument,
+    "version|V"         => sub {
+        print "$program_version\n";
+        exit 0;
+    },
+    "quiet|q"           => \$quiet,
     "allow-run-as-root" => \$allow_run_as_root,
     # This callback occurs the first time we see a non-option argument.
     # In our case, this will be the subcommand.
-    "<>" => sub {
-        my($arg) = @_;
+    "<>"                => sub {
+        my ($arg) = @_;
         if ($arg =~ m{^-}) {
             unless ($arg eq '-') {
                 die "FATAL error: unhandled global option $arg";

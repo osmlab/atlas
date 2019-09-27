@@ -22,7 +22,7 @@
 
 .SH "NAME"
 .sp
-atlas\-config\-repo \-- Register and manage Atlas Shell Tools repositories
+atlas\-config\-repo \-\- Register and manage Atlas Shell Tools repositories
 
 .SH "SYNOPSIS"
 .sp
@@ -39,7 +39,123 @@ atlas\-config\-repo \-- Register and manage Atlas Shell Tools repositories
 
 .SH "DESCRIPTION"
 .sp
-TODO
+\fBatlas\-config\-repo\fR(1) provides an interface for managing repo objects (By repo,
+we simply mean any \fBgit\fR(1) repository that contains Atlas Shell Tools command
+implementations). Once a new repo object has been registered using \fIadd\fR,
+new modules can be installed from the repo using the \fIinstall\fR directive.
+This makes it easy to fetch the newest versions of Atlas Shell Tools commands and
+manage their multiple sources. Additional directives facilitate more advanced use
+cases. See the \fBDIRECTIVES\fR section for details.
+.sp
+For module installation, \fBatlas\-config\-repo\fR(1) uses the default \fBbuild.gradle\fR
+of the referenced repo, but with a special injected configuration designed to build a fat
+JAR that will work with Atlas Shell Tools. See the \fIinstall\fR directive for more details
+on this process. Additionally, \fBatlas\-config\-repo\fR(1) provides some other directives to
+manipulate this configuration.
+.sp
+Also note that registering new repos with \fIadd\fR does not actually save the referenced
+repository on your machine. Rather it simply stores some metadata (which we refer to as a repo
+object) that is used to clone the referenced repo at install\-time. The clone is saved in
+a temporary location and is removed when module installation completes.
+
+.SH "DIRECTIVES"
+\fBatlas\-config\-repo\fR(1) exposes its interface through various directives,
+detailed below.
+.sp
+
+.PP
+\fIadd\fR
+.RS 4
+Add a new repo object with a given <repo\-name>, \fBgit\fR(1) remote <URL>, and an
+optional default [ref]. Here, [ref] is a \fBgit\fR(1) ref (e.g. a branch name, a tag, or
+even a commit hash). If no explicit [ref] is provided, \fIadd\fR defaults to 'master'. The ref
+associated with a repo object is used by \fIinstall\fR as the default. See \fIinstall\fR for more
+information. Note that for <URL>, you can use any git\-clonable URL, i.e. an https:// URL, a file://
+URL, or even a local path like /Users/you/somerepo.
+.RE
+
+.PP
+\fIadd\-gradle\-exclude\fR
+.RS 4
+Add an excluded <package> to repo <repo\-name>. When the \fIinstall\fR directive
+builds a module, it is using Gradle (with a custom Atlas Shell Tools configuration) to create a
+fat JAR file for that module. Excluded packages are removed from the Atlas Shell Tools Gradle
+configuration using Gradle's 'exclude group:' directive. The 'exclude module:' directive is
+not currently supported.
+.RE
+
+.PP
+\fIadd\-gradle\-skip\fR
+.RS 4
+Add a skipped <task> to repo <repo\-name>. When the \fIinstall\fR directive
+builds a module, it is using Gradle (with a custom Atlas Shell Tools configuration) to create a
+fat JAR file for that module. By default, \fIinstall\fR is running a \fB./gradlew clean build\fR.
+Adding skipped tasks effectively adds \fB\-x <task>\fR arguments to the above command.
+.RE
+
+.PP
+\fIedit\fR
+.RS 4
+Edit the configuration for repo <repo\-name> if it exists. The default repo editor
+is \fBvim\fR, but this can be changed by setting the \fBATLAS_SHELL_TOOLS_EDITOR\fR
+environment variable.
+.RE
+
+.PP
+\fIinstall\fR
+.RS 4
+Install a module from a repo object with name <repo\-name>. This command will clone
+the repo referenced by <repo\-name>'s URL to a temporary location. Next, it will check
+out the ref specified in <repo\-name>'s config or use the override provided by \-\-ref
+if present. It will then initiate a Gradle build, using the repo's \fBbuild.gradle\fR
+file with a custom injected Atlas Shell Tools configuration. Finally, it will install
+and activate the freshly built module. When the install finishes, the cloned repo will
+be removed.
+.RE
+
+.PP
+\fIlist\fR
+.RS 4
+Display all registered repo objects, along with their URLs and default refs. If a [repo\-name]
+is provided, then display the full configuration of the given repo object.
+.RE
+
+.PP
+\fIremove\fR
+.RS 4
+Remove the registration for repo object <repo\-name>, if it exists.
+.RE
+
+.SH "EXAMPLES"
+.sp
+Register a new repo object with name \fBmy\-repo\fR and default branch \fBmaster\fR:
+.sp
+.RS 4
+$ atlas\-config repo add my\-repo https://github.com/me/my\-repo.git
+.RE
+.sp
+Register a new repo object with name \fBmy\-repo\fR and default branch \fBmy\-branch\fR:
+.sp
+.RS 4
+$ atlas\-config repo add my\-repo https://github.com/me/my\-repo.git my\-branch
+.RE
+.sp
+Skip Gradle task 'integrationTest' when installing from \fBmy\-repo\fR:
+.sp
+.RS 4
+$ atlas\-config repo add\-gradle\-skip my\-repo integrationTest
+.RE
+.sp
+Install a new module from repo \fBmy\-repo\fR, but override the default ref with a specific release:
+.sp
+.RS 4
+$ atlas\-config repo install my\-repo \-\-ref=1.3.9
+.RE
+.sp
+
+.SH "SEE ALSO"
+.sp
+\fBatlas\-config\fR(1), \fBatlas\-glossary\fR(7)
 
 .SH "ATLAS SHELL TOOLS"
 .sp

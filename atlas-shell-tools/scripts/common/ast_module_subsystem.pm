@@ -23,11 +23,19 @@ our @EXPORT = qw(
     GOOD_SYMLINK
     BROKEN_SYMLINK
     REAL_FILE
+    SOURCE_KEY
+    URI_KEY
+    DATE_TIME_KEY
+    REPO_NAME_KEY
+    REPO_REF_KEY
+    REPO_COMMIT_KEY
+    METADATA_SEPARATOR
     get_subcommand_to_class_hash
     get_subcommand_to_description_hash
     get_module_to_status_hash
     get_module_to_symlink_hash
     get_module_to_target_hash
+    get_module_to_metadata_hash
     get_activated_modules
     get_deactivated_modules
     perform_uninstall
@@ -37,6 +45,7 @@ our @EXPORT = qw(
     remove_active_module_index
 );
 
+our $METADATA_SUFFIX = '.metadata';
 our $MODULE_SUFFIX = '.jar';
 our $DEACTIVATED_SUFFIX = '.deactivated';
 our $DEACTIVATED_MODULE_SUFFIX = $MODULE_SUFFIX . $DEACTIVATED_SUFFIX;
@@ -50,6 +59,15 @@ our $DEACTIVATED = 0;
 our $GOOD_SYMLINK = 1;
 our $BROKEN_SYMLINK = -1;
 our $REAL_FILE = 0;
+
+# Module metadata keys/data
+our $SOURCE_KEY = "source-type";
+our $URI_KEY = "URI";
+our $DATE_TIME_KEY = "date-time";
+our $REPO_NAME_KEY = "repo-name";
+our $REPO_REF_KEY = "repo-ref";
+our $REPO_COMMIT_KEY = "repo-commit";
+our $METADATA_SEPARATOR = ":";
 
 # Use ASCII record separator as delimiter.
 # This is also defined in Atlas class ActiveModuleIndexWriter.
@@ -83,7 +101,7 @@ sub get_subcommand_to_class_hash {
     my $ast_path = shift;
 
     my $index_path = File::Spec->catfile($ast_path, $ACTIVE_INDEX_PATH);
-    open my $index_fileIN, '<', $index_path or return ();
+    open my $index_fileIN, '<', $index_path or return();
     my %subcommand_to_class = ();
 
     while (<$index_fileIN>) {
@@ -105,7 +123,7 @@ sub get_subcommand_to_description_hash {
     my $ast_path = shift;
 
     my $index_path = File::Spec->catfile($ast_path, $ACTIVE_INDEX_PATH);
-    open my $index_fileIN, '<', $index_path or return ();
+    open my $index_fileIN, '<', $index_path or return();
     my %subcommand_to_description = ();
 
     while (<$index_fileIN>) {
@@ -127,7 +145,7 @@ sub get_subcommand_to_description_hash {
 sub get_module_to_status_hash {
     my $ast_path = shift;
 
-    my @find_command=(
+    my @find_command = (
         "find", "${ast_path}/${MODULES_FOLDER}",
         "-maxdepth", "1",
         "(", "-name", "*$MODULE_SUFFIX", "-o", "-name", "*$DEACTIVATED_SUFFIX", ")",
@@ -173,7 +191,7 @@ sub get_module_to_status_hash {
 sub get_module_to_symlink_hash {
     my $ast_path = shift;
 
-    my @find_command=(
+    my @find_command = (
         "find", "${ast_path}/${MODULES_FOLDER}",
         "-maxdepth", "1",
         "(", "-name", "*$MODULE_SUFFIX", "-o", "-name", "*$DEACTIVATED_SUFFIX", ")",
@@ -220,7 +238,7 @@ sub get_module_to_symlink_hash {
 sub get_module_to_target_hash {
     my $ast_path = shift;
 
-    my @find_command=(
+    my @find_command = (
         "find", "${ast_path}/${MODULES_FOLDER}",
         "-maxdepth", "1",
         "(", "-name", "*$MODULE_SUFFIX", "-o", "-name", "*$DEACTIVATED_SUFFIX", ")",
@@ -248,6 +266,64 @@ sub get_module_to_target_hash {
         $module =~ s{$MODULE_SUFFIX}{};
         $module =~ s{$DEACTIVATED_SUFFIX}{};
         $modules{$module} = $module_target;
+    }
+    close FIND;
+
+    return %modules;
+}
+
+# Get a hash that maps all present module names to their metadata hashes, if present.
+# Params:
+#   $ast_path: the path to the atlas-shell-tools data folder
+# Return: a hash of all modules to their metadata hashes.
+sub get_module_to_metadata_hash {
+    my $ast_path = shift;
+
+    my @find_command = (
+        "find", "${ast_path}/${MODULES_FOLDER}",
+        "-maxdepth", "1",
+        "-name", "*$METADATA_SUFFIX",
+        "-print0"
+    );
+    my %modules = ();
+    open FIND, "-|", @find_command;
+    local $/ = "\0";
+    while (<FIND>) {
+        # FIND command is printing full paths, we just want the basename.
+        # Also, we must chomp to remove the terminating null byte left over from
+        # the '-print0' flag given to 'find'.
+        my $module = $_;
+        chomp $module;
+        my $module_basename = basename($module);
+        $module_basename =~ s{$METADATA_SUFFIX}{};
+
+        my %metadata;
+        open my $file_handle, '<', $module or die "Could not open module metadata file $module $!";
+        # we have to change the separator to newline in order to parse the file properly
+        $/ = "\n";
+        while (my $line = <$file_handle>) {
+            chomp $line;
+            # trim excess whitespace from left and right
+            $line =~ s/^\s+|\s+$//g;
+            if ($line eq '' || substr($line, 0, 1) eq '#') {
+                next;
+            }
+            my @line_split = split $METADATA_SEPARATOR, $line, 2;
+            unless (defined $line_split[0]) {
+                next;
+            }
+            # trim excess whitespace from left and right
+            $line_split[0] =~ s/^\s+|\s+$//g;
+            if (defined $line_split[1] && $line_split[1] !~ /^\s*$/) {
+                # trim excess whitespace from left and right
+                $line_split[1] =~ s/^\s+|\s+$//g;
+                $metadata{$line_split[0]} = $line_split[1];
+            }
+        }
+        close $file_handle;
+        $modules{$module_basename} = \%metadata;
+        # change the separator back to \0 for FIND
+        $/ = "\0";
     }
     close FIND;
 
@@ -294,6 +370,147 @@ sub get_deactivated_modules {
     return @deactivated_modules;
 }
 
+# Install a module using some given parameters.
+# Params:
+#   $module_to_install: the path to the module to install
+#   $ast_path: the path to the atlas-shell-tools data folder
+#   $program_name: the name of the running program
+#   $alternate_name: an alternate name for the module, empty to use path basename
+#   $syminstall: install using a symlink instead of a copy
+#   $skip_install: skip installation if module exists
+#   $force_install: force overwrite if module exists
+#   $install_deactivated: install module but do not activate
+#   $metadata_ref: a reference to a metadata hash
+#   $quiet: suppress non-essential output
+#
+# Return: 1 on success, 0 on failure
+sub perform_install {
+    my $module_to_install = shift;
+    my $ast_path = shift;
+    my $program_name = shift;
+    my $alternate_name = shift;
+    my $syminstall = shift;
+    my $skip_install = shift;
+    my $force_install = shift;
+    my $install_deactivated = shift;
+    my $metadata_ref = shift;
+    my $quiet = shift;
+
+    unless (-f $module_to_install || -l $module_to_install) {
+        ast_utilities::error_output($program_name, "no such file ${bold_stderr}${module_to_install}${reset_stderr}");
+        return 0;
+    }
+
+    my $modules_folder = File::Spec->catfile($ast_path, $MODULES_FOLDER);
+
+    # Create the module name, respecting the alternate name if provided.
+    my $module_basename;
+    if (!$alternate_name eq "") {
+        $module_basename = $alternate_name . $MODULE_SUFFIX;
+    }
+    else {
+        $module_basename = basename($module_to_install);
+    }
+    # TODO: figure out how to interpolate $MODULE_SUFFIX into this regex
+    unless ($module_basename =~ /.*\.jar$/) {
+        ast_utilities::error_output($program_name, "module must end with '.jar' extension");
+        return 0;
+    }
+    $module_basename =~ s{$MODULE_SUFFIX}{};
+
+    # Handle the case where the module is already installed
+    my %modules = get_module_to_status_hash($ast_path);
+    if (defined $modules{$module_basename}) {
+        ast_utilities::warn_output($program_name, "module ${bold_stderr}${module_basename}${reset_stderr} is already installed");
+        if ($skip_install) {
+            print STDERR "Skipping installation.\n";
+            return 0;
+        }
+        unless ($force_install) {
+            my $overwrite = ast_utilities::prompt_yn("Overwrite?");
+            unless ($overwrite) {
+                print STDERR "Skipping installation.\n";
+                return 0;
+            }
+        }
+        ast_utilities::warn_output($program_name, "overwriting ${bold_stderr}${module_basename}${reset_stderr}");
+    }
+
+    # Construct the new module paths.
+    # We create a path for both an activated and deactivated version.
+    my $module_new_path =
+        File::Spec->catfile($modules_folder, $module_basename . $MODULE_SUFFIX);
+    my $module_new_path_deactivated =
+        File::Spec->catfile($modules_folder, $module_basename . $DEACTIVATED_MODULE_SUFFIX);
+
+    # If we made it here we are go to overwrite, so clean up any matching existing modules.
+    unlink $module_new_path;
+    unlink $module_new_path_deactivated;
+
+    my $exitcode;
+    if ($syminstall) {
+        my $module_to_install_abs = Cwd::realpath($module_to_install);
+        my $module_to_install_rel = File::Spec->abs2rel($module_to_install_abs, $modules_folder);
+
+        if ($install_deactivated) {
+            symlink($module_to_install_rel, $module_new_path_deactivated);
+        }
+        else {
+            symlink($module_to_install_rel, $module_new_path);
+        }
+        $exitcode = $? >> 8;
+    }
+    else {
+        my @command = ();
+        push @command, "cp";
+        push @command, "$module_to_install";
+        if ($install_deactivated) {
+            push @command, "$module_new_path_deactivated";
+            system {$command[0]} @command;
+        }
+        else {
+            push @command, "$module_new_path";
+            system {$command[0]} @command;
+        }
+        $exitcode = $? >> 8;
+    }
+
+    if ($exitcode) {
+        print STDERR "${red_stderr}${bold_stderr}Installation of module ${module_basename} failed.${reset_stderr} Operation exited with $exitcode.\n";
+        return 0;
+    }
+    else {
+        unless ($install_deactivated) {
+            my %modules = get_module_to_status_hash($ast_path);
+            foreach my $module (keys %modules) {
+                if ($modules{$module} == $ACTIVATED
+                    && $module ne $module_basename) {
+                    my $success = perform_deactivate($module, $ast_path, $program_name, $quiet);
+                    unless ($success) {
+                        ast_utilities::warn_output($program_name, "installation may not function properly");
+                    }
+                }
+            }
+            remove_active_module_index($ast_path, $program_name, $quiet);
+            my $success = generate_active_module_index($ast_path, $program_name, $quiet, 0);
+            unless ($success) {
+                ast_utilities::warn_output($program_name, "partial installation may not function properly");
+            }
+        }
+
+        my $success = write_module_metadata($modules_folder, $module_basename, $metadata_ref, $program_name);
+        unless ($success) {
+            ast_utilities::warn_output($program_name, "metadata not written");
+        }
+
+        unless ($quiet) {
+            print "Module ${green_stdout}${bold_stdout}${module_basename}${reset_stdout} installed.\n";
+        }
+    }
+
+    return 1;
+}
+
 # Uninstall a module with a given name.
 # Params:
 #   $module_to_uninstall: the name of the module to uninstall
@@ -327,9 +544,12 @@ sub perform_uninstall {
         File::Spec->catfile($modules_folder, $module_to_uninstall . $MODULE_SUFFIX);
     my $module_remove_path_deactivated =
         File::Spec->catfile($modules_folder, $module_to_uninstall . $DEACTIVATED_MODULE_SUFFIX);
+    my $module_remove_path_metadata =
+        File::Spec->catfile($modules_folder, $module_to_uninstall . $METADATA_SUFFIX);
 
     unlink $module_remove_path;
     unlink $module_remove_path_deactivated;
+    unlink $module_remove_path_metadata;
     unless ($quiet) {
         print "Module ${bold_stdout}${module_to_uninstall}${reset_stdout} uninstalled.\n";
     }
@@ -372,7 +592,7 @@ sub perform_activate {
     rename $old_module_path, $new_module_path;
     my $exitcode = $? >> 8;
     if ($exitcode) {
-        print STDERR "${red_stderr}${bold_stderr}Activation failed.${reset_stderr} Rename exited with $exitcode.\n";
+        print STDERR "${red_stderr}${bold_stderr}Activation of module ${module_to_activate} failed.${reset_stderr} Rename exited with $exitcode.\n";
         return 0;
     }
     else {
@@ -421,7 +641,7 @@ sub perform_deactivate {
     rename $old_module_path, $new_module_path;
     my $exitcode = $? >> 8;
     if ($exitcode) {
-        print STDERR "${red_stderr}${bold_stderr}Deactivation failed.${reset_stderr} Rename exited with $exitcode.\n";
+        print STDERR "${red_stderr}${bold_stderr}Deactivation of module ${module_to_deactivate} failed.${reset_stderr} Rename exited with $exitcode.\n";
         return 0;
     }
     else {
@@ -479,7 +699,7 @@ sub generate_active_module_index {
         print "Generating new index...\n";
     }
 
-    system { $java_command[0] } @java_command;
+    system {$java_command[0]} @java_command;
     my $exitcode = $? >> 8;
     unless ($exitcode == 0) {
         ast_utilities::error_output($program_name, 'could not generate index');
@@ -510,6 +730,66 @@ sub remove_active_module_index {
     unless ($quiet) {
         print "Cleared index.\n";
     }
+}
+
+# Write a metadata hash for a module.
+# Params:
+#   $modules_folder: the path to the module folder
+#   $module_basename: the module basename
+#   $metadata_ref: a reference to the metadata hash
+#   $program_name: the name of the calling program
+# Return: 1 on success, 0 on failure
+sub write_module_metadata {
+    my $modules_folder = shift;
+    my $module_basename = shift;
+    my $metadata_ref = shift;
+    my $program_name = shift;
+
+    my %metadata = %{$metadata_ref};
+
+    my $module_new_path_metadata =
+        File::Spec->catfile($modules_folder, $module_basename . $METADATA_SUFFIX);
+
+    open my $metadata_handle, '>', "$module_new_path_metadata";
+    if (defined $metadata{$SOURCE_KEY}) {
+        print $metadata_handle $SOURCE_KEY . $METADATA_SEPARATOR . $metadata{$SOURCE_KEY} . "\n";
+    }
+    else {
+        ast_utilities::warn_output($program_name, "bad metadata: missing SOURCE_KEY");
+        close $metadata_handle;
+        unlink $module_new_path_metadata;
+        return 0;
+    }
+    if (defined $metadata{$URI_KEY}) {
+        print $metadata_handle $URI_KEY . $METADATA_SEPARATOR . $metadata{$URI_KEY} . "\n";
+    }
+    else {
+        ast_utilities::warn_output($program_name, "bad metadata: missing URI_KEY");
+        close $metadata_handle;
+        unlink $module_new_path_metadata;
+        return 0;
+    }
+    if (defined $metadata{$DATE_TIME_KEY}) {
+        print $metadata_handle $DATE_TIME_KEY . $METADATA_SEPARATOR . $metadata{$DATE_TIME_KEY} . "\n";
+    }
+    else {
+        ast_utilities::warn_output($program_name, "bad metadata: missing DATE_TIME_KEY");
+        close $metadata_handle;
+        unlink $module_new_path_metadata;
+        return 0;
+    }
+    if (defined $metadata{$REPO_NAME_KEY}) {
+        print $metadata_handle $REPO_NAME_KEY . $METADATA_SEPARATOR . $metadata{$REPO_NAME_KEY} . "\n";
+    }
+    if (defined $metadata{$REPO_REF_KEY}) {
+        print $metadata_handle $REPO_REF_KEY . $METADATA_SEPARATOR . $metadata{$REPO_REF_KEY} . "\n";
+    }
+    if (defined $metadata{$REPO_COMMIT_KEY}) {
+        print $metadata_handle $REPO_COMMIT_KEY . $METADATA_SEPARATOR . $metadata{$REPO_COMMIT_KEY} . "\n";
+    }
+    close $metadata_handle;
+
+    return 1;
 }
 
 # Perl modules must return a value. Returning a value perl considers "truthy"

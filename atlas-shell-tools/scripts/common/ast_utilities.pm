@@ -37,6 +37,8 @@ our @EXPORT = qw(
     get_man
     string_starts_with
     is_dir_empty
+    levenshtein
+    read_command_output
 );
 
 our $ATLAS_SHELL_TOOLS_VERSION = "atlas-shell-tools version 0.0.1";
@@ -125,10 +127,10 @@ sub create_data_directory {
     my $default_namespace_path = File::Spec->catfile($data_directory, $ast_preset_subsystem::PRESETS_FOLDER, $ast_preset_subsystem::DEFAULT_NAMESPACE);
     my $full_repos_path = File::Spec->catfile($data_directory, $ast_repo_subsystem::REPOS_FOLDER);
     make_path("$data_directory", "$full_module_path", "$full_log4j_path",
-              "$full_presets_path", "$default_namespace_path", "$full_repos_path", {
-        verbose => 0,
-        mode => 0755
-    });
+        "$full_presets_path", "$default_namespace_path", "$full_repos_path", {
+            verbose => 0,
+            mode    => 0755
+        });
 
     # reset the log4j file if it is missing
     my $log4j_file = File::Spec->catfile($data_directory, $ast_log_subsystem::LOG4J_FOLDER, $ast_log_subsystem::LOG4J_FILE);
@@ -236,7 +238,7 @@ sub warn_output {
 # Return: the input
 sub prompt {
     my $query = shift; # take a prompt string as argument
-    local $| = 1; # activate autoflush to immediately show the prompt
+    local $| = 1;      # activate autoflush to immediately show the prompt
     print $query;
     my $answer = <STDIN>;
     if (defined $answer) {
@@ -260,13 +262,17 @@ sub prompt_yn {
 }
 
 # Get a pager command capable of displaying formatting codes. Checks the value
-# of the PAGER env variable, and uses that instead if it is set.
+# of the ATLAS_SHELL_TOOLS_PAGER env variable, and uses that instead if it is set.
+# If that is unset, fall back to PAGER. If that is unset, try a default.
 # Params: none
 # Return: the pager command array
 sub get_pager {
     my @pager_command = ();
 
-    if (defined $ENV{PAGER} && $ENV{PAGER} ne '') {
+    if (defined $ENV{ATLAS_SHELL_TOOLS_PAGER} && $ENV{ATLAS_SHELL_TOOLS_PAGER} ne '') {
+        @pager_command = split /\s+/, $ENV{ATLAS_SHELL_TOOLS_PAGER};
+    }
+    elsif (defined $ENV{PAGER} && $ENV{PAGER} ne '') {
         @pager_command = split /\s+/, $ENV{PAGER};
     }
     else {
@@ -288,14 +294,17 @@ sub get_pager {
 }
 
 # Get an editor command capable of displaying and editing a text file. Checks
-# the value of the EDITOR env variable, and uses that instead if it points to an
-# editor.
+# the value of the ATLAS_SHELL_TOOLS_EDITOR env variable, and uses that instead if it points to an
+# editor. If that is unset, fall back to EDITOR. If that is unset, try a default.
 # Params: none
 # Return: the editor command
 sub get_editor {
     my @editor_command = ();
 
-    if (defined $ENV{EDITOR} && $ENV{EDITOR} ne '') {
+    if (defined $ENV{ATLAS_SHELL_TOOLS_EDITOR} && $ENV{ATLAS_SHELL_TOOLS_EDITOR} ne '') {
+        @editor_command = split /\s+/, $ENV{ATLAS_SHELL_TOOLS_EDITOR};
+    }
+    elsif (defined $ENV{EDITOR} && $ENV{EDITOR} ne '') {
         @editor_command = split /\s+/, $ENV{EDITOR};
     }
     else {
@@ -384,6 +393,27 @@ sub levenshtein {
     }
 
     return $distance[@letters1][@letters2];
+}
+
+# Read the output of a given command array.
+# Params:
+#   $command_ref: a reference to an array containing the command args
+# Return: the output of a given command array
+sub read_command_output {
+    my $command_ref = shift;
+
+    my @command = @{$command_ref};
+    open COMMAND, "-|", @command or die $!;
+    my $output = '';
+    while (<COMMAND>) {
+        # Not the most efficient way to do things.
+        # Perhaps some kind of slurp is needed. File::Slurp could work but does
+        # have an outstanding Unicode bug. Need to investigate more.
+        $output = $output . $_;
+    }
+    close COMMAND;
+
+    return $output;
 }
 
 # Perl modules must return a value. Returning a value perl considers "truthy"

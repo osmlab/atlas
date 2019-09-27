@@ -22,7 +22,7 @@
 
 .SH "NAME"
 .sp
-atlas\-presets \-- Atlas Shell Tools preset interface
+atlas\-presets \-\- Atlas Shell Tools preset interface
 
 .SH "SYNOPSIS"
 *
@@ -151,8 +151,8 @@ when you want to make multiple versions of a long preset, each with some minor d
 .RS 4
 Edit preset <name> for \fIcommand\fR. If <name> does not exist, then it will be
 created when the edit is successfully saved. The default preset editor is \fBvim\fR,
-but this can be changed by setting the \fBEDITOR\fR environment variable. The following
-example will edit preset "p1" for command "MyCommand":
+but this can be changed by setting the \fBATLAS_SHELL_TOOLS_EDITOR\fR environment variable.
+The following example will edit preset "p1" for command "MyCommand":
 .sp
 .RS 4
 $ atlas\-config preset edit MyCommand p1

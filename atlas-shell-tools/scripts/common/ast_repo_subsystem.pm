@@ -4,8 +4,10 @@ use warnings;
 use strict;
 
 use Exporter qw(import);
+use File::Basename qw(basename);
 use File::Path qw(make_path rmtree);
 use File::Temp qw(tempdir tempfile);
+use POSIX qw(strftime);
 use ast_tty;
 use ast_module_subsystem;
 use ast_utilities;
@@ -89,7 +91,7 @@ sub create_repo {
 
     make_path("$repo_subfolder", {
         verbose => 0,
-        mode => 0755
+        mode    => 0755
     });
 
     my $repo_config_file = File::Spec->catfile($repo_subfolder, $REPO_CONFIG);
@@ -159,7 +161,7 @@ sub edit_repo {
     # open the staging file in the user's editor
     my @editor = ast_utilities::get_editor();
     push @editor, "$staging_file";
-    system { $editor[0] } @editor;
+    system {$editor[0]} @editor;
 
     # confirm that the staging file is not malformed, i.e. it must have a valid URL and ref
     $url = read_single_config_variable_from_arbitrary_file($staging_file, 'url');
@@ -271,6 +273,8 @@ sub install_repo {
         return 0;
     }
 
+    my %module_metadata = ast_module_subsystem::get_module_to_metadata_hash($ast_path);
+
     my $url = read_single_config_variable($ast_path, $program_name, $quiet, $repo, 'url');
     my $ref = read_single_config_variable($ast_path, $program_name, $quiet, $repo, 'ref');
     my @excludes = read_multiple_config_variables($ast_path, $program_name, $quiet, $repo, 'exclude');
@@ -279,10 +283,46 @@ sub install_repo {
         ast_utilities::error_output($program_name, "repo install operation failed");
         return 0;
     }
+    my $ref_to_use;
+    if ($ref_override eq '') {
+        $ref_to_use = $ref;
+    }
+    else {
+        $ref_to_use = $ref_override;
+    }
 
     my $tmpdir = tempdir(CLEANUP => 1);
 
+    # First, we can check to see if the provided ref is already represented in one of the installed
+    # modules. Since this uses git ls-remote, this only works when the ref is a tag or a branch. If
+    # the ref was a commit hash, then we will need to clone the repo first to determine if an install
+    # is necessary.
     my @command = ();
+    push @command, "git";
+    push @command, "ls-remote";
+    push @command, "${url}";
+    push @command, "${ref_to_use}";
+    my $lsremote_result = ast_utilities::read_command_output(\@command);
+    my @remote_ref = split /\s+/, $lsremote_result;
+    my $remote_commit_hash;
+    if (scalar @remote_ref > 0) {
+        $remote_commit_hash = $remote_ref[0];
+    }
+    if (defined $remote_commit_hash) {
+        foreach my $module_key (keys %module_metadata) {
+            my %metadata = %{$module_metadata{$module_key}};
+            my $module_commit_hash = $metadata{$ast_module_subsystem::REPO_COMMIT_KEY};
+            if (defined $module_commit_hash && $module_commit_hash eq $remote_commit_hash) {
+                ast_utilities::warn_output($program_name, "nothing to do");
+                print STDERR "Ref ${bold_stderr}${ref_to_use}${reset_stderr} in repo ${bold_stderr}${repo}${reset_stderr} refers to commit ${bold_stderr}${remote_commit_hash}${reset_stderr}.\n";
+                print STDERR "Installed module ${bold_stderr}${module_key}${reset_stderr} was built from this commit.\n";
+                print STDERR "Try \'${bold_stderr}${ast_utilities::CONFIG_PROGRAM} activate ${module_key}${reset_stderr}\' to use this version.\n";
+                return 1;
+            }
+        }
+    }
+
+    @command = ();
     push @command, "git";
     push @command, "clone";
     push @command, "${url}";
@@ -295,13 +335,6 @@ sub install_repo {
 
     chdir $tmpdir or die "$!";
 
-    my $ref_to_use;
-    if ($ref_override eq '') {
-        $ref_to_use = $ref;
-    }
-    else {
-        $ref_to_use = $ref_override;
-    }
     @command = ();
     push @command, "git";
     push @command, "checkout";
@@ -311,17 +344,21 @@ sub install_repo {
         ast_utilities::error_output($program_name, "repo install operation failed");
         return 0;
     }
-    my $commit = `git rev-parse --short HEAD`;
-    chomp $commit;
+    my $installed_commit_hash = `git rev-parse HEAD`;
+    my $installed_commit_hash_short = `git rev-parse --short HEAD`;
+    chomp $installed_commit_hash;
+    chomp $installed_commit_hash_short;
 
-    my $tentative_module_name = "${repo}-${commit}";
+    my $tentative_module_name = "${repo}-${installed_commit_hash_short}";
     my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
     my @module_names = keys %modules;
     foreach my $module_name (@module_names) {
         if ($tentative_module_name eq $module_name) {
             print STDERR "\n";
-            ast_utilities::warn_output($ast_utilities::CONFIG_PROGRAM, "nothing to do");
-            print STDERR "Repo ${bold_stderr}${repo}${reset_stderr} with ref ${bold_stderr}${ref_to_use}${reset_stderr} already up-to-date through installed module ${bold_stderr}${tentative_module_name}${reset_stderr}\n";
+            ast_utilities::warn_output($program_name, "nothing to do");
+            print STDERR "Ref ${bold_stderr}${ref_to_use}${reset_stderr} in repo ${bold_stderr}${repo}${reset_stderr} refers to commit ${bold_stderr}${installed_commit_hash}${reset_stderr}.\n";
+            print STDERR "Installed module ${bold_stderr}${module_name}${reset_stderr} was built from this commit.\n";
+            print STDERR "Try \'${bold_stderr}${ast_utilities::CONFIG_PROGRAM} activate ${module_name}${reset_stderr}\' to use this version.\n";
             return 1;
         }
     }
@@ -387,27 +424,40 @@ sub install_repo {
         return 0;
     }
 
-    @command = ();
-    push @command, "find";
-    push @command, ".";
-    push @command, "-type";
-    push @command, "f";
-    push @command, "-name";
-    push @command, "*-AST.jar";
-    push @command, "-exec";
-    push @command, "atlas-config";
-    push @command, "install";
-    push @command, "{}";
-    push @command, "--force";
-    push @command, "--name";
-    push @command, "${repo}-${commit}";
-    push @command, ";";
-    $success = system {$command[0]} @command;
-    unless ($success == 0) {
-        ast_utilities::error_output($program_name, "repo install operation failed");
-        return 0;
-    }
+    my @find_command = (
+        "find", ".",
+        "-type", "f",
+        "-name", "*-AST.jar",
+        "-print0"
+    );
+    open FIND, "-|", @find_command;
+    # TODO 'local' modifier makes sense here? confirm this, 'my' may make more sense
+    # see https://www.perlmonks.org/?node_id=94007
+    local $/ = "\0";
+    while (<FIND>) {
+        # FIND command is printing full paths, we just want the basename.
+        # Also, we must chomp to remove the terminating null byte left over from
+        # the '-print0' flag given to 'find'.
+        my $module = $_;
+        chomp $module;
+        my $module_basename = basename($module);
 
+        my %local_metadata;
+        $local_metadata{$ast_module_subsystem::SOURCE_KEY} = "repo";
+        $local_metadata{$ast_module_subsystem::URI_KEY} = "${url}";
+        $local_metadata{$ast_module_subsystem::REPO_NAME_KEY} = "${repo}";
+        $local_metadata{$ast_module_subsystem::REPO_REF_KEY} = "${ref_to_use}";
+        $local_metadata{$ast_module_subsystem::REPO_COMMIT_KEY} = "${installed_commit_hash}";
+        $local_metadata{$ast_module_subsystem::DATE_TIME_KEY} = strftime("%Y-%m-%d %H:%M:%S UTC", gmtime(time));
+        # install the module!
+        my $success = ast_module_subsystem::perform_install($module, $ast_path, $program_name,
+            "${repo}-${installed_commit_hash_short}", 0, 0, 1, 0, \%local_metadata, 0);
+
+        unless ($success) {
+            ast_utilities::error_output($program_name, "repo install operation failed");
+            return 0;
+        }
+    }
     return 1;
 }
 
@@ -495,13 +545,13 @@ sub get_repo_settings {
     my $repo_subfolder = File::Spec->catfile($ast_path, $REPOS_FOLDER, $repo);
     unless (-d $repo_subfolder) {
         ast_utilities::error_output($program_name, "repo ${bold_stderr}${repo}${reset_stderr} does not exist");
-        return ();
+        return();
     }
 
     my $repo_config_file = File::Spec->catfile($repo_subfolder, $REPO_CONFIG);
     unless (-f $repo_config_file) {
         ast_utilities::error_output($program_name, "could not find config file for repo ${bold_stderr}${repo}${reset_stderr}");
-        return ();
+        return();
     }
 
     my @settings = ();

@@ -158,7 +158,7 @@ sub atlas_show_contextual_help_menu_and_exit {
     # command array contain only one element.
     open JAVA, "-|", @java_command or die $!;
     my $output = '';
-    while(<JAVA>) {
+    while (<JAVA>) {
         # Not the most efficient way to do things.
         # Perhaps some kind of slurp is needed. File::Slurp could work but does
         # have an outstanding Unicode bug. Need to investigate more.
@@ -257,21 +257,24 @@ my $cfg_preset;
 my $allow_run_as_root;
 Getopt::Long::Configure(qw(no_ignore_case_always));
 GetOptions(
-    "no-pager" => \$skip_paging,
-    "memory|m=s" => \$memory,
-    "help|h:s" => \$help_argument,
-    "version|V" => sub { print "$program_version\n"; exit 0; },
-    "quiet|q" => \$quiet,
-    "list|l" => \$show_list,
-    "class-of=s" => \$class_of,
-    "preset|p=s" => \$use_preset,
-    "save-preset=s" => \$save_preset,
-    "debug" => \$debug_flag,
+    "no-pager"          => \$skip_paging,
+    "memory|m=s"        => \$memory,
+    "help|h:s"          => \$help_argument,
+    "version|V"         => sub {
+        print "$program_version\n";
+        exit 0;
+    },
+    "quiet|q"           => \$quiet,
+    "list|l"            => \$show_list,
+    "class-of=s"        => \$class_of,
+    "preset|p=s"        => \$use_preset,
+    "save-preset=s"     => \$save_preset,
+    "debug"             => \$debug_flag,
     "allow-run-as-root" => \$allow_run_as_root,
     # This callback occurs the first time we see a non-option argument.
     # In our case, this will be the subcommand.
-    "<>" => sub {
-        my($arg) = @_;
+    "<>"                => sub {
+        my ($arg) = @_;
         if ($arg =~ m{^-}) {
             unless ($arg eq '-') {
                 die "FATAL error: unhandled global option $arg";
@@ -308,7 +311,7 @@ if (defined $help_argument) {
         my @command = ();
         push @command, @man_command;
         push @command, "$program_name";
-        system { $command[0] } @command;
+        system {$command[0]} @command;
         my $exitcode = $? >> 8;
         if ($exitcode != 0) {
             exit 1;
@@ -489,7 +492,7 @@ if ($debug_flag) {
 # Here we use system's indirect object syntax to correctly handle all possible
 # edge cases regarding the configuration of @java_command.
 # See bottom of page: http://perldoc.perl.org/functions/exec.html
-system { $java_command[0] } @java_command;
+system {$java_command[0]} @java_command;
 my $exitcode = $? >> 8;
 exit $exitcode;
 
