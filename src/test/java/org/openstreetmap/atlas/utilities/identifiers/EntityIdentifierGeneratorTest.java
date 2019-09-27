@@ -76,7 +76,7 @@ public class EntityIdentifierGeneratorTest
         final CompleteRelation relation = new CompleteRelation(1L, Maps.hashMap("a", "b", "c", "d"),
                 Rectangle.MINIMUM, bean, null, null, null, Sets.hashSet());
 
-        final String goldenPropertyString = ";RelationBean [[[POINT, 1, role], [AREA, 10, role]]]";
+        final String goldenPropertyString = ";RelationBean[(POINT,1,role)(AREA,10,role)]";
         Assert.assertEquals(goldenPropertyString,
                 new EntityIdentifierGenerator().getTypeSpecificPropertyString(relation));
     }
