@@ -7,6 +7,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEntity;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
@@ -133,7 +134,19 @@ public class EntityIdentifierGenerator
                 final CompleteRelation relation = (CompleteRelation) entity;
                 if (relation.members() != null)
                 {
-                    builder.append(relation.members().asBean().toString());
+                    final RelationBean bean = relation.members().asBean();
+                    builder.append("RelationBean[");
+                    for (final RelationBean.RelationBeanItem beanItem : bean)
+                    {
+                        builder.append("(");
+                        builder.append(beanItem.getType());
+                        builder.append(",");
+                        builder.append(beanItem.getIdentifier());
+                        builder.append(",");
+                        builder.append(beanItem.getRole());
+                        builder.append(")");
+                    }
+                    builder.append("]");
                 }
                 return builder.toString();
             default:
