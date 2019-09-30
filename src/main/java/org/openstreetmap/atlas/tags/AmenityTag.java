@@ -58,7 +58,8 @@ public enum AmenityTag
     COLLEGE,
     COMMUNITY_CENTRE,
     COMMUNITY_CENTER,
-    MARKETPLACE;
+    MARKETPLACE,
+    FERRY_TERMINAL;
 
     @TagKey
     public static final String KEY = "amenity";
