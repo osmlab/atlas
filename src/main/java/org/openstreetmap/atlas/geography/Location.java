@@ -456,17 +456,12 @@ public class Location
         double lambda = ((lon2 - lon1) * Math.log(phi3) + lon1 * Math.log(phi2)
                 - lon2 * Math.log(phi1)) / Math.log(phi2 / phi1);
 
-        // Locations on the same circle of latitude
-        if (!Double.isFinite(lambda))
+        // Locations on the same circle of latitude do not produce a finite lambda value above.
+        // Locations at the same longitude (especially the antimeridian) should preserve their sign.
+        // All other locations should be be normalized within [-180, +180).
+        if (!Double.isFinite(lambda) || lon1 == lon2)
         {
             lambda = (lon1 + lon2) / 2;
-        }
-
-        // Normalize to [-180, +180), unless both input points are at +180, then return +180
-        if (this.getLongitude().equals(Longitude.MAXIMUM)
-                && that.getLongitude().equals(Longitude.MAXIMUM))
-        {
-            lambda = Longitude.MAXIMUM.asRadians();
         }
         else
         {
