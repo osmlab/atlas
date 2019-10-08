@@ -84,4 +84,28 @@ public class StringToShardConverterTest
         Assert.assertTrue(tuple6.getSecond().isPresent());
         Assert.assertEquals("zz/xx/yy", tuple6.getSecond().get());
     }
+
+    @Test
+    public void testIfGetNameIsParsable()
+    {
+        final StringToShardConverter converter = new StringToShardConverter();
+
+        final SlippyTile slippyTile = new SlippyTile(9, 12, 8);
+        final GeoHashTile geoHashTile = new GeoHashTile("3ghv");
+        final CountryShard countryShard1 = new CountryShard("DMA", slippyTile);
+        final CountryShard countryShard2 = new CountryShard("AIA", geoHashTile);
+
+        Assert.assertEquals(slippyTile, converter.convert(slippyTile.getName()));
+        Assert.assertEquals(slippyTile.toString(),
+                converter.convert(slippyTile.getName()).toString());
+        Assert.assertEquals(geoHashTile, converter.convert(geoHashTile.getName()));
+        Assert.assertEquals(geoHashTile.toString(),
+                converter.convert(geoHashTile.getName()).toString());
+        Assert.assertEquals(countryShard1, converter.convert(countryShard1.getName()));
+        Assert.assertEquals(countryShard1.toString(),
+                converter.convert(countryShard1.getName()).toString());
+        Assert.assertEquals(countryShard2, converter.convert(countryShard2.getName()));
+        Assert.assertEquals(countryShard2.toString(),
+                converter.convert(countryShard2.getName()).toString());
+    }
 }
