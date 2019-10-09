@@ -1,12 +1,14 @@
 package org.openstreetmap.atlas.utilities.command.subcommands;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
+import org.openstreetmap.atlas.geography.boundary.converters.CountryBoundaryMapGeoJsonConverter;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
@@ -36,11 +38,20 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
 
     private static final String COUNTRIES_OPTION_LONG = "countries";
     private static final String COUNTRIES_OPTION_DESCRIPTION = "A comma separated list of desired country codes. Defaults to all.";
-    private static final String COUNTRIES_OPTION_HINT = "countries";
+    private static final String COUNTRIES_OPTION_HINT = "included-countries";
+
+    private static final String COUNTRIES_BLACKLIST_OPTION_LONG = "countriesBlacklist";
+    private static final String COUNTRIES_BLACKLIST_OPTION_DESCRIPTION = "A comma separated list of country codes to explicitly exclude. Defaults to none.";
+    private static final String COUNTRIES_BLACKLIST_OPTION_HINT = "excluded-countries";
+
+    private static final String LINESTRINGS_OPTION_LONG = "useLinestrings";
+    private static final String LINESTRINGS_OPTION_DESCRIPTION = "Use linestrings instead of polygons for the boundary GeoJSON. This may be better for certain visualization software.";
 
     private static final Integer ATLAS_CONTEXT = 3;
     private static final Integer SHARDING_CONTEXT = 4;
     private static final Integer BOUNDARY_CONTEXT = 5;
+
+    private static final String BOUNDARY_FILE = "boundaries.geojson";
 
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
@@ -59,6 +70,8 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
     @Override
     public int execute()
     {
+        super.execute();
+
         if (this.optionAndArgumentDelegate.getParserContext() == ATLAS_CONTEXT)
         {
             return executeAtlasContext();
@@ -122,6 +135,10 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
     private int executeBoundaryContext()
     {
         Set<String> countries = new HashSet<>();
+        if (this.optionAndArgumentDelegate.hasVerboseOption())
+        {
+            this.outputDelegate.printlnCommandMessage("reading CountryBoundaryMap from file...");
+        }
         final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(
                 new File(this.optionAndArgumentDelegate.getOptionArgument(BOUNDARY_OPTION_LONG)
                         .orElseThrow(AtlasShellToolsException::new)));
@@ -131,15 +148,29 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
                     .getOptionArgument(COUNTRIES_OPTION_LONG, this::parseCommaSeparatedCountries)
                     .orElse(new HashSet<>());
         }
+        final String boundaryJson;
         if (countries.isEmpty())
         {
-            countries = map.countryCodesOverlappingWith(Rectangle.MAXIMUM).stream()
-                    .collect(Collectors.toSet());
+            boundaryJson = new CountryBoundaryMapGeoJsonConverter().prettyPrint(true)
+                    .useLinestrings(true).convertToString(map);
         }
-        for (final String country : countries)
+        else
         {
-
+            boundaryJson = new CountryBoundaryMapGeoJsonConverter().withCountryWhitelist(countries)
+                    .prettyPrint(true).useLinestrings(true).convertToString(map);
         }
+        if (this.optionAndArgumentDelegate.hasVerboseOption())
+        {
+            this.outputDelegate.printlnCommandMessage("converting boundary file to GeoJSON...");
+        }
+
+        if (this.optionAndArgumentDelegate.hasVerboseOption())
+        {
+            this.outputDelegate.printlnCommandMessage("writing the boundary file...");
+        }
+        final Path concatenatedPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
+                BOUNDARY_FILE);
+        new File(concatenatedPath.toAbsolutePath().toString()).writeAndClose(boundaryJson);
 
         return 0;
     }
