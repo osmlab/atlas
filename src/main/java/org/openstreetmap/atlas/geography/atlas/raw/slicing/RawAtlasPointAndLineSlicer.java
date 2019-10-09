@@ -191,8 +191,17 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         // Slice the JTS Geometry
         result = sliceGeometry(geometry, line);
 
-        if ((result == null || result.isEmpty()) && line.isClosed())
+        final boolean multipolygonResult = Iterables.stream(result)
+                .anyMatch(geom -> geom instanceof org.locationtech.jts.geom.Polygon
+                        && ((org.locationtech.jts.geom.Polygon) geom).getNumInteriorRing() > 0);
+        if ((result == null || result.isEmpty()) && line.isClosed() || multipolygonResult)
         {
+            if (multipolygonResult)
+            {
+                logger.warn(
+                        "Line {} for Atlas {} had multipolygon slicing result, falling back to polyline",
+                        line.getIdentifier(), getStartingAtlas().getName());
+            }
             // If we failed to slice an invalid Polygon (self-intersecting for example), let's try
             // to slice it as a PolyLine. Only if we cannot do that, then return an empty list.
             geometry = JTS_POLYLINE_CONVERTER.convert(line.asPolyLine());
