@@ -37,14 +37,17 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
     private static final String BOUNDARY_OPTION_HINT = "boundary-file";
 
     private static final String COUNTRIES_OPTION_LONG = "countries";
-    private static final String COUNTRIES_OPTION_DESCRIPTION = "A comma separated list of desired country codes. Defaults to all.";
+    private static final Character COUNTRIES_OPTION_SHORT = 'c';
+    private static final String COUNTRIES_OPTION_DESCRIPTION = "A comma separated list of whitelist country codes to exclusively include. Defaults to all.";
     private static final String COUNTRIES_OPTION_HINT = "included-countries";
 
-    private static final String COUNTRIES_BLACKLIST_OPTION_LONG = "countriesBlacklist";
-    private static final String COUNTRIES_BLACKLIST_OPTION_DESCRIPTION = "A comma separated list of country codes to explicitly exclude. Defaults to none.";
+    private static final String COUNTRIES_BLACKLIST_OPTION_LONG = "countries-blacklist";
+    private static final Character COUNTRIES_BLACKLIST_OPTION_SHORT = 'C';
+    private static final String COUNTRIES_BLACKLIST_OPTION_DESCRIPTION = "A comma separated blacklist of country codes to explicitly exclude. Defaults to none.";
     private static final String COUNTRIES_BLACKLIST_OPTION_HINT = "excluded-countries";
 
-    private static final String LINESTRINGS_OPTION_LONG = "useLinestrings";
+    private static final String LINESTRINGS_OPTION_LONG = "use-linestrings";
+    private static final Character LINESTRINGS_OPTION_SHORT = 'l';
     private static final String LINESTRINGS_OPTION_DESCRIPTION = "Use linestrings instead of polygons for the boundary GeoJSON. This may be better for certain visualization software.";
 
     private static final Integer ATLAS_CONTEXT = 3;
@@ -121,8 +124,14 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
                 OptionOptionality.REQUIRED, SHARDING_OPTION_HINT, SHARDING_CONTEXT);
         registerOptionWithRequiredArgument(BOUNDARY_OPTION_LONG, BOUNDARY_OPTION_DESCRIPTION,
                 OptionOptionality.REQUIRED, BOUNDARY_OPTION_HINT, BOUNDARY_CONTEXT);
-        registerOptionWithRequiredArgument(COUNTRIES_OPTION_LONG, COUNTRIES_OPTION_DESCRIPTION,
-                OptionOptionality.OPTIONAL, COUNTRIES_OPTION_HINT, BOUNDARY_CONTEXT);
+        registerOptionWithRequiredArgument(COUNTRIES_OPTION_LONG, COUNTRIES_OPTION_SHORT,
+                COUNTRIES_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL, COUNTRIES_OPTION_HINT,
+                BOUNDARY_CONTEXT);
+        registerOptionWithRequiredArgument(COUNTRIES_BLACKLIST_OPTION_LONG,
+                COUNTRIES_BLACKLIST_OPTION_SHORT, COUNTRIES_BLACKLIST_OPTION_DESCRIPTION,
+                OptionOptionality.OPTIONAL, COUNTRIES_BLACKLIST_OPTION_HINT, BOUNDARY_CONTEXT);
+        registerOption(LINESTRINGS_OPTION_LONG, LINESTRINGS_OPTION_SHORT,
+                LINESTRINGS_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL, BOUNDARY_CONTEXT);
         super.registerOptionsAndArguments();
     }
 
@@ -135,6 +144,23 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
     private int executeBoundaryContext()
     {
         Set<String> countries = new HashSet<>();
+        if (this.optionAndArgumentDelegate.hasOption(COUNTRIES_OPTION_LONG))
+        {
+            countries = this.optionAndArgumentDelegate
+                    .getOptionArgument(COUNTRIES_OPTION_LONG, this::parseCommaSeparatedCountries)
+                    .orElse(new HashSet<>());
+        }
+        final boolean useLinestrings = this.optionAndArgumentDelegate
+                .hasOption(LINESTRINGS_OPTION_LONG);
+        Set<String> countriesBlacklist = new HashSet<>();
+        if (this.optionAndArgumentDelegate.hasOption(COUNTRIES_BLACKLIST_OPTION_LONG))
+        {
+            countriesBlacklist = this.optionAndArgumentDelegate
+                    .getOptionArgument(COUNTRIES_BLACKLIST_OPTION_LONG,
+                            this::parseCommaSeparatedCountries)
+                    .orElse(new HashSet<>());
+        }
+
         if (this.optionAndArgumentDelegate.hasVerboseOption())
         {
             this.outputDelegate.printlnCommandMessage("reading CountryBoundaryMap from file...");
@@ -142,22 +168,18 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
         final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(
                 new File(this.optionAndArgumentDelegate.getOptionArgument(BOUNDARY_OPTION_LONG)
                         .orElseThrow(AtlasShellToolsException::new)));
-        if (this.optionAndArgumentDelegate.hasOption(COUNTRIES_OPTION_LONG))
-        {
-            countries = this.optionAndArgumentDelegate
-                    .getOptionArgument(COUNTRIES_OPTION_LONG, this::parseCommaSeparatedCountries)
-                    .orElse(new HashSet<>());
-        }
         final String boundaryJson;
         if (countries.isEmpty())
         {
             boundaryJson = new CountryBoundaryMapGeoJsonConverter().prettyPrint(true)
-                    .useLinestrings(true).convertToString(map);
+                    .withCountryBlacklist(countriesBlacklist).useLinestrings(useLinestrings)
+                    .convertToString(map);
         }
         else
         {
             boundaryJson = new CountryBoundaryMapGeoJsonConverter().withCountryWhitelist(countries)
-                    .prettyPrint(true).useLinestrings(true).convertToString(map);
+                    .withCountryBlacklist(countriesBlacklist).prettyPrint(true)
+                    .useLinestrings(useLinestrings).convertToString(map);
         }
         if (this.optionAndArgumentDelegate.hasVerboseOption())
         {
