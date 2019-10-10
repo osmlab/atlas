@@ -85,6 +85,14 @@ public class CountryBoundaryMapGeoJsonConverter implements Converter<CountryBoun
         return featureCollectionObject;
     }
 
+    /**
+     * Convert a {@link CountryBoundaryMap} directly to a GeoJSON string. This method will respect
+     * the 'prettyPrint' parameter.
+     * 
+     * @param map
+     *            the {@link CountryBoundaryMap}
+     * @return the GeoJSON string form of the {@link CountryBoundaryMap}
+     */
     public String convertToString(final CountryBoundaryMap map)
     {
         if (this.prettyPrint)
@@ -94,18 +102,44 @@ public class CountryBoundaryMapGeoJsonConverter implements Converter<CountryBoun
         return this.convert(map).toString();
     }
 
+    /**
+     * Specify if the GeoJSON should be pretty printed. Otherwise, it will all be on a single line.
+     * This parameter only affects the
+     * {@link CountryBoundaryMapGeoJsonConverter#convertToString(CountryBoundaryMap)} method.
+     * 
+     * @param prettyPrint
+     *            pretty print the GeoJSON
+     * @return a modified instance of {@link CountryBoundaryMapGeoJsonConverter}
+     */
     public CountryBoundaryMapGeoJsonConverter prettyPrint(final boolean prettyPrint)
     {
         this.prettyPrint = prettyPrint;
         return this;
     }
 
+    /**
+     * Use linestrings instead of polygons in the GeoJSON representation of the
+     * {@link CountryBoundaryMap}. This may be useful if the GeoJSON is being used in visualization
+     * software.
+     * 
+     * @param useLinestrings
+     *            use linestrings
+     * @return a modified instance of {@link CountryBoundaryMapGeoJsonConverter}
+     */
     public CountryBoundaryMapGeoJsonConverter useLinestrings(final boolean useLinestrings)
     {
         this.useLinestrings = useLinestrings;
         return this;
     }
 
+    /**
+     * Specify a blacklist for countries to exclude. If this set is empty, then no countries will be
+     * excluded.
+     *
+     * @param countryBlacklist
+     *            the blacklist
+     * @return a modified instance of {@link CountryBoundaryMapGeoJsonConverter}
+     */
     public CountryBoundaryMapGeoJsonConverter withCountryBlacklist(
             final Set<String> countryBlacklist)
     {
@@ -113,6 +147,14 @@ public class CountryBoundaryMapGeoJsonConverter implements Converter<CountryBoun
         return this;
     }
 
+    /**
+     * Specify a whitelist for countries to include. If this set is empty, then no countries will be
+     * included.
+     * 
+     * @param countryWhitelist
+     *            the whitelist
+     * @return a modified instance of {@link CountryBoundaryMapGeoJsonConverter}
+     */
     public CountryBoundaryMapGeoJsonConverter withCountryWhitelist(
             final Set<String> countryWhitelist)
     {

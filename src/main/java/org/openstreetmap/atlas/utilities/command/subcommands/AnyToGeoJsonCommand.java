@@ -9,12 +9,15 @@ import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.boundary.converters.CountryBoundaryMapGeoJsonConverter;
+import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.subcommands.templates.MultipleOutputCommand;
+
+import com.google.gson.GsonBuilder;
 
 /**
  * This command converts our many different file formats to a GeoJSON representation. This may be
@@ -55,6 +58,7 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
     private static final Integer BOUNDARY_CONTEXT = 5;
 
     private static final String BOUNDARY_FILE = "boundaries.geojson";
+    private static final String SHARDING_FILE = "sharding.geojson";
 
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
@@ -137,8 +141,8 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
 
     private int executeAtlasContext()
     {
-        // TODO implement
-        return 0;
+        throw new UnsupportedOperationException(
+                "This operation is currently not supported. Try command 'packed2text' to get GeoJSON atlases.");
     }
 
     private int executeBoundaryContext()
@@ -199,7 +203,14 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
 
     private int executeShardingContext()
     {
-        // TODO implement
+        final Sharding sharding = Sharding
+                .forString(this.optionAndArgumentDelegate.getOptionArgument(SHARDING_OPTION_LONG)
+                        .orElseThrow(AtlasShellToolsException::new));
+        final String shardingJson = new GsonBuilder().setPrettyPrinting().create()
+                .toJson(sharding.asGeoJson());
+        final Path concatenatedPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
+                SHARDING_FILE);
+        new File(concatenatedPath.toAbsolutePath().toString()).writeAndClose(shardingJson);
         return 0;
     }
 
