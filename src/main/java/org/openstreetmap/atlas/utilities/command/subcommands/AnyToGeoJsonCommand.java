@@ -7,10 +7,13 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.boundary.converters.CountryBoundaryMapGeoJsonConverter;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.streaming.resource.File;
+import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
@@ -57,8 +60,9 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
     private static final Integer SHARDING_CONTEXT = 4;
     private static final Integer BOUNDARY_CONTEXT = 5;
 
-    private static final String BOUNDARY_FILE = "boundaries.geojson";
-    private static final String SHARDING_FILE = "sharding.geojson";
+    private static final String ATLAS_FILE = "atlas" + FileSuffix.GEO_JSON;
+    private static final String SHARDING_FILE = "sharding" + FileSuffix.GEO_JSON;
+    private static final String BOUNDARY_FILE = "boundaries" + FileSuffix.GEO_JSON;
 
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
@@ -141,8 +145,23 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
 
     private int executeAtlasContext()
     {
-        throw new UnsupportedOperationException(
-                "This operation is currently not supported. Try command 'packed2text' to get GeoJSON atlases.");
+        final File atlasFile = new File(this.optionAndArgumentDelegate
+                .getOptionArgument(ATLAS_OPTION_LONG).orElseThrow(AtlasShellToolsException::new));
+        if (!atlasFile.exists())
+        {
+            this.outputDelegate
+                    .printlnErrorMessage("file not found: " + atlasFile.getAbsolutePath());
+            return 1;
+        }
+        final Atlas atlas = new AtlasResourceLoader().load(atlasFile);
+        final Path concatenatedPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
+                ATLAS_FILE);
+        final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
+        atlas.saveAsLineDelimitedGeoJsonFeatures(outputFile, (entity, json) ->
+        {
+            // Dummy consumer, we don't need to mutate the JSON
+        });
+        return 0;
     }
 
     private int executeBoundaryContext()
