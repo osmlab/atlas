@@ -1,0 +1,10 @@
+Convert an atlas to GeoJSON
+#$ any2geojson --atlas ~/Desktop/myatlas.atlas
+Convert a boundary file to GeoJSON:
+#$ any2geojson --boundary ~/boundary.txt
+Convert a boundary file to GeoJSON and include only specific countries:
+#$ any2geojson --boundary ~/boundary.txt --countries DMA,MTQ,GLP
+Convert a dynamic sharding tree textfile to GeoJSON:
+#$ any2geojson --sharding dynamic@/Users/you/tree.txt
+Get the GeoJSON for a precision 3 geohash sharding tree:
+#$ any2geojson --sharding geohash@3

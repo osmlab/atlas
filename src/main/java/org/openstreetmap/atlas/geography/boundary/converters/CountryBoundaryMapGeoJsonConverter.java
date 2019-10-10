@@ -25,14 +25,14 @@ public class CountryBoundaryMapGeoJsonConverter implements Converter<CountryBoun
     private static final Logger logger = LoggerFactory
             .getLogger(CountryBoundaryMapGeoJsonConverter.class);
 
-    private boolean useLinestrings;
+    private boolean usePolygons;
     private boolean prettyPrint;
     private Set<String> countryWhitelist;
     private Set<String> countryBlacklist;
 
     public CountryBoundaryMapGeoJsonConverter()
     {
-        this.useLinestrings = false;
+        this.usePolygons = false;
         this.prettyPrint = false;
         this.countryWhitelist = null;
         this.countryBlacklist = null;
@@ -60,18 +60,18 @@ public class CountryBoundaryMapGeoJsonConverter implements Converter<CountryBoun
             {
                 final JsonObject featureObject = new JsonObject();
                 featureObject.addProperty("type", "Feature");
-                if (this.useLinestrings)
+                if (this.usePolygons)
                 {
                     final org.openstreetmap.atlas.geography.Polygon atlasPolygon = new JtsPolygonConverter()
                             .backwardConvert(polygon);
-                    featureObject.add("geometry",
-                            new PolyLine(atlasPolygon.closedLoop()).asGeoJsonGeometry());
+                    featureObject.add("geometry", atlasPolygon.asGeoJsonGeometry());
                 }
                 else
                 {
                     final org.openstreetmap.atlas.geography.Polygon atlasPolygon = new JtsPolygonConverter()
                             .backwardConvert(polygon);
-                    featureObject.add("geometry", atlasPolygon.asGeoJsonGeometry());
+                    featureObject.add("geometry",
+                            new PolyLine(atlasPolygon.closedLoop()).asGeoJsonGeometry());
                 }
                 final JsonObject propertiesObject = new JsonObject();
                 propertiesObject.addProperty("iso_country_code", countryCode);
@@ -118,17 +118,17 @@ public class CountryBoundaryMapGeoJsonConverter implements Converter<CountryBoun
     }
 
     /**
-     * Use linestrings instead of polygons in the GeoJSON representation of the
+     * Use polygons instead of linestrings in the GeoJSON representation of the
      * {@link CountryBoundaryMap}. This may be useful if the GeoJSON is being used in visualization
      * software.
      * 
-     * @param useLinestrings
-     *            use linestrings
+     * @param usePolygons
+     *            use polygons
      * @return a modified instance of {@link CountryBoundaryMapGeoJsonConverter}
      */
-    public CountryBoundaryMapGeoJsonConverter useLinestrings(final boolean useLinestrings)
+    public CountryBoundaryMapGeoJsonConverter usePolygons(final boolean usePolygons)
     {
-        this.useLinestrings = useLinestrings;
+        this.usePolygons = usePolygons;
         return this;
     }
 

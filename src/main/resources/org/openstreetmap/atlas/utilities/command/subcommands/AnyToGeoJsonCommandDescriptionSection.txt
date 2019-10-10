@@ -1,0 +1,4 @@
+Convert one of the many atlas-related custom file types to GeoJSON. This is very useful when trying to view
+these file types in visualization software. Currently, this command supports country boundary files,
+any type of sharding, as well as atlases. See the provided options and examples for various customizations.
+If you are interested in atlas to text conversion and this command does not provide what you need, try the 'packed2text' command.

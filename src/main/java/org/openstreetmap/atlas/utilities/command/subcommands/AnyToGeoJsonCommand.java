@@ -52,9 +52,9 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
     private static final String COUNTRIES_BLACKLIST_OPTION_DESCRIPTION = "A comma separated blacklist of country codes to explicitly exclude. Defaults to none.";
     private static final String COUNTRIES_BLACKLIST_OPTION_HINT = "excluded-countries";
 
-    private static final String LINESTRINGS_OPTION_LONG = "use-linestrings";
-    private static final Character LINESTRINGS_OPTION_SHORT = 'l';
-    private static final String LINESTRINGS_OPTION_DESCRIPTION = "Use linestrings instead of polygons for the boundary GeoJSON. This may be better for certain visualization software.";
+    private static final String POLYGONS_OPTION_LONG = "use-polygons";
+    private static final Character POLYGONS_OPTION_SHORT = 'p';
+    private static final String POLYGONS_OPTION_DESCRIPTION = "Use polygons instead of linestrings for the boundary GeoJSON. This may be better for certain visualization software.";
 
     private static final Integer ATLAS_CONTEXT = 3;
     private static final Integer SHARDING_CONTEXT = 4;
@@ -138,8 +138,8 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
         registerOptionWithRequiredArgument(COUNTRIES_BLACKLIST_OPTION_LONG,
                 COUNTRIES_BLACKLIST_OPTION_SHORT, COUNTRIES_BLACKLIST_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, COUNTRIES_BLACKLIST_OPTION_HINT, BOUNDARY_CONTEXT);
-        registerOption(LINESTRINGS_OPTION_LONG, LINESTRINGS_OPTION_SHORT,
-                LINESTRINGS_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL, BOUNDARY_CONTEXT);
+        registerOption(POLYGONS_OPTION_LONG, POLYGONS_OPTION_SHORT, POLYGONS_OPTION_DESCRIPTION,
+                OptionOptionality.OPTIONAL, BOUNDARY_CONTEXT);
         super.registerOptionsAndArguments();
     }
 
@@ -173,8 +173,7 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
                     .getOptionArgument(COUNTRIES_OPTION_LONG, this::parseCommaSeparatedCountries)
                     .orElse(new HashSet<>());
         }
-        final boolean useLinestrings = this.optionAndArgumentDelegate
-                .hasOption(LINESTRINGS_OPTION_LONG);
+        final boolean usePolygons = this.optionAndArgumentDelegate.hasOption(POLYGONS_OPTION_LONG);
         Set<String> countriesBlacklist = new HashSet<>();
         if (this.optionAndArgumentDelegate.hasOption(COUNTRIES_BLACKLIST_OPTION_LONG))
         {
@@ -195,14 +194,14 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
         if (countries.isEmpty())
         {
             boundaryJson = new CountryBoundaryMapGeoJsonConverter().prettyPrint(true)
-                    .withCountryBlacklist(countriesBlacklist).useLinestrings(useLinestrings)
+                    .withCountryBlacklist(countriesBlacklist).usePolygons(usePolygons)
                     .convertToString(map);
         }
         else
         {
             boundaryJson = new CountryBoundaryMapGeoJsonConverter().withCountryWhitelist(countries)
                     .withCountryBlacklist(countriesBlacklist).prettyPrint(true)
-                    .useLinestrings(useLinestrings).convertToString(map);
+                    .usePolygons(usePolygons).convertToString(map);
         }
         if (this.optionAndArgumentDelegate.hasVerboseOption())
         {

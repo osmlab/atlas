@@ -462,7 +462,7 @@ public class CountryBoundaryMap implements Serializable, GeoJson
     @Override
     public JsonObject asGeoJson()
     {
-        return new CountryBoundaryMapGeoJsonConverter().prettyPrint(false).useLinestrings(false)
+        return new CountryBoundaryMapGeoJsonConverter().prettyPrint(false).usePolygons(false)
                 .convert(this);
     }
 
