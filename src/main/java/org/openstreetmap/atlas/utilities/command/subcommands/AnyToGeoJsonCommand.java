@@ -221,9 +221,19 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
 
     private int executeShardingContext()
     {
-        final Sharding sharding = Sharding
-                .forString(this.optionAndArgumentDelegate.getOptionArgument(SHARDING_OPTION_LONG)
-                        .orElseThrow(AtlasShellToolsException::new));
+        final String shardingString = this.optionAndArgumentDelegate
+                .getOptionArgument(SHARDING_OPTION_LONG).orElseThrow(AtlasShellToolsException::new);
+        final Sharding sharding;
+        try
+        {
+            sharding = Sharding.forString(shardingString);
+        }
+        catch (final Exception exception)
+        {
+            this.outputDelegate.printlnErrorMessage(exception.getMessage());
+            return 1;
+        }
+
         final String shardingJson = new GsonBuilder().setPrettyPrinting().create()
                 .toJson(sharding.asGeoJson());
         final Path concatenatedPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
