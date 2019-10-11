@@ -17,17 +17,6 @@ public interface LevelTag
     @TagKey
     String KEY = "level";
 
-    static String getTaggedOrImpliedValue(final Taggable taggable, final String impliedValue)
-    {
-        final Optional<String> taggedValue = getTaggedValue(taggable);
-        return taggedValue.isPresent() ? taggedValue.get() : impliedValue;
-    }
-
-    static Optional<String> getTaggedValue(final Taggable taggable)
-    {
-        return taggable.getTag(KEY);
-    }
-
     /**
      * Checks if two Taggable objects are on the same level or not. As per
      * https://wiki.openstreetmap.org/wiki/Key:level, level=0 is not always at street level and so
@@ -49,5 +38,16 @@ public interface LevelTag
             return levelTagEdgeOne.get().equals(levelTagEdgeTwo.get());
         }
         return !levelTagEdgeOne.isPresent() && !levelTagEdgeTwo.isPresent();
+    }
+
+    static String getTaggedOrImpliedValue(final Taggable taggable, final String impliedValue)
+    {
+        final Optional<String> taggedValue = getTaggedValue(taggable);
+        return taggedValue.isPresent() ? taggedValue.get() : impliedValue;
+    }
+
+    static Optional<String> getTaggedValue(final Taggable taggable)
+    {
+        return taggable.getTag(KEY);
     }
 }
