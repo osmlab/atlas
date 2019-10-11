@@ -40,7 +40,7 @@ public interface LevelTag
      *            second object to compare
      * @return true if object one and object two are on the same level
      */
-    static boolean isOnSameLevel(final Taggable taggableOne, final Taggable taggableTwo)
+    static boolean areOnSameLevel(final Taggable taggableOne, final Taggable taggableTwo)
     {
         final Optional<String> levelTagEdgeOne = LevelTag.getTaggedValue(taggableOne);
         final Optional<String> levelTagEdgeTwo = LevelTag.getTaggedValue(taggableTwo);

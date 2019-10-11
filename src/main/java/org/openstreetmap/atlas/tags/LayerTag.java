@@ -60,7 +60,7 @@ public interface LayerTag
      *            second object to compare
      * @return true if the two objects have same layer tag, false otherwise
      */
-    static boolean isOnSameLayer(final Taggable taggableOne, final Taggable taggableTwo)
+    static boolean areOnSameLayer(final Taggable taggableOne, final Taggable taggableTwo)
     {
         return LayerTag.getTaggedOrImpliedValue(taggableOne, ZERO)
                 .equals(LayerTag.getTaggedOrImpliedValue(taggableTwo, ZERO));
