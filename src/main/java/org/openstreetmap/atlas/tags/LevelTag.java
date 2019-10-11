@@ -20,7 +20,7 @@ public interface LevelTag
     static String getTaggedOrImpliedValue(final Taggable taggable, final String impliedValue)
     {
         final Optional<String> taggedValue = getTaggedValue(taggable);
-        return taggedValue.orElse(impliedValue);
+        return taggedValue.isPresent() ? taggedValue.get() : impliedValue;
     }
 
     static Optional<String> getTaggedValue(final Taggable taggable)
