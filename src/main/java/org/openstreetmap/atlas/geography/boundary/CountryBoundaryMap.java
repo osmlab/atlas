@@ -68,7 +68,6 @@ import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
-import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
@@ -151,7 +150,6 @@ public class CountryBoundaryMap implements Serializable, GeoJson
     private STRtree gridIndex;
 
     private boolean useExpandedPolygonLimit = true;
-    private final transient Predicate<Taggable> shouldAlwaysSlicePredicate = taggable -> false;
     private final transient GeometryPrecisionReducer reducer;
     private final CountryListTwoWayStringConverter countryListConverter = new CountryListTwoWayStringConverter();
 

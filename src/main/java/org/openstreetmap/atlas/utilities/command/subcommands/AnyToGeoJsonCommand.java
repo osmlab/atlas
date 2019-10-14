@@ -60,9 +60,13 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
     private static final Integer SHARDING_CONTEXT = 4;
     private static final Integer BOUNDARY_CONTEXT = 5;
 
-    private static final String ATLAS_FILE = "atlas" + FileSuffix.GEO_JSON;
-    private static final String SHARDING_FILE = "sharding" + FileSuffix.GEO_JSON;
-    private static final String BOUNDARY_FILE = "boundaries" + FileSuffix.GEO_JSON;
+    private static final String OUTPUT_FILE = "output";
+    private static final String ATLAS_FILE = OUTPUT_FILE + "-" + ATLAS_OPTION_LONG
+            + FileSuffix.GEO_JSON;
+    private static final String SHARDING_FILE = OUTPUT_FILE + "-" + SHARDING_OPTION_LONG
+            + FileSuffix.GEO_JSON;
+    private static final String BOUNDARY_FILE = OUTPUT_FILE + "-" + BOUNDARY_OPTION_LONG
+            + FileSuffix.GEO_JSON;
 
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
