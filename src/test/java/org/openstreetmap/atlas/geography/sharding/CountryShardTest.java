@@ -15,5 +15,10 @@ public class CountryShardTest
         final SlippyTile tile = SlippyTile.forName("1-2-3");
         Assert.assertEquals(tile.bounds(), countryShard.bounds());
         Assert.assertEquals("ABC", countryShard.getCountry());
+
+        final CountryShard countryShard2 = new CountryShard("ABC", "4-5-6");
+        final SlippyTile tile2 = SlippyTile.forName("4-5-6");
+        Assert.assertEquals(tile2.bounds(), countryShard2.bounds());
+        Assert.assertEquals("ABC", countryShard2.getCountry());
     }
 }

@@ -38,6 +38,17 @@ public class CountryShard implements Shard
         this.country = country;
     }
 
+    public CountryShard(final String country, final String shardString)
+    {
+        if (shardString == null || country == null)
+        {
+            throw new CoreException("Cannot have null parameters: Country = {} and Shard = {}",
+                    country, shardString);
+        }
+        this.country = country;
+        this.shard = new StringToShardConverter().convert(shardString);
+    }
+
     @Override
     public JsonObject asGeoJson()
     {
