@@ -1,0 +1,36 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            27.2363281,
+            26.2550928
+          ],
+          [
+            31.015625,
+            26.2550928
+          ],
+          [
+            31.015625,
+            23.5449523
+          ],
+          [
+            27.2363281,
+            23.5449523
+          ],
+          [
+            27.2363281,
+            26.2550928
+          ]
+        ]
+      },
+      "properties": {
+        "iso_country_code": "AAA"
+      }
+    }
+  ]
+}

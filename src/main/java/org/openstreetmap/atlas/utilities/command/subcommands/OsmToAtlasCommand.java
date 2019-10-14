@@ -97,7 +97,7 @@ public class OsmToAtlasCommand extends MultipleOutputCommand
     @Override
     public String getCommandName()
     {
-        return "osm2Atlas";
+        return "osm2atlas";
     }
 
     public File getOutputFile(final Path osmPath)

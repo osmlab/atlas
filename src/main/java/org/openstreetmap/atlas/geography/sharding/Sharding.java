@@ -7,15 +7,20 @@ import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.geojson.GeoJson;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.collections.StringList;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 /**
  * Sharding strategy
  *
  * @author matthieun
  */
-public interface Sharding extends Serializable
+public interface Sharding extends Serializable, GeoJson
 {
     int SHARDING_STRING_SPLIT = 2;
     int SLIPPY_ZOOM_MAXIMUM = 18;
@@ -34,7 +39,8 @@ public interface Sharding extends Serializable
         if (split.size() != SHARDING_STRING_SPLIT)
         {
             throw new CoreException(
-                    "Invalid sharding string: {} (correct e.g. dynamic@/path/to/tree)", sharding);
+                    "Invalid sharding string: {} (correct e.g. dynamic@/path/to/tree, slippy@9, etc.)",
+                    sharding);
         }
         if ("slippy".equals(split.get(0)))
         {
@@ -59,6 +65,33 @@ public interface Sharding extends Serializable
             return new DynamicTileSharding(new File(definition));
         }
         throw new CoreException("Sharding type {} is not recognized.", split.get(0));
+    }
+
+    @Override
+    default JsonObject asGeoJson()
+    {
+        final JsonObject featureCollectionObject = new JsonObject();
+        featureCollectionObject.addProperty("type", "FeatureCollection");
+        final JsonArray features = new JsonArray();
+        for (final Shard shard : this.shards(Rectangle.MAXIMUM))
+        {
+            final JsonObject featureObject = new JsonObject();
+            featureObject.addProperty("type", "Feature");
+            featureObject.add("geometry",
+                    new PolyLine(shard.bounds().closedLoop()).asGeoJsonGeometry());
+            final JsonObject propertiesObject = new JsonObject();
+            propertiesObject.addProperty("shard", shard.getName());
+            featureObject.add("properties", propertiesObject);
+            features.add(featureObject);
+        }
+        featureCollectionObject.add("features", features);
+        return featureCollectionObject;
+    }
+
+    @Override
+    default GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.FEATURE_COLLECTION;
     }
 
     /**

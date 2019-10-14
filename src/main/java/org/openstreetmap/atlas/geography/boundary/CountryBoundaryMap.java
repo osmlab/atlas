@@ -56,16 +56,18 @@ import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.complex.boundaries.ComplexBoundary;
 import org.openstreetmap.atlas.geography.atlas.items.complex.boundaries.ComplexBoundaryFinder;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.CountryCodeProperties;
+import org.openstreetmap.atlas.geography.boundary.converters.CountryBoundaryMapGeoJsonConverter;
 import org.openstreetmap.atlas.geography.boundary.converters.CountryListTwoWayStringConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPrecisionManager;
+import org.openstreetmap.atlas.geography.geojson.GeoJson;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
-import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
@@ -76,6 +78,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.gson.JsonObject;
 
 /**
  * This {@link CountryBoundaryMap} loads boundaries from given country boundary shape file into
@@ -86,8 +89,15 @@ import com.google.common.collect.Lists;
  * @author mgostintsev
  * @author mkalender
  */
-public class CountryBoundaryMap implements Serializable
+public class CountryBoundaryMap implements Serializable, GeoJson
 {
+    // Buffer values for slicing operation. If the remaining piece turns to be smaller than
+    // buffer, we'll just ignore them.
+    public static final double LINE_BUFFER = 0.000001;
+    public static final double AREA_BUFFER = 0.000000001;
+    // Slicing constants
+    public static final int MAXIMUM_EXPECTED_COUNTRIES_TO_SLICE_WITH = 3;
+    public static final int PRECISION_MODEL = 100_000_000;
     // Boundary file constants
     static final String COUNTRY_BOUNDARY_DELIMITER = "||";
     private static final long serialVersionUID = -1714710346834527699L;
@@ -105,25 +115,13 @@ public class CountryBoundaryMap implements Serializable
     private static final int GRID_INDEX_MIN_LENGTH = 3;
     private static final int GRID_INDEX_FIRST_CELL_INDEX = 2;
     private static final String POLYGON_ID_KEY = "pid";
-
     // For backward compatibility
     // TODO Remove once all files move to the new format
     private static final String SPATIAL_INDEX_DELIMITER = "--";
-
-    // Buffer values for slicing operation. If the remaining piece turns to be smaller than
-    // buffer, we'll just ignore them.
-    public static final double LINE_BUFFER = 0.000001;
-    public static final double AREA_BUFFER = 0.000000001;
     private static final double MAX_AREA_FOR_NEAREST_NEIGHBOR = 100;
     private static final double ANTIMERIDIAN = Longitude.MAX_VALUE;
-
-    // Slicing constants
-    public static final int MAXIMUM_EXPECTED_COUNTRIES_TO_SLICE_WITH = 3;
     private static final int DEFAULT_MAXIMUM_POLYGONS_TO_SLICE_WITH = 2000;
     private static final int EXPANDED_MAXIMUM_POLYGONS_TO_SLICE_WITH = 25000;
-
-    public static final int PRECISION_MODEL = 100_000_000;
-
     // Converters
     private static final JtsMultiPolygonConverter JTS_MULTI_POLYGON_TO_POLYGON_CONVERTER = new JtsMultiPolygonConverter();
     private static final JtsPolyLineConverter JTS_POLYLINE_CONVERTER = new JtsPolyLineConverter();
@@ -152,7 +150,6 @@ public class CountryBoundaryMap implements Serializable
     private STRtree gridIndex;
 
     private boolean useExpandedPolygonLimit = true;
-    private transient Predicate<Taggable> shouldAlwaysSlicePredicate = taggable -> false;
     private final transient GeometryPrecisionReducer reducer;
     private final CountryListTwoWayStringConverter countryListConverter = new CountryListTwoWayStringConverter();
 
@@ -453,6 +450,18 @@ public class CountryBoundaryMap implements Serializable
     {
         return this.boundaries(Rectangle.MAXIMUM).stream().map(CountryBoundary::getCountryName)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Get a GeoJSON representation of this {@link CountryBoundaryMap}.
+     *
+     * @return a GeoJSON representation of this {@link CountryBoundaryMap}
+     */
+    @Override
+    public JsonObject asGeoJson()
+    {
+        return new CountryBoundaryMapGeoJsonConverter().prettyPrint(false).usePolygons(false)
+                .convert(this);
     }
 
     /**
@@ -790,6 +799,17 @@ public class CountryBoundaryMap implements Serializable
     public CountryCodeProperties getCountryCodeISO3(final Location location)
     {
         return this.getCountryCodeISO3(JTS_POINT_CONVERTER.convert(location));
+    }
+
+    public MultiMap<String, Polygon> getCountryNameToBoundaryMap()
+    {
+        return this.countryNameToBoundaryMap;
+    }
+
+    @Override
+    public GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.FEATURE_COLLECTION;
     }
 
     /**
