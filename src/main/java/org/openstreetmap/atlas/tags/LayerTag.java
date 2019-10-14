@@ -18,8 +18,25 @@ import org.openstreetmap.atlas.tags.annotations.extraction.LongExtractor;
         0 }), taginfo = "http://taginfo.openstreetmap.org/keys/layer#values", osm = "http://wiki.openstreetmap.org/wiki/Layer")
 public interface LayerTag
 {
+    Long ZERO = 0L;
     @TagKey
     String KEY = "layer";
+
+    /**
+     * Checks if two Taggable objects are on the same layer or not. According to OSM wiki, objects
+     * with no explicit LayerTag are assumed to have layer 0.
+     *
+     * @param taggableOne
+     *            first object to compare
+     * @param taggableTwo
+     *            second object to compare
+     * @return true if the two objects have same layer tag, false otherwise
+     */
+    static boolean areOnSameLayer(final Taggable taggableOne, final Taggable taggableTwo)
+    {
+        return LayerTag.getTaggedOrImpliedValue(taggableOne, ZERO)
+                .equals(LayerTag.getTaggedOrImpliedValue(taggableTwo, ZERO));
+    }
 
     static long getMaxValue()
     {
