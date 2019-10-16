@@ -333,6 +333,15 @@ sub completion_atlascfg {
     return 1;
 }
 
+# TODO DEBUG BEGIN
+sub debug_dump_string {
+    my $string = shift;
+    open my $handle, '>>', "/Users/lucascram/Desktop/perl.debug";
+    print $handle $string;
+    close $handle;
+}
+# TODO DEBUG END
+
 # Perl modules must return a value. Returning a value perl considers "truthy"
 # signals that the module loaded successfully.
 1;
