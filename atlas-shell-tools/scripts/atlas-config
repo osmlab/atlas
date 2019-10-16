@@ -1081,6 +1081,12 @@ elsif ($subcommand eq "__completion_atlas__") {
 elsif ($subcommand eq "__completion_atlascfg__") {
     $success = ast_completions::completion_atlascfg($ast_path, \@ARGV);
 }
+elsif ($subcommand eq "__completion_atlas_zsh__") {
+    $success = ast_completions::completion_atlas_zsh($ast_path, \@ARGV);
+}
+elsif ($subcommand eq "__completion_atlascfg_zsh__") {
+    $success = ast_completions::completion_atlascfg_zsh($ast_path, \@ARGV);
+}
 else {
     ast_utilities::error_output($program_name, "no such command ${bold_stderr}${subcommand}${reset_stderr}");
     print STDERR "Try '${bold_stderr}${program_name} --help${reset_stderr}' for more information.\n";

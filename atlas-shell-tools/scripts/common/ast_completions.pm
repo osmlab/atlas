@@ -128,6 +128,13 @@ sub completion_atlas {
     return 1;
 }
 
+sub completion_atlas_zsh {
+    my $ast_path = shift;
+    my $argv_ref = shift;
+
+    return 1;
+}
+
 sub completion_atlascfg {
     my $ast_path = shift;
     my $argv_ref = shift;
@@ -329,6 +336,38 @@ sub completion_atlascfg {
     # Generate completion matches based on prefix of current word
     my @completion_matches = completion_match_prefix($rargv, \@commands);
     print join("\n", @completion_matches) . "\n";
+
+    return 1;
+}
+
+sub completion_atlascfg_zsh {
+    my $ast_path = shift;
+    my $argv_ref = shift;
+
+    my @argv = @{$argv_ref};
+
+    # TODO DEBUG BEGIN
+    debug_dump_string("Initial ARGV\n");
+    foreach my $element (@argv) {
+        debug_dump_string(length($element) . ":${element}\n");
+    }
+    debug_dump_string("------------\n");
+    # TODO DEBUG END
+
+    # Shift "atlas-config" off the front of ARGV
+    shift @argv;
+
+    my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ast_path);
+
+    # Shift global options off the front of ARGV
+    foreach my $element (@argv) {
+        if (ast_utilities::string_starts_with($element, '-')) {
+            shift @argv;
+        }
+    }
+
+    my @commands = ();
+    my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
 
     return 1;
 }
