@@ -1076,16 +1076,16 @@ elsif ($subcommand eq "update") {
 # These subcommands are "hidden", they are used by the completion scripts
 # to generate autocomplete suggestions.
 elsif ($subcommand eq "__completion_atlas__") {
-    $success = ast_completions::completion_atlas($ast_path, \@ARGV);
+    $success = ast_completions::completion_atlas($ast_path, 0, \@ARGV);
 }
 elsif ($subcommand eq "__completion_atlascfg__") {
-    $success = ast_completions::completion_atlascfg($ast_path, \@ARGV);
+    $success = ast_completions::completion_atlascfg($ast_path, 0, \@ARGV);
 }
 elsif ($subcommand eq "__completion_atlas_zsh__") {
-    $success = ast_completions::completion_atlas_zsh($ast_path, \@ARGV);
+    $success = ast_completions::completion_atlas($ast_path, 1, \@ARGV);
 }
 elsif ($subcommand eq "__completion_atlascfg_zsh__") {
-    $success = ast_completions::completion_atlascfg_zsh($ast_path, \@ARGV);
+    $success = ast_completions::completion_atlascfg($ast_path, 1, \@ARGV);
 }
 else {
     ast_utilities::error_output($program_name, "no such command ${bold_stderr}${subcommand}${reset_stderr}");

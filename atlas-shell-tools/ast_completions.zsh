@@ -28,11 +28,18 @@ _complete_atlas_shell_tools_zsh ()
         return 1
     fi
 
-    local reply=$(atlas-config "${completion_mode}" "${COMP_WORDS[@]}");
+    local reply=$(atlas-config "${completion_mode}" "${COMP_CWORD}" "${COMP_WORDS[@]}");
 
     if [ "$reply" = "__atlas-shell-tools_sentinel_complete_filenames__" ];
     then
-        COMPREPLY=()
+        local cur=${COMP_WORDS[COMP_CWORD]}
+
+        # We must locally set IFS to '\n' in case there are filenames with whitespace.
+        # Without this, a filename like "file with spaces" would present itself
+        # as 3 discrete completion options, "file", "with", and "spaces".
+        local IFS=$'\n'
+
+        COMPREPLY=($(compgen -o filenames -f -- "$cur"))
         return 0
     else
         COMPREPLY=(${reply})

@@ -63,11 +63,20 @@ sub completion_match_prefix {
 
 sub completion_atlas {
     my $ast_path = shift;
+    my $zsh_mode = shift;
     my $argv_ref = shift;
 
     my @argv = @{$argv_ref};
+
+    # Shift COMP_CWORD off the front of ARGV
+    my $comp_cword = shift @argv;
+
     # Shift "atlas" off the front of ARGV
     shift @argv;
+
+    if ($zsh_mode && $comp_cword == (scalar @argv + 1)) {
+        push @argv, "";
+    }
 
     my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ast_path);
     my @commands = keys %subcommand_classes;
@@ -128,18 +137,15 @@ sub completion_atlas {
     return 1;
 }
 
-sub completion_atlas_zsh {
-    my $ast_path = shift;
-    my $argv_ref = shift;
-
-    return 1;
-}
-
 sub completion_atlascfg {
     my $ast_path = shift;
+    my $zsh_mode = shift;
     my $argv_ref = shift;
 
     my @argv = @{$argv_ref};
+
+    # Shift COMP_CWORD off the front of ARGV
+    my $comp_cword = shift @argv;
 
     # Shift "atlas-config" off the front of ARGV
     shift @argv;
@@ -150,7 +156,14 @@ sub completion_atlascfg {
     foreach my $element (@argv) {
         if (ast_utilities::string_starts_with($element, '-')) {
             shift @argv;
+            # We need to decrement $comp_cword, since it will contain an extra
+            # count for each of the global options.
+            $comp_cword = $comp_cword - 1;
         }
+    }
+
+    if ($zsh_mode && $comp_cword == (scalar @argv + 1)) {
+        push @argv, "";
     }
 
     # If no more ARGV is left, exit
@@ -340,82 +353,13 @@ sub completion_atlascfg {
     return 1;
 }
 
-sub completion_atlascfg_zsh {
-    my $ast_path = shift;
-    my $argv_ref = shift;
-
-    my @argv = @{$argv_ref};
-
-    # Shift "atlas-config" off the front of ARGV
-    shift @argv;
-
-    # TODO DEBUG BEGIN
-    debug_dump_string("ARGV no cmd\n");
-    foreach my $element (@argv) {
-        debug_dump_string(length($element) . ":${element}\n");
-    }
-    debug_dump_string("------------\n");
-    # TODO DEBUG END
-
-    my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ast_path);
-
-    # Shift global options off the front of ARGV
-    foreach my $element (@argv) {
-        if (ast_utilities::string_starts_with($element, '-')) {
-            shift @argv;
-        }
-    }
-
-    my @commands = ();
-    my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
-
-    unless (defined $argv[0]) {
-        @commands = qw(activate deactivate install list log preset repo reset sync uninstall update);
-        print join("\n", @commands) . "\n";
-        return 1;
-    }
-
-    # In the completion code, we use the following conventions to name variables
-    # containing ARGV elements. Assume ARGV looks like the following:
-    #
-    # ARGV of length N:
-    # ARGV[0] ... ARGV[N - K] ... ARGV[N - 3], ARGV[N - 2], ARGV[N - 1]
-    #             ^ rargv_m(k-1)  ^ rargv_m2   ^ rargv_m1   ^ rargv
-    #
-    # Essentially, "rargv" means the "rightmost" ARGV element. Then "rargv_m1"
-    # means the "rightmost" ARGV element minus 1, and so on. Since perl plays fast
-    # and loose with array indexing, we can index into elements that may or may
-    # not actually exist, and then check if they are defined before we actually
-    # use them. The '-1' indexing syntax just indexes from the end of the array.
-    #
-    my $rargv = $argv[-1];
-    my $rargv_m1 = $argv[-2];
-    my $rargv_m2 = $argv[-3];
-    my $rargv_m3 = $argv[-4];
-
-    unless (defined $argv[1]) {
-        @commands = qw(activate deactivate install list log preset repo reset sync uninstall update);
-    }
-
-    if ((defined $argv[0] && $argv[0] eq 'activate') && (defined $rargv && $rargv eq 'activate')) {
-        @commands = ast_module_subsystem::get_deactivated_modules(\%modules);
-    }
-
-    # Generate completion matches based on prefix of current word
-    my @completion_matches = completion_match_prefix($rargv, \@commands);
-    print join("\n", @completion_matches) . "\n";
-
-    return 1;
-}
-
-# TODO DEBUG BEGIN
 sub debug_dump_string {
     my $string = shift;
-    open my $handle, '>>', "/Users/lucascram/Desktop/perl.debug";
+    my $file = shift;
+    open my $handle, '>>', $file;
     print $handle $string;
     close $handle;
 }
-# TODO DEBUG END
 
 # Perl modules must return a value. Returning a value perl considers "truthy"
 # signals that the module loaded successfully.
