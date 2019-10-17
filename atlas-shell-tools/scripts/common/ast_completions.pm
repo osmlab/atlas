@@ -346,16 +346,16 @@ sub completion_atlascfg_zsh {
 
     my @argv = @{$argv_ref};
 
+    # Shift "atlas-config" off the front of ARGV
+    shift @argv;
+
     # TODO DEBUG BEGIN
-    debug_dump_string("Initial ARGV\n");
+    debug_dump_string("ARGV no cmd\n");
     foreach my $element (@argv) {
         debug_dump_string(length($element) . ":${element}\n");
     }
     debug_dump_string("------------\n");
     # TODO DEBUG END
-
-    # Shift "atlas-config" off the front of ARGV
-    shift @argv;
 
     my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ast_path);
 
@@ -368,6 +368,42 @@ sub completion_atlascfg_zsh {
 
     my @commands = ();
     my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
+
+    unless (defined $argv[0]) {
+        @commands = qw(activate deactivate install list log preset repo reset sync uninstall update);
+        print join("\n", @commands) . "\n";
+        return 1;
+    }
+
+    # In the completion code, we use the following conventions to name variables
+    # containing ARGV elements. Assume ARGV looks like the following:
+    #
+    # ARGV of length N:
+    # ARGV[0] ... ARGV[N - K] ... ARGV[N - 3], ARGV[N - 2], ARGV[N - 1]
+    #             ^ rargv_m(k-1)  ^ rargv_m2   ^ rargv_m1   ^ rargv
+    #
+    # Essentially, "rargv" means the "rightmost" ARGV element. Then "rargv_m1"
+    # means the "rightmost" ARGV element minus 1, and so on. Since perl plays fast
+    # and loose with array indexing, we can index into elements that may or may
+    # not actually exist, and then check if they are defined before we actually
+    # use them. The '-1' indexing syntax just indexes from the end of the array.
+    #
+    my $rargv = $argv[-1];
+    my $rargv_m1 = $argv[-2];
+    my $rargv_m2 = $argv[-3];
+    my $rargv_m3 = $argv[-4];
+
+    unless (defined $argv[1]) {
+        @commands = qw(activate deactivate install list log preset repo reset sync uninstall update);
+    }
+
+    if ((defined $argv[0] && $argv[0] eq 'activate') && (defined $rargv && $rargv eq 'activate')) {
+        @commands = ast_module_subsystem::get_deactivated_modules(\%modules);
+    }
+
+    # Generate completion matches based on prefix of current word
+    my @completion_matches = completion_match_prefix($rargv, \@commands);
+    print join("\n", @completion_matches) . "\n";
 
     return 1;
 }

@@ -43,5 +43,5 @@ autoload compinit
 compinit
 autoload bashcompinit
 bashcompinit
-complete -o filenames -o default -F _complete_atlas_shell_tools_zsh atlas
-complete -o filenames -o default -F _complete_atlas_shell_tools_zsh atlas-config
+complete -o filenames -o bashdefault -F _complete_atlas_shell_tools_zsh atlas
+complete -o filenames -o bashdefault -F _complete_atlas_shell_tools_zsh atlas-config
