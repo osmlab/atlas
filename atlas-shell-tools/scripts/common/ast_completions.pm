@@ -63,11 +63,20 @@ sub completion_match_prefix {
 
 sub completion_atlas {
     my $ast_path = shift;
+    my $zsh_mode = shift;
     my $argv_ref = shift;
 
     my @argv = @{$argv_ref};
+
+    # Shift COMP_CWORD off the front of ARGV
+    my $comp_cword = shift @argv;
+
     # Shift "atlas" off the front of ARGV
     shift @argv;
+
+    if ($zsh_mode && $comp_cword == (scalar @argv + 1)) {
+        push @argv, "";
+    }
 
     my %subcommand_classes = ast_module_subsystem::get_subcommand_to_class_hash($ast_path);
     my @commands = keys %subcommand_classes;
@@ -130,9 +139,13 @@ sub completion_atlas {
 
 sub completion_atlascfg {
     my $ast_path = shift;
+    my $zsh_mode = shift;
     my $argv_ref = shift;
 
     my @argv = @{$argv_ref};
+
+    # Shift COMP_CWORD off the front of ARGV
+    my $comp_cword = shift @argv;
 
     # Shift "atlas-config" off the front of ARGV
     shift @argv;
@@ -143,7 +156,14 @@ sub completion_atlascfg {
     foreach my $element (@argv) {
         if (ast_utilities::string_starts_with($element, '-')) {
             shift @argv;
+            # We need to decrement $comp_cword, since it will contain an extra
+            # count for each of the global options.
+            $comp_cword = $comp_cword - 1;
         }
+    }
+
+    if ($zsh_mode && $comp_cword == (scalar @argv + 1)) {
+        push @argv, "";
     }
 
     # If no more ARGV is left, exit
@@ -331,6 +351,14 @@ sub completion_atlascfg {
     print join("\n", @completion_matches) . "\n";
 
     return 1;
+}
+
+sub debug_dump_string {
+    my $string = shift;
+    my $file = shift;
+    open my $handle, '>>', $file;
+    print $handle $string;
+    close $handle;
 }
 
 # Perl modules must return a value. Returning a value perl considers "truthy"

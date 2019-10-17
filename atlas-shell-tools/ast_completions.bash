@@ -49,7 +49,7 @@ _complete_atlas_shell_tools ()
         compopt +o default
     fi
 
-    local reply=$(atlas-config "${completion_mode}" "${COMP_WORDS[@]}");
+    local reply=$(atlas-config "${completion_mode}" "${COMP_CWORD}" "${COMP_WORDS[@]}");
 
     if [ "$reply" = "__atlas-shell-tools_sentinel_complete_filenames__" ];
     then
