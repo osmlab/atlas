@@ -27,7 +27,6 @@ $ sh quick_install_bash.sh
 ```
 
 #### For `zsh` users:
-**TODO actually implement zsh support**
 ```
 $ curl -O https://raw.githubusercontent.com/osmlab/atlas/master/atlas-shell-tools/quick_install_zsh.sh
 # Inspect the downloaded file and ensure you are satisfied it is safe to run:
@@ -53,7 +52,7 @@ $ ./atlas-shell-tools/scripts/atlas-config repo install atlas
 ##### Setting up your shell startup file
 Next, open whichever configuration file your shell uses to set environment variables (e.g. `~/.bash_profile` for `bash`, or `~/.zshenv` for `zsh`). Export the following environment variables using your shell's equivalent `export` statement.
 ```
-# In bash we can use 'export', other shells may use different syntax
+# In bash/zsh we can use 'export', other shells may use different syntax
 
 # Point ATLAS_SHELL_TOOLS_HOME at the 'atlas-shell-tools' subfolder within your 'atlas-shell-tools' installation
 export ATLAS_SHELL_TOOLS_HOME=/path/to/atlas-shell-tools/atlas-shell-tools
@@ -63,6 +62,7 @@ export PATH="$PATH:$ATLAS_SHELL_TOOLS_HOME/scripts"
 ```
 ##### Autocomplete support
 Additionally, `atlas-shell-tools` supports autocomplete for `bash` and `zsh` through [ast_completions.bash](https://github.com/osmlab/atlas/blob/master/atlas-shell-tools/ast_completions.bash) and [ast_completions.zsh](https://github.com/osmlab/atlas/blob/master/atlas-shell-tools/ast_completions.zsh), respectively. To get these set up, you'll need to source them in your shell's appropriate startup file (`~/.bashrc` for `bash` or `~/.zshrc` for `zsh`).
+
 An example for `bash`:
 ```
 ##### ~/.bashrc file #####
@@ -70,6 +70,15 @@ An example for `bash`:
 # other stuff here....
 #
 source "$ATLAS_SHELL_TOOLS_HOME/ast_completions.bash"
+```
+
+An example for `zsh`:
+```
+##### ~/.zshrc file #####
+#
+# other stuff here....
+#
+source "$ATLAS_SHELL_TOOLS_HOME/ast_completions.zsh"
 ```
 
 ## Creating A Command
