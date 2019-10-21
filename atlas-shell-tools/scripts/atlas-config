@@ -294,11 +294,11 @@ sub execute_command_install {
 sub execute_command_list {
     my $current = 0;
     my $help_flag;
-    my $verbose = 0;
+    my $one_line = 0;
     GetOptions(
         'current|c' => \$current,
         'help|h'    => \$help_flag,
-        'verbose|v' => \$verbose
+        'one-line|1' => \$one_line
     ) or ast_utilities::getopt_failure_and_exit($program_name, "list");
 
     if (defined $help_flag) {
@@ -380,7 +380,7 @@ sub execute_command_list {
 
         print "$display\n";
 
-        if ($verbose) {
+        unless ($one_line) {
             if (%module_metadata) {
                 foreach my $metadata_key (sort {lc $a cmp lc $b} keys %module_metadata) {
                     print "          ${metadata_key}: $module_metadata{$metadata_key}\n";
@@ -389,7 +389,7 @@ sub execute_command_list {
             print "\n";
         }
     }
-    unless ($verbose) {
+    if ($one_line) {
         print "\n";
     }
 
