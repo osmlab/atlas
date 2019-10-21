@@ -839,6 +839,7 @@ sub execute_command_reset {
             foreach my $module (keys %modules) {
                 ast_module_subsystem::perform_uninstall($module, $ast_path, $program_name, $quiet, 1);
             }
+            ast_module_subsystem::remove_active_module_index($ast_path, $program_name, $quiet);
         }
         $ran_at_least_one_directive = 1;
     }
@@ -913,8 +914,9 @@ sub execute_command_uninstall {
     if (defined $allflag) {
         my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
         foreach my $module (keys %modules) {
-            ast_module_subsystem::perform_uninstall($module, $ast_path, $program_name, $quiet, $forceflag);
+            ast_module_subsystem::perform_uninstall($module, $ast_path, $program_name, $quiet, 1);
         }
+        ast_module_subsystem::remove_active_module_index($ast_path, $program_name, $quiet);
         return 1;
     }
 
@@ -927,15 +929,16 @@ sub execute_command_uninstall {
     my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
     my @activated_modules = ast_module_subsystem::get_activated_modules(\%modules);
     my $activated_module = $activated_modules[0];
-    my $success = ast_module_subsystem::perform_uninstall($module_to_uninstall, $ast_path, $program_name, $quiet, $forceflag);
-    unless ($success) {
-        return 0;
-    }
 
-    if (defined $activated_module) {
-        if ($module_to_uninstall eq $activated_module) {
-            ast_module_subsystem::remove_active_module_index($ast_path, $program_name, $quiet);
+    while (defined $module_to_uninstall) {
+        my $success = ast_module_subsystem::perform_uninstall($module_to_uninstall, $ast_path, $program_name, $quiet, $forceflag);
+        unless ($success) {
+            ast_utilities::error_output($program_name . ": uninstall", "failed to uninstall ${bold_stderr}${module_to_uninstall}${reset_stderr}");
         }
+        elsif (defined $activated_module && $module_to_uninstall eq $activated_module) {
+                ast_module_subsystem::remove_active_module_index($ast_path, $program_name, $quiet);
+        }
+        $module_to_uninstall = shift @ARGV;
     }
 
     return 1;

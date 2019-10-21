@@ -216,8 +216,8 @@ sub completion_atlascfg {
         @commands = ast_module_subsystem::get_activated_modules(\%modules);
     }
 
-    # 'atlas-config uninstall' command will complete all modules
-    elsif ((defined $argv[0] && $argv[0] eq 'uninstall') && (defined $rargv_m1 && $rargv_m1 eq 'uninstall')) {
+    # 'atlas-config uninstall' command will complete all modules as many times as desired
+    elsif ((defined $argv[0] && $argv[0] eq 'uninstall')) {
         @commands = keys %modules;
     }
 
