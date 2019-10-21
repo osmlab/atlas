@@ -52,24 +52,25 @@ The three interface tiers are:
 
 .SH "TIER 1"
 Tier 1 provides a simple, lightweight interface for preset usage through the \fBatlas\fR(1) options
-\fB\-\-preset\fR=\fIname\fR and \fB\-\-save\-preset\fR=\fInew\-name\fR, where
-\fIname\fR is the name of the preset you would like to apply and \fInew\-name\fR is
+\fB\-\-preset\fR=\fInames\fR and \fB\-\-save\-preset\fR=\fInew\-name\fR, where
+\fInames\fR are the name(s) of the preset(s) you would like to apply and \fInew\-name\fR is
 the name of the preset you would like to create.
 .sp
-When running a command with the \fB\-\-preset\fR=\fIname\fR option,
+When running a command with the \fB\-\-preset\fR=\fInames\fR option,
 \fBatlas\fR(1) checks the list of saved presets associated with that command.
-If one of those presets matches with \fIname\fR, \fBatlas\fR(1) uses that preset. If
-\fBatlas\fR(1) cannot find a match with \fIname\fR, it displays the list and exits
-with an error.
+If one of those presets matches with one of the given \fInames\fR, \fBatlas\fR(1) will apply that
+preset. It will perform this check and application for each preset provided in \fInames\fR (which should
+be comma or colon separated). If one of the given \fInames\fR does not refer to a saved preset,
+\fBatlas\fR(1) displays the list of presets and exits with an error.
 .sp
 When running a command with the \fB\-\-save\-preset\fR=\fInew\-name\fR option,
 \fBatlas\fR attempts to save the current ARGV to a new preset called \fInew\-name\fR.
 If \fInew\-name\fR already exists, \fBatlas\fR(1) will exit with an error.
 .sp
-If both \fB\-\-preset\fR=\fIname\fR and \fB\-\-save\-preset\fR=\fInew\-name\fR
-are applied at the same time, \fBatlas\fR(1) will attempt to apply \fIname\fR before
+If both \fB\-\-preset\fR=\fInames\fR and \fB\-\-save\-preset\fR=\fInew\-name\fR
+are applied at the same time, \fBatlas\fR(1) will attempt to apply \fInames\fR before
 saving \fInew\-name\fR. This allows you to easily save new presets that iterate
-on a previously created preset.
+on previously created presets.
 .sp
 Note that preset names are bound to the target command at save\-time \- 
 a preset name without its command context is meaningless. This means that preset
@@ -107,7 +108,7 @@ $ atlas \-\-preset=p1 MyCommand arg1 arg2 \-\-opt2=OverrideOpt2Arg
 This will run the same command as the above 2 examples, except it will override
 the preset value of \-\-opt2 with your new value "OverrideOpt2Arg".
 .sp
-Finally, you can extend presets by applying and saving at the same time. Here,
+You can extend presets by applying and saving at the same time. Here,
 we apply our preset "p1" while also saving a new preset called "p2", based off
 the contents of "p1":
 .sp
@@ -120,6 +121,16 @@ The new preset "p2" will contain the following contents:
 \-\-opt2 is repeated, this is OK. When multiple instances of the same option are
 supplied, the option parser will use ARGV's rightmost instance of that option.
 .sp
+Let's look at one final example where we apply two presets at once. Assuming you now have
+a preset "p3" with contents: ["\-\-opt3"], you could run:
+.sp
+.RS 4
+$ atlas \-\-preset=p1,p3 MyCommand
+.RE
+.sp
+This would run MyCommand with ["\-\-opt1", "\-\-opt2=opt2Arg", "\-\-opt3"] as the effective ARGV.
+Note that the rightmost ARGV selection strategy for duplicate options applies here as well. Keep this in
+mind when applying multiple presets that contain the same option.
 
 .SH "TIER 2"
 Tier 2 provides more precise preset management using the \fBatlas\-config\fR(1)

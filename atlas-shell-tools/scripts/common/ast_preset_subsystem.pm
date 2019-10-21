@@ -36,6 +36,7 @@ our @EXPORT = qw(
     get_all_presets_in_current_namespace
     get_all_presets_for_command
     preset_regex_ok
+    preset_regex
 );
 
 our $PRESETS_FOLDER = 'presets';
@@ -547,13 +548,13 @@ sub copy_preset {
     return 1;
 }
 
-# Apply a preset for a given command. Returns an updated argv array with the
-# preset applied. If the preset does not exist, it will error and exit.
+# Apply preset(s) for a given command. Returns an updated argv array with the
+# preset(s) applied. If the preset(s) do not exist, it will error and exit.
 # Params:
 #   $ast_path: the path to the atlas-shell-tools data folder
 #   $program_name: the name of the calling program
 #   $quiet: suppres non-essential output
-#   $preset: the name of the preset
+#   $presets: the name of the preset(s)
 #   $command: the name of the command
 #   $namespace: the namespace
 #   $argv_ref: a reference to an array containing all the options and args
@@ -562,28 +563,49 @@ sub apply_preset_or_exit {
     my $ast_path = shift;
     my $program_name = shift;
     my $quiet = shift;
-    my $preset = shift;
+    my $presets = shift;
     my $command = shift;
     my $namespace = shift;
     my $argv_ref = shift;
 
     my @argv = @{$argv_ref};
 
-    my $preset_subfolder = File::Spec->catfile($ast_path, $PRESETS_FOLDER, $namespace, $command);
-    my $preset_file = File::Spec->catfile($preset_subfolder, $preset);
-    unless (-f $preset_file) {
-        ast_utilities::error_output($program_name, "no such preset ${bold_stderr}${preset}${reset_stderr} for command ${bold_stderr}${command}${reset_stderr}");
-        all_presets_for_command($ast_path, $program_name, $quiet, $command, $namespace);
+    my @presets_comma = split ',', $presets;
+    my @presets_colon = split ':', $presets;
+    my @presets_array;
+
+    # User cannot use both ',' and ':', pick one
+    if (scalar @presets_colon > 1 && scalar @presets_comma > 1) {
+        ast_utilities::error_output($program_name, "cannot use both \',\' and \':\' to split presets, choose one");
         exit 1;
     }
 
-    my @argv_from_presets = read_preset($ast_path, $program_name, $quiet, $preset, $command, $namespace);
-    my @final_argv = ();
-
-    foreach my $preset_argv_elem (@argv_from_presets) {
-        push @final_argv, $preset_argv_elem;
+    # In this case, either user split on ':' to separate or there was only 1 preset
+    if (scalar @presets_colon >= scalar @presets_comma) {
+        @presets_array = @presets_colon;
+    }
+    # Otherwise, the user split on ',' so use that
+    else {
+        @presets_array = @presets_comma;
     }
 
+    my @final_argv = ();
+    foreach my $preset (@presets_array) {
+        my $preset_subfolder = File::Spec->catfile($ast_path, $PRESETS_FOLDER, $namespace, $command);
+        my $preset_file = File::Spec->catfile($preset_subfolder, $preset);
+        unless (-f $preset_file) {
+            ast_utilities::error_output($program_name, "no such preset ${bold_stderr}${preset}${reset_stderr} for command ${bold_stderr}${command}${reset_stderr}");
+            all_presets_for_command($ast_path, $program_name, $quiet, $command, $namespace);
+            exit 1;
+        }
+
+        my @argv_from_presets = read_preset($ast_path, $program_name, $quiet, $preset, $command, $namespace);
+
+
+        foreach my $preset_argv_elem (@argv_from_presets) {
+            push @final_argv, $preset_argv_elem;
+        }
+    }
     foreach my $argv_elem (@argv) {
         push @final_argv, $argv_elem;
     }
@@ -886,10 +908,19 @@ sub get_all_presets_for_command {
 sub preset_regex_ok {
     my $preset = shift;
 
-    if ($preset =~ m/^[_a-zA-Z0-9][_a-zA-Z0-9-]*$/) {
+    my $regex = preset_regex();
+
+    if ($preset =~ m/$regex/) {
         return 1;
     }
     return 0;
+}
+
+# Get the valid preset name regex.
+# Params: none
+# Return: the valid preset name regex
+sub preset_regex {
+    return "^[_a-zA-Z0-9][_a-zA-Z0-9-]*\$";
 }
 
 # Perl modules must return a value. Returning a value perl considers "truthy"

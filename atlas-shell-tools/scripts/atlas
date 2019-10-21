@@ -425,6 +425,11 @@ if (defined $use_preset) {
 }
 
 if (defined $save_preset) {
+    unless (ast_preset_subsystem::preset_regex_ok($save_preset)) {
+            ast_utilities::error_output($program_name, "invalid preset name ${bold_stderr}${save_preset}${reset_stderr}");
+            print STDERR "Name must match regex: " . ast_preset_subsystem::preset_regex() . "\n";
+            exit 1;
+    }
     if ($debug_flag) {
         print "Would save preset ${save_preset} for ${subcommand} to namespace ${current_namespace}\n";
         print "Preset ARGV: \"@new_argv\"\n\n";
