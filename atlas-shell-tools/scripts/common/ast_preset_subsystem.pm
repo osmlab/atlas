@@ -35,11 +35,13 @@ our @EXPORT = qw(
     remove_namespace
     get_all_presets_in_current_namespace
     get_all_presets_for_command
+    get_all_global_presets
     preset_regex_ok
     preset_regex
 );
 
 our $PRESETS_FOLDER = 'presets';
+our $GLOBAL_FOLDER = '.global';
 
 our $CURRENT_NAMESPACE_FILE = '.current_namespace';
 our $NAMESPACE_PATH = File::Spec->catfile($PRESETS_FOLDER, $CURRENT_NAMESPACE_FILE);
@@ -134,7 +136,11 @@ sub save_preset {
     my $preset_file = File::Spec->catfile($preset_subfolder, $preset);
 
     if (-f $preset_file) {
-        ast_utilities::error_output($program_name, "preset ${bold_stderr}${preset}${reset_stderr} already exists for ${bold_stderr}${command}${reset_stderr}");
+        if ($command eq $GLOBAL_FOLDER) {
+            ast_utilities::error_output($program_name, "global preset ${bold_stderr}${preset}${reset_stderr} already exists");
+        } else {
+            ast_utilities::error_output($program_name, "preset ${bold_stderr}${preset}${reset_stderr} already exists for ${bold_stderr}${command}${reset_stderr}");
+        }
         return 0;
     }
 
@@ -168,7 +174,11 @@ sub save_preset {
         return 0;
     }
 
-    print "Preset ${bold_stdout}${preset}${reset_stdout} for command ${bold_stdout}${command}${reset_stdout}:\n";
+    if ($command eq $GLOBAL_FOLDER) {
+        print "Global preset ${bold_stdout}${preset}${reset_stdout}:\n";
+    } else {
+        print "Preset ${bold_stdout}${preset}${reset_stdout} for command ${bold_stdout}${command}${reset_stdout}:\n";
+    }
     print "\n${bunl_stdout}Preset ARGV${eunl_stdout}${reset_stdout}\n";
     open my $file_handle, '>', "$preset_file";
     foreach my $option (@detected_options) {
@@ -178,7 +188,11 @@ sub save_preset {
     close $file_handle;
 
     unless ($quiet) {
-        print "\nPreset ${bold_stdout}${preset}${reset_stdout} saved for command ${bold_stdout}${command}${reset_stdout}.\n";
+        if ($command eq $GLOBAL_FOLDER) {
+            print "\nGlobal preset ${bold_stdout}${preset}${reset_stdout} saved.\n";
+        } else {
+            print "\nPreset ${bold_stdout}${preset}${reset_stdout} saved for command ${bold_stdout}${command}${reset_stdout}.\n";
+        }
     }
 
     return 1;
@@ -205,14 +219,24 @@ sub remove_preset {
     my $preset_file = File::Spec->catfile($preset_subfolder, $preset);
 
     unless (-f $preset_file) {
-        ast_utilities::error_output($program_name, "no such preset ${bold_stderr}${preset}${reset_stderr} for command ${bold_stderr}${command}${reset_stderr}");
+        if ($command eq $GLOBAL_FOLDER) {
+            ast_utilities::error_output($program_name, "no such global preset ${bold_stderr}${preset}${reset_stderr}");
+        }
+        else {
+            ast_utilities::error_output($program_name, "no such preset ${bold_stderr}${preset}${reset_stderr} for command ${bold_stderr}${command}${reset_stderr}");
+        }
         return 0;
     }
 
     unlink $preset_file;
 
     unless ($quiet) {
-        print "Removed preset ${bold_stdout}${preset}${reset_stdout} for ${bold_stdout}${command}${reset_stdout}.\n";
+        if ($command eq $GLOBAL_FOLDER) {
+            print "Removed global preset ${bold_stdout}${preset}${reset_stdout}.\n";
+        }
+        else {
+            print "Removed preset ${bold_stdout}${preset}${reset_stdout} for ${bold_stdout}${command}${reset_stdout}.\n";
+        }
     }
 
     if (ast_utilities::is_dir_empty($preset_subfolder)) {
@@ -240,14 +264,23 @@ sub remove_all_presets_for_command {
     my $preset_subfolder = File::Spec->catfile($ast_path, $PRESETS_FOLDER, $namespace, $command);
 
     unless (-d $preset_subfolder) {
-        ast_utilities::error_output($program_name, "no presets found for command ${bold_stderr}${command}${reset_stderr}");
+        if ($command eq $GLOBAL_FOLDER) {
+            ast_utilities::error_output($program_name, "no global presets found");
+        } else {
+            ast_utilities::error_output($program_name, "no presets found for command ${bold_stderr}${command}${reset_stderr}");
+        }
         return 0;
     }
 
     rmtree($preset_subfolder);
 
     unless ($quiet) {
-        print "Removed all presets for ${bold_stdout}${command}${reset_stdout}.\n";
+        if ($command eq $GLOBAL_FOLDER) {
+            print "Removed all global presets.\n";
+        }
+        else {
+            print "Removed all presets for ${bold_stdout}${command}${reset_stdout}.\n";
+        }
     }
 
     return 1;
@@ -271,6 +304,9 @@ sub all_presets_for_command {
     my $preset_subfolder = File::Spec->catfile($ast_path, $PRESETS_FOLDER, $namespace, $command);
 
     unless (-d $preset_subfolder) {
+        if ($command eq $GLOBAL_FOLDER) {
+            die "no global presets folder found in namespace ${namespace}";
+        }
         ast_utilities::error_output($program_name, "no presets found for ${bold_stderr}${command}${reset_stderr}");
         return 0;
     }
@@ -288,12 +324,18 @@ sub all_presets_for_command {
     }
 
     if (scalar @filtered_presets == 0) {
-        ast_utilities::error_output($program_name, "no presets found for ${bold_stderr}${command}${reset_stderr}");
+        if ($command eq $GLOBAL_FOLDER) {
+            return 0;
+        }
         return 0;
     }
 
-    print "Command ${bold_stdout}${command}${reset_stdout} presets:\n\n";
-    for my $found_preset (sort {lc $a cmp lc $b} @filtered_presets) {
+    if ($command eq $GLOBAL_FOLDER) {
+        print "Global presets:\n\n";
+    } else {
+        print "Command ${bold_stdout}${command}${reset_stdout} presets:\n\n";
+    }
+    foreach my $found_preset (sort {lc $a cmp lc $b} @filtered_presets) {
         print "    ${bold_stdout}${found_preset}${reset_stdout}\n";
     }
     print "\n";
@@ -327,18 +369,25 @@ sub all_presets {
         return 0;
     }
 
-    print "${bunl_stdout}Presets in namespace ${bold_stdout}${namespace}${reset_stdout}${eunl_stdout}\n\n";
-
     opendir my $namespace_dir_handle, $namespace_folder or die "Something went wrong opening dir: $!";
     my @command_folders = readdir $namespace_dir_handle;
     closedir $namespace_dir_handle;
 
+    my $found_at_least_one = 0;
     foreach my $found_command (@command_folders) {
         my $command_folder = File::Spec->catfile($namespace_folder, $found_command);
-        # we need to filter '.', '..'
-        unless ($found_command eq '.' || $found_command eq '..') {
-            all_presets_for_command($ast_path, $program_name, $quiet, $found_command, $namespace);
+        # we need to filter '.', '..', and the '.global' folder
+        unless ($found_command eq '.' || $found_command eq '..' || $found_command eq $GLOBAL_FOLDER) {
+            $found_at_least_one |= all_presets_for_command($ast_path, $program_name, $quiet, $found_command, $namespace);
         }
+    }
+
+    my $global_folder = File::Spec->catfile($namespace_folder, $GLOBAL_FOLDER);
+    $found_at_least_one |= all_presets_for_command($ast_path, $program_name, $quiet, $GLOBAL_FOLDER, $namespace);
+
+    unless ($found_at_least_one) {
+        ast_utilities::error_output($program_name, "no presets found");
+        return 0;
     }
 
     return 1;
@@ -365,12 +414,20 @@ sub show_preset {
     my $preset_file = File::Spec->catfile($preset_subfolder, $preset);
 
     unless (-f $preset_file) {
-        ast_utilities::error_output($program_name, "no such preset ${bold_stderr}${preset}${reset_stderr} for command ${bold_stderr}${command}${reset_stderr}");
+        if ($command eq $GLOBAL_FOLDER) {
+            ast_utilities::error_output($program_name, "no such global preset ${bold_stderr}${preset}${reset_stderr}");
+        } else {
+            ast_utilities::error_output($program_name, "no such preset ${bold_stderr}${preset}${reset_stderr} for command ${bold_stderr}${command}${reset_stderr}");
+        }
         return 0;
     }
 
     my @presets_from_file = read_preset($ast_path, $program_name, $quiet, $preset, $command, $namespace);
-    print "Preset ${bold_stdout}${preset}${reset_stdout} for command ${bold_stdout}${command}${reset_stdout}:\n";
+    if ($command eq $GLOBAL_FOLDER) {
+        print "Global preset ${bold_stdout}${preset}${reset_stdout}:\n";
+    } else {
+        print "Preset ${bold_stdout}${preset}${reset_stdout} for command ${bold_stdout}${command}${reset_stdout}:\n";
+    }
     print "\n${bunl_stdout}Preset ARGV${eunl_stdout}${reset_stdout}\n";
     for my $preset_from_file (@presets_from_file) {
         print "${bold_stdout}${preset_from_file}${reset_stderr}\n";
@@ -526,12 +583,21 @@ sub copy_preset {
     my $dest_file = File::Spec->catfile($preset_subfolder, $dest_preset);
 
     unless (-e $source_file) {
-        ast_utilities::error_output($program_name, "no such preset ${bold_stderr}${src_preset}${reset_stderr} for command ${bold_stderr}${command}${reset_stderr}");
+        if ($command eq $GLOBAL_FOLDER) {
+            ast_utilities::error_output($program_name, "no such global preset ${bold_stderr}${src_preset}${reset_stderr}");
+        } else {
+            ast_utilities::error_output($program_name, "no such preset ${bold_stderr}${src_preset}${reset_stderr} for command ${bold_stderr}${command}${reset_stderr}");
+        }
         return 0;
     }
 
     if (-e $dest_file) {
-        ast_utilities::error_output($program_name, "preset ${bold_stderr}${dest_preset}${reset_stderr} already exists for ${bold_stderr}${command}${reset_stderr}");
+        if ($command eq $GLOBAL_FOLDER) {
+            ast_utilities::error_output($program_name, "global preset ${bold_stderr}${dest_preset}${reset_stderr} already exists");
+        }
+        else {
+            ast_utilities::error_output($program_name, "preset ${bold_stderr}${dest_preset}${reset_stderr} already exists for ${bold_stderr}${command}${reset_stderr}");
+        }
         return 0;
     }
 
@@ -590,18 +656,30 @@ sub apply_preset_or_exit {
     }
 
     my @final_argv = ();
+    my $use_global = 0;
     foreach my $preset (@presets_array) {
         my $preset_subfolder = File::Spec->catfile($ast_path, $PRESETS_FOLDER, $namespace, $command);
         my $preset_file = File::Spec->catfile($preset_subfolder, $preset);
         unless (-f $preset_file) {
-            ast_utilities::error_output($program_name, "no such preset ${bold_stderr}${preset}${reset_stderr} for command ${bold_stderr}${command}${reset_stderr}");
-            all_presets_for_command($ast_path, $program_name, $quiet, $command, $namespace);
-            exit 1;
+            # Fall back and try global presets
+            my $global_subfolder = File::Spec->catfile($ast_path, $PRESETS_FOLDER, $namespace, $GLOBAL_FOLDER);
+            my $global_file = File::Spec->catfile($global_subfolder, $preset);
+            unless (-f $global_file) {
+                ast_utilities::error_output($program_name, "preset ${bold_stderr}${preset}${reset_stderr} not found for command ${bold_stderr}${command}${reset_stderr}");
+                ast_utilities::error_output($program_name, "preset ${bold_stderr}${preset}${reset_stderr} not found in globals");
+                all_presets_for_command($ast_path, $program_name, $quiet, $command, $namespace);
+                all_presets_for_command($ast_path, $program_name, $quiet, $GLOBAL_FOLDER, $namespace);
+                exit 1;
+            }
+            $use_global = 1;
         }
 
-        my @argv_from_presets = read_preset($ast_path, $program_name, $quiet, $preset, $command, $namespace);
-
-
+        my @argv_from_presets = ();
+        if ($use_global) {
+            @argv_from_presets = read_preset($ast_path, $program_name, $quiet, $preset, $GLOBAL_FOLDER, $namespace);
+        } else {
+            @argv_from_presets = read_preset($ast_path, $program_name, $quiet, $preset, $command, $namespace);
+        }
         foreach my $preset_argv_elem (@argv_from_presets) {
             push @final_argv, $preset_argv_elem;
         }
@@ -729,6 +807,7 @@ sub create_namespace {
     my $current_namespace = get_namespace($ast_path);
     my $preset_folder = File::Spec->catfile($ast_path, $PRESETS_FOLDER);
     my $new_namespace_folder = File::Spec->catfile($preset_folder, $new_namespace);
+    my $global_folder = File::Spec->catfile($preset_folder, $new_namespace, $GLOBAL_FOLDER);
 
     unless (-d $preset_folder) {
         die "The folder $PRESETS_FOLDER did not exist at $ast_path";
@@ -740,6 +819,11 @@ sub create_namespace {
     }
 
     make_path("$new_namespace_folder", {
+        verbose => 0,
+        mode    => 0755
+    });
+
+    make_path("$global_folder", {
         verbose => 0,
         mode    => 0755
     });
@@ -830,7 +914,7 @@ sub remove_namespace {
     return 1;
 }
 
-# Get an array of all presets in the current namespace.
+# Get an array of all presets in the current namespace, including global presets.
 # Params:
 #   $ast_path: the path to the atlas-shell-tools data folder
 # Return: the preset array
@@ -842,6 +926,7 @@ sub get_all_presets_in_current_namespace {
 
     my $preset_folder = File::Spec->catfile($ast_path, $PRESETS_FOLDER);
     my $namespace_folder = File::Spec->catfile($preset_folder, $namespace);
+    my $global_folder = File::Spec->catfile($namespace_folder, $GLOBAL_FOLDER);
 
     opendir my $namespace_dir_handle, $namespace_folder or die "Something went wrong opening dir: $!";
     my @command_folders = readdir $namespace_dir_handle;
@@ -861,6 +946,17 @@ sub get_all_presets_in_current_namespace {
                     push @all_presets, $found_preset;
                 }
             }
+        }
+    }
+
+    opendir my $global_dir_handle, $global_folder or die "Something went wrong opening dir: $!";
+    my @preset_files = readdir $global_dir_handle;
+    closedir $global_dir_handle;
+
+    foreach my $found_preset (@preset_files) {
+        # we need to filter '.', '..'
+        unless ($found_preset eq '.' || $found_preset eq '..') {
+            push @all_presets, $found_preset;
         }
     }
 
@@ -890,6 +986,38 @@ sub get_all_presets_for_command {
     opendir my $command_dir_handle, $command_folder or die "Something went wrong opening dir: $!";
     my @preset_files = readdir $command_dir_handle;
     closedir $command_dir_handle;
+
+    foreach my $found_preset (@preset_files) {
+        # we need to filter '.', '..'
+        unless ($found_preset eq '.' || $found_preset eq '..') {
+            push @all_presets, $found_preset;
+        }
+    }
+
+    return @all_presets;
+}
+
+# Get an array of all global presets in the current namespace
+# Params:
+#   $ast_path: the path to the atlas-shell-tools data folder
+# Return: the preset array
+sub get_all_global_presets {
+    my $ast_path = shift;
+
+    my $namespace = get_namespace($ast_path);
+    my @all_presets = ();
+
+    my $preset_folder = File::Spec->catfile($ast_path, $PRESETS_FOLDER);
+    my $namespace_folder = File::Spec->catfile($preset_folder, $namespace);
+    my $global_folder = File::Spec->catfile($namespace_folder, $GLOBAL_FOLDER);
+
+    unless (-d $global_folder) {
+        return @all_presets;
+    }
+
+    opendir my $global_dir_handle, $global_folder or die "Something went wrong opening dir: $!";
+    my @preset_files = readdir $global_dir_handle;
+    closedir $global_dir_handle;
 
     foreach my $found_preset (@preset_files) {
         # we need to filter '.', '..'

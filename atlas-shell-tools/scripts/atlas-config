@@ -315,6 +315,7 @@ sub execute_command_list {
     unless (keys %modules) {
         ast_utilities::error_output($program_name . ": list", "found no installed modules");
         print STDERR "Try '${bold_stderr}${program_name} install /path/to/module.jar${reset_stderr}' to install a module.\n";
+        print STDERR "Or try '${bold_stderr}${program_name} repo install atlas${reset_stderr}' to install the commands from the atlas repo.\n";
         return 0;
     }
 
@@ -542,6 +543,23 @@ sub execute_command_preset {
         }
         $success = ast_preset_subsystem::copy_preset($ast_path, $program_name, $quiet, $src_preset, $dest_preset, $command_context, $current_namespace);
     }
+    elsif ($directive eq 'copy-global') {
+        my $src_preset = shift @ARGV;
+        my $dest_preset = shift @ARGV;
+        unless (defined $src_preset) {
+            ast_utilities::error_output($program_name . ": preset", "must specify a source preset");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset copy-global <src> <dest>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        unless (defined $dest_preset) {
+            ast_utilities::error_output($program_name . ": preset", "must specify a destination preset");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset copy-global <src> <dest>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        $success = ast_preset_subsystem::copy_preset($ast_path, $program_name, $quiet, $src_preset, $dest_preset, $ast_preset_subsystem::GLOBAL_FOLDER, $current_namespace);
+    }
     elsif ($directive eq 'edit') {
         my $command_context = shift @ARGV;
         unless (defined $command_context) {
@@ -565,6 +583,16 @@ sub execute_command_preset {
         }
         $success = ast_preset_subsystem::edit_preset($ast_path, $program_name, $quiet, $preset, $command_context, $current_namespace);
     }
+    elsif ($directive eq 'edit-global') {
+        my $preset = shift @ARGV;
+        unless (defined $preset) {
+            ast_utilities::error_output($program_name . ": preset", "must specify a preset");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset edit-global <preset>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        $success = ast_preset_subsystem::edit_preset($ast_path, $program_name, $quiet, $preset, $ast_preset_subsystem::GLOBAL_FOLDER, $current_namespace);
+    }
     elsif ($directive eq 'list') {
         my $command_context = shift @ARGV;
         unless (defined $command_context) {
@@ -582,6 +610,15 @@ sub execute_command_preset {
         }
         else {
             $success = ast_preset_subsystem::all_presets_for_command($ast_path, $program_name, $quiet, $command_context, $current_namespace);
+        }
+    }
+    elsif ($directive eq 'list-global') {
+        my $preset = shift @ARGV;
+        if (defined $preset) {
+            $success = ast_preset_subsystem::show_preset($ast_path, $program_name, $quiet, $preset, $ast_preset_subsystem::GLOBAL_FOLDER, $current_namespace);
+        }
+        else {
+            $success = ast_preset_subsystem::all_presets_for_command($ast_path, $program_name, $quiet, $ast_preset_subsystem::GLOBAL_FOLDER, $current_namespace);
         }
     }
     elsif ($directive eq 'namespace') {
@@ -607,6 +644,15 @@ sub execute_command_preset {
         }
         else {
             $success = ast_preset_subsystem::remove_all_presets_for_command($ast_path, $program_name, $quiet, $command_context, $current_namespace);
+        }
+    }
+    elsif ($directive eq 'remove-global') {
+        my $preset = shift @ARGV;
+        if (defined $preset) {
+            $success = ast_preset_subsystem::remove_preset($ast_path, $program_name, $quiet, $preset, $ast_preset_subsystem::GLOBAL_FOLDER, $current_namespace);
+        }
+        else {
+            $success = ast_preset_subsystem::remove_all_presets_for_command($ast_path, $program_name, $quiet, $ast_preset_subsystem::GLOBAL_FOLDER, $current_namespace);
         }
     }
     elsif ($directive eq 'save') {
@@ -639,9 +685,26 @@ sub execute_command_preset {
         }
         $success = ast_preset_subsystem::save_preset($ast_path, $program_name, $quiet, $preset, $command_context, $current_namespace, \@ARGV);
     }
+    elsif ($directive eq 'save-global') {
+        my $preset = shift @ARGV;
+        unless (defined $preset) {
+            ast_utilities::error_output($program_name . ": preset", "must specify a preset");
+            print STDERR "Usage: ${bold_stderr}${program_name} preset save-global <preset> <options...>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        unless (ast_preset_subsystem::preset_regex_ok($preset)) {
+            ast_utilities::error_output($program_name . ": preset", "invalid preset name ${bold_stderr}${preset}${reset_stderr}");
+            print STDERR "Name must match regex: " . ast_preset_subsystem::preset_regex() . "\n";
+            print STDERR "Usage: ${bold_stderr}${program_name} preset save-global <preset> <options...>${reset_stderr}\n";
+            print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
+            return 0;
+        }
+        $success = ast_preset_subsystem::save_preset($ast_path, $program_name, $quiet, $preset, $ast_preset_subsystem::GLOBAL_FOLDER, $current_namespace, \@ARGV);
+    }
     else {
         ast_utilities::error_output($program_name . ": preset", "unrecognized ${bold_stderr}${program_name} preset${reset_stderr} directive '${bold_stderr}${directive}${reset_stderr}'");
-        print STDERR "Available directives: ${bold_stderr}copy${reset_stderr}, ${bold_stderr}edit${reset_stderr}, ${bold_stderr}list${reset_stderr}, ${bold_stderr}namespace${reset_stderr}, ${bold_stderr}remove${reset_stderr}, or ${bold_stderr}save${reset_stderr}\n";
+        print STDERR "Available directives: ${bold_stderr}copy[-global]${reset_stderr}, ${bold_stderr}edit[-global]${reset_stderr}, ${bold_stderr}list[-global]${reset_stderr}, ${bold_stderr}namespace${reset_stderr}, ${bold_stderr}remove[-global]${reset_stderr}, or ${bold_stderr}save[-global]${reset_stderr}\n";
         print STDERR "Try \'${bold_stderr}${program_name} preset --help${reset_stderr}\' for more information.\n";
         return 0;
     }
@@ -886,6 +949,14 @@ sub execute_command_sync {
     my %modules = ast_module_subsystem::get_module_to_status_hash($ast_path);
     my %modules_links = ast_module_subsystem::get_module_to_symlink_hash($ast_path);
     my @activated_modules = ast_module_subsystem::get_activated_modules(\%modules);
+
+    if (scalar @activated_modules == 0) {
+        ast_utilities::error_output($program_name . ": sync", 'found no activated module');
+        print STDERR "To see installed modules, try '${bold_stderr}${ast_utilities::CONFIG_PROGRAM} list${reset_stderr}'.\n";
+        print STDERR "Then run '${bold_stderr}${ast_utilities::CONFIG_PROGRAM} activate <module>${reset_stderr}' to activate <module>.\n";
+        return 0;
+    }
+
     # If the currently active module is a broken symlink, warn the user
     if ($modules_links{$activated_modules[0]} == $ast_module_subsystem::BROKEN_SYMLINK) {
         ast_utilities::error_output($program_name . ": sync", 'current active module is a broken symlink');
@@ -896,6 +967,8 @@ sub execute_command_sync {
 
     ast_module_subsystem::remove_active_module_index($ast_path, $program_name, $quiet);
     ast_module_subsystem::generate_active_module_index($ast_path, $program_name, $quiet, 1);
+
+    return 1;
 }
 
 sub execute_command_uninstall {

@@ -103,7 +103,7 @@ sub completion_atlas {
     # Autocomplete the '--preset' and '--save-preset' flags, since they are probably the most used flags
     # TODO FIXME this will do strange things when completing subcommand options, since it's not positionally-aware
     if (ast_utilities::string_starts_with($rargv, '-')) {
-        my @flags = qw(--preset --save-preset);
+        my @flags = qw(--preset --save-preset --save-global-preset);
         my @completion_matches = completion_match_prefix($rargv, \@flags);
         print join("\n", @completion_matches) . "\n";
         return 1;
@@ -258,7 +258,7 @@ sub completion_atlascfg {
 
     # 'atlas-config preset' command will complete 'preset' subcommands
     elsif ((defined $argv[0] && $argv[0] eq 'preset') && (defined $rargv_m1 && $rargv_m1 eq 'preset')) {
-        @commands = qw(save edit remove list namespace copy);
+        @commands = qw(save save-global edit edit-global remove remove-global list list-global namespace copy copy-global);
     }
 
     # 'atlas-config preset save' command will complete atlas shell tools commands
@@ -276,6 +276,11 @@ sub completion_atlascfg {
         @commands = ast_preset_subsystem::get_all_presets_for_command($ast_path, $rargv_m1);
     }
 
+    # 'atlas-config preset edit-global' command will complete any global presets
+    elsif ((defined $argv[0] && $argv[0] eq 'preset') && (defined $rargv_m2 && $rargv_m2 eq 'preset') && (defined $rargv_m1 && $rargv_m1 eq 'edit-global')) {
+        @commands = ast_preset_subsystem::get_all_presets_for_command($ast_path, $ast_preset_subsystem::GLOBAL_FOLDER);
+    }
+
     # 'atlas-config preset remove' command will complete atlas shell tools commands
     elsif ((defined $argv[0] && $argv[0] eq 'preset') && (defined $rargv_m2 && $rargv_m2 eq 'preset') && (defined $rargv_m1 && $rargv_m1 eq 'remove')) {
         @commands = keys %subcommand_classes;
@@ -286,6 +291,11 @@ sub completion_atlascfg {
         @commands = ast_preset_subsystem::get_all_presets_for_command($ast_path, $rargv_m1);
     }
 
+    # 'atlas-config preset remove-global' command will complete any global presets
+    elsif ((defined $argv[0] && $argv[0] eq 'preset') && (defined $rargv_m2 && $rargv_m2 eq 'preset') && (defined $rargv_m1 && $rargv_m1 eq 'remove-global')) {
+        @commands = ast_preset_subsystem::get_all_presets_for_command($ast_path, $ast_preset_subsystem::GLOBAL_FOLDER);
+    }
+
     # 'atlas-config preset list' command will complete atlas shell tools commands
     elsif ((defined $argv[0] && $argv[0] eq 'preset') && (defined $rargv_m2 && $rargv_m2 eq 'preset') && (defined $rargv_m1 && $rargv_m1 eq 'list')) {
         @commands = keys %subcommand_classes;
@@ -294,6 +304,11 @@ sub completion_atlascfg {
     # 'atlas-config preset list <command>' command will complete any presets for <command>
     elsif ((defined $argv[0] && $argv[0] eq 'preset') && (defined $rargv_m3 && $rargv_m3 eq 'preset') && (defined $rargv_m2 && $rargv_m2 eq 'list') && (defined $rargv_m1)) {
         @commands = ast_preset_subsystem::get_all_presets_for_command($ast_path, $rargv_m1);
+    }
+
+    # 'atlas-config preset list-global' will complete any global presets
+    elsif ((defined $argv[0] && $argv[0] eq 'preset') && (defined $rargv_m2 && $rargv_m2 eq 'preset') && (defined $rargv_m1 && $rargv_m1 eq 'list-global')) {
+        @commands = ast_preset_subsystem::get_all_presets_for_command($ast_path, $ast_preset_subsystem::GLOBAL_FOLDER);
     }
 
     # 'atlas-config preset namespace' command will complete 'namespace' subcommands
@@ -324,6 +339,11 @@ sub completion_atlascfg {
     # 'atlas-config preset copy <command>' command will complete any presets for <command>
     elsif ((defined $argv[0] && $argv[0] eq 'preset') && (defined $rargv_m3 && $rargv_m3 eq 'preset') && (defined $rargv_m2 && $rargv_m2 eq 'copy') && (defined $rargv_m1)) {
         @commands = ast_preset_subsystem::get_all_presets_for_command($ast_path, $rargv_m1);
+    }
+
+    # 'atlas-config preset copy-global' command will complete any global presets
+    elsif ((defined $argv[0] && $argv[0] eq 'preset') && (defined $rargv_m2 && $rargv_m2 eq 'preset') && (defined $rargv_m1 && $rargv_m1 eq 'copy-global')) {
+        @commands = ast_preset_subsystem::get_all_presets_for_command($ast_path, $ast_preset_subsystem::GLOBAL_FOLDER);
     }
 
     # 'atlas-config log' command will complete log subcommands
