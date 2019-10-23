@@ -67,6 +67,7 @@ sub completion_atlas {
     my $argv_ref = shift;
 
     my @argv = @{$argv_ref};
+    my %argv_map = map { $_ => 1 } @argv;
 
     # Shift COMP_CWORD off the front of ARGV
     my $comp_cword = shift @argv;
@@ -100,13 +101,21 @@ sub completion_atlas {
     my $rargv_m2 = $argv[-3];
     my $rargv_m3 = $argv[-4];
 
-    # Autocomplete the '--preset' and '--save-preset' flags, since they are probably the most used flags
-    # TODO FIXME this will do strange things when completing subcommand options, since it's not positionally-aware
+    # Autocomplete the '--preset' and '--save-preset' flags, since they are probably the most used flags.
+    # Since they are global options, we only complete them if we have not yet seen a command in ARGV.
+    my $saw_command = 0;
     if (ast_utilities::string_starts_with($rargv, '-')) {
-        my @flags = qw(--preset --save-preset --save-global-preset);
-        my @completion_matches = completion_match_prefix($rargv, \@flags);
-        print join("\n", @completion_matches) . "\n";
-        return 1;
+        foreach my $command (@commands) {
+            if (exists($argv_map{$command})) {
+                $saw_command = 1;
+            }
+        }
+        unless ($saw_command) {
+            my @flags = qw(--preset --save-preset --save-global-preset);
+            my @completion_matches = completion_match_prefix($rargv, \@flags);
+            print join("\n", @completion_matches) . "\n";
+            return 1;
+        }
     }
 
     # Handle special case where user is applying a preset with "--preset"
@@ -121,12 +130,10 @@ sub completion_atlas {
 
     # If we see a command anywhere in ARGV, stop special completions and signal
     # the completion wrapper script to use its filename defaults.
-    foreach my $arg (@argv) {
-        foreach my $command (@commands) {
-            if ($arg eq $command) {
-                print $FILE_COMPLETE_SENTINEL;
-                return 1;
-            }
+    foreach my $command (@commands) {
+        if (exists($argv_map{$command})) {
+            print $FILE_COMPLETE_SENTINEL;
+            return 1;
         }
     }
 
