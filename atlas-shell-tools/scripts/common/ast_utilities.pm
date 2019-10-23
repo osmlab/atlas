@@ -144,6 +144,16 @@ sub create_data_directory {
         ast_preset_subsystem::reset_namespace($data_directory);
     }
 
+    # add a .global folder to all namespaces if it is missing
+    my @namespaces = ast_preset_subsystem::get_namespaces_array($data_directory);
+    foreach my $namespace (@namespaces) {
+        my $global_subfolder = File::Spec->catfile($data_directory, $ast_preset_subsystem::PRESETS_FOLDER, $namespace, $ast_preset_subsystem::GLOBAL_FOLDER);
+        make_path("$global_subfolder", {
+            verbose => 0,
+            mode    => 0755
+        });
+    }
+
     return $data_directory;
 }
 

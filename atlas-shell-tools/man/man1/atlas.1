@@ -31,8 +31,8 @@ atlas \-\- Run an Atlas Shell Tools command
 \fIatlas\fR \-\-version
 \fIatlas\fR [\-\-no-pager] \-\-list
 \fIatlas\fR \-\-class\-of=<\fIcommand\fR>
-\fIatlas\fR [\-\-no\-pager] [\-\-debug] [\-\-memory=<amount>] [\-\-preset=<preset>] 
-      [\-\-save\-preset=<new\-preset>] <\fIcommand\fR> [arg...]
+\fIatlas\fR [\-\-no\-pager] [\-\-debug] [\-\-memory=<amount>] [\-\-preset=<names>] 
+      [\-\-save\-preset=<new\-preset>] [\-\-save\-global\-preset=<new\-preset>] <\fIcommand\fR> [arg...]
 .fi
 
 .SH "DESCRIPTION"
@@ -104,10 +104,11 @@ Disable pagination for all documentation.
 .RE
 
 .PP
-\fB\-\-preset\fR=<preset>, \fB\-p\fR<preset>
+\fB\-\-preset\fR=<names>, \fB\-p\fR<names>
 .RS 4
-Apply the given preset before running <\fIcommand\fR>. See \fBatlas-presets\fR(7)
-for more information.
+Apply the given preset(s) before running <\fIcommand\fR>. A list of presets
+can be provided by separating preset names with either a colon or a comma.
+See \fBatlas-presets\fR(7) for more information.
 .RE
 
 .PP
@@ -124,6 +125,17 @@ Save the command ARGV to <new\-preset> before running <\fIcommand\fR>. If
 argument to \fB\-\-preset\fR is applied. So <new\-preset> will include ARGV
 elements inserted by the \fB\-\-preset\fR application in addition to those
 directly supplied by the user. See \fBatlas-presets\fR(7) for more information.
+.RE
+
+.PP
+\fB\-\-save\-global\-preset\fR=<new\-preset>
+.RS 4
+This option is the same as \fB\-\-save\-preset\fR, except it will instead save
+<new\-preset> to the global presets instead of the command\-specific presets.
+Note that it can be used in conjuction with \fB\-\-save\-preset\fR to save both
+a global and command preset at the same time. Also like \fB\-\-save\-preset\fR,
+\fB\-\-save\-global\-preset\fR saves ARGV after the the application of
+\fB\-\-preset\fR if present. See \fBatlas-presets\fR(7) for more information.
 .RE
 
 .PP
