@@ -1,6 +1,8 @@
 package org.openstreetmap.atlas.geography;
 
 import java.io.Serializable;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +42,7 @@ public class StringCompressedPolyLine implements Serializable
 
     // dm7
     private static final int PRECISION = 7;
-    private static final String ENCODING_NAME = "UTF-8";
+    private static final Charset ENCODING = StandardCharsets.UTF_8;
     private static final int ENCODING_OFFSET_MINUS_ONE = 63;
     private static final int FIVE_BIT_MASK = 0x1f;
     private static final int SIXTH_BIT_MASK = 0x20;
@@ -72,7 +74,7 @@ public class StringCompressedPolyLine implements Serializable
     {
         try
         {
-            this.encoding = compress(polyLine, PRECISION).getBytes(ENCODING_NAME);
+            this.encoding = compress(polyLine, PRECISION).getBytes(ENCODING);
         }
         catch (final PolyLineCompressionException exception)
         {
@@ -95,13 +97,17 @@ public class StringCompressedPolyLine implements Serializable
         }
         else
         {
+            String encodedString = null;
             try
             {
-                return asPolyLine(new String(this.encoding, ENCODING_NAME), PRECISION);
+                encodedString = new String(this.encoding, ENCODING);
+                return asPolyLine(encodedString, PRECISION);
             }
             catch (final Exception exception)
             {
-                throw new CoreException("Could not decompress polyline.", exception);
+                throw new CoreException(
+                        "Could not decompress polyline:\nEncoding: \'{}\'\nString: \'\'.",
+                        this.encoding, encodedString, exception);
             }
         }
     }
@@ -124,7 +130,7 @@ public class StringCompressedPolyLine implements Serializable
         {
             try
             {
-                return new String(this.encoding, ENCODING_NAME);
+                return new String(this.encoding, ENCODING);
             }
             catch (final Exception e)
             {
