@@ -6,7 +6,8 @@ import java.util.List;
 /**
  * @author Yazad Khambata
  */
-public interface Bbox extends Serializable {
+public interface Bbox extends Serializable
+{
 
     Dimensions applicableDimensions();
 

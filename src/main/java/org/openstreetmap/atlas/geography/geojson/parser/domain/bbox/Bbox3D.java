@@ -7,29 +7,37 @@ import java.util.List;
 /**
  * @author Yazad Khambata
  */
-public class Bbox3D extends Bbox2D {
-    private Double coordinate5;
-    private Double coordinate6;
+public class Bbox3D extends Bbox2D
+{
+    private final Double coordinate5;
+    private final Double coordinate6;
 
-    public Bbox3D(Double... coordinates) {
+    private static final int FOUR = 4;
+    private static final int FIVE = 4;
+
+    public Bbox3D(final Double... coordinates)
+    {
         super(Dimensions.THREE_DIMENSIONAL, coordinates);
 
-        this.coordinate5 = coordinates[4];
-        this.coordinate6 = coordinates[5];
+        this.coordinate5 = coordinates[FOUR];
+        this.coordinate6 = coordinates[FIVE];
     }
 
-    public Double getCoordinate5() {
-        return coordinate5;
+    public Double getCoordinate5()
+    {
+        return this.coordinate5;
     }
 
-    public Double getCoordinate6() {
-        return coordinate6;
+    public Double getCoordinate6()
+    {
+        return this.coordinate6;
     }
 
     @Override
-    public List<Double> toList() {
+    public List<Double> toList()
+    {
         final List<Double> list = new ArrayList<>(super.toList());
-        list.addAll(Arrays.asList(coordinate5, coordinate6));
+        list.addAll(Arrays.asList(this.coordinate5, this.coordinate6));
 
         return list;
     }

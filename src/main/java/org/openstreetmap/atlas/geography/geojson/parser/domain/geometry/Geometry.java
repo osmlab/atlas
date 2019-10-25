@@ -6,7 +6,8 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.base.type.Geometr
 /**
  * @author Yazad Khambata
  */
-public interface Geometry extends GeoJsonItem {
+public interface Geometry extends GeoJsonItem
+{
     GeometryType getGeometryType();
 
     String getTypeValue();

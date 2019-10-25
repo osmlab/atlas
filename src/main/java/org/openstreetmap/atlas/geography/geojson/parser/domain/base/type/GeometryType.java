@@ -1,5 +1,9 @@
 package org.openstreetmap.atlas.geography.geojson.parser.domain.base.type;
 
+import java.util.Arrays;
+import java.util.Map;
+import java.util.function.Predicate;
+
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.openstreetmap.atlas.geography.geojson.parser.GoeJsonParser;
@@ -12,14 +16,11 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.MultiPol
 import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.Point;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.Polygon;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.function.Predicate;
-
 /**
  * @author Yazad Khambata
  */
-public enum GeometryType implements Type {
+public enum GeometryType implements Type
+{
     POINT("Point", Point.class),
     MULTI_POINT("MultiPoint", MultiPoint.class),
     LINE_STRING("LineString", LineString.class),
@@ -32,71 +33,85 @@ public enum GeometryType implements Type {
     private Class<? extends Geometry> concreteClass;
     private boolean collection;
 
-    GeometryType(final String typeValue, final Class<? extends Geometry> concreteClass) {
+    public static Geometry construct(final GeometryType geometryType,
+            final GoeJsonParser goeJsonParser, final Map<String, Object> map)
+    {
+        try
+        {
+            final Class<? extends Geometry> concreteClass = geometryType.getConcreteClass();
+
+            if (geometryType.isCollection())
+            {
+                return ConstructorUtils.invokeConstructor(concreteClass, goeJsonParser, map);
+            }
+
+            return ConstructorUtils.invokeConstructor(concreteClass, map);
+        }
+        catch (final Exception e)
+        {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static GeometryType fromConcreteClass(final Class<? extends Geometry> concreteClass)
+    {
+        Validate.notNull(concreteClass);
+
+        final Predicate<GeometryType> filterFunction = geometryType -> geometryType
+                .getConcreteClass().equals(concreteClass);
+        return associatedGeometryType(concreteClass.toString(), filterFunction);
+    }
+
+    public static GeometryType fromTypeValue(final String typeValue)
+    {
+        Validate.notEmpty(typeValue);
+
+        final Predicate<GeometryType> filterFunction = geometryType -> geometryType.getTypeValue()
+                .equals(typeValue);
+        return associatedGeometryType(typeValue, filterFunction);
+    }
+
+    private static GeometryType associatedGeometryType(final String typeValue,
+            final Predicate<GeometryType> filterFunction)
+    {
+        return Arrays.stream(GeometryType.values()).filter(filterFunction).findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(typeValue));
+    }
+
+    GeometryType(final String typeValue, final Class<? extends Geometry> concreteClass)
+    {
         this(typeValue, concreteClass, false);
     }
 
-    GeometryType(final String typeValue, final Class<? extends Geometry> concreteClass, final boolean collection) {
+    GeometryType(final String typeValue, final Class<? extends Geometry> concreteClass,
+            final boolean collection)
+    {
         this.typeValue = typeValue;
         this.concreteClass = concreteClass;
         this.collection = collection;
     }
 
-    private static GeometryType associatedGeometryType(final String typeValue,
-                                                       final Predicate<GeometryType> filterFunction) {
-        return Arrays.stream(GeometryType.values())
-                .filter(filterFunction)
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException(typeValue));
-    }
-
-    public static GeometryType fromTypeValue(final String typeValue) {
-        Validate.notEmpty(typeValue);
-
-        final Predicate<GeometryType> filterFunction = geometryType -> geometryType.getTypeValue().equals(typeValue);
-        return associatedGeometryType(typeValue, filterFunction);
-    }
-
-    public static GeometryType fromConcreteClass(Class<? extends Geometry> concreteClass) {
-        Validate.notNull(concreteClass);
-
-        final Predicate<GeometryType> filterFunction =
-                geometryType -> geometryType.getConcreteClass().equals(concreteClass);
-        return associatedGeometryType(concreteClass.toString(), filterFunction);
-    }
-
-    public static Geometry construct(final GeometryType geometryType, final GoeJsonParser goeJsonParser,
-                                     final Map<String, Object> map) {
-        try {
-            final Class<? extends Geometry> concreteClass = geometryType.getConcreteClass();
-
-            if (geometryType.isCollection()) {
-                return ConstructorUtils.invokeConstructor(concreteClass, goeJsonParser, map);
-            }
-
-            return ConstructorUtils.invokeConstructor(concreteClass, map);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     @Override
-    public Geometry construct(final GoeJsonParser goeJsonParser, final Map<String, Object> map) {
+    public Geometry construct(final GoeJsonParser goeJsonParser, final Map<String, Object> map)
+    {
         return GeometryType.construct(this, goeJsonParser, map);
     }
 
     @Override
-    public String getTypeValue() {
-        return typeValue;
+    public Class<? extends Geometry> getConcreteClass()
+    {
+        return this.concreteClass;
     }
 
     @Override
-    public Class<? extends Geometry> getConcreteClass() {
-        return concreteClass;
+    public String getTypeValue()
+    {
+        return this.typeValue;
     }
 
     @Override
-    public boolean isCollection() {
-        return collection;
+    public boolean isCollection()
+    {
+        return this.collection;
     }
 }

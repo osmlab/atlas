@@ -5,21 +5,25 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.foreign.ForeignFi
 /**
  * @author Yazad Khambata
  */
-public class Properties implements ForeignFields {
+public class Properties implements ForeignFields
+{
     private ForeignFields values;
 
     @Override
-    public Object get(final String key) {
-        return values.get(key);
+    public Object get(final String key)
+    {
+        return this.values.get(key);
     }
 
     @Override
-    public <T> T get(final String key, final Class<T> valueClass) {
-        return values.get(key, valueClass);
+    public <T> T get(final String key, final Class<T> valueClass)
+    {
+        return this.values.get(key, valueClass);
     }
 
     @Override
-    public void put(final String key, final Object value) {
-        values.put(key, value);
+    public void put(final String key, final Object value)
+    {
+        this.values.put(key, value);
     }
 }
