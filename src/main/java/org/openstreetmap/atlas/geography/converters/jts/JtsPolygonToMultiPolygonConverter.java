@@ -31,12 +31,11 @@ public class JtsPolygonToMultiPolygonConverter
         }
         final Polygon outer = object.outers().iterator().next();
         final LinearRing linearRingOuter = LINEAR_RING_CONVERTER.convert(outer);
-        final LinearRing[] linearRingInners = new LinearRing[object.getOuterToInners().values()
-                .size()];
-        for (int index = 0; index < object.getOuterToInners().get(outer).size(); index++)
+        final List<Polygon> inners = object.getOuterToInners().get(outer);
+        final LinearRing[] linearRingInners = new LinearRing[inners.size()];
+        for (int index = 0; index < inners.size(); index++)
         {
-            linearRingInners[index] = LINEAR_RING_CONVERTER
-                    .convert(object.getOuterToInners().get(outer).get(index));
+            linearRingInners[index] = LINEAR_RING_CONVERTER.convert(inners.get(index));
         }
         return new org.locationtech.jts.geom.Polygon(linearRingOuter, linearRingInners, FACTORY);
     }
