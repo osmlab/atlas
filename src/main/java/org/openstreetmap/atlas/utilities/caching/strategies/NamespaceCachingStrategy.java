@@ -162,6 +162,15 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
             {
                 try
                 {
+                    /*
+                     * We have to explicitly set the decompressor here. Why? Because if the resource
+                     * ends with a '.gz' extension, the 'copyTo' method will apply GZIP
+                     * decompression to it. The problem? When the user goes to fetch the contents of
+                     * the cached copy, it will still have the '.gz' extension but it will now be
+                     * decompressed. So our automatic decompression code will run on an uncompressed
+                     * file! This will cause the contents fetch to fail since Java's GZIPInputStream
+                     * won't be able to find the GZIP magic number!
+                     */
                     final AbstractResource abstractResource = (AbstractResource) resourceFromDefaultFetcher
                             .get();
                     abstractResource.setDecompressor(Decompressor.NONE);
