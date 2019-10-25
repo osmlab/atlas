@@ -1,12 +1,21 @@
 package org.openstreetmap.atlas.geography.geojson.parser.domain.geometry;
 
+import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordinate.Coordinates;
+import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordinate.Position;
+
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Yazad Khambata
  */
-public class MultiLineString extends AbstractGeometry implements GeometryWithCoordinateSupport<List<List<Position>>> {
-    private Coordinates<List<List<Position>>> coordinates; //zero or more but each sub array must contain at least 2 positions.
+public class MultiLineString extends AbstractGeometryWithCoordinateSupport<List<List<Position>>> {
+    private Coordinates<List<List<Position>>> coordinates;
+
+    public MultiLineString(final Map<String, Object> map) {
+        super(map);
+        this.coordinates = Coordinates.forMultiLineString((List<List<List<Double>>>) extractRawCoordinates(map));
+    }
 
     @Override
     public Coordinates<List<List<Position>>> getCoordinates() {

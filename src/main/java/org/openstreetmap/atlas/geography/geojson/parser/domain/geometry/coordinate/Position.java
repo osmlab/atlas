@@ -1,30 +1,29 @@
-package org.openstreetmap.atlas.geography.geojson.parser.domain.foreign;
+package org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordinate;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import java.util.Map;
+import java.io.Serializable;
 
 /**
  * @author Yazad Khambata
  */
-public class DefaultForeignFieldsImpl implements ForeignFields {
-    private Map<String, Object> valuesAsMap;
+public class Position implements Serializable {
+    private Double coordinate1;
+    private Double coordinate2;
 
-    @Override
-    public Object get(final String key) {
-        return valuesAsMap.get(key);
+    public Position(final Double coordinate1, final Double coordinate2) {
+        this.coordinate1 = coordinate1;
+        this.coordinate2 = coordinate2;
     }
 
-    @Override
-    public <T> T get(final String key, final Class<T> valueClass) {
-        return (T) valuesAsMap.get(key);
+    public Double getCoordinate1() {
+        return coordinate1;
     }
 
-    @Override
-    public void put(final String key, final Object value) {
-        valuesAsMap.put(key, value);
+    public Double getCoordinate2() {
+        return coordinate2;
     }
 
     @Override

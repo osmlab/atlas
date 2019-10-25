@@ -19,7 +19,7 @@ public class Properties implements ForeignFields {
     }
 
     @Override
-    public void put(final String key, final String value) {
+    public void put(final String key, final Object value) {
         values.put(key, value);
     }
 }

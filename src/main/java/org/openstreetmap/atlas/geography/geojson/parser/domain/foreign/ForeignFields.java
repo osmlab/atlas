@@ -10,5 +10,5 @@ public interface ForeignFields extends Serializable {
 
     <T> T get(String key, Class<T> valueClass);
 
-    void put(String key, String value);
+    void put(String key, Object value);
 }

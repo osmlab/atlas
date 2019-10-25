@@ -1,30 +1,22 @@
-package org.openstreetmap.atlas.geography.geojson.parser.domain.foreign;
+package org.openstreetmap.atlas.geography.geojson.parser.domain.bbox;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import java.util.Map;
-
 /**
  * @author Yazad Khambata
  */
-public class DefaultForeignFieldsImpl implements ForeignFields {
-    private Map<String, Object> valuesAsMap;
+public abstract class AbstractBbox implements Bbox {
+    private Dimensions dimensions;
 
-    @Override
-    public Object get(final String key) {
-        return valuesAsMap.get(key);
+    public AbstractBbox(final Dimensions dimensions) {
+        this.dimensions = dimensions;
     }
 
     @Override
-    public <T> T get(final String key, final Class<T> valueClass) {
-        return (T) valuesAsMap.get(key);
-    }
-
-    @Override
-    public void put(final String key, final Object value) {
-        valuesAsMap.put(key, value);
+    public Dimensions applicableDimensions() {
+        return dimensions;
     }
 
     @Override

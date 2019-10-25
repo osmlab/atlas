@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
  * @author Yazad Khambata
  */
 @Documented
-@Retention(RetentionPolicy.SOURCE)
-@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.FIELD})
 public @interface Foreign {
 }
