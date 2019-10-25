@@ -14,25 +14,25 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordina
 public class MultiPolygon extends AbstractGeometryWithCoordinateSupport<List<List<Position>>>
 {
     private MultiLineString value;
-
+    
     public MultiPolygon(final Map<String, Object> map)
     {
         super(map, null);
         this.value = new MultiLineString(map);
     }
-
-    @Override
-    public Coordinates<List<List<Position>>> getCoordinates()
-    {
-        return this.value.getCoordinates();
-    }
-
+    
     @Override
     public Bbox getBbox()
     {
         return this.value.getBbox();
     }
-
+    
+    @Override
+    public Coordinates<List<List<Position>>> getCoordinates()
+    {
+        return this.value.getCoordinates();
+    }
+    
     @Override
     public ForeignFields getForeignFields()
     {

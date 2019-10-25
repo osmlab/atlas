@@ -14,25 +14,25 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordina
 public class LineString extends AbstractGeometryWithCoordinateSupport<List<Position>>
 {
     private MultiPoint value;
-
+    
     public LineString(final Map<String, Object> map)
     {
         super(map, null);
         this.value = new MultiPoint(map);
     }
-
-    @Override
-    public Coordinates<List<Position>> getCoordinates()
-    {
-        return this.value.getCoordinates();
-    }
-
+    
     @Override
     public Bbox getBbox()
     {
         return this.value.getBbox();
     }
-
+    
+    @Override
+    public Coordinates<List<Position>> getCoordinates()
+    {
+        return this.value.getCoordinates();
+    }
+    
     @Override
     public ForeignFields getForeignFields()
     {

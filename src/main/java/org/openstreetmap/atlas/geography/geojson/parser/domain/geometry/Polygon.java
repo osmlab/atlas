@@ -14,24 +14,24 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordina
 public class Polygon extends AbstractGeometryWithCoordinateSupport<List<Position>>
 {
     private LineString value;
-
+    
     public Polygon(final Map<String, Object> map)
     {
         super(map, null);
         this.value = new LineString(map);
     }
-
-    public Coordinates<List<Position>> getCoordinates()
-    {
-        return this.value.getCoordinates();
-    }
-
+    
     @Override
     public Bbox getBbox()
     {
         return this.value.getBbox();
     }
-
+    
+    public Coordinates<List<Position>> getCoordinates()
+    {
+        return this.value.getCoordinates();
+    }
+    
     @Override
     public ForeignFields getForeignFields()
     {

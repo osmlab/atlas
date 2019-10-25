@@ -13,33 +13,20 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.feature.FeatureCo
  */
 public enum FeatureType implements Type
 {
-    FEATURE("Feature", Feature.class),
-    FEATURE_COLLECTION("FeatureCollection", FeatureCollection.class, true);
-
+    FEATURE("Feature", Feature.class), FEATURE_COLLECTION("FeatureCollection",
+        FeatureCollection.class, true);
+    
     private String typeValue;
     private Class<? extends AbstractFeature> concreteClass;
     private boolean collection;
-
-    FeatureType(final String typeValue, final Class<? extends AbstractFeature> concreteClass)
-    {
-        this(typeValue, concreteClass, false);
-    }
-
-    FeatureType(final String typeValue, final Class<? extends AbstractFeature> concreteClass,
-            final boolean collection)
-    {
-        this.typeValue = typeValue;
-        this.concreteClass = concreteClass;
-        this.collection = collection;
-    }
-
+    
     public static AbstractFeature construct(final FeatureType geometryType,
             final GoeJsonParser goeJsonParser, final Map<String, Object> map)
     {
         try
         {
             final Class<? extends AbstractFeature> concreteClass = geometryType.getConcreteClass();
-
+            
             return ConstructorUtils.invokeConstructor(concreteClass, goeJsonParser, map);
         }
         catch (final Exception e)
@@ -47,26 +34,39 @@ public enum FeatureType implements Type
             throw new RuntimeException(e);
         }
     }
-
+    
+    FeatureType(final String typeValue, final Class<? extends AbstractFeature> concreteClass)
+    {
+        this(typeValue, concreteClass, false);
+    }
+    
+    FeatureType(final String typeValue, final Class<? extends AbstractFeature> concreteClass,
+            final boolean collection)
+    {
+        this.typeValue = typeValue;
+        this.concreteClass = concreteClass;
+        this.collection = collection;
+    }
+    
     @Override
     public AbstractFeature construct(final GoeJsonParser goeJsonParser,
             final Map<String, Object> map)
     {
         return FeatureType.construct(this, goeJsonParser, map);
     }
-
-    @Override
-    public String getTypeValue()
-    {
-        return this.typeValue;
-    }
-
+    
     @Override
     public Class<? extends AbstractFeature> getConcreteClass()
     {
         return this.concreteClass;
     }
-
+    
+    @Override
+    public String getTypeValue()
+    {
+        return this.typeValue;
+    }
+    
     @Override
     public boolean isCollection()
     {

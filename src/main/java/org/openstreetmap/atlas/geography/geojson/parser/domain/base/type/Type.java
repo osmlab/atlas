@@ -13,16 +13,17 @@ public interface Type
 {
     static <E extends Enum<E>> Type fromName(Class<? extends Type> subTypeClass, String typeValue)
     {
-        return EnumUtils.getEnumList((Class<E>) subTypeClass).stream().map(item -> (Type) item)
-                .filter(item -> item.getTypeValue().equals(typeValue)).findFirst()
-                .orElseThrow(() -> new IllegalArgumentException(typeValue));
+        return EnumUtils.getEnumList((Class<E>) subTypeClass).stream().map(
+                item -> (Type) item).filter(
+                item -> item.getTypeValue().equals(typeValue)).findFirst().orElseThrow(
+                () -> new IllegalArgumentException(typeValue));
     }
-
-    String getTypeValue();
-
-    Class<? extends GeoJsonItem> getConcreteClass();
-
-    boolean isCollection();
-
+    
     GeoJsonItem construct(GoeJsonParser goeJsonParser, Map<String, Object> map);
+    
+    Class<? extends GeoJsonItem> getConcreteClass();
+    
+    String getTypeValue();
+    
+    boolean isCollection();
 }
