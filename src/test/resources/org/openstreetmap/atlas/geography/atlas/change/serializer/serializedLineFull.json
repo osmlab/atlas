@@ -33,7 +33,7 @@
   },
   "properties": {
     "featureChangeType": "ADD",
-    "meta-data": {
+    "metadata": {
       "key": "value"
     },
     "entityType": "LINE",

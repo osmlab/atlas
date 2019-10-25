@@ -44,7 +44,7 @@
       },
       "properties": {
         "featureChangeType": "ADD",
-        "meta-data": {},
+        "metadata": {},
         "entityType": "AREA",
         "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteArea",
         "identifier": 123,
@@ -95,7 +95,7 @@
       },
       "properties": {
         "featureChangeType": "ADD",
-        "meta-data": {},
+        "metadata": {},
         "entityType": "EDGE",
         "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge",
         "identifier": 123,
@@ -148,7 +148,7 @@
       },
       "properties": {
         "featureChangeType": "ADD",
-        "meta-data": {},
+        "metadata": {},
         "entityType": "LINE",
         "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteLine",
         "identifier": 123,
@@ -181,7 +181,7 @@
       },
       "properties": {
         "featureChangeType": "ADD",
-        "meta-data": {},
+        "metadata": {},
         "entityType": "NODE",
         "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteNode",
         "identifier": 123,
@@ -222,7 +222,7 @@
       },
       "properties": {
         "featureChangeType": "ADD",
-        "meta-data": {},
+        "metadata": {},
         "entityType": "POINT",
         "class": "org.openstreetmap.atlas.geography.atlas.complete.CompletePoint",
         "identifier": 123,
@@ -275,7 +275,7 @@
       },
       "properties": {
         "featureChangeType": "ADD",
-        "meta-data": {},
+        "metadata": {},
         "entityType": "RELATION",
         "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation",
         "identifier": 123,

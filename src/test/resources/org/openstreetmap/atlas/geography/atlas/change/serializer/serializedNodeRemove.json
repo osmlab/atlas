@@ -31,7 +31,7 @@
   },
   "properties": {
     "featureChangeType": "REMOVE",
-    "meta-data": {
+    "metadata": {
       "key": "value"
     },
     "entityType": "NODE",
