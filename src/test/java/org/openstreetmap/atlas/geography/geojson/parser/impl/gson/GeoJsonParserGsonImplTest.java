@@ -125,4 +125,68 @@ public class GeoJsonParserGsonImplTest
 
         log.info("geoJsonItem:: {}.", geoJsonItem);
     }
+
+    @Test
+    public void propertiesSimple()
+    {
+        final String json = "        {\n" +
+                "            \"type\": \"Point\",\n" +
+                "            \"coordinates\": [102.0, 0.5],\n" +
+                "            \"properties\": {\n" +
+                "                \"prop0\": \"value0\",\n" +
+                "                \"prop1\": \"value1\"\n" +
+                "            }\n" +
+                "        }";
+
+        final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
+
+        log.info("geoJsonItem:: {}.", geoJsonItem);
+    }
+
+    @Test
+    public void propertiesNested()
+    {
+        final String json = "        {\n" +
+                "            \"type\": \"Point\",\n" +
+                "            \"coordinates\": [102.0, 0.5],\n" +
+                "            \"properties\": {\n" +
+                "                \"prop0\": {'a': 123, 'b': 'hello', 'c': 10.5},\n" +
+                "                \"prop1\": \"value1\"\n" +
+                "            }\n" +
+                "        }";
+
+        final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
+
+        log.info("geoJsonItem:: {}.", geoJsonItem);
+    }
+
+    @Test
+    public void foreignFieldsSimple()
+    {
+        final String json = "{\n" +
+                "    \"type\": \"Point\", \n" +
+                "'unknown_key1': 'unknown_value1','unknown_key2': 'unknown_value2'," +
+                "    \"coordinates\": [30, 10]\n" +
+                "}";
+
+        final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
+
+        log.info("geoJsonItem:: {}.", geoJsonItem);
+    }
+
+    @Test
+    public void foreignFieldsNested()
+    {
+        final String json = "{\n" +
+                "    \"type\": \"Point\", \n" +
+                "'unknown': {'unknown_key1': 'unknown_value1','unknown_key2': 'unknown_value2'}," +
+                "    \"coordinates\": [30, 10]\n" +
+                "}";
+
+        final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
+
+        log.info("geoJsonItem:: {}.", geoJsonItem);
+    }
+
+    //TODO: FeatureCollection and GeometryCollection
 }

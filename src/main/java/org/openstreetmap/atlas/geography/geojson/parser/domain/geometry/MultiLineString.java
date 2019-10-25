@@ -15,7 +15,7 @@ public class MultiLineString extends AbstractGeometryWithCoordinateSupport<List<
 
     public MultiLineString(final Map<String, Object> map)
     {
-        super(map);
+        super(map, null);
         this.coordinates = Coordinates
                 .forMultiLineString((List<List<List<Double>>>) extractRawCoordinates(map));
     }

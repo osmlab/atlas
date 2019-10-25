@@ -15,7 +15,7 @@ public class MultiPoint extends AbstractGeometryWithCoordinateSupport<List<Posit
 
     public MultiPoint(final Map<String, Object> map)
     {
-        super(map);
+        super(map, null);
         this.coordinates = Coordinates
                 .forMultiPoint((List<List<Double>>) extractRawCoordinates(map));
     }

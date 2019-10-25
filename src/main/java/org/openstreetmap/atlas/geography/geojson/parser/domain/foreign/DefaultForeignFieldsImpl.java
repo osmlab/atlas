@@ -13,6 +13,10 @@ public class DefaultForeignFieldsImpl implements ForeignFields
 {
     private Map<String, Object> valuesAsMap;
 
+    public DefaultForeignFieldsImpl(final Map<String, Object> valuesAsMap) {
+        this.valuesAsMap = valuesAsMap;
+    }
+
     @Override
     public Object get(final String key)
     {
@@ -23,12 +27,6 @@ public class DefaultForeignFieldsImpl implements ForeignFields
     public <T> T get(final String key, final Class<T> valueClass)
     {
         return (T) this.valuesAsMap.get(key);
-    }
-
-    @Override
-    public void put(final String key, final Object value)
-    {
-        this.valuesAsMap.put(key, value);
     }
 
     @Override

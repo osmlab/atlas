@@ -17,7 +17,7 @@ public class MultiPolygon extends AbstractGeometryWithCoordinateSupport<List<Lis
 
     public MultiPolygon(final Map<String, Object> map)
     {
-        super(map);
+        super(map, null);
         this.value = new MultiLineString(map);
     }
 

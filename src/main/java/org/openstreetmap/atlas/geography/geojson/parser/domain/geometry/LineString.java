@@ -17,7 +17,7 @@ public class LineString extends AbstractGeometryWithCoordinateSupport<List<Posit
 
     public LineString(final Map<String, Object> map)
     {
-        super(map);
+        super(map, null);
         this.value = new MultiPoint(map);
     }
 

@@ -17,7 +17,7 @@ public class Polygon extends AbstractGeometryWithCoordinateSupport<List<Position
 
     public Polygon(final Map<String, Object> map)
     {
-        super(map);
+        super(map, null);
         this.value = new LineString(map);
     }
 
