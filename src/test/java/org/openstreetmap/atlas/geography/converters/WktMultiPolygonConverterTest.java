@@ -32,6 +32,7 @@ public class WktMultiPolygonConverterTest
         outersToInners.add(polygon1, polygon2);
         final MultiPolygon truth = new MultiPolygon(outersToInners);
         Assert.assertEquals(truth, multiPolygon);
+        Assert.assertEquals(wkt, CONVERTER.convert(truth));
     }
 
     @Test
@@ -40,7 +41,7 @@ public class WktMultiPolygonConverterTest
         final String wkt = "MULTIPOLYGON ("
                 + "((68.763726 24.2889638, 68.7691521 24.2847937, 68.7695996 24.2726051, "
                 + "68.7686899 24.2558968, 68.763726 24.2889638), "
-                + "(68.763726 24.2889638, 68.7691521 24.2847937, 68.7695996 24.2726051, 68.763726 24.2889638)),"
+                + "(68.763726 24.2889638, 68.7691521 24.2847937, 68.7695996 24.2726051, 68.763726 24.2889638)), "
                 + "((68.763726 24.2889638, 68.7691521 24.2847937, 68.7695996 24.2726051, 68.763726 24.2889638), "
                 + "(68.763726 24.2889638, 68.7691521 24.2847937, 68.7695996 24.2726051, 68.763726 24.2889638))"
                 + ")";
@@ -52,6 +53,7 @@ public class WktMultiPolygonConverterTest
         outersToInners.add(polygon2, polygon2);
         final MultiPolygon truth = new MultiPolygon(outersToInners);
         Assert.assertEquals(truth, multiPolygon);
+        Assert.assertEquals(wkt, CONVERTER.convert(truth));
     }
 
     @Test
@@ -64,5 +66,6 @@ public class WktMultiPolygonConverterTest
         final MultiPolygon truth = MultiPolygon
                 .forPolygon(new Polygon(LOCATION_1, LOCATION_2, LOCATION_3, LOCATION_4));
         Assert.assertEquals(truth, multiPolygon);
+        Assert.assertEquals(wkt, CONVERTER.convert(truth));
     }
 }
