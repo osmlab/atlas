@@ -50,8 +50,16 @@ public abstract class WkMultiPolygonConverter<T> implements TwoWayConverter<Mult
     @Override
     public T convert(final MultiPolygon multiPolygon)
     {
-        final org.locationtech.jts.geom.MultiPolygon geometry = MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER
-                .backwardConvert(multiPolygon);
+        final org.locationtech.jts.geom.Geometry geometry;
+        if (multiPolygon.outers().size() > 1)
+        {
+            geometry = MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER.backwardConvert(multiPolygon);
+        }
+        else
+        {
+            // JTS Polygons can have one outer and some holes
+            geometry = POLYGON_TO_MULTI_POLYGON_CONVERTER.backwardConvert(multiPolygon);
+        }
         return getGeometryConverter().backwardConvert(geometry);
     }
 
