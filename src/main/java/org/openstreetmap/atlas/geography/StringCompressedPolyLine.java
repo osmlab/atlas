@@ -1,6 +1,8 @@
 package org.openstreetmap.atlas.geography;
 
 import java.io.Serializable;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +42,7 @@ public class StringCompressedPolyLine implements Serializable
 
     // dm7
     private static final int PRECISION = 7;
-    private static final String ENCODING_NAME = "UTF-8";
+    private static final Charset CHARSET = StandardCharsets.UTF_8;
     private static final int ENCODING_OFFSET_MINUS_ONE = 63;
     private static final int FIVE_BIT_MASK = 0x1f;
     private static final int SIXTH_BIT_MASK = 0x20;
@@ -72,7 +74,7 @@ public class StringCompressedPolyLine implements Serializable
     {
         try
         {
-            this.encoding = compress(polyLine, PRECISION).getBytes(ENCODING_NAME);
+            this.encoding = compress(polyLine, PRECISION).getBytes(CHARSET);
         }
         catch (final PolyLineCompressionException exception)
         {
@@ -95,13 +97,17 @@ public class StringCompressedPolyLine implements Serializable
         }
         else
         {
+            String encodedString = null;
             try
             {
-                return asPolyLine(new String(this.encoding, ENCODING_NAME), PRECISION);
+                encodedString = new String(this.encoding, CHARSET);
+                return asPolyLine(encodedString, PRECISION);
             }
             catch (final Exception exception)
             {
-                throw new CoreException("Could not decompress polyline.", exception);
+                throw new CoreException(
+                        "Could not decompress polyline:\nEncoding: \'{}\'\nString: \'\'.",
+                        this.encoding, encodedString, exception);
             }
         }
     }
@@ -124,7 +130,7 @@ public class StringCompressedPolyLine implements Serializable
         {
             try
             {
-                return new String(this.encoding, ENCODING_NAME);
+                return new String(this.encoding, CHARSET);
             }
             catch (final Exception e)
             {
@@ -176,7 +182,7 @@ public class StringCompressedPolyLine implements Serializable
     {
         long oldLatitude = 0;
         long oldLongitude = 0;
-        String encoded = "";
+        final StringBuilder encoded = new StringBuilder();
         final double precision = Math.pow(10, precision0);
         Location last = Location.CENTER;
         for (final Location location : points)
@@ -186,7 +192,7 @@ public class StringCompressedPolyLine implements Serializable
             final long longitude = Math.round(location.getLongitude().asDegrees() * precision);
 
             // Encode the differences between the points
-            encoded += encodeNumber(latitude - oldLatitude);
+            encoded.append(encodeNumber(latitude - oldLatitude));
             final long deltaLongitude = longitude - oldLongitude;
             if (Math.abs(deltaLongitude) > MAXIMUM_DELTA_LONGITUDE)
             {
@@ -194,13 +200,13 @@ public class StringCompressedPolyLine implements Serializable
                         "Unable to compress the polyLine, two consecutive points ({} and {}) are too far apart in longitude: {} degrees.",
                         last, location, deltaLongitude / precision);
             }
-            encoded += encodeNumber(deltaLongitude);
+            encoded.append(encodeNumber(deltaLongitude));
 
             oldLatitude = latitude;
             oldLongitude = longitude;
             last = location;
         }
-        return encoded;
+        return encoded.toString();
     }
 
     private String encodeNumber(final long number0)
@@ -210,15 +216,15 @@ public class StringCompressedPolyLine implements Serializable
         {
             number = ~number;
         }
-        String encoded = "";
+        final StringBuilder encoded = new StringBuilder();
         while (number >= SIXTH_BIT_MASK)
         {
-            encoded += String.valueOf(Character.toChars(
-                    (SIXTH_BIT_MASK | (int) number & FIVE_BIT_MASK) + ENCODING_OFFSET_MINUS_ONE));
+            encoded.append(String.valueOf(Character.toChars(
+                    (SIXTH_BIT_MASK | (int) number & FIVE_BIT_MASK) + ENCODING_OFFSET_MINUS_ONE)));
             number >>>= BIT_SHIFT;
         }
-        encoded += String.valueOf(Character.toChars((int) number + ENCODING_OFFSET_MINUS_ONE));
-        return encoded;
+        encoded.append(String.valueOf(Character.toChars((int) number + ENCODING_OFFSET_MINUS_ONE)));
+        return encoded.toString();
     }
 
     private byte[] getWkbFallback(final PolyLine polyLine)

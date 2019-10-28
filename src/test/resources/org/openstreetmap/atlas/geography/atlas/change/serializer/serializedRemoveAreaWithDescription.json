@@ -39,13 +39,13 @@
   },
   "properties": {
     "featureChangeType": "REMOVE",
-    "meta-data": {},
+    "metadata": {},
     "description": {
       "type": "REMOVE",
       "descriptors": []
     },
     "entityType": "AREA",
-    "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteArea",
+    "completeEntityClass": "org.openstreetmap.atlas.geography.atlas.complete.CompleteArea",
     "identifier": 123,
     "tags": {
       "a": "1"
