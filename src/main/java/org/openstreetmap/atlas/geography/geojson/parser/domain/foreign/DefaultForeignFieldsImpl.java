@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.geojson.parser.domain.foreign;
 
+import java.util.Collections;
 import java.util.Map;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -19,21 +20,31 @@ public class DefaultForeignFieldsImpl implements ForeignFields
     }
     
     @Override
+    public Map<String, Object> asMap()
+    {
+        if (valuesAsMap == null) {
+            return Collections.EMPTY_MAP;
+        }
+        
+        return Collections.unmodifiableMap(valuesAsMap);
+    }
+    
+    @Override
     public boolean equals(final Object that)
     {
         return EqualsBuilder.reflectionEquals(this, that);
     }
     
     @Override
-    public <T> T get(final String key, final Class<T> valueClass)
-    {
-        return (T) this.valuesAsMap.get(key);
-    }
-    
-    @Override
     public Object get(final String key)
     {
         return this.valuesAsMap.get(key);
+    }
+    
+    @Override
+    public <T> T get(final String key, final Class<T> valueClass)
+    {
+        return (T) this.valuesAsMap.get(key);
     }
     
     @Override

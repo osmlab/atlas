@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.geojson.parser.domain.properties;
 
+import java.util.Collections;
 import java.util.Map;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -7,6 +8,8 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.foreign.DefaultForeignFieldsImpl;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.foreign.ForeignFields;
+import org.openstreetmap.atlas.geography.geojson.parser.mapper.Mapper;
+import org.openstreetmap.atlas.geography.geojson.parser.mapper.impl.DefaultBeanUtilsBasedMapperImpl;
 
 /**
  * @author Yazad Khambata
@@ -48,5 +51,24 @@ public class Properties implements ForeignFields
     public String toString()
     {
         return ToStringBuilder.reflectionToString(this);
+    }
+    
+    @Override
+    public Map<String, Object> asMap()
+    {
+        final Map<String, Object> foreignMap = values.asMap();
+        if (foreignMap == null) {
+            return Collections.EMPTY_MAP;
+        }
+        
+        return Collections.unmodifiableMap(foreignMap);
+    }
+    
+    public <T> T as(final Class<T> type) {
+        return as(type, DefaultBeanUtilsBasedMapperImpl.instance);
+    }
+    
+    public <T> T as(final Class<T> type, final Mapper mapper) {
+        return mapper.map(this.asMap(), type);
     }
 }

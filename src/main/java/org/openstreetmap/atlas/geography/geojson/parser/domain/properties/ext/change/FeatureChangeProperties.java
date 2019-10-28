@@ -13,7 +13,8 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.annotation.Foreig
  */
 @Foreign public class FeatureChangeProperties implements Serializable
 {
-    private String type;
+    private String featureChangeType;
+    private Map<String, String> metadata;
     private Description description;
     private String entityType;
     private String completeEntityClass;
@@ -80,9 +81,9 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.annotation.Foreig
         return tags;
     }
     
-    public String getType()
+    public String getFeatureChangeType()
     {
-        return type;
+        return featureChangeType;
     }
     
     public String getWKT()
@@ -141,14 +142,24 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.annotation.Foreig
         this.tags = tags;
     }
     
-    public void setType(String type)
+    public void setFeatureChangeType(String featureChangeType)
     {
-        this.type = type;
+        this.featureChangeType = featureChangeType;
     }
     
     public void setWKT(String WKT)
     {
         this.WKT = WKT;
+    }
+    
+    public Map<String, String> getMetadata()
+    {
+        return metadata;
+    }
+    
+    public void setMetadata(Map<String, String> metadata)
+    {
+        this.metadata = metadata;
     }
     
     @Override

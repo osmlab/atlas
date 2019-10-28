@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.geojson.parser.impl.gson;
 
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.base.GeoJsonItem;
+import org.openstreetmap.atlas.geography.geojson.parser.domain.properties.ext.change.FeatureChangeProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -177,6 +178,62 @@ public class GeoJsonParserGsonImplTest
         final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
         
         log.info("geoJsonItem:: {}.", geoJsonItem);
+    }
+    
+    @Test
+    public void featureWithExtendedProperties() {
+        final String json = "{\n" + "  \"type\": \"Feature\",\n" + "  \"bbox\": [\n"
+                + "    -122.052138,\n" + "    37.317585,\n" + "    -122.009566,\n"
+                + "    37.390535\n" + "  ],\n" + "  \"geometry\": {\n"
+                + "    \"type\": \"LineString\",\n" + "    \"coordinates\": [\n" + "      [\n"
+                + "        -122.009566,\n" + "        37.33531\n" + "      ],\n" + "      [\n"
+                + "        -122.031007,\n" + "        37.390535\n" + "      ],\n" + "      [\n"
+                + "        -122.028932,\n" + "        37.332451\n" + "      ],\n" + "      [\n"
+                + "        -122.052138,\n" + "        37.317585\n" + "      ],\n" + "      [\n"
+                + "        -122.0304871,\n" + "        37.3314171\n" + "      ]\n" + "    ]\n"
+                + "  },\n" + "  \"properties\": {\n" + "    \"featureChangeType\": \"ADD\",\n"
+                + "    \"metadata\": {\n" + "      \"somekey1\": \"some value 1\",\n"
+                + "      \"somekey2\": \"some value 2\"\n" + "    },\n" + "    \"description\": {\n"
+                + "      \"type\": \"UPDATE\",\n" + "      \"descriptors\": [\n" + "        {\n"
+                + "          \"name\": \"TAG\",\n" + "          \"type\": \"ADD\",\n"
+                + "          \"key\": \"c\",\n" + "          \"value\": \"3\"\n" + "        },\n"
+                + "        {\n" + "          \"name\": \"TAG\",\n"
+                + "          \"type\": \"UPDATE\",\n" + "          \"key\": \"b\",\n"
+                + "          \"value\": \"2a\",\n" + "          \"originalValue\": \"2\"\n"
+                + "        },\n" + "        {\n" + "          \"name\": \"TAG\",\n"
+                + "          \"type\": \"REMOVE\",\n" + "          \"key\": \"a\",\n"
+                + "          \"value\": \"1\"\n" + "        },\n" + "        {\n"
+                + "          \"name\": \"GEOMETRY\",\n" + "          \"type\": \"ADD\",\n"
+                + "          \"position\": \"5/5\",\n"
+                + "          \"afterView\": \"LINESTRING (-122.028932 37.332451, -122.052138 37.317585, -122.0304871 37.3314171)\"\n"
+                + "        },\n" + "        {\n" + "          \"name\": \"GEOMETRY\",\n"
+                + "          \"type\": \"REMOVE\",\n" + "          \"position\": \"0/5\",\n"
+                + "          \"beforeView\": \"LINESTRING (-122.052138 37.317585, -122.0304871 37.3314171, -122.028932 37.332451)\"\n"
+                + "        },\n" + "        {\n" + "          \"name\": \"PARENT_RELATION\",\n"
+                + "          \"type\": \"ADD\",\n" + "          \"afterView\": \"3\"\n"
+                + "        },\n" + "        {\n" + "          \"name\": \"PARENT_RELATION\",\n"
+                + "          \"type\": \"REMOVE\",\n" + "          \"beforeView\": \"1\"\n"
+                + "        },\n" + "        {\n" + "          \"name\": \"START_NODE\",\n"
+                + "          \"type\": \"UPDATE\",\n" + "          \"beforeView\": \"1\",\n"
+                + "          \"afterView\": \"10\"\n" + "        },\n" + "        {\n"
+                + "          \"name\": \"END_NODE\",\n" + "          \"type\": \"UPDATE\",\n"
+                + "          \"beforeView\": \"2\",\n" + "          \"afterView\": \"20\"\n"
+                + "        }\n" + "      ]\n" + "    },\n" + "    \"entityType\": \"EDGE\",\n"
+                + "    \"completeEntityClass\": \"org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge\",\n"
+                + "    \"identifier\": 123,\n" + "    \"tags\": {\n" + "      \"b\": \"2a\",\n"
+                + "      \"c\": \"3\"\n" + "    },\n" + "    \" relations\": [\n" + "      2,\n"
+                + "      3\n" + "    ],\n" + "    \"startNode\": 10,\n" + "    \"endNode\": 20,\n"
+                + "    \"WKT\": \"LINESTRING (-122.009566 37.33531, -122.031007 37.390535, -122.028932 37.332451, -122.052138 37.317585, -122.0304871 37.3314171)\",\n"
+                + "    \"bboxWKT\": \"POLYGON ((-122.052138 37.317585, -122.052138 37.390535, -122.009566 37.390535, -122.009566 37.317585, -122.052138 37.317585))\"\n"
+                + "  }\n" + "}\n";
+    
+        final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
+    
+        log.info("geoJsonItem:: {}.", geoJsonItem);
+    
+        final FeatureChangeProperties featureChangeProperties = geoJsonItem.getProperties().as(FeatureChangeProperties.class);
+        
+        log.info("featureChangeProperties:: {}.", featureChangeProperties);
     }
     
     // TODO: FeatureCollection and GeometryCollection
