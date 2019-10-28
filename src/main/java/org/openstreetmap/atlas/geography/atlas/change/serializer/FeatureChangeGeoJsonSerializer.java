@@ -77,7 +77,7 @@ public class FeatureChangeGeoJsonSerializer
 
             final JsonObject properties = new JsonObject();
             properties.addProperty("featureChangeType", source.getChangeType().toString());
-            add(properties, "meta-data", source.getMetaData(), tagPrinter);
+            add(properties, "metadata", source.getMetaData(), tagPrinter);
             if (this.showDescription)
             {
                 add(properties, "description", source.explain(), ChangeDescription::toJsonElement);
@@ -157,7 +157,7 @@ public class FeatureChangeGeoJsonSerializer
         {
             final JsonObject properties = new JsonObject();
             properties.addProperty("entityType", source.getType().toString());
-            properties.addProperty("class", source.getClass().getName());
+            properties.addProperty("completeEntityClass", source.getClass().getName());
             properties.addProperty("identifier", source.getIdentifier());
             add(properties, "tags", source.getTags(), tagPrinter);
             add(properties, "relations", source.relations(), identifierMapper);

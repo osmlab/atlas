@@ -15,11 +15,11 @@
   },
   "properties": {
     "featureChangeType": "ADD",
-    "meta-data": {
+    "metadata": {
       "key": "value"
     },
     "entityType": "POINT",
-    "class": "org.openstreetmap.atlas.geography.atlas.complete.CompletePoint",
+    "completeEntityClass": "org.openstreetmap.atlas.geography.atlas.complete.CompletePoint",
     "identifier": 123,
     "tags": {
       "tagKey1": "tagValue1",
