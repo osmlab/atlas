@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.openstreetmap.atlas.geography.geojson.parser.GoeJsonParser;
+import org.openstreetmap.atlas.geography.geojson.parser.GeoJsonParser;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.base.type.FeatureType;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.base.type.Type;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.foreign.DefaultForeignFieldsImpl;
@@ -18,7 +18,7 @@ public class FeatureCollection extends AbstractFeature
 {
     private List<Feature> features;
     
-    public FeatureCollection(final GoeJsonParser goeJsonParser, final Map<String, Object> map)
+    public FeatureCollection(final GeoJsonParser goeJsonParser, final Map<String, Object> map)
     {
         super(map, new DefaultForeignFieldsImpl(extractForeignFields(map,
                 new HashSet<>(Arrays.asList("type", "bbox", "features", "properties")))));

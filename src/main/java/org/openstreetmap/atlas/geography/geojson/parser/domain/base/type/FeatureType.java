@@ -3,7 +3,7 @@ package org.openstreetmap.atlas.geography.geojson.parser.domain.base.type;
 import java.util.Map;
 
 import org.apache.commons.lang3.reflect.ConstructorUtils;
-import org.openstreetmap.atlas.geography.geojson.parser.GoeJsonParser;
+import org.openstreetmap.atlas.geography.geojson.parser.GeoJsonParser;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.feature.AbstractFeature;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.feature.Feature;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.feature.FeatureCollection;
@@ -21,7 +21,7 @@ public enum FeatureType implements Type
     private boolean collection;
     
     public static AbstractFeature construct(final FeatureType geometryType,
-            final GoeJsonParser goeJsonParser, final Map<String, Object> map)
+            final GeoJsonParser goeJsonParser, final Map<String, Object> map)
     {
         try
         {
@@ -49,7 +49,7 @@ public enum FeatureType implements Type
     }
     
     @Override
-    public AbstractFeature construct(final GoeJsonParser goeJsonParser,
+    public AbstractFeature construct(final GeoJsonParser goeJsonParser,
             final Map<String, Object> map)
     {
         return FeatureType.construct(this, goeJsonParser, map);

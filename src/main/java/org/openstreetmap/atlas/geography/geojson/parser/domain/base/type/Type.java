@@ -3,7 +3,7 @@ package org.openstreetmap.atlas.geography.geojson.parser.domain.base.type;
 import java.util.Map;
 
 import org.apache.commons.lang3.EnumUtils;
-import org.openstreetmap.atlas.geography.geojson.parser.GoeJsonParser;
+import org.openstreetmap.atlas.geography.geojson.parser.GeoJsonParser;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.base.GeoJsonItem;
 
 /**
@@ -19,7 +19,7 @@ public interface Type
                 () -> new IllegalArgumentException(typeValue));
     }
     
-    GeoJsonItem construct(GoeJsonParser goeJsonParser, Map<String, Object> map);
+    GeoJsonItem construct(GeoJsonParser goeJsonParser, Map<String, Object> map);
     
     Class<? extends GeoJsonItem> getConcreteClass();
     

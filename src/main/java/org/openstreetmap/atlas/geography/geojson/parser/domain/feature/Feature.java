@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 
-import org.openstreetmap.atlas.geography.geojson.parser.GoeJsonParser;
+import org.openstreetmap.atlas.geography.geojson.parser.GeoJsonParser;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.base.type.FeatureType;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.base.type.Type;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.foreign.DefaultForeignFieldsImpl;
@@ -17,7 +17,7 @@ public class Feature extends AbstractFeature
 {
     private Geometry geometry;
 
-    public Feature(final GoeJsonParser goeJsonParser, final Map<String, Object> map)
+    public Feature(final GeoJsonParser goeJsonParser, final Map<String, Object> map)
     {
         super(map, new DefaultForeignFieldsImpl(extractForeignFields(map,
                 new HashSet<>(Arrays.asList("type", "bbox", "geometry", "properties")))));

@@ -6,7 +6,7 @@ import java.util.function.Predicate;
 
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
-import org.openstreetmap.atlas.geography.geojson.parser.GoeJsonParser;
+import org.openstreetmap.atlas.geography.geojson.parser.GeoJsonParser;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.Geometry;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.GeometryCollection;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.LineString;
@@ -34,7 +34,7 @@ public enum GeometryType implements Type
     private boolean collection;
 
     public static Geometry construct(final GeometryType geometryType,
-            final GoeJsonParser goeJsonParser, final Map<String, Object> map)
+            final GeoJsonParser goeJsonParser, final Map<String, Object> map)
     {
         try
         {
@@ -92,7 +92,7 @@ public enum GeometryType implements Type
     }
 
     @Override
-    public Geometry construct(final GoeJsonParser goeJsonParser, final Map<String, Object> map)
+    public Geometry construct(final GeoJsonParser goeJsonParser, final Map<String, Object> map)
     {
         return GeometryType.construct(this, goeJsonParser, map);
     }
