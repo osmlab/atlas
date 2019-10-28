@@ -39,7 +39,7 @@
       "key": "value"
     },
     "entityType": "AREA",
-    "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteArea",
+    "completeEntityClass": "org.openstreetmap.atlas.geography.atlas.complete.CompleteArea",
     "identifier": 123,
     "tags": "null",
     "relations": "null",
