@@ -12,6 +12,11 @@ public class TemporaryFile extends File implements Closeable
         super(file);
     }
 
+    TemporaryFile(final String file)
+    {
+        super(file);
+    }
+
     @Override
     public void close()
     {

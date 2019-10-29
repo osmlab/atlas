@@ -52,11 +52,11 @@ public class File extends AbstractWritableResource implements Comparable<File>
         });
     }
 
-    public static File temporary(final String prefix, final String suffix)
+    public static TemporaryFile temporary(final String prefix, final String suffix)
     {
         try
         {
-            return new File(java.io.File.createTempFile(prefix, suffix));
+            return new TemporaryFile(java.io.File.createTempFile(prefix, suffix));
         }
         catch (final IOException e)
         {
@@ -66,12 +66,12 @@ public class File extends AbstractWritableResource implements Comparable<File>
         }
     }
 
-    public static File temporaryFolder()
+    public static TemporaryFile temporaryFolder()
     {
         try (TemporaryFile temporary = File.temporary())
         {
-            final File parent = new File(temporary.getParent())
-                    .child(RANDOM.nextInt(Integer.MAX_VALUE) + "");
+            final TemporaryFile parent = new TemporaryFile(new TemporaryFile(temporary.getParent())
+                    .child(RANDOM.nextInt(Integer.MAX_VALUE) + "").getFile());
             parent.mkdirs();
             return parent;
         }

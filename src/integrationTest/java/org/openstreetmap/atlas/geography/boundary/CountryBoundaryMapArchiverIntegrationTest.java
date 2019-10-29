@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.boundary;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.streaming.resource.File;
+import org.openstreetmap.atlas.streaming.resource.TemporaryFile;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 
 /**
@@ -16,7 +17,7 @@ public class CountryBoundaryMapArchiverIntegrationTest
     @Test
     public void testOceanBoundary()
     {
-        try (File temporary = File.temporary("CountryBoundaryMapArchiverTest", ".txt.gz"))
+        try (TemporaryFile temporary = File.temporary("CountryBoundaryMapArchiverTest", ".txt.gz"))
         {
             final StringList arguments = new StringList();
             arguments.add("-" + CountryBoundaryMapArchiver.BOUNDARY_FILE.getName() + "="
