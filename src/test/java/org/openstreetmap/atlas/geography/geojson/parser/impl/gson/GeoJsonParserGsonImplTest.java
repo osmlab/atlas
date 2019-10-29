@@ -1,7 +1,21 @@
 package org.openstreetmap.atlas.geography.geojson.parser.impl.gson;
 
+import java.util.Map;
+
+import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.base.GeoJsonItem;
+import org.openstreetmap.atlas.geography.geojson.parser.domain.bbox.Bbox2D;
+import org.openstreetmap.atlas.geography.geojson.parser.domain.bbox.Bbox3D;
+import org.openstreetmap.atlas.geography.geojson.parser.domain.feature.Feature;
+import org.openstreetmap.atlas.geography.geojson.parser.domain.feature.FeatureCollection;
+import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.GeometryCollection;
+import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.LineString;
+import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.MultiLineString;
+import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.MultiPoint;
+import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.MultiPolygon;
+import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.Point;
+import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.Polygon;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.properties.ext.change.FeatureChangeProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,9 +43,10 @@ public class GeoJsonParserGsonImplTest
                 + "        -122.0304871,\n" + "        37.3314171\n" + "      ]\n" + "    ]\n"
                 + "  },\n" + "  \"properties\": {}\n" + "}\n";
 
-        final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
+        final GeoJsonItem geoJsonItem = toGeoJsonItem(json);
 
-        log.info("geoJsonItem:: {}.", geoJsonItem);
+        Assert.assertTrue(geoJsonItem instanceof Feature);
+        Assert.assertTrue(((Feature) geoJsonItem).getGeometry() instanceof LineString);
     }
 
     @Test
@@ -44,9 +59,11 @@ public class GeoJsonParserGsonImplTest
                 + "      },\n" + "      \"properties\": {\n" + "        \"prop0\": \"value0\",\n"
                 + "        \"prop1\": { \"this\": \"that\" }\n" + "      }\n" + "    }";
 
-        final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
+        final GeoJsonItem geoJsonItem = toGeoJsonItem(json);
 
-        log.info("geoJsonItem:: {}.", geoJsonItem);
+        Assert.assertTrue(geoJsonItem instanceof Feature);
+        Assert.assertTrue(((Feature) geoJsonItem).getGeometry() instanceof Polygon);
+
     }
 
     @Test
@@ -71,9 +88,10 @@ public class GeoJsonParserGsonImplTest
                 + "        \"prop1\": { \"this\": \"that\" }\n" + "      }\n" + "    }\n" + "  ]\n"
                 + "}";
 
-        final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
+        final GeoJsonItem geoJsonItem = toGeoJsonItem(json);
 
-        log.info("geoJsonItem:: {}.", geoJsonItem);
+        Assert.assertTrue(geoJsonItem instanceof FeatureCollection);
+        Assert.assertEquals(3, ((FeatureCollection) geoJsonItem).getFeatures().size());
     }
 
     @Test
@@ -124,12 +142,16 @@ public class GeoJsonParserGsonImplTest
                 + "    \"bboxWKT\": \"POLYGON ((-122.052138 37.317585, -122.052138 37.390535, -122.009566 37.390535, -122.009566 37.317585, -122.052138 37.317585))\"\n"
                 + "  }\n" + "}\n";
 
-        final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
+        final GeoJsonItem geoJsonItem = toGeoJsonItem(json);
 
-        log.info("geoJsonItem:: {}.", geoJsonItem);
+        Assert.assertTrue(geoJsonItem instanceof Feature);
+        Assert.assertTrue(((Feature) geoJsonItem).getGeometry() instanceof LineString);
 
         final FeatureChangeProperties featureChangeProperties = geoJsonItem.getProperties()
                 .asType(FeatureChangeProperties.class);
+
+        Assert.assertEquals(9, featureChangeProperties.getDescription().getDescriptors().length);
+        Assert.assertFalse(featureChangeProperties.getWKT().isEmpty());
 
         log.info("featureChangeProperties:: {}.", featureChangeProperties);
     }
@@ -141,9 +163,9 @@ public class GeoJsonParserGsonImplTest
                 + "'unknown': {'unknown_key1': 'unknown_value1','unknown_key2': 'unknown_value2'},"
                 + "    \"coordinates\": [30, 10]\n" + "}";
 
-        final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
+        final GeoJsonItem geoJsonItem = toGeoJsonItem(json);
 
-        log.info("geoJsonItem:: {}.", geoJsonItem);
+        Assert.assertTrue(geoJsonItem instanceof Point);
     }
 
     @Test
@@ -153,9 +175,10 @@ public class GeoJsonParserGsonImplTest
                 + "'unknown_key1': 'unknown_value1','unknown_key2': 'unknown_value2',"
                 + "    \"coordinates\": [30, 10]\n" + "}";
 
-        final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
+        final GeoJsonItem geoJsonItem = toGeoJsonItem(json);
 
-        log.info("geoJsonItem:: {}.", geoJsonItem);
+        Assert.assertTrue(geoJsonItem instanceof Point);
+        Assert.assertFalse(geoJsonItem.getForeignFields().asMap().isEmpty());
     }
 
     @Test
@@ -171,9 +194,10 @@ public class GeoJsonParserGsonImplTest
                 + "                [[40, 40], [20, 45], [45, 30], [40, 40]]\n" + "            ]\n"
                 + "        }\n" + "    ]\n" + "}\n";
 
-        final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
+        final GeoJsonItem geoJsonItem = toGeoJsonItem(json);
 
-        log.info("geoJsonItem:: {}.", geoJsonItem);
+        Assert.assertTrue(geoJsonItem instanceof GeometryCollection);
+        Assert.assertFalse(((GeometryCollection) geoJsonItem).getGeometries().isEmpty());
     }
 
     @Test
@@ -233,9 +257,13 @@ public class GeoJsonParserGsonImplTest
                 + "                    ]\n" + "                }\n" + "            ]\n"
                 + "        }\n" + "    ]\n" + "}\n";
 
-        final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
+        final GeoJsonItem geoJsonItem = toGeoJsonItem(json);
 
-        log.info("geoJsonItem:: {}.", geoJsonItem);
+        final int innermostLevelSize = (((GeometryCollection) ((GeometryCollection) ((GeometryCollection) ((GeometryCollection) geoJsonItem)
+                .getGeometries().get(3)).getGeometries().get(3)).getGeometries().get(3)))
+                        .getGeometries().size();
+
+        Assert.assertEquals(3, innermostLevelSize);
     }
 
     @Test
@@ -245,9 +273,9 @@ public class GeoJsonParserGsonImplTest
                 + "    \"bbox\": [-1.1, -2.1, 3.1, 4.1, 5.1, 6.1],\n" + "    \"coordinates\": [\n"
                 + "        [30, 10], [10, 30], [40, 40]\n" + "    ]\n" + "}";
 
-        final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
+        final GeoJsonItem geoJsonItem = toGeoJsonItem(json);
 
-        log.info("geoJsonItem:: {}.", geoJsonItem);
+        Assert.assertTrue(geoJsonItem instanceof LineString);
     }
 
     @Test
@@ -258,9 +286,9 @@ public class GeoJsonParserGsonImplTest
                 + "        [[35, 10], [45, 45], [15, 40], [10, 20], [35, 10]], \n"
                 + "        [[20, 30], [35, 35], [30, 20], [20, 30]]\n" + "    ]\n" + "}";
 
-        final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
+        final GeoJsonItem geoJsonItem = toGeoJsonItem(json);
 
-        log.info("geoJsonItem:: {}.", geoJsonItem);
+        Assert.assertTrue(geoJsonItem instanceof MultiLineString);
     }
 
     @Test
@@ -270,9 +298,9 @@ public class GeoJsonParserGsonImplTest
                 + "    \"bbox\": [-1.1, -2.1, 3.1, 4.1, 5.1, 6.1],\n" + "    \"coordinates\": [\n"
                 + "        [30, 10], [10, 30], [40, 40]\n" + "    ]\n" + "}";
 
-        final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
+        final GeoJsonItem geoJsonItem = toGeoJsonItem(json);
 
-        log.info("geoJsonItem:: {}.", geoJsonItem);
+        Assert.assertTrue(geoJsonItem instanceof MultiPoint);
     }
 
     @Test
@@ -283,9 +311,9 @@ public class GeoJsonParserGsonImplTest
                 + "        [[35, 10], [45, 45], [15, 40], [10, 20], [35, 10]], \n"
                 + "        [[20, 30], [35, 35], [30, 20], [20, 30]]\n" + "    ]\n" + "}";
 
-        final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
+        final GeoJsonItem geoJsonItem = toGeoJsonItem(json);
 
-        log.info("geoJsonItem:: {}.", geoJsonItem);
+        Assert.assertTrue(geoJsonItem instanceof MultiPolygon);
     }
 
     @Test
@@ -294,9 +322,9 @@ public class GeoJsonParserGsonImplTest
         final String json = "{\n" + "    \"type\": \"Point\", \n"
                 + "    \"coordinates\": [30, 10]\n" + "}";
 
-        final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
+        final GeoJsonItem geoJsonItem = toGeoJsonItem(json);
 
-        log.info("geoJsonItem:: {}.", geoJsonItem);
+        Assert.assertTrue(geoJsonItem instanceof Point);
     }
 
     @Test
@@ -305,9 +333,10 @@ public class GeoJsonParserGsonImplTest
         final String json = "{\n" + "    \"bbox\": [-1.0, -2.0, 3.0, 4.0],\n"
                 + "    \"type\": \"Point\", \n" + "    \"coordinates\": [30, 10]\n" + "}";
 
-        final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
+        final GeoJsonItem geoJsonItem = toGeoJsonItem(json);
 
-        log.info("geoJsonItem:: {}.", geoJsonItem);
+        Assert.assertTrue(geoJsonItem instanceof Point);
+        Assert.assertTrue(geoJsonItem.getBbox() instanceof Bbox2D);
     }
 
     @Test
@@ -316,9 +345,10 @@ public class GeoJsonParserGsonImplTest
         final String json = "{\n" + "    \"bbox\": [-1.0, -2.0, 3.0, 4.0, 5.0, 6.0],\n"
                 + "    \"type\": \"Point\", \n" + "    \"coordinates\": [30, 10]\n" + "}";
 
-        final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
+        final GeoJsonItem geoJsonItem = toGeoJsonItem(json);
 
-        log.info("geoJsonItem:: {}.", geoJsonItem);
+        Assert.assertTrue(geoJsonItem instanceof Point);
+        Assert.assertTrue(geoJsonItem.getBbox() instanceof Bbox3D);
     }
 
     @Test
@@ -327,9 +357,8 @@ public class GeoJsonParserGsonImplTest
         final String json = "{\n" + "    \"type\": \"Polygon\", \n" + "    \"coordinates\": [\n"
                 + "        [[30, 10], [40, 40], [20, 40], [10, 20], [30, 10]]\n" + "    ]\n" + "}";
 
-        final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
-
-        log.info("geoJsonItem:: {}.", geoJsonItem);
+        final GeoJsonItem geoJsonItem = toGeoJsonItem(json);
+        Assert.assertTrue(geoJsonItem instanceof Polygon);
     }
 
     @Test
@@ -340,9 +369,9 @@ public class GeoJsonParserGsonImplTest
                 + "                \"prop0\": {'a': 123, 'b': 'hello', 'c': 10.5},\n"
                 + "                \"prop1\": \"value1\"\n" + "            }\n" + "        }";
 
-        final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
-
-        log.info("geoJsonItem:: {}.", geoJsonItem);
+        final GeoJsonItem geoJsonItem = toGeoJsonItem(json);
+        Assert.assertEquals(3,
+                ((Map<String, Object>) geoJsonItem.getProperties().get("prop0")).size());
     }
 
     @Test
@@ -353,8 +382,16 @@ public class GeoJsonParserGsonImplTest
                 + "                \"prop0\": \"value0\",\n"
                 + "                \"prop1\": \"value1\"\n" + "            }\n" + "        }";
 
+        final GeoJsonItem geoJsonItem = toGeoJsonItem(json);
+
+        Assert.assertEquals(2, geoJsonItem.getProperties().asMap().size());
+    }
+
+    private GeoJsonItem toGeoJsonItem(final String json)
+    {
         final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
 
         log.info("geoJsonItem:: {}.", geoJsonItem);
+        return geoJsonItem;
     }
 }
