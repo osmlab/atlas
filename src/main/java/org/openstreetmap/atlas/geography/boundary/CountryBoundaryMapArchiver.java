@@ -18,6 +18,7 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
 import org.openstreetmap.atlas.streaming.compression.Compressor;
 import org.openstreetmap.atlas.streaming.resource.File;
+import org.openstreetmap.atlas.streaming.resource.TemporaryFile;
 import org.openstreetmap.atlas.utilities.runtime.Command;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
 import org.openstreetmap.atlas.utilities.time.Time;
@@ -181,7 +182,7 @@ public class CountryBoundaryMapArchiver extends Command
         {
             final Iterable<SlippyTile> allTiles = SlippyTile.allTiles(oceanBoundaryZoomLevel);
             map = generateOceanBoundaryMap(map, allTiles);
-            try (File temporary = File.temporary())
+            try (TemporaryFile temporary = File.temporary())
             {
                 // Save and reload to clear it for grid index
                 map.writeToFile(temporary);

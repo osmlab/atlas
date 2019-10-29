@@ -2,7 +2,6 @@ package org.openstreetmap.atlas.streaming.resource;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.Closeable;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -29,20 +28,20 @@ import org.openstreetmap.atlas.utilities.scalars.Duration;
  *
  * @author matthieun
  */
-public class File extends AbstractWritableResource implements Comparable<File>, Closeable
+public class File extends AbstractWritableResource implements Comparable<File>
 {
     private static final Random RANDOM = new Random();
 
     private final java.io.File javaFile;
     private String name = null;
 
-    public static File temporary()
+    public static TemporaryFile temporary()
     {
         return new Retry(1, Duration.ZERO).run(() ->
         {
             try
             {
-                return new File(java.io.File.createTempFile(
+                return new TemporaryFile(java.io.File.createTempFile(
                         String.valueOf(RANDOM.nextInt(Integer.MAX_VALUE)),
                         FileSuffix.TEMPORARY.toString()));
             }
@@ -69,21 +68,12 @@ public class File extends AbstractWritableResource implements Comparable<File>, 
 
     public static File temporaryFolder()
     {
-        File temporary = null;
-        try
+        try (TemporaryFile temporary = File.temporary())
         {
-            temporary = File.temporary();
             final File parent = new File(temporary.getParent())
                     .child(RANDOM.nextInt(Integer.MAX_VALUE) + "");
             parent.mkdirs();
             return parent;
-        }
-        finally
-        {
-            if (temporary != null)
-            {
-                temporary.delete();
-            }
         }
     }
 
@@ -135,12 +125,6 @@ public class File extends AbstractWritableResource implements Comparable<File>, 
         }
         this.javaFile.mkdirs();
         return new File(getAbsolutePath() + "/" + name);
-    }
-
-    @Override
-    public void close()
-    {
-        this.delete();
     }
 
     @Override
