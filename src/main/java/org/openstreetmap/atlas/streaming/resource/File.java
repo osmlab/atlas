@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.streaming.resource;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.Closeable;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -28,7 +29,7 @@ import org.openstreetmap.atlas.utilities.scalars.Duration;
  *
  * @author matthieun
  */
-public class File extends AbstractWritableResource implements Comparable<File>
+public class File extends AbstractWritableResource implements Comparable<File>, Closeable
 {
     private static final Random RANDOM = new Random();
 
@@ -134,6 +135,12 @@ public class File extends AbstractWritableResource implements Comparable<File>
         }
         this.javaFile.mkdirs();
         return new File(getAbsolutePath() + "/" + name);
+    }
+
+    @Override
+    public void close()
+    {
+        this.delete();
     }
 
     @Override

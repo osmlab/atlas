@@ -45,4 +45,15 @@ public class StringListTest
         Assert.assertEquals(1, tabsFullySplit.size());
     }
 
+    @Test
+    public void testToArray()
+    {
+        final StringList test = new StringList();
+        test.add("1");
+        test.add("2");
+        test.add("3");
+        final String[] array = test.toArray();
+        Assert.assertEquals(3, array.length);
+        Assert.assertArrayEquals(new String[] { "1", "2", "3" }, array);
+    }
 }
