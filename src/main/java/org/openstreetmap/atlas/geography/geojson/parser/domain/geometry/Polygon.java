@@ -11,14 +11,14 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordina
 /**
  * @author Yazad Khambata
  */
-public class Polygon extends AbstractGeometryWithCoordinateSupport<List<Position>>
+public class Polygon extends AbstractGeometryWithCoordinateSupport<List<List<Position>>>
 {
-    private LineString value;
+    private MultiLineString value;
     
     public Polygon(final Map<String, Object> map)
     {
         super(map, null);
-        this.value = new LineString(map);
+        this.value = new MultiLineString(map);
     }
     
     @Override
@@ -27,7 +27,7 @@ public class Polygon extends AbstractGeometryWithCoordinateSupport<List<Position
         return this.value.getBbox();
     }
     
-    public Coordinates<List<Position>> getCoordinates()
+    public Coordinates<List<List<Position>>> getCoordinates()
     {
         return this.value.getCoordinates();
     }

@@ -24,21 +24,43 @@ public class Properties implements ForeignFields
     }
     
     @Override
+    public Map<String, Object> asMap()
+    {
+        final Map<String, Object> foreignMap = this.values.asMap();
+        if (foreignMap == null)
+        {
+            return Collections.EMPTY_MAP;
+        }
+        
+        return Collections.unmodifiableMap(foreignMap);
+    }
+    
+    public <T> T asType(final Class<T> type, final Mapper mapper)
+    {
+        return mapper.map(this.asMap(), type);
+    }
+    
+    public <T> T asType(final Class<T> type)
+    {
+        return asType(type, DefaultBeanUtilsBasedMapperImpl.instance);
+    }
+    
+    @Override
     public boolean equals(final Object that)
     {
         return EqualsBuilder.reflectionEquals(this, that);
     }
     
     @Override
-    public <T> T get(final String key, final Class<T> valueClass)
-    {
-        return this.values.get(key, valueClass);
-    }
-    
-    @Override
     public Object get(final String key)
     {
         return this.values.get(key);
+    }
+    
+    @Override
+    public <T> T get(final String key, final Class<T> valueClass)
+    {
+        return this.values.get(key, valueClass);
     }
     
     @Override
@@ -51,24 +73,5 @@ public class Properties implements ForeignFields
     public String toString()
     {
         return ToStringBuilder.reflectionToString(this);
-    }
-    
-    @Override
-    public Map<String, Object> asMap()
-    {
-        final Map<String, Object> foreignMap = values.asMap();
-        if (foreignMap == null) {
-            return Collections.EMPTY_MAP;
-        }
-        
-        return Collections.unmodifiableMap(foreignMap);
-    }
-    
-    public <T> T as(final Class<T> type) {
-        return as(type, DefaultBeanUtilsBasedMapperImpl.instance);
-    }
-    
-    public <T> T as(final Class<T> type, final Mapper mapper) {
-        return mapper.map(this.asMap(), type);
     }
 }

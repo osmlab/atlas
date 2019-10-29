@@ -47,9 +47,11 @@ public final class Coordinates<V>
         return new Coordinates<>(toPosition(data));
     }
     
-    public static Coordinates<List<Position>> forPolygon(final List<List<Double>> data)
+    
+    public static Coordinates<List<List<Position>>> forPolygon(final List<List<List<Double>>> data)
     {
-        return forLineString(data);
+        //Designed in the specification as a MultiPolygon of size 1.
+        return forMultiLineString(data);
     }
     
     private static List<List<Position>> toListOfPositionList(final List<List<List<Double>>> data)

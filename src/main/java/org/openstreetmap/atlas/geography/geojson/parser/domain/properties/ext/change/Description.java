@@ -20,19 +20,19 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.annotation.Foreig
     }
     
     @Override
-    public boolean equals(Object that)
+    public boolean equals(final Object that)
     {
         return EqualsBuilder.reflectionEquals(this, that);
     }
     
     public Descriptor[] getDescriptors()
     {
-        return descriptors;
+        return this.descriptors;
     }
     
     public String getType()
     {
-        return type;
+        return this.type;
     }
     
     @Override
@@ -41,12 +41,12 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.annotation.Foreig
         return HashCodeBuilder.reflectionHashCode(this);
     }
     
-    public void setDescriptors(Descriptor[] descriptors)
+    public void setDescriptors(final Descriptor[] descriptors)
     {
         this.descriptors = descriptors;
     }
     
-    public void setType(String type)
+    public void setType(final String type)
     {
         this.type = type;
     }

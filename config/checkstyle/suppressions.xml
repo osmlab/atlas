@@ -17,5 +17,9 @@
     <suppress checks="ParameterName" files="src/main/java/org/openstreetmap/atlas/utilities/function/QuaternaryOperator.java" />
     <suppress checks="ParameterName" files="src/main/java/org/openstreetmap/atlas/utilities/function/SenaryFunction.java" />
     <suppress checks="ParameterName" files="src/main/java/org/openstreetmap/atlas/utilities/function/SenaryOperator.java" />
+    <suppress checks="MemberName" files="src/main/java/org/openstreetmap/atlas/geography/geojson/parser/domain/properties/ext/change/FeatureChangeProperties.java" />
+    <suppress checks="ParameterName" files="src/main/java/org/openstreetmap/atlas/geography/geojson/parser/domain/properties/ext/change/FeatureChangeProperties.java" />
+    <suppress checks="MemberName" files="src/test/java/org/openstreetmap/atlas/geography/geojson/parser/testdomain/BeanA.java" />
+    <suppress checks="ParameterName" files="src/test/java/org/openstreetmap/atlas/geography/geojson/parser/testdomain/BeanA.java" />
     <suppress checks="." files="src/generated/*" />
 </suppressions>

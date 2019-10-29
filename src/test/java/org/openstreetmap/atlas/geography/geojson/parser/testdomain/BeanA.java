@@ -41,49 +41,54 @@ public class BeanA
     }
     
     @Override
-    public boolean equals(Object that)
+    public boolean equals(final Object that)
     {
         return EqualsBuilder.reflectionEquals(this, that);
     }
     
     public Long getId()
     {
-        return id;
+        return this.id;
     }
     
     public Long[] getIds()
     {
-        return ids;
+        return this.ids;
     }
     
     public String getName()
     {
-        return name;
+        return this.name;
     }
     
     public String[] getNames()
     {
-        return names;
+        return this.names;
     }
     
     public Boolean getResult()
     {
-        return result;
+        return this.result;
     }
     
     public Boolean[] getResults()
     {
-        return results;
+        return this.results;
     }
     
     public Double getScore()
     {
-        return score;
+        return this.score;
     }
     
     public Double[] getScores()
     {
-        return scores;
+        return this.scores;
+    }
+    
+    public Map<String, String> getTags()
+    {
+        return this.tags;
     }
     
     @Override
@@ -92,52 +97,47 @@ public class BeanA
         return HashCodeBuilder.reflectionHashCode(this);
     }
     
-    public void setId(Long id)
+    public void setId(final Long id)
     {
         this.id = id;
     }
     
-    public void setIds(Long[] ids)
+    public void setIds(final Long[] ids)
     {
         this.ids = ids;
     }
     
-    public void setName(String name)
+    public void setName(final String name)
     {
         this.name = name;
     }
     
-    public void setNames(String[] names)
+    public void setNames(final String[] names)
     {
         this.names = names;
     }
     
-    public void setResult(Boolean result)
+    public void setResult(final Boolean result)
     {
         this.result = result;
     }
     
-    public void setResults(Boolean[] results)
+    public void setResults(final Boolean[] results)
     {
         this.results = results;
     }
     
-    public void setScore(Double score)
+    public void setScore(final Double score)
     {
         this.score = score;
     }
     
-    public void setScores(Double[] scores)
+    public void setScores(final Double[] scores)
     {
         this.scores = scores;
     }
     
-    public Map<String, String> getTags()
-    {
-        return tags;
-    }
-    
-    public void setTags(Map<String, String> tags)
+    public void setTags(final Map<String, String> tags)
     {
         this.tags = tags;
     }

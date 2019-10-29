@@ -46,14 +46,14 @@ public enum GeoJsonParserGsonImpl implements GeoJsonParser
     }
     
     @Override
-    public <T> T deserializeExtension(String json, Class<T> targetClass)
+    public <T> T deserializeExtension(final String json, final Class<T> targetClass)
     {
         final Map<String, Object> map = toMap(json);
         return deserializeExtension(map, targetClass);
     }
     
     @Override
-    public <T> T deserializeExtension(Map<String, Object> map, Class<T> targetClass)
+    public <T> T deserializeExtension(final Map<String, Object> map, final Class<T> targetClass)
     {
         final Mapper mapper = DefaultBeanUtilsBasedMapperImpl.instance;
         return mapper.map(map, targetClass);
@@ -66,7 +66,7 @@ public enum GeoJsonParserGsonImpl implements GeoJsonParser
         return (String) type;
     }
     
-    private Map<String, Object> toMap(String geoJson)
+    private Map<String, Object> toMap(final String geoJson)
     {
         final Gson gson = new GsonBuilder().create();
         return (Map<String, Object>) gson.fromJson(geoJson, Object.class);

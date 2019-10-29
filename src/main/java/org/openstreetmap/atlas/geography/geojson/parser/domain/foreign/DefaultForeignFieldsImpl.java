@@ -22,11 +22,12 @@ public class DefaultForeignFieldsImpl implements ForeignFields
     @Override
     public Map<String, Object> asMap()
     {
-        if (valuesAsMap == null) {
+        if (this.valuesAsMap == null)
+        {
             return Collections.EMPTY_MAP;
         }
         
-        return Collections.unmodifiableMap(valuesAsMap);
+        return Collections.unmodifiableMap(this.valuesAsMap);
     }
     
     @Override

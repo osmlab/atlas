@@ -8,9 +8,9 @@ import java.util.Map;
  */
 public interface ForeignFields extends Serializable
 {
-    Object get(String key);
-
+    Map<String, Object> asMap();
+    
     <T> T get(String key, Class<T> valueClass);
     
-    Map<String, Object> asMap();
+    Object get(String key);
 }

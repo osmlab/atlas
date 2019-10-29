@@ -31,64 +31,69 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.annotation.Foreig
     }
     
     @Override
-    public boolean equals(Object that)
+    public boolean equals(final Object that)
     {
         return EqualsBuilder.reflectionEquals(this, that);
     }
     
     public String getBboxWKT()
     {
-        return bboxWKT;
+        return this.bboxWKT;
     }
     
     public String getCompleteEntityClass()
     {
-        return completeEntityClass;
+        return this.completeEntityClass;
     }
     
     public Description getDescription()
     {
-        return description;
+        return this.description;
     }
     
     public Long getEndNode()
     {
-        return endNode;
+        return this.endNode;
     }
     
     public String getEntityType()
     {
-        return entityType;
-    }
-    
-    public Long getIdentifier()
-    {
-        return identifier;
-    }
-    
-    public Long[] getRelations()
-    {
-        return relations;
-    }
-    
-    public Long getStartNode()
-    {
-        return startNode;
-    }
-    
-    public Map<String, String> getTags()
-    {
-        return tags;
+        return this.entityType;
     }
     
     public String getFeatureChangeType()
     {
-        return featureChangeType;
+        return this.featureChangeType;
+    }
+    
+    public Long getIdentifier()
+    {
+        return this.identifier;
+    }
+    
+    public Map<String, String> getMetadata()
+    {
+        return this.metadata;
+    }
+    
+    public Long[] getRelations()
+    {
+        return this.relations;
+    }
+    
+    public Long getStartNode()
+    {
+        return this.startNode;
+    }
+    
+    public Map<String, String> getTags()
+    {
+        return this.tags;
     }
     
     public String getWKT()
     {
-        return WKT;
+        return this.WKT;
     }
     
     @Override
@@ -97,69 +102,64 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.annotation.Foreig
         return HashCodeBuilder.reflectionHashCode(this);
     }
     
-    public void setBboxWKT(String bboxWKT)
+    public void setBboxWKT(final String bboxWKT)
     {
         this.bboxWKT = bboxWKT;
     }
     
-    public void setCompleteEntityClass(String completeEntityClass)
+    public void setCompleteEntityClass(final String completeEntityClass)
     {
         this.completeEntityClass = completeEntityClass;
     }
     
-    public void setDescription(Description description)
+    public void setDescription(final Description description)
     {
         this.description = description;
     }
     
-    public void setEndNode(Long endNode)
+    public void setEndNode(final Long endNode)
     {
         this.endNode = endNode;
     }
     
-    public void setEntityType(String entityType)
+    public void setEntityType(final String entityType)
     {
         this.entityType = entityType;
     }
     
-    public void setIdentifier(Long identifier)
-    {
-        this.identifier = identifier;
-    }
-    
-    public void setRelations(Long[] relations)
-    {
-        this.relations = relations;
-    }
-    
-    public void setStartNode(Long startNode)
-    {
-        this.startNode = startNode;
-    }
-    
-    public void setTags(Map<String, String> tags)
-    {
-        this.tags = tags;
-    }
-    
-    public void setFeatureChangeType(String featureChangeType)
+    public void setFeatureChangeType(final String featureChangeType)
     {
         this.featureChangeType = featureChangeType;
     }
     
-    public void setWKT(String WKT)
+    public void setIdentifier(final Long identifier)
     {
-        this.WKT = WKT;
+        this.identifier = identifier;
     }
     
-    public Map<String, String> getMetadata()
-    {
-        return metadata;
-    }
-    
-    public void setMetadata(Map<String, String> metadata)
+    public void setMetadata(final Map<String, String> metadata)
     {
         this.metadata = metadata;
+    }
+    
+    public void setRelations(final Long[] relations)
+    {
+        this.relations = relations;
+    }
+    
+    public void setStartNode(final Long startNode)
+    {
+        this.startNode = startNode;
+    }
+    
+    public void setTags(final Map<String, String> tags)
+    {
+        this.tags = tags;
+    }
+    
+    public void setWKT(final String WKT)
+    {
+        this.WKT = WKT;
     }
     
     @Override

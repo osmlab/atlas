@@ -26,49 +26,49 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.annotation.Foreig
     }
     
     @Override
-    public boolean equals(Object that)
+    public boolean equals(final Object that)
     {
         return EqualsBuilder.reflectionEquals(this, that);
     }
     
     public String getAfterView()
     {
-        return afterView;
+        return this.afterView;
     }
     
     public String getBeforeView()
     {
-        return beforeView;
+        return this.beforeView;
     }
     
     public String getKey()
     {
-        return key;
+        return this.key;
     }
     
     public String getName()
     {
-        return name;
+        return this.name;
     }
     
     public String getOriginalValue()
     {
-        return originalValue;
+        return this.originalValue;
     }
     
     public String getPosition()
     {
-        return position;
+        return this.position;
     }
     
     public String getType()
     {
-        return type;
+        return this.type;
     }
     
     public String getValue()
     {
-        return value;
+        return this.value;
     }
     
     @Override
@@ -77,42 +77,42 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.annotation.Foreig
         return HashCodeBuilder.reflectionHashCode(this);
     }
     
-    public void setAfterView(String afterView)
+    public void setAfterView(final String afterView)
     {
         this.afterView = afterView;
     }
     
-    public void setBeforeView(String beforeView)
+    public void setBeforeView(final String beforeView)
     {
         this.beforeView = beforeView;
     }
     
-    public void setKey(String key)
+    public void setKey(final String key)
     {
         this.key = key;
     }
     
-    public void setName(String name)
+    public void setName(final String name)
     {
         this.name = name;
     }
     
-    public void setOriginalValue(String originalValue)
+    public void setOriginalValue(final String originalValue)
     {
         this.originalValue = originalValue;
     }
     
-    public void setPosition(String position)
+    public void setPosition(final String position)
     {
         this.position = position;
     }
     
-    public void setType(String type)
+    public void setType(final String type)
     {
         this.type = type;
     }
     
-    public void setValue(String value)
+    public void setValue(final String value)
     {
         this.value = value;
     }

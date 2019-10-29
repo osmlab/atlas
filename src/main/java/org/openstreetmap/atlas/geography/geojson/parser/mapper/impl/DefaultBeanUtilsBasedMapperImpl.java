@@ -10,7 +10,6 @@ import java.util.Set;
 
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.lang3.Validate;
-import org.openstreetmap.atlas.geography.geojson.parser.impl.gson.GeoJsonParserGsonImpl;
 import org.openstreetmap.atlas.geography.geojson.parser.mapper.Mapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,34 +21,37 @@ public enum DefaultBeanUtilsBasedMapperImpl implements Mapper
 {
     instance;
     
-    private static final Logger log = LoggerFactory.getLogger(DefaultBeanUtilsBasedMapperImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(
+            DefaultBeanUtilsBasedMapperImpl.class);
     private static final Set<Class<?>> scalarTypes = new HashSet<>(
             Arrays.asList(String.class, Integer.class, Long.class, Float.class, Double.class,
                     Short.class, Boolean.class, Byte.class));
+    
     @Override
-    public <T> T map(Map<String, Object> map, Class<T> targetClass)
+    public <T> T map(final Map<String, Object> map, final Class<T> targetClass)
     {
-        final T t = create(targetClass);
+        final T bean = create(targetClass);
         
-        populate(map, t);
+        populate(map, bean);
         
-        return t;
+        return bean;
     }
     
-    private <T> void copyProperty(BeanUtilsBean beanUtilsBean, T t, String name, Object value)
+    private <T> void copyProperty(final BeanUtilsBean beanUtilsBean, final T bean,
+            final String name, final Object value)
     {
         try
         {
-            beanUtilsBean.copyProperty(t, name, value);
+            beanUtilsBean.copyProperty(bean, name, value);
         }
-        catch (Exception e)
+        catch (final Exception e)
         {
             throw new IllegalStateException(
-                    "Failed to copy " + value + " in " + t.getClass() + "#" + name + ".", e);
+                    "Failed to copy " + value + " in " + bean.getClass() + "#" + name + ".", e);
         }
     }
     
-    private <T> T create(Class<T> targetClass)
+    private <T> T create(final Class<T> targetClass)
     {
         try
         {
@@ -61,22 +63,20 @@ public enum DefaultBeanUtilsBasedMapperImpl implements Mapper
         }
     }
     
-
-    
     private <C> boolean isScalarType(final Class<C> clazz)
     {
         return scalarTypes.contains(clazz) || clazz.isPrimitive();
     }
     
-    private <T> void populate(Map<String, Object> map, T t)
+    private <T> void populate(final Map<String, Object> map, final T bean)
     {
         Validate.notNull(map, "input map is NULL.");
-        Validate.notNull(t, "t is NULL");
+        Validate.notNull(bean, "bean is NULL");
         
         final BeanUtilsBean beanUtilsBean = new BeanUtilsBean();
         
         final PropertyDescriptor[] propertyDescriptors = beanUtilsBean.getPropertyUtils().getPropertyDescriptors(
-                t);
+                bean);
         
         //Start with the concrete object
         for (final PropertyDescriptor propertyDescriptor : propertyDescriptors)
@@ -95,7 +95,7 @@ public enum DefaultBeanUtilsBasedMapperImpl implements Mapper
             {
                 //Scalar types or value is a Map in concrete class.
                 //Map values can be scalar or nested maps of scalars.
-                copyProperty(beanUtilsBean, t, name, value);
+                copyProperty(beanUtilsBean, bean, name, value);
             }
             else if (!propertyType.isArray())
             {
@@ -103,7 +103,7 @@ public enum DefaultBeanUtilsBasedMapperImpl implements Mapper
                 final T child = (T) create(propertyType);
                 populate((Map<String, Object>) value, child);
                 
-                copyProperty(beanUtilsBean, t, name, child);
+                copyProperty(beanUtilsBean, bean, name, child);
             }
             else
             {
@@ -116,7 +116,7 @@ public enum DefaultBeanUtilsBasedMapperImpl implements Mapper
                 
                 if (isScalarType(values.get(0).getClass()))
                 {
-                    copyProperty(beanUtilsBean, t, name, values.toArray());
+                    copyProperty(beanUtilsBean, bean, name, values.toArray());
                 }
                 else
                 {
@@ -130,10 +130,9 @@ public enum DefaultBeanUtilsBasedMapperImpl implements Mapper
                         final T child = (T) create(componentType);
                         populate((Map<String, Object>) item, child);
                         return child;
-                    }).toArray(
-                            (size) -> (Object[]) Array.newInstance(componentType, values.size()));
+                    }).toArray(Propersize -> (Object[]) Array.newInstance(componentType, values.size()));
                     
-                    copyProperty(beanUtilsBean, t, name, valuesAsObjects);
+                    copyProperty(beanUtilsBean, bean, name, valuesAsObjects);
                 }
             }
         }
