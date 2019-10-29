@@ -18,6 +18,7 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
 import org.openstreetmap.atlas.streaming.compression.Compressor;
 import org.openstreetmap.atlas.streaming.resource.File;
+import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.TemporaryFile;
 import org.openstreetmap.atlas.utilities.runtime.Command;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
@@ -67,6 +68,16 @@ public class CountryBoundaryMapArchiver extends Command
     public static void main(final String[] args)
     {
         new CountryBoundaryMapArchiver().run(args);
+    }
+
+    /**
+     * @param resource
+     *            The {@link Resource} to read the {@link CountryBoundaryMap} from
+     * @return the created {@link CountryBoundaryMap}
+     */
+    public CountryBoundaryMap read(final Resource resource)
+    {
+        return CountryBoundaryMap.fromPlainText(resource);
     }
 
     protected CountryBoundaryMap generateOceanBoundaryMap(final CountryBoundaryMap boundaryMap,
