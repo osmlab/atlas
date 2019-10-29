@@ -1,0 +1,11 @@
+{
+  "type": "Point",
+  "unknown": {
+    "unknown_key1": "unknown_value1",
+    "unknown_key2": "unknown_value2"
+  },
+  "coordinates": [
+    30,
+    10
+  ]
+}
