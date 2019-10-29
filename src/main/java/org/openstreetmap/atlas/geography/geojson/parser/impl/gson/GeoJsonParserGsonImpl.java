@@ -20,52 +20,52 @@ import com.google.gson.GsonBuilder;
  */
 public enum GeoJsonParserGsonImpl implements GeoJsonParser
 {
-    
+
     instance;
-    
+
     private static final Logger log = LoggerFactory.getLogger(GeoJsonParserGsonImpl.class);
-    
+
     @Override
     public GeoJsonItem deserialize(final String geoJson)
     {
         log.info("geoJson:: {}.", geoJson);
-        
+
         final Map<String, Object> map = toMap(geoJson);
-        
+
         return deserialize(map);
     }
-    
+
     @Override
     public GeoJsonItem deserialize(final Map<String, Object> map)
     {
         log.info("map:: {}.", map);
-        
+
         final Type type = TypeUtil.identifyStandardType(getType(map));
-        
+
         return type.construct(GeoJsonParserGsonImpl.instance, map);
     }
-    
+
     @Override
     public <T> T deserializeExtension(final String json, final Class<T> targetClass)
     {
         final Map<String, Object> map = toMap(json);
         return deserializeExtension(map, targetClass);
     }
-    
+
     @Override
     public <T> T deserializeExtension(final Map<String, Object> map, final Class<T> targetClass)
     {
         final Mapper mapper = DefaultBeanUtilsBasedMapperImpl.instance;
         return mapper.map(map, targetClass);
     }
-    
+
     private String getType(final Map<String, Object> map)
     {
         final Object type = map.get("type");
         Validate.isTrue(type instanceof String, "type: %s.", type);
         return (String) type;
     }
-    
+
     private Map<String, Object> toMap(final String geoJson)
     {
         final Gson gson = new GsonBuilder().create();

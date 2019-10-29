@@ -15,25 +15,25 @@ import org.slf4j.LoggerFactory;
  */
 public class GeoJsonParserGsonImplExtensionsTest
 {
-    private static final Logger log = LoggerFactory.getLogger(
-            GeoJsonParserGsonImplExtensionsTest.class);
-    
+    private static final Logger log = LoggerFactory
+            .getLogger(GeoJsonParserGsonImplExtensionsTest.class);
+
     @Test
     public void testBeanA()
     {
-        final String json =
-                "{\n" + "    id: 10,\n" + "    name: \"Hello\",\n" + "    score: 10.5,\n"
-                        + "    ids: [1,2,3],\n" + "    names: [\"hello\", \"hola\", \"bonjour\"],\n"
-                        + "    scores: [1.414, 3.14159, 2.718],\n" + "    result: true,\n"
-                        + "    results: [true, false, true],\n"
-                        + "    tags: {access: \"private\", foot: \"no\"}\n" + "  }";
-        
+        final String json = "{\n" + "    id: 10,\n" + "    name: \"Hello\",\n"
+                + "    score: 10.5,\n" + "    ids: [1,2,3],\n"
+                + "    names: [\"hello\", \"hola\", \"bonjour\"],\n"
+                + "    scores: [1.414, 3.14159, 2.718],\n" + "    result: true,\n"
+                + "    results: [true, false, true],\n"
+                + "    tags: {access: \"private\", foot: \"no\"}\n" + "  }";
+
         final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
-        
+
         final BeanA beanA = geoJsonParser.deserializeExtension(json, BeanA.class);
         log.info("beanA:: {}.", beanA);
     }
-    
+
     @Test
     public void testBeanBWithArray()
     {
@@ -54,13 +54,13 @@ public class GeoJsonParserGsonImplExtensionsTest
                 + "      scores: [1.414, 3.14159, 2.718],\n" + "      result: true,\n"
                 + "      results: [true, false, true],\n"
                 + "      tags: {access2: \"private\", foot2: \"no\"}\n" + "    }\n" + "  ]\n" + "}";
-        
+
         final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
-        
+
         final BeanB beanB = geoJsonParser.deserializeExtension(json, BeanB.class);
         log.info("beanB:: {}.", beanB);
     }
-    
+
     @Test
     public void testBeanBWithoutArray()
     {
@@ -70,13 +70,13 @@ public class GeoJsonParserGsonImplExtensionsTest
                 + "    scores: [1.414, 3.14159, 2.718],\n" + "    result: true,\n"
                 + "    results: [true, false, true],\n"
                 + "    tags: {access: \"private\", foot: \"no\"}\n" + "  }}";
-        
+
         final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
-        
+
         final BeanB beanB = geoJsonParser.deserializeExtension(json, BeanB.class);
         log.info("beanB:: {}.", beanB);
     }
-    
+
     @Test
     public void testDescription1()
     {
@@ -105,51 +105,53 @@ public class GeoJsonParserGsonImplExtensionsTest
                 + "          \"name\": \"END_NODE\",\n" + "          \"type\": \"UPDATE\",\n"
                 + "          \"beforeView\": \"2\",\n" + "          \"afterView\": \"20\"\n"
                 + "        }\n" + "      ]\n" + "    }";
-        
+
         final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
-        
+
         final Description description = geoJsonParser.deserializeExtension(json, Description.class);
         log.info("description:: {}.", description);
     }
-    
+
     @Test
     public void testDescriptor1()
     {
-        final String json = "{\n" + "          \"name\": \"TAG\",\n" + "          \"type\": \"ADD\",\n"
-                + "          \"key\": \"c\",\n" + "          \"value\": \"3\"\n" + "        }";
-        
+        final String json = "{\n" + "          \"name\": \"TAG\",\n"
+                + "          \"type\": \"ADD\",\n" + "          \"key\": \"c\",\n"
+                + "          \"value\": \"3\"\n" + "        }";
+
         final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
-        
+
         final Descriptor descriptor = geoJsonParser.deserializeExtension(json, Descriptor.class);
         log.info("descriptor:: {}.", descriptor);
     }
-    
+
     @Test
     public void testDescriptor2()
     {
         final String json = "{\n" + "          \"name\": \"START_NODE\",\n"
                 + "          \"type\": \"UPDATE\",\n" + "          \"beforeView\": \"1\",\n"
                 + "          \"afterView\": \"10\"\n" + "        }";
-        
+
         final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
-        
+
         final Descriptor descriptor = geoJsonParser.deserializeExtension(json, Descriptor.class);
         log.info("descriptor:: {}.", descriptor);
     }
-    
+
     @Test
     public void testDescriptor3()
     {
-        final String json = "{\n" + "          \"name\": \"TAG\",\n" + "          \"type\": \"UPDATE\",\n"
-                + "          \"key\": \"b\",\n" + "          \"value\": \"2a\",\n"
-                + "          \"originalValue\": \"2\"\n" + "        }";
-        
+        final String json = "{\n" + "          \"name\": \"TAG\",\n"
+                + "          \"type\": \"UPDATE\",\n" + "          \"key\": \"b\",\n"
+                + "          \"value\": \"2a\",\n" + "          \"originalValue\": \"2\"\n"
+                + "        }";
+
         final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
-        
+
         final Descriptor descriptor = geoJsonParser.deserializeExtension(json, Descriptor.class);
         log.info("descriptor:: {}.", descriptor);
     }
-    
+
     @Test
     public void testFeatureChangeProperties()
     {
@@ -187,11 +189,11 @@ public class GeoJsonParserGsonImplExtensionsTest
                 + "  \"WKT\": \"LINESTRING (-122.009566 37.33531, -122.031007 37.390535, -122.028932 37.332451, -122.052138 37.317585, -122.0304871 37.3314171)\",\n"
                 + "  \"bboxWKT\": \"POLYGON ((-122.052138 37.317585, -122.052138 37.390535, -122.009566 37.390535, -122.009566 37.317585, -122.052138 37.317585))\"\n"
                 + "}\n";
-        
+
         final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
-        
-        final FeatureChangeProperties featureChangeProperties = geoJsonParser.deserializeExtension(
-                json, FeatureChangeProperties.class);
+
+        final FeatureChangeProperties featureChangeProperties = geoJsonParser
+                .deserializeExtension(json, FeatureChangeProperties.class);
         log.info("featureChangeProperties:: {}.", featureChangeProperties);
     }
 }

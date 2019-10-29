@@ -11,7 +11,7 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.foreign.ForeignFi
  * An abstraction of geometries with coordinates.
  *
  * @param <C>
- *         - coordinate data type.
+ *            - coordinate data type.
  * @author Yazad Khambata
  */
 public abstract class AbstractGeometryWithCoordinateSupport<C> extends AbstractGeometry
@@ -21,13 +21,13 @@ public abstract class AbstractGeometryWithCoordinateSupport<C> extends AbstractG
     {
         return map.get("coordinates");
     }
-    
+
     public AbstractGeometryWithCoordinateSupport(final Map<String, Object> map)
     {
         super(map, new DefaultForeignFieldsImpl(extractForeignFields(map,
                 new HashSet<>(Arrays.asList("type", "bbox", "coordinates", "properties")))));
     }
-    
+
     public AbstractGeometryWithCoordinateSupport(final Map<String, Object> map,
             final ForeignFields foreignFields)
     {

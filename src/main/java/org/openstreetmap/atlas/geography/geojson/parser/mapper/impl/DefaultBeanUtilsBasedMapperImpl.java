@@ -20,23 +20,23 @@ import org.slf4j.LoggerFactory;
 public enum DefaultBeanUtilsBasedMapperImpl implements Mapper
 {
     instance;
-    
-    private static final Logger log = LoggerFactory.getLogger(
-            DefaultBeanUtilsBasedMapperImpl.class);
+
+    private static final Logger log = LoggerFactory
+            .getLogger(DefaultBeanUtilsBasedMapperImpl.class);
     private static final Set<Class<?>> scalarTypes = new HashSet<>(
             Arrays.asList(String.class, Integer.class, Long.class, Float.class, Double.class,
                     Short.class, Boolean.class, Byte.class));
-    
+
     @Override
     public <T> T map(final Map<String, Object> map, final Class<T> targetClass)
     {
         final T bean = create(targetClass);
-        
+
         populate(map, bean);
-        
+
         return bean;
     }
-    
+
     private <T> void copyProperty(final BeanUtilsBean beanUtilsBean, final T bean,
             final String name, final Object value)
     {
@@ -50,7 +50,7 @@ public enum DefaultBeanUtilsBasedMapperImpl implements Mapper
                     "Failed to copy " + value + " in " + bean.getClass() + "#" + name + ".", e);
         }
     }
-    
+
     private <T> T create(final Class<T> targetClass)
     {
         try
@@ -62,58 +62,58 @@ public enum DefaultBeanUtilsBasedMapperImpl implements Mapper
             throw new IllegalStateException(e);
         }
     }
-    
+
     private <C> boolean isScalarType(final Class<C> clazz)
     {
         return scalarTypes.contains(clazz) || clazz.isPrimitive();
     }
-    
+
     private <T> void populate(final Map<String, Object> map, final T bean)
     {
         Validate.notNull(map, "input map is NULL.");
         Validate.notNull(bean, "bean is NULL");
-        
+
         final BeanUtilsBean beanUtilsBean = new BeanUtilsBean();
-        
-        final PropertyDescriptor[] propertyDescriptors = beanUtilsBean.getPropertyUtils().getPropertyDescriptors(
-                bean);
-        
-        //Start with the concrete object
+
+        final PropertyDescriptor[] propertyDescriptors = beanUtilsBean.getPropertyUtils()
+                .getPropertyDescriptors(bean);
+
+        // Start with the concrete object
         for (final PropertyDescriptor propertyDescriptor : propertyDescriptors)
         {
             final String name = propertyDescriptor.getName();
             final Class<?> propertyType = propertyDescriptor.getPropertyType();
-            
+
             final Object value = map.get(name);
-            
+
             if (value == null)
             {
                 continue;
             }
-            
+
             if (isScalarType(propertyType) || Map.class.isAssignableFrom(propertyType))
             {
-                //Scalar types or value is a Map in concrete class.
-                //Map values can be scalar or nested maps of scalars.
+                // Scalar types or value is a Map in concrete class.
+                // Map values can be scalar or nested maps of scalars.
                 copyProperty(beanUtilsBean, bean, name, value);
             }
             else if (!propertyType.isArray())
             {
-                //User-defined concrete classes.
+                // User-defined concrete classes.
                 final T child = (T) create(propertyType);
                 populate((Map<String, Object>) value, child);
-                
+
                 copyProperty(beanUtilsBean, bean, name, child);
             }
             else
             {
-                //Array case.
+                // Array case.
                 final List<Object> values = (List<Object>) value;
                 if (values == null || values.isEmpty() || values.get(0) == null)
                 {
                     continue;
                 }
-                
+
                 if (isScalarType(values.get(0).getClass()))
                 {
                     copyProperty(beanUtilsBean, bean, name, values.toArray());
@@ -126,12 +126,13 @@ public enum DefaultBeanUtilsBasedMapperImpl implements Mapper
                     {
                         Validate.notNull(item,
                                 "item is NULL, do you have a trailing comma in the JSON?");
-                        
+
                         final T child = (T) create(componentType);
                         populate((Map<String, Object>) item, child);
                         return child;
-                    }).toArray(Propersize -> (Object[]) Array.newInstance(componentType, values.size()));
-                    
+                    }).toArray(Propersize -> (Object[]) Array.newInstance(componentType,
+                            values.size()));
+
                     copyProperty(beanUtilsBean, bean, name, valuesAsObjects);
                 }
             }

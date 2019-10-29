@@ -16,19 +16,19 @@ public abstract class AbstractGeometry extends AbstractGeoJsonItem implements Ge
     {
         super(map, foreignFields);
     }
-    
+
     @Override
     public GeometryType getGeometryType()
     {
         return GeometryType.fromConcreteClass(this.getClass());
     }
-    
+
     @Override
     public Type getType()
     {
         return getGeometryType();
     }
-    
+
     @Override
     public String getTypeValue()
     {

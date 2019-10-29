@@ -68,7 +68,7 @@ public abstract class AbstractGeoJsonItem implements GeoJsonItem
     }
 
     public AbstractGeoJsonItem(final Bbox bbox, final Properties properties,
-                               final ForeignFields foreignFields)
+            final ForeignFields foreignFields)
     {
         this.bbox = bbox;
         this.properties = properties;

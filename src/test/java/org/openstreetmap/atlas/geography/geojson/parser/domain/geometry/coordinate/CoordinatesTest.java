@@ -11,116 +11,116 @@ import org.junit.Test;
  */
 public class CoordinatesTest
 {
-    
+
     private static <T> List<T> list(final T... items)
     {
         return Arrays.asList(items);
     }
-    
+
     @Test
     public void forLineString()
     {
         final Coordinates<List<Position>> coordinates = Coordinates.forLineString(
-                //Line
+                // Line
                 list(
-                        //Points
+                        // Points
                         list(1d, 2d), list(3d, 4d), list(5d, 6d), list(7d, 8d)));
-        
+
         Assert.assertTrue(coordinates.getValue() instanceof List);
         Assert.assertEquals(4, coordinates.getValue().size());
         Assert.assertEquals((Double) 1d, coordinates.getValue().get(0).getCoordinate1());
         Assert.assertEquals((Double) 2d, coordinates.getValue().get(0).getCoordinate2());
-        
+
         Assert.assertEquals((Double) 3d, coordinates.getValue().get(1).getCoordinate1());
         Assert.assertEquals((Double) 4d, coordinates.getValue().get(1).getCoordinate2());
-        
+
         Assert.assertEquals((Double) 5d, coordinates.getValue().get(2).getCoordinate1());
         Assert.assertEquals((Double) 6d, coordinates.getValue().get(2).getCoordinate2());
-        
+
         Assert.assertEquals((Double) 7d, coordinates.getValue().get(3).getCoordinate1());
         Assert.assertEquals((Double) 8d, coordinates.getValue().get(3).getCoordinate2());
     }
-    
+
     @Test
     public void forMultiLineString()
     {
         final Coordinates<List<List<Position>>> coordinates = Coordinates.forMultiLineString(
-                //Lines
+                // Lines
                 list(
-                        //Line1
+                        // Line1
                         list(
-                                //Points1
+                                // Points1
                                 list(1d, 2d), list(3d, 4d), list(5d, 6d), list(7d, 8d)),
-                        //Line2
+                        // Line2
                         list(
-                                //Points2
+                                // Points2
                                 list(11d, 21d), list(31d, 41d), list(51d, 61d), list(71d, 81d)),
-                        //Line3
+                        // Line3
                         list(
-                                //Points3
+                                // Points3
                                 list(12d, 22d), list(32d, 42d), list(52d, 62d), list(72d, 82d)),
-                        //Line4
+                        // Line4
                         list(
-                                //Points4
+                                // Points4
                                 list(13d, 23d), list(33d, 43d), list(53d, 63d), list(73d, 83d))));
-        
+
         Assert.assertTrue(coordinates.getValue() instanceof List);
         Assert.assertEquals(4, coordinates.getValue().size());
         coordinates.getValue().stream().forEach(line -> Assert.assertEquals(4, line.size()));
-        
+
         Assert.assertEquals((Double) 42d, coordinates.getValue().get(2).get(1).getCoordinate2());
     }
-    
+
     @Test
     public void forMultiPoint()
     {
-        final Coordinates<List<Position>> coordinates = Coordinates.forMultiPoint(
-                list(list(1d, 2d), list(3d, 4d), list(5d, 6d), list(7d, 8d)));
+        final Coordinates<List<Position>> coordinates = Coordinates
+                .forMultiPoint(list(list(1d, 2d), list(3d, 4d), list(5d, 6d), list(7d, 8d)));
         Assert.assertTrue(coordinates.getValue() instanceof List);
         Assert.assertEquals(4, coordinates.getValue().size());
         Assert.assertEquals((Double) 1d, coordinates.getValue().get(0).getCoordinate1());
         Assert.assertEquals((Double) 2d, coordinates.getValue().get(0).getCoordinate2());
-        
+
         Assert.assertEquals((Double) 3d, coordinates.getValue().get(1).getCoordinate1());
         Assert.assertEquals((Double) 4d, coordinates.getValue().get(1).getCoordinate2());
-        
+
         Assert.assertEquals((Double) 5d, coordinates.getValue().get(2).getCoordinate1());
         Assert.assertEquals((Double) 6d, coordinates.getValue().get(2).getCoordinate2());
-        
+
         Assert.assertEquals((Double) 7d, coordinates.getValue().get(3).getCoordinate1());
         Assert.assertEquals((Double) 8d, coordinates.getValue().get(3).getCoordinate2());
     }
-    
+
     @Test
     public void forMultiPolygon()
     {
         final Coordinates<List<List<Position>>> coordinates = Coordinates.forMultiPolygon(
-                //Polygons
+                // Polygons
                 list(
-                        //Polygon1
+                        // Polygon1
                         list(
-                                //Points1
+                                // Points1
                                 list(1d, 2d), list(3d, 4d), list(5d, 6d), list(7d, 8d)),
-                        //Polygon2
+                        // Polygon2
                         list(
-                                //Points2
+                                // Points2
                                 list(11d, 21d), list(31d, 41d), list(51d, 61d), list(71d, 81d)),
-                        //Polygon3
+                        // Polygon3
                         list(
-                                //Points3
+                                // Points3
                                 list(12d, 22d), list(32d, 42d), list(52d, 62d), list(72d, 82d)),
-                        //Polygon4
+                        // Polygon4
                         list(
-                                //Points4
+                                // Points4
                                 list(13d, 23d), list(33d, 43d), list(53d, 63d), list(73d, 83d))));
-    
+
         Assert.assertTrue(coordinates.getValue() instanceof List);
         Assert.assertEquals(4, coordinates.getValue().size());
         coordinates.getValue().stream().forEach(line -> Assert.assertEquals(4, line.size()));
-    
+
         Assert.assertEquals((Double) 42d, coordinates.getValue().get(2).get(1).getCoordinate2());
     }
-    
+
     @Test
     public void forPoint()
     {
@@ -129,27 +129,27 @@ public class CoordinatesTest
         Assert.assertEquals((Double) 1d, coordinates.getValue().getCoordinate1());
         Assert.assertEquals((Double) 2d, coordinates.getValue().getCoordinate2());
     }
-    
+
     @Test
     public void forPolygon()
     {
         final Coordinates<List<Position>> coordinates = Coordinates.forLineString(
-                //Polygon
+                // Polygon
                 list(
-                        //Points
+                        // Points
                         list(1d, 2d), list(3d, 4d), list(5d, 6d), list(7d, 8d)));
-    
+
         Assert.assertTrue(coordinates.getValue() instanceof List);
         Assert.assertEquals(4, coordinates.getValue().size());
         Assert.assertEquals((Double) 1d, coordinates.getValue().get(0).getCoordinate1());
         Assert.assertEquals((Double) 2d, coordinates.getValue().get(0).getCoordinate2());
-    
+
         Assert.assertEquals((Double) 3d, coordinates.getValue().get(1).getCoordinate1());
         Assert.assertEquals((Double) 4d, coordinates.getValue().get(1).getCoordinate2());
-    
+
         Assert.assertEquals((Double) 5d, coordinates.getValue().get(2).getCoordinate1());
         Assert.assertEquals((Double) 6d, coordinates.getValue().get(2).getCoordinate2());
-    
+
         Assert.assertEquals((Double) 7d, coordinates.getValue().get(3).getCoordinate1());
         Assert.assertEquals((Double) 8d, coordinates.getValue().get(3).getCoordinate2());
     }

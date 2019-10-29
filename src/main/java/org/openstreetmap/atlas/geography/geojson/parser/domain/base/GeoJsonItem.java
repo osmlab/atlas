@@ -13,8 +13,8 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.properties.Proper
 public interface GeoJsonItem extends SupportsForeigners, Serializable
 {
     Bbox getBbox();
-    
+
     Properties getProperties();
-    
+
     Type getType();
 }
