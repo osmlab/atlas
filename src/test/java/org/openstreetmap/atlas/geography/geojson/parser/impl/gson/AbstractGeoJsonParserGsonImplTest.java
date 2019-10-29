@@ -57,13 +57,13 @@ public class AbstractGeoJsonParserGsonImplTest
         }
     }
 
-    private String extractJsonForExtension(String callingMethodName)
+    private String extractJsonForExtension(final String callingMethodName)
     {
         final String filePath = toFilePath(callingMethodName);
         return extractJson(filePath);
     }
 
-    private String toFilePath(String callingMethodName)
+    private String toFilePath(final String callingMethodName)
     {
         return new StringBuilder(BASE_CLASSPATH).append(callingMethodName).append(EXTENSION)
                 .toString();
