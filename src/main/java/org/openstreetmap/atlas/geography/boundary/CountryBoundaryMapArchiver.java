@@ -92,13 +92,13 @@ public class CountryBoundaryMapArchiver extends Command
                     finalBoundaryMap.addCountry(countryCode, (MultiPolygon) countryGeometry);
                 }
                 logger.info("Added Ocean Country {} in {}", countryCode, start.elapsedSince());
+                oceanCountryCount++;
             }
             else
             {
-                logger.info("Skipped Ocean Country {} in {}. It is land covered.", countryCode,
+                logger.info("Skipped Ocean Country {} in {}. It is land covered.", tile.getName(),
                         start.elapsedSince());
             }
-            oceanCountryCount++;
         }
 
         // add all countries from the input boundary map to the new boundary map

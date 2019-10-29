@@ -70,7 +70,7 @@ public class File extends AbstractWritableResource implements Comparable<File>
     {
         try (TemporaryFile temporary = File.temporary())
         {
-            final TemporaryFile parent = new TemporaryFile(new TemporaryFile(temporary.getParent())
+            final TemporaryFile parent = new TemporaryFile(new TemporaryFile(temporary.getParent()) // NOSONAR
                     .child(RANDOM.nextInt(Integer.MAX_VALUE) + "").getFile());
             parent.mkdirs();
             return parent;
