@@ -17,5 +17,13 @@
     <suppress checks="ParameterName" files="src/main/java/org/openstreetmap/atlas/utilities/function/QuaternaryOperator.java" />
     <suppress checks="ParameterName" files="src/main/java/org/openstreetmap/atlas/utilities/function/SenaryFunction.java" />
     <suppress checks="ParameterName" files="src/main/java/org/openstreetmap/atlas/utilities/function/SenaryOperator.java" />
+
+    <!-- Field name for "WKT" does not follow Java Bean standards-->
+    <suppress checks="MemberName" files="src/main/java/org/openstreetmap/atlas/geography/geojson/parser/domain/properties/ext/change/FeatureChangeProperties.java" />
+    <suppress checks="ParameterName" files="src/main/java/org/openstreetmap/atlas/geography/geojson/parser/domain/properties/ext/change/FeatureChangeProperties.java" />
+
+    <!-- Field name for "id" (which is used in some specs of geojson too) doesn't comply with checkstyle member name size rule (min 3 characters) -->
+    <suppress checks="MemberName" files="src/test/java/org/openstreetmap/atlas/geography/geojson/parser/testdomain/BeanA.java" />
+    <suppress checks="ParameterName" files="src/test/java/org/openstreetmap/atlas/geography/geojson/parser/testdomain/BeanA.java" />
     <suppress checks="." files="src/generated/*" />
 </suppressions>
