@@ -205,6 +205,16 @@ public class StringList implements Iterable<String>, Serializable
         return this.list.stream();
     }
 
+    public String[] toArray()
+    {
+        final String[] result = new String[this.size()];
+        for (int index = 0; index < this.size(); index++)
+        {
+            result[index] = this.get(index);
+        }
+        return result;
+    }
+
     @Override
     public String toString()
     {

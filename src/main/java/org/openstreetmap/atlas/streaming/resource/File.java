@@ -35,13 +35,13 @@ public class File extends AbstractWritableResource implements Comparable<File>
     private final java.io.File javaFile;
     private String name = null;
 
-    public static File temporary()
+    public static TemporaryFile temporary()
     {
         return new Retry(1, Duration.ZERO).run(() ->
         {
             try
             {
-                return new File(java.io.File.createTempFile(
+                return new TemporaryFile(java.io.File.createTempFile(
                         String.valueOf(RANDOM.nextInt(Integer.MAX_VALUE)),
                         FileSuffix.TEMPORARY.toString()));
             }
@@ -52,11 +52,11 @@ public class File extends AbstractWritableResource implements Comparable<File>
         });
     }
 
-    public static File temporary(final String prefix, final String suffix)
+    public static TemporaryFile temporary(final String prefix, final String suffix)
     {
         try
         {
-            return new File(java.io.File.createTempFile(prefix, suffix));
+            return new TemporaryFile(java.io.File.createTempFile(prefix, suffix));
         }
         catch (final IOException e)
         {
@@ -66,23 +66,14 @@ public class File extends AbstractWritableResource implements Comparable<File>
         }
     }
 
-    public static File temporaryFolder()
+    public static TemporaryFile temporaryFolder()
     {
-        File temporary = null;
-        try
+        try (TemporaryFile temporary = File.temporary())
         {
-            temporary = File.temporary();
-            final File parent = new File(temporary.getParent())
-                    .child(RANDOM.nextInt(Integer.MAX_VALUE) + "");
+            final TemporaryFile parent = new TemporaryFile(new TemporaryFile(temporary.getParent()) // NOSONAR
+                    .child(RANDOM.nextInt(Integer.MAX_VALUE) + "").getFile());
             parent.mkdirs();
             return parent;
-        }
-        finally
-        {
-            if (temporary != null)
-            {
-                temporary.delete();
-            }
         }
     }
 
