@@ -1,6 +1,8 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -141,18 +143,19 @@ public final class FeatureChangeMergingHelpers
         {
             if (rightMap.containsKey(leftEntry.getKey()))
             {
-                final String leftValue = leftEntry.getValue();
-                final String rightValue = rightMap.get(leftEntry.getKey());
+                final List<String> leftValues = Arrays.asList(leftEntry.getValue().split(","));
+                final List<String> rightValues = Arrays
+                        .asList(rightMap.get(leftEntry.getKey()).split(","));
                 final String mergedValue;
-                if (leftValue.equals(rightValue))
+                if (leftValues.equals(rightValues))
                 {
-                    mergedValue = leftValue;
+                    mergedValue = new StringList(leftValues).join(",");
                 }
                 else
                 {
-                    final Set<String> values = new TreeSet<>();
-                    values.add(leftValue);
-                    values.add(rightValue);
+                    final SortedSet<String> values = new TreeSet<>();
+                    values.addAll(leftValues);
+                    values.addAll(rightValues);
                     mergedValue = new StringList(values).join(",");
                 }
                 result.put(leftEntry.getKey(), mergedValue);

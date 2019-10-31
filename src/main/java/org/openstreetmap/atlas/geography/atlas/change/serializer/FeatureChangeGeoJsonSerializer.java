@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -198,7 +199,11 @@ public class FeatureChangeGeoJsonSerializer
     private static final Function<Map<String, String>, JsonElement> tagPrinter = map ->
     {
         final JsonObject result = new JsonObject();
-        map.forEach(result::addProperty);
+        final Map<String, String> sortedMap = new TreeMap<>(map);
+        for (final Map.Entry<String, String> entry : sortedMap.entrySet())
+        {
+            result.addProperty(entry.getKey(), entry.getValue());
+        }
         return result;
     };
 

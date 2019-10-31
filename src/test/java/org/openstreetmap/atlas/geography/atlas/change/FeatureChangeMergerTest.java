@@ -587,6 +587,40 @@ public class FeatureChangeMergerTest
     }
 
     @Test
+    public void testMergeMetaDataOrdering()
+    {
+        final CompleteNode beforeNode1 = new CompleteNode(123L, Location.COLOSSEUM,
+                Maps.hashMap("a", "1", "b", "2"), Sets.treeSet(1L, 2L, 3L),
+                Sets.treeSet(10L, 11L, 12L), null);
+
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
+                new CompleteNode(123L, Location.EIFFEL_TOWER, Maps.hashMap("a", "1", "c", "3"),
+                        Sets.treeSet(1L, 2L, 3L, 4L), Sets.treeSet(10L, 11L, 12L, 13L), null),
+                beforeNode1);
+        featureChange1.addMetaData("key1", "b,e,g");
+
+        final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
+                new CompleteNode(123L, Location.EIFFEL_TOWER,
+                        Maps.hashMap("a", "1", "b", "2", "c", "3"), Sets.treeSet(1L, 2L, 3L, 5L),
+                        Sets.treeSet(10L, 11L), null),
+                beforeNode1);
+        featureChange2.addMetaData("key1", "a,d,f,h");
+
+        final FeatureChange merged = featureChange1.merge(featureChange2);
+        Assert.assertEquals("a,b,d,e,f,g,h", merged.getMetaData().get("key1"));
+
+        final FeatureChange featureChange3 = new FeatureChange(ChangeType.ADD,
+                new CompleteNode(123L, Location.EIFFEL_TOWER,
+                        Maps.hashMap("a", "1", "b", "2", "c", "3"), Sets.treeSet(1L, 2L, 3L, 5L),
+                        Sets.treeSet(10L, 11L), null),
+                beforeNode1);
+        featureChange3.addMetaData("key1", "c");
+
+        final FeatureChange merged2 = merged.merge(featureChange3);
+        Assert.assertEquals("a,b,c,d,e,f,g,h", merged2.getMetaData().get("key1"));
+    }
+
+    @Test
     public void testMergeNodesFail()
     {
         final CompleteNode beforeNode1 = new CompleteNode(123L, Location.COLOSSEUM,
