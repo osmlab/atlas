@@ -248,12 +248,12 @@ my $help_argument;
 my $show_list;
 my $class_of;
 my $save_preset;
+my $save_global_preset;
 my $use_preset;
 my $remove_preset;
 my $all_presets;
 my $show_preset;
 my $edit_preset;
-my $cfg_preset;
 my $allow_run_as_root;
 Getopt::Long::Configure(qw(no_ignore_case_always));
 GetOptions(
@@ -264,13 +264,14 @@ GetOptions(
         print "$program_version\n";
         exit 0;
     },
-    "quiet|q"           => \$quiet,
-    "list|l"            => \$show_list,
-    "class-of=s"        => \$class_of,
-    "preset|p=s"        => \$use_preset,
-    "save-preset=s"     => \$save_preset,
-    "debug"             => \$debug_flag,
-    "allow-run-as-root" => \$allow_run_as_root,
+    "quiet|q"               => \$quiet,
+    "list|l"                => \$show_list,
+    "class-of=s"            => \$class_of,
+    "preset|p=s"            => \$use_preset,
+    "save-preset=s"         => \$save_preset,
+    "save-global-preset=s"  => \$save_global_preset,
+    "debug"                 => \$debug_flag,
+    "allow-run-as-root"     => \$allow_run_as_root,
     # This callback occurs the first time we see a non-option argument.
     # In our case, this will be the subcommand.
     "<>"                => sub {
@@ -360,16 +361,6 @@ if ($debug_flag) {
     print "---- ATLAS DEBUG MODE ----\n";
 }
 
-# Handle the case where the user supplied the cfg.preset arg. When this happens,
-# then any arg after it should be passed forward to the cfg.preset handler
-if (defined $cfg_preset) {
-    my $success = atlas_cfgpreset($debug_flag, \@ARGV);
-    unless ($success) {
-        exit 1;
-    }
-    exit 0;
-}
-
 # Handle case where user entered --help=TOPIC flag
 # We waited until after verifying that a command index exists
 if (defined $help_argument) {
@@ -419,18 +410,41 @@ my $current_namespace = ast_preset_subsystem::get_namespace($ast_path);
 if (defined $use_preset) {
     @new_argv = ast_preset_subsystem::apply_preset_or_exit($ast_path, $program_name, $quiet, $use_preset, $subcommand, $current_namespace, \@ARGV);
     if ($debug_flag) {
-        print "Applying preset ${use_preset} for ${subcommand} in namespace ${current_namespace}\n";
-        print "Try \'${bold_stdout}${ast_utilities::CONFIG_PROGRAM} preset list ${subcommand} ${use_preset}${reset_stdout}\' to see the preset.\n\n";
+        print "Applying preset(s) ${use_preset} for ${subcommand} in namespace ${current_namespace}\n";
     }
 }
 
 if (defined $save_preset) {
+    unless (ast_preset_subsystem::preset_regex_ok($save_preset)) {
+            ast_utilities::error_output($program_name, "invalid preset name ${bold_stderr}${save_preset}${reset_stderr}");
+            print STDERR "Name must match regex: " . ast_preset_subsystem::preset_regex() . "\n";
+            exit 1;
+    }
     if ($debug_flag) {
         print "Would save preset ${save_preset} for ${subcommand} to namespace ${current_namespace}\n";
         print "Preset ARGV: \"@new_argv\"\n\n";
     }
     else {
         my $success = ast_preset_subsystem::save_preset($ast_path, $program_name, $quiet, $save_preset, $subcommand, $current_namespace, \@new_argv);
+        unless ($success) {
+            exit 1;
+        }
+        print "Launching command ${bold_stdout}${subcommand}${reset_stdout}...\n\n";
+    }
+}
+
+if (defined $save_global_preset) {
+    unless (ast_preset_subsystem::preset_regex_ok($save_global_preset)) {
+            ast_utilities::error_output($program_name, "invalid preset name ${bold_stderr}${save_global_preset}${reset_stderr}");
+            print STDERR "Name must match regex: " . ast_preset_subsystem::preset_regex() . "\n";
+            exit 1;
+    }
+    if ($debug_flag) {
+        print "Would save global preset ${save_global_preset} to namespace ${current_namespace}\n";
+        print "Preset ARGV: \"@new_argv\"\n\n";
+    }
+    else {
+        my $success = ast_preset_subsystem::save_preset($ast_path, $program_name, $quiet, $save_global_preset, $ast_preset_subsystem::GLOBAL_FOLDER, $current_namespace, \@new_argv);
         unless ($success) {
             exit 1;
         }

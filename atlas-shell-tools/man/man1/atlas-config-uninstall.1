@@ -22,38 +22,38 @@
 
 .SH "NAME"
 .sp
-atlas\-config\-uninstall \-\- Uninstall an Atlas Shell Tools module
+atlas\-config\-uninstall \-\- Uninstall Atlas Shell Tools module(s)
 
 .SH "SYNOPSIS"
 .sp
 .nf
 \fIatlas\-config\fR \fIuninstall\fR \-\-help
-\fIatlas\-config\fR \fIuninstall\fR [\-\-force] \-\-all
-\fIatlas\-config\fR \fIuninstall\fR [\-\-force] <\fImodule\fR>
+\fIatlas\-config\fR \fIuninstall\fR \-\-all
+\fIatlas\-config\fR \fIuninstall\fR [\-\-force] <\fImodules...\fR>
 .fi
 
 .SH "DESCRIPTION"
 .sp
-Remove an installed module. If the module is a symlink, this will only
+Remove installed module(s). If the module is a symlink, this will only
 remove the link. It will \fBnot\fR delete the linked\-to file. By default, this
 command will not uninstall an activated module. This can be overridden with the
-\fB\-\-force\fR option.
+\fB\-\-force\fR or \fB\-\-all\fR options.
 
 .SH "OPTIONS"
 .sp
 
 .PP
-<\fImodule\fR>
+<\fImodules...\fR>
 .RS 4
-This indicates a module. The module should be referred to using its name, as
+This indicates one or more modules. The modules should be referred to using their names as
 reported by \fBatlas-config-list\fR(1).
 .RE
 
 .PP
 \fB\-\-all\fR, \fB\-a\fR
 .RS 4
-Uninstall all modules, ignoring the supplied <\fImodule\fR> argument if
-present. This is equivalent to running \fBatlas\-config reset \-\-modules\fR.
+Uninstall all modules including the activated module, ignoring the supplied <\fImodule\fR>
+argument if present. This is equivalent to running \fBatlas\-config reset \-\-modules\fR.
 .RE
 
 .PP

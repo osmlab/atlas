@@ -45,6 +45,10 @@ The three interface tiers are:
 .RS 4
 \fBTier 1)\fR Basic preset creation and use with \fBatlas\fR(1) options \fB\-\-save\-preset\fR and \fB\-\-preset\fR.
 
+.RS 8
+\fBGlobal Presets)\fR A brief addendum to Tier 1 about global preset saving.
+.RE
+
 \fBTier 2)\fR More precise preset management with \fBatlas-config-preset\fR(1), including editing, copying, etc.
 
 \fBTier 3)\fR Preset namespace management with the \fBatlas-config-preset\fR(1) \fBnamespace\fR directive.
@@ -52,24 +56,25 @@ The three interface tiers are:
 
 .SH "TIER 1"
 Tier 1 provides a simple, lightweight interface for preset usage through the \fBatlas\fR(1) options
-\fB\-\-preset\fR=\fIname\fR and \fB\-\-save\-preset\fR=\fInew\-name\fR, where
-\fIname\fR is the name of the preset you would like to apply and \fInew\-name\fR is
+\fB\-\-preset\fR=\fInames\fR and \fB\-\-save\-preset\fR=\fInew\-name\fR, where
+\fInames\fR are the name(s) of the preset(s) you would like to apply and \fInew\-name\fR is
 the name of the preset you would like to create.
 .sp
-When running a command with the \fB\-\-preset\fR=\fIname\fR option,
+When running a command with the \fB\-\-preset\fR=\fInames\fR option,
 \fBatlas\fR(1) checks the list of saved presets associated with that command.
-If one of those presets matches with \fIname\fR, \fBatlas\fR(1) uses that preset. If
-\fBatlas\fR(1) cannot find a match with \fIname\fR, it displays the list and exits
-with an error.
+If one of those presets matches with one of the given \fInames\fR, \fBatlas\fR(1) will apply that
+preset. It will perform this check and application for each preset provided in \fInames\fR (which should
+be comma or colon separated). If one of the given \fInames\fR does not refer to a saved preset,
+\fBatlas\fR(1) displays the list of presets and exits with an error.
 .sp
 When running a command with the \fB\-\-save\-preset\fR=\fInew\-name\fR option,
 \fBatlas\fR attempts to save the current ARGV to a new preset called \fInew\-name\fR.
 If \fInew\-name\fR already exists, \fBatlas\fR(1) will exit with an error.
 .sp
-If both \fB\-\-preset\fR=\fIname\fR and \fB\-\-save\-preset\fR=\fInew\-name\fR
-are applied at the same time, \fBatlas\fR(1) will attempt to apply \fIname\fR before
+If both \fB\-\-preset\fR=\fInames\fR and \fB\-\-save\-preset\fR=\fInew\-name\fR
+are applied at the same time, \fBatlas\fR(1) will attempt to apply \fInames\fR before
 saving \fInew\-name\fR. This allows you to easily save new presets that iterate
-on a previously created preset.
+on previously created presets.
 .sp
 Note that preset names are bound to the target command at save\-time \- 
 a preset name without its command context is meaningless. This means that preset
@@ -107,7 +112,7 @@ $ atlas \-\-preset=p1 MyCommand arg1 arg2 \-\-opt2=OverrideOpt2Arg
 This will run the same command as the above 2 examples, except it will override
 the preset value of \-\-opt2 with your new value "OverrideOpt2Arg".
 .sp
-Finally, you can extend presets by applying and saving at the same time. Here,
+You can extend presets by applying and saving at the same time. Here,
 we apply our preset "p1" while also saving a new preset called "p2", based off
 the contents of "p1":
 .sp
@@ -120,6 +125,49 @@ The new preset "p2" will contain the following contents:
 \-\-opt2 is repeated, this is OK. When multiple instances of the same option are
 supplied, the option parser will use ARGV's rightmost instance of that option.
 .sp
+Let's look at one final example where we apply two presets at once. Assuming you now have
+a preset "p3" with contents: ["\-\-opt3"], you could run:
+.sp
+.RS 4
+$ atlas \-\-preset=p1,p3 MyCommand
+.RE
+.sp
+This would run MyCommand with ["\-\-opt1", "\-\-opt2=opt2Arg", "\-\-opt3"] as the effective ARGV.
+Note that the rightmost ARGV selection strategy for duplicate options applies here as well. Keep this in
+mind when applying multiple presets that contain the same option.
+
+.SS "Global Presets"
+In addition to the presets tied to each command, you can also save global presets
+using the \fBatlas\fR(1) option \fB\-\-save\-global\-preset\fR=\fInew\-name\fR. Global presets
+can be applied to any command using the \fB\-\-preset\fR=\fInames\fR option.
+When checking the \fInames\fR given to \fB\-\-preset\fR, the \fBatlas\fR(1) preset system will always attempt
+to use global presets as a fall back. This means, for example, that if you have a preset "p1" for "MyCommand" as well
+as global presets "p1" and "p2", supplying \fB\-\-preset=p1,p2\fR when running MyCommand will use the "p1" associated with "MyCommand",
+but it will use the global preset "p2".
+.sp
+For the following examples, let's assume we have a command "MyCommand" with a preset "p1". We also have a command
+"AnotherCommand" with no presets. Finally we have global presets "p1" and "p2".
+.sp
+The following will run "MyCommand" with its version of "p1" but with global "p2":
+.sp
+.RS 4
+$ atlas \-\-preset=p1,p2 MyCommand
+.RE
+.sp
+This next command will run "AnotherCommand" with globals "p1" and "p2":
+.sp
+.RS 4
+$ atlas \-\-preset=p1,p2 AnotherCommand
+.RE
+.sp
+Finally, this last command will fail since there is no preset "p3" associated with "MyCommand", nor is
+there a global definition of "p3":
+.sp
+.RS 4
+$ atlas \-\-preset=p1,p2,p3 MyCommand
+.RE
+.sp
+
 
 .SH "TIER 2"
 Tier 2 provides more precise preset management using the \fBatlas\-config\fR(1)
@@ -147,6 +195,23 @@ when you want to make multiple versions of a long preset, each with some minor d
 
 .sp
 .RS 4
+\fBcopy\-global\fR <source> <destination>
+.RS 4
+Copy global preset <source> into new preset <destination>.
+<destination> must not already exist, else the copy will fail. The following example
+copies the global preset "p1" into new global preset "p2":
+.sp
+.RS 4
+$ atlas\-config preset copy\-global p1 p2
+.RE
+.sp
+Like the \fBcopy\fR directive, the \fBcopy\-global\fR is useful in combination
+with the \fBedit\-global\fR directive for quick preset iteration.
+.RE
+.RE
+
+.sp
+.RS 4
 \fBedit\fR \fIcommand\fR <name>
 .RS 4
 Edit preset <name> for \fIcommand\fR. If <name> does not exist, then it will be
@@ -162,9 +227,24 @@ $ atlas\-config preset edit MyCommand p1
 
 .sp
 .RS 4
+\fBedit\-global\fR <name>
+.RS 4
+Edit global preset <name>. If <name> does not exist, then it will be
+created when the edit is successfully saved. The default preset editor is \fBvim\fR,
+but this can be changed by setting the \fBATLAS_SHELL_TOOLS_EDITOR\fR environment variable.
+The following example will edit global preset "p1":
+.sp
+.RS 4
+$ atlas\-config preset edit\-global p1
+.RE
+.RE
+.RE
+
+.sp
+.RS 4
 \fBlist\fR [\fIcommand\fR [name]]
 .RS 4
-List all available presets, or list all presets for a given [\fIcommand\fR], or
+List all available presets (including globals), or list all presets for a given [\fIcommand\fR], or
 list contents of preset [name] for [\fIcommand\fR]. The following example lists
 all available presets, then lists all presets for "MyCommand", and finally lists
 the contents of preset "p1" for command "MyCommand":
@@ -175,6 +255,23 @@ $ atlas\-config preset list
 $ atlas\-config preset list MyCommand
 
 $ atlas\-config preset list MyCommand p1
+.RE
+.sp
+.RE
+.RE
+
+.sp
+.RS 4
+\fBlist\-global\fR [name]
+.RS 4
+List all available global presets, or list contents of global preset [name]. The
+following example lists all available global presets, then lists the contents of
+global preset "p1":
+.sp
+.RS 4
+$ atlas\-config preset list\-global
+
+$ atlas\-config preset list\-global p1
 .RE
 .sp
 .RE
@@ -211,6 +308,22 @@ $ atlas\-config preset remove AnotherCommand p1
 
 .sp
 .RS 4
+\fBremove\-global\fR [name]
+.RS 4
+Remove all global presets , or remove the global preset [name].
+The following example removes all global presets, then removes globa preset "p1":
+.sp
+.RS 4
+$ atlas\-config preset remove\-global
+
+$ atlas\-config preset remove\-global p1
+.RE
+.sp
+.RE
+.RE
+
+.sp
+.RS 4
 \fBsave\fR \fIcommand\fR <name> <options...>
 .RS 4
 Save a preset <name> for \fIcommand\fR without actually running the command.
@@ -222,6 +335,23 @@ The following example saves preset "p1" to command "MyCommand" with some options
 .sp
 .RS 4
 $ atlas\-config preset save MyCommand p1 --opt1 --opt2=opt2Arg
+.RE
+.sp
+.RE
+.RE
+
+.sp
+.RS 4
+\fBsave\-global\fR <name> <options...>
+.RS 4
+Save a global preset <name>. <options...> is a sequence of options to be savedin the preset.
+Again, recall that you must use the long option '=' syntax for specifying option
+arguments when saving a preset (e.g. '--opt=arg' and \fInot\fR '--opt arg').
+The following example saves global preset "p1" with some options
+--opt1 and --opt2=opt2Arg:
+.sp
+.RS 4
+$ atlas\-config preset save\-global p1 --opt1 --opt2=opt2Arg
 .RE
 .sp
 .RE
