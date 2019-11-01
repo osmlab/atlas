@@ -11,6 +11,8 @@ import java.util.UUID;
 import java.util.function.Function;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.streaming.compression.Decompressor;
+import org.openstreetmap.atlas.streaming.resource.AbstractResource;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.utilities.caching.ConcurrentResourceCache;
@@ -42,6 +44,7 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
     private static final Retry RETRY = new Retry(5, Duration.ONE_SECOND);
 
     private final String namespace;
+    private boolean preserveFileExtension;
 
     public NamespaceCachingStrategy(final String namespace)
     {
@@ -53,6 +56,7 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
         }
         this.namespace = "NamespaceCachingStrategy_" + namespace + "_"
                 + UUID.nameUUIDFromBytes(namespace.getBytes()).toString();
+        this.preserveFileExtension = true;
     }
 
     @Override
@@ -124,6 +128,13 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
         }
     }
 
+    public NamespaceCachingStrategy withFileExtensionPreservation(
+            final boolean preserveFileExtension)
+    {
+        this.preserveFileExtension = preserveFileExtension;
+        return this;
+    }
+
     protected void validateLocalFile(final File localFile)
     {
         // Do nothing here, leave to extensions to decide.
@@ -151,7 +162,19 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
             {
                 try
                 {
-                    resourceFromDefaultFetcher.get().copyTo(temporaryLocalFile);
+                    /*
+                     * We have to explicitly set the decompressor here. Why? Because if the resource
+                     * ends with a '.gz' extension, the 'copyTo' method will apply GZIP
+                     * decompression to it. The problem? When the user goes to fetch the contents of
+                     * the cached copy, it will still have the '.gz' extension but it will now be
+                     * decompressed. So our automatic decompression code will run on an uncompressed
+                     * file! This will cause the contents fetch to fail since Java's GZIPInputStream
+                     * won't be able to find the GZIP magic number!
+                     */
+                    final AbstractResource abstractResource = (AbstractResource) resourceFromDefaultFetcher
+                            .get();
+                    abstractResource.setDecompressor(Decompressor.NONE);
+                    abstractResource.copyTo(temporaryLocalFile);
                     validateLocalFile(temporaryLocalFile);
                 }
                 catch (final Exception exception)
@@ -210,6 +233,11 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
 
     private Optional<String> getFileExtensionFromURI(final URI resourceURI)
     {
+        if (!this.preserveFileExtension)
+        {
+            return Optional.empty();
+        }
+
         final String asciiString = resourceURI.toASCIIString();
         final int lastIndexOfDot = asciiString.lastIndexOf(FILE_EXTENSION_DOT);
 

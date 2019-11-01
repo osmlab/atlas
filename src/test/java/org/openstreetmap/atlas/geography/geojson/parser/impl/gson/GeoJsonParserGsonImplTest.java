@@ -203,5 +203,4 @@ public class GeoJsonParserGsonImplTest extends AbstractGeoJsonParserGsonImplTest
 
         Assert.assertEquals(2, geoJsonItem.getProperties().asMap().size());
     }
-
 }

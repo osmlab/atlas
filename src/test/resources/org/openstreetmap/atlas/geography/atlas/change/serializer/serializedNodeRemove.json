@@ -31,11 +31,11 @@
   },
   "properties": {
     "featureChangeType": "REMOVE",
-    "meta-data": {
+    "metadata": {
       "key": "value"
     },
     "entityType": "NODE",
-    "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteNode",
+    "completeEntityClass": "org.openstreetmap.atlas.geography.atlas.complete.CompleteNode",
     "identifier": 123,
     "tags": "null",
     "relations": "null",

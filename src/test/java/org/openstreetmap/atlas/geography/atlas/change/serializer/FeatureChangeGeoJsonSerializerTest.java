@@ -199,6 +199,20 @@ public class FeatureChangeGeoJsonSerializerTest
     }
 
     @Test
+    public void testPointTagMapOrderingSerialization()
+    {
+        final Map<String, String> tags = Maps.hashMap("tagKey5", "tagValue5", "tagKey1",
+                "tagValue1", "tagKey3", "tagValue3", "tagKey6", "tagValue6", "tagKey4", "tagValue4",
+                "tagKey2", "tagValue2");
+        final CompletePoint item = new CompletePoint(123L, Location.COLOSSEUM, tags, RELATIONS);
+        final FeatureChange featureChange = FeatureChange.add(item);
+        featureChange.addMetaData("key3", "value3");
+        featureChange.addMetaData("key1", "value1");
+        featureChange.addMetaData("key2", "value2");
+        assertResourceEquals(featureChange, "serializedPointWithTags.json", false);
+    }
+
+    @Test
     public void testRemoveAreaSerialization()
     {
         final CompleteArea item = CompleteArea

@@ -16,13 +16,25 @@
   "properties": {
     "featureChangeType": "ADD",
     "metadata": {
-      "key": "value"
+      "key1": "value1",
+      "key2": "value2",
+      "key3": "value3"
     },
     "entityType": "POINT",
     "completeEntityClass": "org.openstreetmap.atlas.geography.atlas.complete.CompletePoint",
     "identifier": 123,
-    "tags": "null",
-    "relations": "null",
+    "tags": {
+      "tagKey1": "tagValue1",
+      "tagKey2": "tagValue2",
+      "tagKey3": "tagValue3",
+      "tagKey4": "tagValue4",
+      "tagKey5": "tagValue5",
+      "tagKey6": "tagValue6"
+    },
+    "relations": [
+      444,
+      555
+    ],
     "WKT": "POINT (12.49234 41.890224)",
     "bboxWKT": "POLYGON ((12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224))"
   }

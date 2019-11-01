@@ -35,7 +35,7 @@
   },
   "properties": {
     "featureChangeType": "ADD",
-    "meta-data": {},
+    "metadata": {},
     "description": {
       "type": "ADD",
       "descriptors": [
@@ -72,7 +72,7 @@
       ]
     },
     "entityType": "RELATION",
-    "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation",
+    "completeEntityClass": "org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation",
     "identifier": 123,
     "tags": {
       "a": "1"

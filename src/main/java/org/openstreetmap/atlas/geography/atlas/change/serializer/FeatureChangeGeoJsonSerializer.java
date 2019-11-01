@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -77,7 +78,7 @@ public class FeatureChangeGeoJsonSerializer
 
             final JsonObject properties = new JsonObject();
             properties.addProperty("featureChangeType", source.getChangeType().toString());
-            add(properties, "meta-data", source.getMetaData(), tagPrinter);
+            add(properties, "metadata", source.getMetaData(), tagPrinter);
             if (this.showDescription)
             {
                 add(properties, "description", source.explain(), ChangeDescription::toJsonElement);
@@ -157,7 +158,7 @@ public class FeatureChangeGeoJsonSerializer
         {
             final JsonObject properties = new JsonObject();
             properties.addProperty("entityType", source.getType().toString());
-            properties.addProperty("class", source.getClass().getName());
+            properties.addProperty("completeEntityClass", source.getClass().getName());
             properties.addProperty("identifier", source.getIdentifier());
             add(properties, "tags", source.getTags(), tagPrinter);
             add(properties, "relations", source.relations(), identifierMapper);
@@ -198,7 +199,11 @@ public class FeatureChangeGeoJsonSerializer
     private static final Function<Map<String, String>, JsonElement> tagPrinter = map ->
     {
         final JsonObject result = new JsonObject();
-        map.forEach(result::addProperty);
+        final Map<String, String> sortedMap = new TreeMap<>(map);
+        for (final Map.Entry<String, String> entry : sortedMap.entrySet())
+        {
+            result.addProperty(entry.getKey(), entry.getValue());
+        }
         return result;
     };
 

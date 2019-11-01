@@ -29,11 +29,16 @@ atlas\-config\-preset \-\- Create and manage Atlas Shell Tools command presets
 .nf
 \fIatlas\-config\fR \fIpreset\fR \-\-help
 \fIatlas\-config\fR \fIpreset\fR \fIcopy\fR <command> <src> <dest>
+\fIatlas\-config\fR \fIpreset\fR \fIcopy\-global\fR <src> <dest>
 \fIatlas\-config\fR \fIpreset\fR \fIedit\fR <command> <preset>
+\fIatlas\-config\fR \fIpreset\fR \fIedit\-global\fR <preset>
 \fIatlas\-config\fR \fIpreset\fR \fIlist\fR [command [preset]]
+\fIatlas\-config\fR \fIpreset\fR \fIlist\-global\fR [preset]
 \fIatlas\-config\fR \fIpreset\fR \fInamespace\fR <subdirective> [namespace]
 \fIatlas\-config\fR \fIpreset\fR \fIremove\fR <command> [preset]
+\fIatlas\-config\fR \fIpreset\fR \fIremove\-global\fR [preset]
 \fIatlas\-config\fR \fIpreset\fR \fIsave\fR <command> <preset> <options...>
+\fIatlas\-config\fR \fIpreset\fR \fIsave\-global\fR <preset> <options...>
 .fi
 
 .SH "DESCRIPTION"
@@ -66,9 +71,24 @@ exist, else the copy will fail.
 .RE
 
 .PP
+\fIcopy\-global\fR
+.RS 4
+Copy global preset <src> into new global preset <dest>. <dest> must not already
+exist, else the copy will fail.
+.RE
+
+.PP
 \fIedit\fR
 .RS 4
-Edit preset <name> for <command>. If <name> does not exist, then it will be
+Edit preset <preset> for <command>. If <preset> does not exist, then it will be
+created when the edit is successfully saved. The default preset editor is \fBvim\fR,
+but this can be changed by setting the \fBATLAS_SHELL_TOOLS_EDITOR\fR environment variable.
+.RE
+
+.PP
+\fIedit\-global\fR
+.RS 4
+Edit global preset <preset>. If <preset> does not exist, then it will be
 created when the edit is successfully saved. The default preset editor is \fBvim\fR,
 but this can be changed by setting the \fBATLAS_SHELL_TOOLS_EDITOR\fR environment variable.
 .RE
@@ -76,8 +96,14 @@ but this can be changed by setting the \fBATLAS_SHELL_TOOLS_EDITOR\fR environmen
 .PP
 \fIlist\fR
 .RS 4
-List all available presets, or list all presets for a given [command], or
-list contents of preset [name] for [command].
+List all available presets (including globals), or list all presets for a given [command], or
+list contents of preset [preset] for [command].
+.RE
+
+.PP
+\fIlist\-global\fR
+.RS 4
+List all available global presets, or list contents of global preset [preset].
 .RE
 
 .PP
@@ -96,10 +122,24 @@ Remove all presets for a given <command>, or remove the preset [name] for
 .RE
 
 .PP
+\fIremove\-global\fR
+.RS 4
+Remove all global presets, or remove the global preset [name].
+.RE
+
+.PP
 \fIsave\fR
 .RS 4
-Save a preset <name> for <command> without actually running the command.
+Save a preset <preset> for <command> without actually running the command.
 <options...> is a sequence of options to be saved in the preset.
+Again, recall that you must use the long option '=' syntax for specifying option
+arguments when saving a preset (e.g. '--opt=arg' and \fInot\fR '--opt arg').
+.RE
+
+.PP
+\fIsave\-global\fR
+.RS 4
+Save a global preset <preset>. <options...> is a sequence of options to be saved in the preset.
 Again, recall that you must use the long option '=' syntax for specifying option
 arguments when saving a preset (e.g. '--opt=arg' and \fInot\fR '--opt arg').
 .RE
@@ -112,10 +152,16 @@ Edit preset "p1" for command "MyCommand":
 $ atlas\-config preset edit MyCommand p1
 .RE
 .sp
-Creates a namespace called "namespace1":
+Create a namespace called "namespace1":
 .sp
 .RS 4
 $ atlas\-config preset namespace create namespace1
+.RE
+.sp
+Save a global preset "p1":
+.sp
+.RS 4
+$ atlas\-config preset save\-global p1 --opt1 --opt2=opt2Arg
 .RE
 .sp
 For more examples, see \fBatlas\-presets\fR(7).

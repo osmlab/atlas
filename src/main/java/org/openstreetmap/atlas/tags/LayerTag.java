@@ -13,6 +13,7 @@ import org.openstreetmap.atlas.tags.annotations.extraction.LongExtractor;
  *
  * @author cstaylor
  * @author brian_l_davis
+ * @author bbreithaupt
  */
 @Tag(value = Validation.LONG, range = @Range(min = -5, max = 5, exclude = {
         0 }), taginfo = "http://taginfo.openstreetmap.org/keys/layer#values", osm = "http://wiki.openstreetmap.org/wiki/Layer")
@@ -51,7 +52,23 @@ public interface LayerTag
     static Long getTaggedOrImpliedValue(final Taggable taggable, final Long impliedValue)
     {
         final Optional<Long> taggedValue = getTaggedValue(taggable);
-        return taggedValue.isPresent() ? taggedValue.get() : impliedValue;
+        // Return the layer tag if there is one
+        if (taggedValue.isPresent())
+        {
+            return taggedValue.get();
+        }
+        // Else return 1 if taggable is a bridge
+        if (BridgeTag.isBridge(taggable))
+        {
+            return 1L;
+        }
+        // Else return -1 if taggable is a tunnel
+        if (TunnelTag.isTunnel(taggable))
+        {
+            return -1L;
+        }
+        // Else return the implied value
+        return impliedValue;
     }
 
     static Optional<Long> getTaggedValue(final Taggable taggable)

@@ -35,11 +35,11 @@
   },
   "properties": {
     "featureChangeType": "ADD",
-    "meta-data": {
+    "metadata": {
       "key": "value"
     },
     "entityType": "RELATION",
-    "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation",
+    "completeEntityClass": "org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation",
     "identifier": 123,
     "tags": {
       "tagKey1": "tagValue1",

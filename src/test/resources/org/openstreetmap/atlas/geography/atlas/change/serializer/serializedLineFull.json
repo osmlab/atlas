@@ -33,11 +33,11 @@
   },
   "properties": {
     "featureChangeType": "ADD",
-    "meta-data": {
+    "metadata": {
       "key": "value"
     },
     "entityType": "LINE",
-    "class": "org.openstreetmap.atlas.geography.atlas.complete.CompleteLine",
+    "completeEntityClass": "org.openstreetmap.atlas.geography.atlas.complete.CompleteLine",
     "identifier": 123,
     "tags": {
       "tagKey1": "tagValue1",
