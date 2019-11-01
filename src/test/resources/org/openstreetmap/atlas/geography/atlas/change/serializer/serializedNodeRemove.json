@@ -37,10 +37,6 @@
     "entityType": "NODE",
     "completeEntityClass": "org.openstreetmap.atlas.geography.atlas.complete.CompleteNode",
     "identifier": 123,
-    "tags": null,
-    "relations": null,
-    "inEdges": null,
-    "outEdges": null,
     "WKT": "POLYGON ((12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224))",
     "bboxWKT": "POLYGON ((12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224))"
   }

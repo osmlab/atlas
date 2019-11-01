@@ -41,8 +41,6 @@
     "entityType": "RELATION",
     "completeEntityClass": "org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation",
     "identifier": 123,
-    "tags": null,
-    "relations": null,
     "members": [
       "{Member: ID = 456, Type = EDGE, Role = role1}",
       "{Member: ID = 789, Type = AREA, Role = role2}"
