@@ -41,8 +41,8 @@
     "entityType": "AREA",
     "completeEntityClass": "org.openstreetmap.atlas.geography.atlas.complete.CompleteArea",
     "identifier": 123,
-    "tags": "null",
-    "relations": "null",
+    "tags": null,
+    "relations": null,
     "WKT": "POLYGON ((-122.0310473 37.3909505, -122.0314121 37.3903197, -122.0311332 37.3901066, -122.0306289 37.3908482, -122.0310473 37.3909505, -122.0310473 37.3909505))",
     "bboxWKT": "POLYGON ((-122.0314121 37.3901066, -122.0314121 37.3909505, -122.0306289 37.3909505, -122.0306289 37.3901066, -122.0314121 37.3901066))"
   }
