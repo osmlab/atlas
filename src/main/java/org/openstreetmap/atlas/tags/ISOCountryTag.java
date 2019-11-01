@@ -59,10 +59,7 @@ public interface ISOCountryTag
         final Optional<String> countryCode = taggable.getTag(ISOCountryTag.class, Optional.empty());
         if (countryCode.isPresent())
         {
-            final List<String> allIsoCodes = Arrays
-                    .asList(countryCode.get().split(COUNTRY_DELIMITER));
-
-            return allIsoCodes;
+            return Arrays.asList(countryCode.get().split(COUNTRY_DELIMITER));
         }
         return ImmutableList.of();
     }
