@@ -53,13 +53,16 @@ public enum DefaultBeanUtilsBasedMapperImpl implements Mapper
 
     private <T> T create(final Class<T> targetClass)
     {
+        Validate.notNull(targetClass, "null class cannot be instantiated.");
+
         try
         {
             return targetClass.newInstance();
         }
         catch (final Exception e)
         {
-            throw new IllegalStateException(e);
+            throw new IllegalStateException("Failed to construct instance of class: " + targetClass
+                    + "; isArray: " + targetClass.isArray(), e);
         }
     }
 
@@ -70,72 +73,89 @@ public enum DefaultBeanUtilsBasedMapperImpl implements Mapper
 
     private <T> void populate(final Map<String, Object> map, final T bean)
     {
-        Validate.notNull(map, "input map is NULL.");
-        Validate.notNull(bean, "bean is NULL");
-
-        final BeanUtilsBean beanUtilsBean = new BeanUtilsBean();
-
-        final PropertyDescriptor[] propertyDescriptors = beanUtilsBean.getPropertyUtils()
-                .getPropertyDescriptors(bean);
-
-        // Start with the concrete object
-        for (final PropertyDescriptor propertyDescriptor : propertyDescriptors)
+        try
         {
-            final String name = propertyDescriptor.getName();
-            final Class<?> propertyType = propertyDescriptor.getPropertyType();
+            Validate.notNull(map, "input map is NULL.");
+            Validate.notNull(bean, "bean is NULL");
 
-            final Object value = map.get(name);
+            final BeanUtilsBean beanUtilsBean = new BeanUtilsBean();
 
-            if (value == null)
-            {
-                continue;
-            }
+            final PropertyDescriptor[] propertyDescriptors = beanUtilsBean.getPropertyUtils()
+                    .getPropertyDescriptors(bean);
 
-            if (isScalarType(propertyType) || Map.class.isAssignableFrom(propertyType))
+            // Start with the concrete object
+            for (final PropertyDescriptor propertyDescriptor : propertyDescriptors)
             {
-                // Scalar types or value is a Map in concrete class.
-                // Map values can be scalar or nested maps of scalars.
-                copyProperty(beanUtilsBean, bean, name, value);
-            }
-            else if (!propertyType.isArray())
-            {
-                // User-defined concrete classes.
-                final T child = (T) create(propertyType);
-                populate((Map<String, Object>) value, child);
-
-                copyProperty(beanUtilsBean, bean, name, child);
-            }
-            else
-            {
-                // Array case.
-                final List<Object> values = (List<Object>) value;
-                if (values == null || values.isEmpty() || values.get(0) == null)
+                try
                 {
-                    continue;
-                }
+                    final String name = propertyDescriptor.getName();
+                    final Class<?> propertyType = propertyDescriptor.getPropertyType();
 
-                if (isScalarType(values.get(0).getClass()))
-                {
-                    copyProperty(beanUtilsBean, bean, name, values.toArray());
-                }
-                else
-                {
-                    log.info("values: {}.", values);
-                    final Class<?> componentType = propertyType.getComponentType();
-                    final Object valuesAsObjects = values.stream().map(item ->
+                    final Object value = map.get(name);
+
+                    if (value == null)
                     {
-                        Validate.notNull(item,
-                                "item is NULL, do you have a trailing comma in the JSON?");
+                        continue;
+                    }
 
-                        final T child = (T) create(componentType);
-                        populate((Map<String, Object>) item, child);
-                        return child;
-                    }).toArray(Propersize -> (Object[]) Array.newInstance(componentType,
-                            values.size()));
+                    if (isScalarType(propertyType) || Map.class.isAssignableFrom(propertyType))
+                    {
+                        // Scalar types or value is a Map in concrete class.
+                        // Map values can be scalar or nested maps of scalars.
+                        copyProperty(beanUtilsBean, bean, name, value);
+                    }
+                    else if (!propertyType.isArray())
+                    {
+                        // User-defined concrete classes.
+                        final T child = (T) create(propertyType);
+                        populate((Map<String, Object>) value, child);
 
-                    copyProperty(beanUtilsBean, bean, name, valuesAsObjects);
+                        copyProperty(beanUtilsBean, bean, name, child);
+                    }
+                    else
+                    {
+                        // Array case.
+                        final List<Object> values = (List<Object>) value;
+                        if (values == null || values.isEmpty() || values.get(0) == null)
+                        {
+                            continue;
+                        }
+
+                        if (isScalarType(values.get(0).getClass()))
+                        {
+                            copyProperty(beanUtilsBean, bean, name, values.toArray());
+                        }
+                        else
+                        {
+                            log.info("values: {}.", values);
+                            final Class<?> componentType = propertyType.getComponentType();
+                            final Object valuesAsObjects = values.stream().map(item ->
+                            {
+                                Validate.notNull(item,
+                                        "item is NULL, do you have a trailing comma in the JSON?");
+
+                                final T child = (T) create(componentType);
+                                populate((Map<String, Object>) item, child);
+                                return child;
+                            }).toArray(Propersize -> (Object[]) Array.newInstance(componentType,
+                                    values.size()));
+
+                            copyProperty(beanUtilsBean, bean, name, valuesAsObjects);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    throw new IllegalStateException("Population failed. propertyDescriptor name: "
+                            + propertyDescriptor.getName() + "; map: " + map + "; bean: " + bean
+                            + ".", e);
                 }
             }
+        }
+        catch (final Exception e)
+        {
+            throw new IllegalStateException(
+                    "Population fialed. map: " + map + "; bean: " + bean + ".", e);
         }
     }
 }
