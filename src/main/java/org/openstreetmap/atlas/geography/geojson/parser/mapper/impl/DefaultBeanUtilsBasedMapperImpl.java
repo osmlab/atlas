@@ -144,7 +144,7 @@ public enum DefaultBeanUtilsBasedMapperImpl implements Mapper
                         }
                     }
                 }
-                catch (Exception e)
+                catch (final Exception e)
                 {
                     throw new IllegalStateException("Population failed. propertyDescriptor name: "
                             + propertyDescriptor.getName() + "; map: " + map + "; bean: " + bean
