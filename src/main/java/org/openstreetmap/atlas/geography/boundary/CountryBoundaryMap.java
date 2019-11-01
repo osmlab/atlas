@@ -30,10 +30,7 @@ import org.geotools.measure.Longitude;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryCollection;
-import org.locationtech.jts.geom.IntersectionMatrix;
-import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.Polygon;
-import org.locationtech.jts.geom.TopologyException;
 import org.locationtech.jts.index.strtree.AbstractNode;
 import org.locationtech.jts.index.strtree.GeometryItemDistance;
 import org.locationtech.jts.index.strtree.ItemBoundable;
@@ -531,85 +528,6 @@ public class CountryBoundaryMap implements Serializable, GeoJson
     public List<CountryBoundary> boundaries(final Rectangle bound)
     {
         return this.boundariesHelper(() -> this.query(bound.asEnvelope(), true), polygon -> true);
-    }
-
-    /**
-     * Clips the the given geometry along the boundary.
-     *
-     * @param identifier
-     *            The identifier of the feature we are clipping
-     * @param geometry
-     *            The {@link Polygon} we are clipping
-     * @return The {@link LineString}s making up the clipped geometry
-     * @throws TopologyException
-     *             Indicating a slicing error
-     */
-    public List<LineString> clipBoundary(final long identifier, final Polygon geometry)
-            throws TopologyException
-    {
-        if (Objects.isNull(geometry))
-        {
-            return null;
-        }
-
-        final Geometry target = geometry;
-        final List<LineString> results = new ArrayList<>();
-        final List<Polygon> polygons = this.query(target.getEnvelopeInternal());
-
-        if (isSameCountry(polygons))
-        {
-            return results;
-        }
-
-        boolean isWarned = false;
-        for (final Polygon polygon : polygons)
-        {
-            final IntersectionMatrix matrix;
-            try
-            {
-                matrix = target.relate(polygon);
-            }
-            catch (final Exception e)
-            {
-                if (!isWarned)
-                {
-                    logger.warn("Error slicing feature: {}, {}", identifier, e.getMessage());
-                }
-                isWarned = true;
-                continue;
-            }
-
-            if (matrix.isWithin())
-            {
-                return results;
-            }
-            else if (matrix.isIntersects())
-            {
-                final Geometry clipped = target.intersection(polygon.getBoundary());
-                final String containedCountryCode = getGeometryProperty(polygon, ISOCountryTag.KEY);
-
-                if (clipped instanceof GeometryCollection)
-                {
-                    final GeometryCollection collection = (GeometryCollection) clipped;
-                    geometries(collection).forEach(point ->
-                    {
-                        setGeometryProperty(point, ISOCountryTag.KEY, containedCountryCode);
-                        results.add((LineString) point);
-                    });
-                }
-                else if (clipped instanceof LineString)
-                {
-                    setGeometryProperty(clipped, ISOCountryTag.KEY, containedCountryCode);
-                    results.add((LineString) clipped);
-                }
-                else
-                {
-                    throw new CoreException(
-                            "Unexpected geometry {} encountered during country slicing.", clipped);
-                }
-            }
-        }
-        return results;
     }
 
     /**
