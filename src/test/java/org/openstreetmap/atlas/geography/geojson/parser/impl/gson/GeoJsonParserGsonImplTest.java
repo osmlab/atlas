@@ -49,6 +49,17 @@ public class GeoJsonParserGsonImplTest extends AbstractGeoJsonParserGsonImplTest
     }
 
     @Test
+    public void featureChangePropertiesExample()
+    {
+        final GeoJsonItem geoJsonItem = toGeoJsonItem();
+
+        final FeatureChangeProperties featureChangeProperties = geoJsonItem.getProperties()
+                .asType(FeatureChangeProperties.class);
+
+        Assert.assertNull(featureChangeProperties.getRelations());
+    }
+
+    @Test
     public void featureCollection1()
     {
         final GeoJsonItem geoJsonItem = toGeoJsonItem();

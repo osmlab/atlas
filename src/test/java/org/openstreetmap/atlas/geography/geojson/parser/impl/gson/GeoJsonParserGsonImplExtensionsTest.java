@@ -134,4 +134,53 @@ public class GeoJsonParserGsonImplExtensionsTest extends AbstractGeoJsonParserGs
         Assert.assertFalse(featureChangeProperties.getWKT().isEmpty());
         Assert.assertFalse(featureChangeProperties.getBboxWKT().isEmpty());
     }
+
+    @Test
+    public void featureChangePropertiesBad1()
+    {
+        final String json = extractJsonForExtension();
+
+        final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
+
+        try
+        {
+            final FeatureChangeProperties featureChangeProperties = geoJsonParser
+                    .deserializeExtension(json, FeatureChangeProperties.class);
+        }
+        catch (final Exception e)
+        {
+            final String message1 = e.getCause().getMessage();
+            Assert.assertTrue(message1.startsWith("Population failed. propertyDescriptor name"));
+            final String message2 = e.getCause().getCause().getCause().getMessage();
+            Assert.assertTrue(
+                    "Can not call newInstance() on the Class for java.lang.Class".equals(message2));
+            return;
+        }
+
+        Assert.fail("field name `class` should have caused a failure.");
+    }
+
+    @Test
+    public void featureChangePropertiesBad2()
+    {
+        final String json = extractJsonForExtension();
+
+        final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
+
+        try
+        {
+            final FeatureChangeProperties featureChangeProperties = geoJsonParser
+                    .deserializeExtension(json, FeatureChangeProperties.class);
+        }
+        catch (final Exception e)
+        {
+            final String message1 = e.getCause().getMessage();
+            Assert.assertTrue(
+                    message1.startsWith("Population failed. propertyDescriptor name: relations"));
+            Assert.assertEquals(ClassCastException.class, e.getCause().getCause().getClass());
+            return;
+        }
+
+        Assert.fail("data data value should have caused a failure.");
+    }
 }
