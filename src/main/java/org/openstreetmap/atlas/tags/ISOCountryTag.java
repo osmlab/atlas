@@ -156,7 +156,7 @@ public interface ISOCountryTag
                     return true;
                 }
             }
-            return true;
+            return false;
         };
     }
 }
