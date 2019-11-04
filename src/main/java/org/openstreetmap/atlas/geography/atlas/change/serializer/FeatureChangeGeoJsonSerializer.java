@@ -207,7 +207,6 @@ public class FeatureChangeGeoJsonSerializer
         return result;
     };
 
-    private static final String NULL = "null";
     private final Gson jsonSerializer;
 
     private static <T> void add(final JsonObject result, final String name, final T property,
@@ -215,7 +214,7 @@ public class FeatureChangeGeoJsonSerializer
     {
         if (property == null)
         {
-            result.addProperty(name, NULL);
+            result.addProperty(name, (String) null);
         }
         else
         {
@@ -226,7 +225,7 @@ public class FeatureChangeGeoJsonSerializer
     private static <T> void addProperty(final JsonObject result, final String name,
             final T property, final Function<T, ? extends Object> writer)
     {
-        result.addProperty(name, property == null ? NULL : writer.apply(property).toString());
+        result.addProperty(name, property == null ? null : writer.apply(property).toString());
     }
 
     public FeatureChangeGeoJsonSerializer(final boolean prettyPrint, final boolean showDescription)
