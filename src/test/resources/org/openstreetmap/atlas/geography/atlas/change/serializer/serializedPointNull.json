@@ -21,8 +21,6 @@
     "entityType": "POINT",
     "completeEntityClass": "org.openstreetmap.atlas.geography.atlas.complete.CompletePoint",
     "identifier": 123,
-    "tags": "null",
-    "relations": "null",
     "WKT": "POINT (12.49234 41.890224)",
     "bboxWKT": "POLYGON ((12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224))"
   }
