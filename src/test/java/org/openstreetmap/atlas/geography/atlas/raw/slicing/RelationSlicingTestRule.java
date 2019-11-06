@@ -276,11 +276,12 @@ public class RelationSlicingTestRule extends CoreTestRule
                     @Loc(value = LOCATION_32) }, tags = { "highway=residential" }) },
 
             relations = {
-
+                    @Relation(id = "214806000000", tags = {}, members = {
+                            @Member(id = "214778000000", role = "", type = "line") }),
                     @Relation(id = "214805000000", tags = { "type=multipolygon",
                             "natural=water" }, members = {
                                     @Member(id = "214778000000", role = "outer", type = "line") }) })
-    private Atlas singleOuterWaterSpanningTwoAtlases1;
+    private Atlas singleOuterMultiPolygonSpanningTwoAtlases1;
 
     @TestAtlas(points = { @Point(id = "214776000000", coordinates = @Loc(value = LOCATION_30)),
 
@@ -297,47 +298,12 @@ public class RelationSlicingTestRule extends CoreTestRule
                     @Loc(value = LOCATION_32) }, tags = { "highway=primary" }) },
 
             relations = {
-
+                    @Relation(id = "214806000000", tags = {}, members = {
+                            @Member(id = "214777000000", role = "", type = "line") }),
                     @Relation(id = "214805000000", tags = { "type=multipolygon",
                             "natural=water" }, members = {
                                     @Member(id = "214777000000", role = "outer", type = "line") }) })
-    private Atlas singleOuterWaterSpanningTwoAtlases2;
-
-    @TestAtlas(points = { @Point(id = "214775000000", coordinates = @Loc(value = LOCATION_31)),
-            @Point(id = "214774000000", coordinates = @Loc(value = LOCATION_32)),
-            @Point(id = "214768000000", coordinates = @Loc(value = LOCATION_38)) },
-
-            lines = { @Line(id = "214778000000", coordinates = { @Loc(value = LOCATION_38),
-                    @Loc(value = LOCATION_31),
-                    @Loc(value = LOCATION_32) }, tags = { "highway=residential" }) },
-
-            relations = {
-
-                    @Relation(id = "214805000000", tags = { "type=multipolygon",
-                            "building=yes" }, members = {
-                                    @Member(id = "214778000000", role = "outer", type = "line") }) })
-    private Atlas singleOuterNonWaterSpanningTwoAtlases1;
-
-    @TestAtlas(points = { @Point(id = "214776000000", coordinates = @Loc(value = LOCATION_30)),
-
-            @Point(id = "214774000000", coordinates = @Loc(value = LOCATION_32)),
-
-            @Point(id = "214772000000", coordinates = @Loc(value = LOCATION_34)),
-            @Point(id = "214771000000", coordinates = @Loc(value = LOCATION_35)),
-            @Point(id = "214769000000", coordinates = @Loc(value = LOCATION_37)),
-            @Point(id = "214768000000", coordinates = @Loc(value = LOCATION_38)) },
-
-            lines = { @Line(id = "214777000000", coordinates = { @Loc(value = LOCATION_38),
-                    @Loc(value = LOCATION_37), @Loc(value = LOCATION_30), @Loc(value = LOCATION_34),
-                    @Loc(value = LOCATION_35),
-                    @Loc(value = LOCATION_32) }, tags = { "highway=primary" }) },
-
-            relations = {
-
-                    @Relation(id = "214805000000", tags = { "type=multipolygon",
-                            "building=yes" }, members = {
-                                    @Member(id = "214777000000", role = "outer", type = "line") }) })
-    private Atlas singleOuterNonWaterSpanningTwoAtlases2;
+    private Atlas singleOuterMultiPolygonSpanningTwoAtlases2;
 
     public Atlas getComplexMultiPolygonWithHoleUsingClosedLinesAtlas()
     {
@@ -374,23 +340,13 @@ public class RelationSlicingTestRule extends CoreTestRule
         return this.singleOuterMadeOfOpenLinesSpanningTwoCountriesWithDuplicatePoints;
     }
 
-    public Atlas getSingleOuterNonWaterSpanningTwoAtlases1()
+    public Atlas getSingleOuterMultiPolygonSpanningTwoAtlases1()
     {
-        return this.singleOuterNonWaterSpanningTwoAtlases1;
+        return this.singleOuterMultiPolygonSpanningTwoAtlases1;
     }
 
-    public Atlas getSingleOuterNonWaterSpanningTwoAtlases2()
+    public Atlas getSingleOuterMultiPolygonSpanningTwoAtlases2()
     {
-        return this.singleOuterNonWaterSpanningTwoAtlases2;
-    }
-
-    public Atlas getSingleOuterWaterSpanningTwoAtlases1()
-    {
-        return this.singleOuterWaterSpanningTwoAtlases1;
-    }
-
-    public Atlas getSingleOuterWaterSpanningTwoAtlases2()
-    {
-        return this.singleOuterWaterSpanningTwoAtlases2;
+        return this.singleOuterMultiPolygonSpanningTwoAtlases2;
     }
 }

@@ -100,8 +100,8 @@ public class RawAtlasCountrySlicer
     }
 
     /**
-     * Legacy entrypoint that slices lines and relations in one go, without dynamic expansion on
-     * water relations. Please slice lines and relations individually now using the sliceLines and
+     * Legacy entrypoint that slices lines and relations in one go, without dynamic expanded
+     * relations. Please slice lines and relations individually now using the sliceLines and
      * sliceRelations methods.
      *
      * @param rawAtlas
@@ -156,11 +156,11 @@ public class RawAtlasCountrySlicer
 
     /**
      * Slice all lines in a given line-sliced Atlas. Uses the Atlas fetcher function to fetch data
-     * for the initial shard and any expanded shards, expanding along water relations.
+     * for the initial shard and any dynamically expanded shards.
      *
      * @param initialShard
      *            The initial shard being sliced
-     * @return A fully sliced (lines and relations) Atlas with water relations expanded upon
+     * @return A fully sliced (lines and relations) Atlas with relations expanded upon
      */
     public Atlas sliceRelations(final Shard initialShard)
     {

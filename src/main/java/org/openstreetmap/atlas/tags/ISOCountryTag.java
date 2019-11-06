@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.tags;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -49,6 +50,16 @@ public interface ISOCountryTag
             return allIsoCodes.stream().map(isoCode -> IsoCountry.forCountryCode(isoCode))
                     .filter(isoCountry -> isoCountry.isPresent())
                     .map(isoCountry -> isoCountry.get()).collect(Collectors.toList());
+        }
+        return ImmutableList.of();
+    }
+
+    static Iterable<String> allCountryStrings(final Taggable taggable)
+    {
+        final Optional<String> countryCode = taggable.getTag(ISOCountryTag.class, Optional.empty());
+        if (countryCode.isPresent())
+        {
+            return Arrays.asList(countryCode.get().split(COUNTRY_DELIMITER));
         }
         return ImmutableList.of();
     }
@@ -120,6 +131,27 @@ public interface ISOCountryTag
             {
                 // if any one matches, return true
                 if (checkCountries.contains(isoCountry))
+                {
+                    return true;
+                }
+            }
+            return false;
+        };
+    }
+
+    static Predicate<Taggable> isIn(final Set<IsoCountry> countries)
+    {
+        if (countries.isEmpty())
+        {
+            return taggable -> false;
+        }
+
+        return taggable ->
+        {
+            for (final IsoCountry isoCountry : all(taggable))
+            {
+                // if any one matches, return true
+                if (countries.contains(isoCountry))
                 {
                     return true;
                 }

@@ -1,6 +1,5 @@
 {
   "filters": [
-    "natural->water,coastline",
     "type->multipolygon"
   ]
 }

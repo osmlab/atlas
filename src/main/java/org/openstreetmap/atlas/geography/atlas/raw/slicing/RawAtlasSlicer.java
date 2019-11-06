@@ -28,6 +28,7 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsLinearRingConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsLocationConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
+import org.openstreetmap.atlas.locale.IsoCountry;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
@@ -260,6 +261,19 @@ public abstract class RawAtlasSlicer
     protected CountryBoundaryMap getCountryBoundaryMap()
     {
         return this.loadingOption.getCountryBoundaryMap();
+    }
+
+    protected Set<IsoCountry> getIsoCountries()
+    {
+        final Set<IsoCountry> isoCountries = new HashSet<>();
+        if (this.loadingOption.getCountryCodes().isEmpty())
+        {
+            this.loadingOption.setAdditionalCountryCodes(
+                    this.loadingOption.getCountryBoundaryMap().allCountryNames());
+        }
+        this.loadingOption.getCountryCodes().forEach(
+                countryCode -> isoCountries.add(IsoCountry.forCountryCode(countryCode).get()));
+        return isoCountries;
     }
 
     protected RawAtlasSlicingStatistic getStatistics()

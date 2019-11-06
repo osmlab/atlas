@@ -61,6 +61,12 @@ public class RelationMemberList extends AbstractCollection<RelationMember> imple
         this.explicitlyExcluded = new HashSet<>();
     }
 
+    @Override
+    public boolean add(final RelationMember item)
+    {
+        return this.members.add(item);
+    }
+
     public void addItemExplicitlyExcluded(final RelationBeanItem item)
     {
         this.explicitlyExcluded.add(item);
