@@ -235,8 +235,14 @@ public class SimpleOptionAndArgumentParser
     private final Map<String, List<String>> parsedArguments;
     private int currentContext;
     private boolean parseStepRanAtLeastOnce;
+    private final boolean ignoreUnknownOptions;
 
     public SimpleOptionAndArgumentParser()
+    {
+        this(false);
+    }
+
+    public SimpleOptionAndArgumentParser(final boolean ignoreUnknownOptions)
     {
         this.contextToRegisteredOptions = new HashMap<>();
         this.contextToArgumentHintToArity = new HashMap<>();
@@ -253,6 +259,7 @@ public class SimpleOptionAndArgumentParser
         this.parsedArguments = new LinkedHashMap<>();
         this.currentContext = NO_CONTEXT;
         this.parseStepRanAtLeastOnce = false;
+        this.ignoreUnknownOptions = ignoreUnknownOptions;
     }
 
     /**
@@ -504,6 +511,7 @@ public class SimpleOptionAndArgumentParser
         this.parsedOptions.clear();
         this.currentContext = NO_CONTEXT;
         boolean seenEndOptionsOperator = false;
+        final List<String> modifiedArguments = new ArrayList<>();
 
         /*
          * First, we pre-parse arguments to see if there are any ambiguous or unknown long options.
@@ -522,6 +530,7 @@ public class SimpleOptionAndArgumentParser
          */
         for (final String argument : allArguments)
         {
+            boolean addBackArg = true;
             if (END_OPTIONS_OPERATOR.equals(argument))
             {
                 if (!seenEndOptionsOperator)
@@ -542,7 +551,14 @@ public class SimpleOptionAndArgumentParser
                         getRegisteredOptions(), true);
                 if (!option.isPresent())
                 {
-                    throw new UnknownOptionException(optionName, getRegisteredOptions());
+                    if (this.ignoreUnknownOptions)
+                    {
+                        addBackArg = false;
+                    }
+                    else
+                    {
+                        throw new UnknownOptionException(optionName, getRegisteredOptions());
+                    }
                 }
             }
             else if (argument.startsWith(SHORT_FORM_PREFIX) && !seenEndOptionsOperator)
@@ -551,8 +567,19 @@ public class SimpleOptionAndArgumentParser
                         getRegisteredOptions());
                 if (!option.isPresent())
                 {
-                    throw new UnknownOptionException(argument.charAt(1));
+                    if (this.ignoreUnknownOptions)
+                    {
+                        addBackArg = false;
+                    }
+                    else
+                    {
+                        throw new UnknownOptionException(argument.charAt(1));
+                    }
                 }
+            }
+            if (addBackArg)
+            {
+                modifiedArguments.add(argument);
             }
         }
 
@@ -562,7 +589,7 @@ public class SimpleOptionAndArgumentParser
         {
             try
             {
-                this.parseOptionsAndArguments(allArguments, context);
+                this.parseOptionsAndArguments(modifiedArguments, context);
             }
             catch (final Exception exception)
             {
