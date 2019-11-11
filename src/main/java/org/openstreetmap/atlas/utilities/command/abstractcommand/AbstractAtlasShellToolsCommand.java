@@ -787,10 +787,10 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     {
         List<String> argsAsList = Arrays.asList(args);
         argsAsList = new ArrayList<>(argsAsList);
-        if (!argsAsList.isEmpty() && IGNORE_UNKNOWN_OPTIONS.equals(argsAsList.get(0)))
+        if (!argsAsList.isEmpty() && argsAsList.contains(IGNORE_UNKNOWN_OPTIONS))
         {
             this.ignoreUnknownOptions = true;
-            argsAsList.remove(0);
+            argsAsList.remove(IGNORE_UNKNOWN_OPTIONS);
         }
         if (!argsAsList.isEmpty()
                 && JAVA_MARKER_SENTINEL.equals(argsAsList.get(argsAsList.size() - 1)))
