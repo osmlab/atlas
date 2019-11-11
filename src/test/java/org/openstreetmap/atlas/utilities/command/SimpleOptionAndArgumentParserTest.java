@@ -44,6 +44,47 @@ public class SimpleOptionAndArgumentParserTest
         }
     }
 
+    @Test
+    public void testIgnoreUnknownOptions()
+    {
+        final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser(true);
+        parser.registerOption("opt1", "the 1st option", OptionOptionality.OPTIONAL, 1);
+        parser.registerOption("opt2", "the 2nd option", OptionOptionality.OPTIONAL, 1);
+
+        final List<String> arguments = Arrays.asList("--opt1", "--opt3", "--opt2");
+
+        try
+        {
+            parser.parse(arguments);
+        }
+        catch (AmbiguousAbbreviationException | UnknownOptionException
+                | UnparsableContextException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+
+        Assert.assertTrue(parser.hasOption("opt1"));
+        Assert.assertTrue(parser.hasOption("opt2"));
+        Assert.assertFalse(parser.hasOption("opt3"));
+
+        final SimpleOptionAndArgumentParser parser2 = new SimpleOptionAndArgumentParser(true);
+        parser2.registerOption("opt1", 'o', "the 1st option", OptionOptionality.OPTIONAL, 1);
+
+        final List<String> arguments2 = Arrays.asList("-z", "-o");
+
+        try
+        {
+            parser2.parse(arguments2);
+        }
+        catch (AmbiguousAbbreviationException | UnknownOptionException
+                | UnparsableContextException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+
+        Assert.assertTrue(parser2.hasOption("opt1"));
+    }
+
     @Test(expected = CoreException.class)
     public void testInvalidArgumentDeclarationOrder()
     {

@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.utilities.command.abstractcommand;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -39,24 +40,22 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
 {
     public static final int DEFAULT_CONTEXT = 3;
     public static final String DESCRIPTION = "DESCRIPTION";
+    public static final String EXAMPLES = "EXAMPLES";
 
-    /*
+    private static final String LINE_SEPARATOR = "line.separator";
+    private static final Logger logger = LoggerFactory
+            .getLogger(AbstractAtlasShellToolsCommand.class);
+
+    /**
      * Until Java supports the ability to do granular TTY configuration checking thru an interface
      * like isatty(3), we must rely on special tail arguments. An external wrapper (bash, perl,
      * etc.) can do the necessary TTY config check, and then pass these sentinels to tell the
      * subcommand if it should use special formatting. A ticket to support better TTY in Java
      * checking has been open for years, with no avail:
-     * https://bugs.java.com/bugdatabase/view_bug.do?bug_id=4099017
-     */
-    public static final String EXAMPLES = "EXAMPLES";
-    private static final String LINE_SEPARATOR = "line.separator";
-    private static final Logger logger = LoggerFactory
-            .getLogger(AbstractAtlasShellToolsCommand.class);
-    /**
-     * In addition to the tail arguments declared here, this command also expects a TTY maximum
-     * column value (a single integer). See
-     * {@link AbstractAtlasShellToolsCommand#runSubcommandAndExit(String...)} for the code that
-     * unpacks the tail arguments.
+     * https://bugs.java.com/bugdatabase/view_bug.do?bug_id=4099017. In addition to the tail
+     * arguments declared here, this command also expects a TTY maximum column value (a single
+     * integer). See {@link AbstractAtlasShellToolsCommand#runSubcommandAndExit(String...)} for the
+     * code that unpacks the tail arguments.
      */
     private static final String JAVA_COLOR_STDOUT = "___atlas-shell-tools_color_stdout_SPECIALARGUMENT___";
     private static final String JAVA_NO_COLOR_STDOUT = "___atlas-shell-tools_nocolor_stdout_SPECIALARGUMENT___";
@@ -70,6 +69,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     private static final int STDERR_COLOR_OFFSET = 4;
     private static final int PAGER_OFFSET = 3;
     private static final int TERMINAL_COLUMN_OFFSET = 2;
+
     private static final String VERBOSE_OPTION_LONG = "verbose";
     private static final Character VERBOSE_OPTION_SHORT = 'v';
     private static final String VERBOSE_OPTION_DESCRIPTION = "Show verbose output messages.";
@@ -81,13 +81,14 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     private static final String VERSION_OPTION_DESCRIPTION = "Print the command version and exit.";
     private static final int HELP_OPTION_CONTEXT = 1;
     private static final int VERSION_OPTION_CONTEXT = 2;
+    private static final String IGNORE_UNKNOWN_OPTIONS = "--ignore-unknown-options";
     /*
      * Maximum allowed column width. If the user's terminal is very wide, we don't want to display
      * documentation all the way to the max column, since it may become hard to read.
      */
     private static final int MAXIMUM_ALLOWED_COLUMN = 225;
 
-    private final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
+    private SimpleOptionAndArgumentParser parser;
     private final DocumentationRegistrar registrar = new DocumentationRegistrar();
 
     private boolean useColorStdout = false;
@@ -95,6 +96,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     private boolean usePager = false;
     private int maximumColumn = DocumentationFormatter.DEFAULT_MAXIMUM_COLUMN;
     private String version = "default_version_value";
+    private boolean ignoreUnknownOptions = false;
 
     /**
      * Execute the command logic. Subclasses of {@link AbstractAtlasShellToolsCommand} must
@@ -163,11 +165,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     {
         throwIfInvalidNameOrDescription();
 
-        String[] argsCopy = unpackTailSentinelArguments(args);
-        if (argsCopy == null)
-        {
-            argsCopy = args;
-        }
+        final String[] argsCopy = unpackSentinelArguments(args);
+        this.parser = new SimpleOptionAndArgumentParser(this.ignoreUnknownOptions);
 
         // fill out appropriate data structures so the execute() implementation can query
         registerOptionsAndArguments();
@@ -784,15 +783,23 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         printlnStderr(builder.toString());
     }
 
-    private String[] unpackTailSentinelArguments(final String[] args)
+    private String[] unpackSentinelArguments(final String[] args)
     {
-        // check the last arg to see if we should check for other tail arguments
-        if (args.length > 0 && JAVA_MARKER_SENTINEL.equals(args[args.length - 1]))
+        List<String> argsAsList = Arrays.asList(args);
+        argsAsList = new ArrayList<>(argsAsList);
+        if (!argsAsList.isEmpty() && argsAsList.contains(IGNORE_UNKNOWN_OPTIONS))
         {
-            final String stdoutColorArg = args[args.length - STDOUT_COLOR_OFFSET];
-            final String stderrColorArg = args[args.length - STDERR_COLOR_OFFSET];
-            final String usePagerArg = args[args.length - PAGER_OFFSET];
-            final String terminalColumnArg = args[args.length - TERMINAL_COLUMN_OFFSET];
+            this.ignoreUnknownOptions = true;
+            argsAsList.remove(IGNORE_UNKNOWN_OPTIONS);
+        }
+        if (!argsAsList.isEmpty()
+                && JAVA_MARKER_SENTINEL.equals(argsAsList.get(argsAsList.size() - 1)))
+        {
+            final String stdoutColorArg = argsAsList.get(argsAsList.size() - STDOUT_COLOR_OFFSET);
+            final String stderrColorArg = argsAsList.get(argsAsList.size() - STDERR_COLOR_OFFSET);
+            final String usePagerArg = argsAsList.get(argsAsList.size() - PAGER_OFFSET);
+            final String terminalColumnArg = argsAsList
+                    .get(argsAsList.size() - TERMINAL_COLUMN_OFFSET);
             if (JAVA_COLOR_STDOUT.equals(stdoutColorArg))
             {
                 this.useColorStdout = true;
@@ -822,8 +829,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
             {
                 this.maximumColumn = MAXIMUM_ALLOWED_COLUMN;
             }
-            return Arrays.copyOf(args, args.length - NUMBER_SENTINELS);
+            argsAsList = argsAsList.subList(0, argsAsList.size() - NUMBER_SENTINELS);
         }
-        return null;
+        return argsAsList.toArray(new String[0]);
     }
 }
