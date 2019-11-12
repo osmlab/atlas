@@ -1,5 +1,6 @@
 plugins {
 	id 'java'
+    id 'groovy'
 	id 'maven'
 	id 'maven-publish'
 	id 'idea'
@@ -66,6 +67,7 @@ dependencies
     compile packages.groovy
     compile packages.checkstyle
     compile packages.diff_utils
+    compile packages.groovy_json
 
     testCompile packages.checkstyle_tests
 
