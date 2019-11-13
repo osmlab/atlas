@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.tags;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -46,5 +47,10 @@ public interface SyntheticRelationMemberAdded
     static boolean hasAddedRelationMember(final Taggable taggable)
     {
         return taggable.getTag(KEY).isPresent();
+    }
+
+    static String join(final Collection<String> ids)
+    {
+        return String.join(MEMBER_DELIMITER, ids);
     }
 }
