@@ -2,7 +2,6 @@ package org.openstreetmap.atlas.geography.atlas.dsl.engine.impl
 
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.StringUtils
-import org.apache.commons.lang3.Validate
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.codehaus.groovy.control.customizers.ImportCustomizer
 import org.openstreetmap.atlas.geography.atlas.Atlas
@@ -90,8 +89,14 @@ abstract class AbstractQueryExecutorImpl implements QueryExecutor {
 
         final List<Statement> allowedStatements = [Statement.SELECT, Statement.UPDATE, Statement.DELETE]
 
-        Valid.isTrue allowedStatements.stream().filter { statement -> queryAsString.startsWith(statement.closureName()) }.count() == 1, "Invalid Query input, only ${allowedStatements} supported."
-        Valid.isTrue Arrays.stream(queryAsString.split(/\r\n|\r|\n/)).filter { line -> StringUtils.isNotEmpty(line) }.count() == 1, "Only one statement permitted."
+        Valid.isTrue allowedStatements.stream()
+                .filter { statement -> queryAsString.startsWith(statement.closureName()) }
+                .count() == 1,
+                "Invalid Query input, only ${allowedStatements} supported."
+        Valid.isTrue Arrays.stream(queryAsString.split(/\r\n|\r|\n/))
+                .filter { line -> StringUtils.isNotEmpty(line) }
+                .count() == 1,
+                "Only one statement permitted."
     }
 
     private final Result evalQueryString(final AtlasSchema atlasSchema, final String queryAsString) {
