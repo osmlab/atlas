@@ -11,30 +11,103 @@ AQL leverages Atlas as the underlying framework and doesn't reinvent the wheels.
 
 Atlas allows working against all 6 major entities, node, point, edge, line, relation, area, exposed as "tables" in an atlas schema.
 
-# Examples and Usage
+# Quick Start Guide
 
-# Use(-ing) command
+The easiest way to get started is to have an IDE with Groovy support. Ensure that you have Atlas 
+as a dependency. IntelliJ with Groovy plugin offers excellent support including auto-complete of
+queries as demonstrated below.
 
-```sql
-atlasDNK = using "/tmp/atlas/DNK/"
+- Imports
+
+Create a groovy file with 2 imports listed below. Notice these are `static` star imports,
+
+```groovy
+/*Optional package statement if applicable.*/
+
+import static org.openstreetmap.atlas.geography.atlas.dsl.query.QueryBuilderFactory.*
+import static org.openstreetmap.atlas.geography.atlas.dsl.schema.AtlasDB.getEdge
 ```
 
-# Select data from "table"
+- Load Atlas (or OSM) file(s)
 
 ```sql
-select node.id, node.osmId, node.tags from atlasDNK.node where node.hasId(123000000) and node.hasOsmId(123) or node.hasTag("amenity": "college")
+/*
+examples,
+a. One Atlas File on disk:- file:///home/me/dir1/dir2//ButterflyPark.atlas
+b. One Atlas File omn disk (without explicitly mentioning file: scheme):- /home/me/dir1/dir2//ButterflyPark.atlas
+d. All Atlas files in a directory:- /home/dir1/dir2/allAtlasesInsideDirNoRecurse
+e. A file from the classpath:- classpath:/data/ButterflyPark/ButterflyPark.osm
+f. Multiple files from classpath:- classpath:/atlas1/something1.atlas,something2.atlas;/atlas2/Alcatraz.atlas,Butterfly.atlas
+*/
+myAtlas = using "<your atlas or OSM file>"
 ```
 
-# Update records
+- Write queries against `myAtlas`
+
+Here are some examples,
+
+* Select everything from node "table"
 
 ```sql
-polygon = [
-        [
-                [12.5210973, 55.662373], [12.521311, 55.6623777], [12.5212936, 55.6624042], [12.5227817, 55.6625331], [12.5210973, 55.662373]
-        ]
-]
+select node._ from myAtlas.node
+```
 
-update edge set edge.addTags(hello: "world"), edge.deleteTag("fixme") where edge.isWithin(polygon)
+* Select with where clause
+
+```sql
+select node.id, node.osmId, node.tags from myAtlas.node where node.hasId(123000000) or node.hasTag("amenity": "college")
+```
+
+* Update statement
+
+```sql
+update myAtlas.node set node.addTag(hello: "world") where node.hasIds(123456789, 9087655432)
+```
+
+* Delete statement
+
+```sql
+delete myAtlas.edge where edge.hasTag(highway: "footway") and not(edge.hasTag(foot: "yes"))
+```
+
+* An example where we commit to create a new Atlas (schema),
+
+```sql
+
+/*Load*/ 
+atlas = using "classpath:/data/Alcatraz/Alcatraz.osm"
+
+/*Run some select queries to explore the data.*/
+select edge._ from atlas.edge limit 100
+
+/*
+Run some update and/or delete statement(s)
+*/
+update1 = update atlas.edge set edge.addTag(website: "https://www.nps.gov/alca") where edge.hasTagLike(name: /Pier/) or edge.hasTagLike(name: /Island/) or edge.hasTagLike(name: /Road/)
+update2 = update atlas.edge set edge.addTag(wikipedia: "https://en.wikipedia.org/wiki/Alcatraz_Island") where edge.hasTagLike(/foot/)
+
+/*
+Note edge.hasTagLike(name: /Pier/), in groovy you can use forward slashes instead of double 
+quotes to work with RegEx and that allows you to skip the double escaping that we do in Java 
+when working with RegExes.
+*/
+
+/*
+Commit the changes
+*/
+changedAtlas = commit update1, update2
+
+/*
+Run Selects against the new atlas schema, notice changedAtlas.edge instead of atlas.edge here,
+*/
+select edge._ from changedAtlas.edge where edge.hasTag("website") or edge.hasTag("wikipedia")
+
+/*
+Run some commands like diff and explain plan
+*/
+diff atlas, changedAtlas
+
+explain update1
 ```
 
 # Supported Tables
@@ -43,5 +116,5 @@ update edge set edge.addTags(hello: "world"), edge.deleteTag("fixme") where edge
 - point
 - line
 - edge
-- relationship
+- relation
 - area
