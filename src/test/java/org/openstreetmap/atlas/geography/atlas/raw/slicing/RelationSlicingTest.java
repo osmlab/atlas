@@ -20,7 +20,6 @@ import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
 import org.openstreetmap.atlas.geography.sharding.SlippyTileSharding;
-import org.openstreetmap.atlas.locale.IsoCountry;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
@@ -88,13 +87,13 @@ public class RelationSlicingTest
         {
             return relation.isMultiPolygon()
                     && Validators.isOfType(relation, NaturalTag.class, NaturalTag.WATER)
-                    && ISOCountryTag.isIn(IsoCountry.forCountryCode("LBR").get()).test(relation);
+                    && ISOCountryTag.isIn("LBR").test(relation);
         })));
         Assert.assertEquals(1, Iterables.size(slicedAtlas.relations(relation ->
         {
             return relation.isMultiPolygon()
                     && Validators.isOfType(relation, NaturalTag.class, NaturalTag.WATER)
-                    && ISOCountryTag.isIn(IsoCountry.forCountryCode("CIV").get()).test(relation);
+                    && ISOCountryTag.isIn("CIV").test(relation);
         })));
 
         // check that these relations close
@@ -113,10 +112,8 @@ public class RelationSlicingTest
         // check the non multipolygon relation and make sure it was left intact and tagged with both
         // country codes
         Assert.assertNotNull(slicedAtlas.relation(214806000000L));
-        Assert.assertTrue(ISOCountryTag.isIn(IsoCountry.forCountryCode("CIV").get())
-                .test(slicedAtlas.relation(214806000000L)));
-        Assert.assertTrue(ISOCountryTag.isIn(IsoCountry.forCountryCode("LBR").get())
-                .test(slicedAtlas.relation(214806000000L)));
+        Assert.assertTrue(ISOCountryTag.isIn("CIV").test(slicedAtlas.relation(214806000000L)));
+        Assert.assertTrue(ISOCountryTag.isIn("LBR").test(slicedAtlas.relation(214806000000L)));
     }
 
     @Test
@@ -176,7 +173,7 @@ public class RelationSlicingTest
         {
             return relation.isMultiPolygon()
                     && Validators.isOfType(relation, NaturalTag.class, NaturalTag.WATER)
-                    && ISOCountryTag.isIn(IsoCountry.forCountryCode("LBR").get()).test(relation);
+                    && ISOCountryTag.isIn("LBR").test(relation);
         })));
 
         // check that these relations close
@@ -191,10 +188,8 @@ public class RelationSlicingTest
         // check the non multipolygon relation and make sure it was left intact and tagged with only
         // the country we're slicing
         Assert.assertNotNull(slicedAtlas.relation(214806000000L));
-        Assert.assertFalse(ISOCountryTag.isIn(IsoCountry.forCountryCode("CIV").get())
-                .test(slicedAtlas.relation(214806000000L)));
-        Assert.assertTrue(ISOCountryTag.isIn(IsoCountry.forCountryCode("LBR").get())
-                .test(slicedAtlas.relation(214806000000L)));
+        Assert.assertFalse(ISOCountryTag.isIn("CIV").test(slicedAtlas.relation(214806000000L)));
+        Assert.assertTrue(ISOCountryTag.isIn("LBR").test(slicedAtlas.relation(214806000000L)));
     }
 
     @Test
