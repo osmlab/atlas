@@ -30,6 +30,7 @@ project.ext.versions = [
     groovy: '2.5.4',
     atlas_checkstyle: '5.6.9',
     diff_utils: '4.0',
+    groovy_json: '2.5.4'
 ]
 
 project.ext.packages = [
@@ -77,4 +78,5 @@ project.ext.packages = [
     checkstyle_tests: "com.puppycrawl.tools:checkstyle:${versions.checkstyle}:tests",
     atlas_checkstyle: "org.openstreetmap.atlas:atlas:${versions.atlas_checkstyle}",
     diff_utils: "io.github.java-diff-utils:java-diff-utils:${versions.diff_utils}",
+    groovy_json: "org.codehaus.groovy:groovy-json:${versions.groovy_json}"
 ]
