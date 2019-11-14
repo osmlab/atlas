@@ -24,6 +24,8 @@ public class Descriptor implements Serializable
     private String position;
     private String beforeView;
     private String afterView;
+    private Long beforeElement;
+    private Long afterElement;
 
     public Descriptor()
     {
@@ -35,9 +37,19 @@ public class Descriptor implements Serializable
         return EqualsBuilder.reflectionEquals(this, that);
     }
 
+    public Long getAfterElement()
+    {
+        return this.afterElement;
+    }
+
     public String getAfterView()
     {
         return this.afterView;
+    }
+
+    public Long getBeforeElement()
+    {
+        return this.beforeElement;
     }
 
     public String getBeforeView()
@@ -96,9 +108,19 @@ public class Descriptor implements Serializable
         return HashCodeBuilder.reflectionHashCode(this);
     }
 
+    public void setAfterElement(final Long afterElement)
+    {
+        this.afterElement = afterElement;
+    }
+
     public void setAfterView(final String afterView)
     {
         this.afterView = afterView;
+    }
+
+    public void setBeforeElement(final Long beforeElement)
+    {
+        this.beforeElement = beforeElement;
     }
 
     public void setBeforeView(final String beforeView)

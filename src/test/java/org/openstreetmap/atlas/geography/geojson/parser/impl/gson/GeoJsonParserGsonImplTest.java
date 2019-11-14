@@ -72,6 +72,8 @@ public class GeoJsonParserGsonImplTest extends AbstractGeoJsonParserGsonImplTest
         Assert.assertEquals(402306209000000L, (long) descriptor.getId());
         Assert.assertEquals("NODE", descriptor.getItemType());
         Assert.assertEquals("via", descriptor.getRole());
+        Assert.assertEquals(9087654321L, (long) descriptor.getBeforeElement());
+        Assert.assertEquals(1234567890L, (long) descriptor.getAfterElement());
     }
 
     @Test

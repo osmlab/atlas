@@ -42,7 +42,9 @@
           "type": "ADD",
           "itemType": "NODE",
           "id": 402306209000000,
-          "role": "via"
+          "role": "via",
+          "beforeElement": 9087654321,
+          "afterElement": 1234567890
         }
       ]
     },
