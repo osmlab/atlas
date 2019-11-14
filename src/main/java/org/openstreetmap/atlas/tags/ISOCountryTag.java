@@ -1,13 +1,11 @@
 package org.openstreetmap.atlas.tags;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
-import org.openstreetmap.atlas.locale.IsoCountry;
 import org.openstreetmap.atlas.tags.annotations.Tag;
 import org.openstreetmap.atlas.tags.annotations.Tag.Validation;
 import org.openstreetmap.atlas.tags.annotations.TagKey;
@@ -31,30 +29,7 @@ public interface ISOCountryTag
     String COUNTRY_MISSING = "N/A";
     String COUNTRY_DELIMITER = ",";
 
-    /**
-     * Returns all countries from the Taggable's iso_country_code tag.
-     *
-     * @param taggable
-     *            the {@link Taggable} to get the country codes from
-     * @return Iterable of all the country codes for this item
-     */
-    static Iterable<IsoCountry> all(final Taggable taggable)
-    {
-        final Optional<String> countryCode = taggable.getTag(ISOCountryTag.class, Optional.empty());
-
-        if (countryCode.isPresent())
-        {
-            final List<String> allIsoCodes = Arrays
-                    .asList(countryCode.get().split(COUNTRY_DELIMITER));
-
-            return allIsoCodes.stream().map(isoCode -> IsoCountry.forCountryCode(isoCode))
-                    .filter(isoCountry -> isoCountry.isPresent())
-                    .map(isoCountry -> isoCountry.get()).collect(Collectors.toList());
-        }
-        return ImmutableList.of();
-    }
-
-    static Iterable<String> allCountryStrings(final Taggable taggable)
+    static Iterable<String> all(final Taggable taggable)
     {
         final Optional<String> countryCode = taggable.getTag(ISOCountryTag.class, Optional.empty());
         if (countryCode.isPresent())
@@ -72,21 +47,19 @@ public interface ISOCountryTag
      * @return Predicate used to test if all of the item's iso_country_codes can be found in the
      *         list of countries
      */
-    static Predicate<Taggable> allIn(final IsoCountry... countries)
+    static Predicate<Taggable> allIn(final Collection<String> countries)
     {
-        if (countries.length == 0)
+        if (countries.isEmpty())
         {
             return taggable -> false;
         }
 
         return taggable ->
         {
-            final List<IsoCountry> checkCountries = Arrays.asList(countries);
-
-            for (final IsoCountry isoCountry : all(taggable))
+            for (final String country : all(taggable))
             {
                 // if any don't match, return false
-                if (!checkCountries.contains(isoCountry))
+                if (!countries.contains(country))
                 {
                     return false;
                 }
@@ -103,43 +76,12 @@ public interface ISOCountryTag
      *            The {@link Taggable} to get the first country code from
      * @return The first country code for the item if it exists
      */
-    static Optional<IsoCountry> first(final Taggable taggable)
+    static Optional<String> first(final Taggable taggable)
     {
         return Iterables.first(all(taggable));
     }
 
-    /**
-     * Tests if any of the item's iso_country_code can be found in a list of countries
-     *
-     * @param countries
-     *            A set of countries we want to check in
-     * @return Predicate used to test if any of the item's iso_country_code can be found in the list
-     *         of countries
-     */
-    static Predicate<Taggable> isIn(final IsoCountry... countries)
-    {
-        if (countries.length == 0)
-        {
-            return taggable -> false;
-        }
-
-        return taggable ->
-        {
-            final List<IsoCountry> checkCountries = Arrays.asList(countries);
-
-            for (final IsoCountry isoCountry : all(taggable))
-            {
-                // if any one matches, return true
-                if (checkCountries.contains(isoCountry))
-                {
-                    return true;
-                }
-            }
-            return false;
-        };
-    }
-
-    static Predicate<Taggable> isIn(final Set<IsoCountry> countries)
+    static Predicate<Taggable> isIn(final Set<String> countries)
     {
         if (countries.isEmpty())
         {
@@ -148,15 +90,41 @@ public interface ISOCountryTag
 
         return taggable ->
         {
-            for (final IsoCountry isoCountry : all(taggable))
+            for (final String country : all(taggable))
             {
                 // if any one matches, return true
-                if (countries.contains(isoCountry))
+                if (countries.contains(country))
                 {
                     return true;
                 }
             }
             return false;
         };
+    }
+
+    static Predicate<Taggable> isIn(final String countryToMatch)
+    {
+        if (countryToMatch == null || countryToMatch.isEmpty())
+        {
+            return taggable -> false;
+        }
+
+        return taggable ->
+        {
+            for (final String country : all(taggable))
+            {
+                // if any one matches, return true
+                if (countryToMatch.equals(country))
+                {
+                    return true;
+                }
+            }
+            return false;
+        };
+    }
+
+    static String join(final Collection<String> countries)
+    {
+        return String.join(COUNTRY_DELIMITER, countries);
     }
 }

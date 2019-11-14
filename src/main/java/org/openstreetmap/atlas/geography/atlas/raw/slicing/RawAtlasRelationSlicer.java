@@ -111,7 +111,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
         super(loadingOption, new CoordinateToNewPointMapping(), atlas);
         this.initialShard = initialShard;
         this.pointCandidatesForRemoval = new HashSet<>();
-        this.isInCountry = entity -> ISOCountryTag.isIn(this.getIsoCountries()).test(entity);
+        this.isInCountry = entity -> ISOCountryTag.isIn(this.getCountries()).test(entity);
     }
 
     /**
@@ -630,7 +630,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                                 .get(member.getEntity().getIdentifier());
                         final RelationMember lineMember = new RelationMember(member.getRole(), line,
                                 relationIdentifier);
-                        ISOCountryTag.allCountryStrings(line)
+                        ISOCountryTag.all(line)
                                 .forEach(country -> countryEntityMap.add(country, lineMember));
                     }
                     else
@@ -639,7 +639,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                                 .from(getStartingAtlas().line(member.getEntity().getIdentifier()));
                         final RelationMember lineMember = new RelationMember(member.getRole(), line,
                                 relationIdentifier);
-                        ISOCountryTag.allCountryStrings(line)
+                        ISOCountryTag.all(line)
                                 .forEach(country -> countryEntityMap.add(country, lineMember));
                     }
                     break;
@@ -648,7 +648,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                             .from(getStartingAtlas().point(member.getEntity().getIdentifier()));
                     final RelationMember pointMember = new RelationMember(member.getRole(), point,
                             relationIdentifier);
-                    ISOCountryTag.allCountryStrings(point)
+                    ISOCountryTag.all(point)
                             .forEach(country -> countryEntityMap.add(country, pointMember));
             }
         });
@@ -1014,7 +1014,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
             // we're keeping these members, but do need to check that any child relations that have
             // been split are updated
             if (this.getCountries().contains(entry.getKey())
-                    || String.join(",", this.getCountries()).equals(entry.getKey()))
+                    || ISOCountryTag.join(this.getCountries()).equals(entry.getKey()))
             {
                 relationMembers.addAll(entry.getValue());
             }
@@ -1038,10 +1038,10 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                     countries.add(country);
                 }
             });
-            updatedRelation.withAddedTag(ISOCountryTag.KEY, String.join(",", countries));
+            updatedRelation.withAddedTag(ISOCountryTag.KEY, ISOCountryTag.join(countries));
             this.changes.add(FeatureChange.add(updatedRelation));
             final HashMap<String, CompleteRelation> relationByCountry = new HashMap<>();
-            relationByCountry.put(String.join(",", countries), updatedRelation);
+            relationByCountry.put(ISOCountryTag.join(countries), updatedRelation);
             this.splitRelations.put(updatedRelation.getIdentifier(), relationByCountry);
             relation.members().stream().filter(member -> !relationMembers.contains(member))
                     .forEach(filteredMember ->
@@ -1150,7 +1150,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                 }
             });
             newRelation.withAddedTag(SyntheticRelationMemberAdded.KEY,
-                    String.join(",", syntheticIds));
+                    SyntheticRelationMemberAdded.join(syntheticIds));
             this.changes.add(FeatureChange.add(newRelation));
 
         });
