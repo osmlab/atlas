@@ -13,8 +13,11 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.annotation.Foreig
 @Foreign
 public class Descriptor implements Serializable
 {
+    private Long id;
     private String name;
     private String type;
+    private String itemType;
+    private String role;
     private String key;
     private String value;
     private String originalValue;
@@ -42,6 +45,16 @@ public class Descriptor implements Serializable
         return this.beforeView;
     }
 
+    public Long getId()
+    {
+        return this.id;
+    }
+
+    public String getItemType()
+    {
+        return this.itemType;
+    }
+
     public String getKey()
     {
         return this.key;
@@ -60,6 +73,11 @@ public class Descriptor implements Serializable
     public String getPosition()
     {
         return this.position;
+    }
+
+    public String getRole()
+    {
+        return this.role;
     }
 
     public String getType()
@@ -88,6 +106,16 @@ public class Descriptor implements Serializable
         this.beforeView = beforeView;
     }
 
+    public void setId(final Long id)
+    {
+        this.id = id;
+    }
+
+    public void setItemType(final String itemType)
+    {
+        this.itemType = itemType;
+    }
+
     public void setKey(final String key)
     {
         this.key = key;
@@ -106,6 +134,11 @@ public class Descriptor implements Serializable
     public void setPosition(final String position)
     {
         this.position = position;
+    }
+
+    public void setRole(final String role)
+    {
+        this.role = role;
     }
 
     public void setType(final String type)
