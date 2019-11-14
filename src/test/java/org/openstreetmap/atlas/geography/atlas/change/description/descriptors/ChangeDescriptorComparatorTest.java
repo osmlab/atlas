@@ -65,13 +65,13 @@ public class ChangeDescriptorComparatorTest
                                 Location.forString("3,3")),
                         Arrays.asList(Location.forString("1,1"), Location.forString("2,2")))
                 .get(0);
-        final GenericElementChangeDescriptor<Long> addParentRelation1 = new GenericElementChangeDescriptor<>(
+        final LongElementChangeDescriptor addParentRelation1 = new LongElementChangeDescriptor(
                 ChangeDescriptorType.ADD, 1L, ChangeDescriptorName.PARENT_RELATION);
-        final GenericElementChangeDescriptor<Long> addParentRelation2 = new GenericElementChangeDescriptor<>(
+        final LongElementChangeDescriptor addParentRelation2 = new LongElementChangeDescriptor(
                 ChangeDescriptorType.ADD, 2L, ChangeDescriptorName.PARENT_RELATION);
-        final GenericElementChangeDescriptor<Long> removeParentRelation1 = new GenericElementChangeDescriptor<>(
+        final LongElementChangeDescriptor removeParentRelation1 = new LongElementChangeDescriptor(
                 ChangeDescriptorType.REMOVE, 1L, ChangeDescriptorName.PARENT_RELATION);
-        final GenericElementChangeDescriptor<Long> removeParentRelation2 = new GenericElementChangeDescriptor<>(
+        final LongElementChangeDescriptor removeParentRelation2 = new LongElementChangeDescriptor(
                 ChangeDescriptorType.REMOVE, 2L, ChangeDescriptorName.PARENT_RELATION);
         final RelationMemberChangeDescriptor addRelationMember1 = new RelationMemberChangeDescriptor(
                 ChangeDescriptorType.ADD, 1L, ItemType.POINT, "a");
@@ -89,29 +89,29 @@ public class ChangeDescriptorComparatorTest
                 ChangeDescriptorType.REMOVE, 2L, ItemType.POINT, "b");
         final RelationMemberChangeDescriptor removeRelationMember4 = new RelationMemberChangeDescriptor(
                 ChangeDescriptorType.REMOVE, 1L, ItemType.RELATION, "a");
-        final GenericElementChangeDescriptor<Long> addInEdge1 = new GenericElementChangeDescriptor<>(
+        final LongElementChangeDescriptor addInEdge1 = new LongElementChangeDescriptor(
                 ChangeDescriptorType.ADD, 1L, ChangeDescriptorName.IN_EDGE);
-        final GenericElementChangeDescriptor<Long> addInEdge2 = new GenericElementChangeDescriptor<>(
+        final LongElementChangeDescriptor addInEdge2 = new LongElementChangeDescriptor(
                 ChangeDescriptorType.ADD, 2L, ChangeDescriptorName.IN_EDGE);
-        final GenericElementChangeDescriptor<Long> removeInEdge1 = new GenericElementChangeDescriptor<>(
+        final LongElementChangeDescriptor removeInEdge1 = new LongElementChangeDescriptor(
                 ChangeDescriptorType.REMOVE, 1L, ChangeDescriptorName.IN_EDGE);
-        final GenericElementChangeDescriptor<Long> removeInEdge2 = new GenericElementChangeDescriptor<>(
+        final LongElementChangeDescriptor removeInEdge2 = new LongElementChangeDescriptor(
                 ChangeDescriptorType.REMOVE, 2L, ChangeDescriptorName.IN_EDGE);
-        final GenericElementChangeDescriptor<Long> addOutEdge1 = new GenericElementChangeDescriptor<>(
+        final LongElementChangeDescriptor addOutEdge1 = new LongElementChangeDescriptor(
                 ChangeDescriptorType.ADD, 1L, ChangeDescriptorName.OUT_EDGE);
-        final GenericElementChangeDescriptor<Long> addOutEdge2 = new GenericElementChangeDescriptor<>(
+        final LongElementChangeDescriptor addOutEdge2 = new LongElementChangeDescriptor(
                 ChangeDescriptorType.ADD, 2L, ChangeDescriptorName.OUT_EDGE);
-        final GenericElementChangeDescriptor<Long> removeOutEdge1 = new GenericElementChangeDescriptor<>(
+        final LongElementChangeDescriptor removeOutEdge1 = new LongElementChangeDescriptor(
                 ChangeDescriptorType.REMOVE, 1L, ChangeDescriptorName.OUT_EDGE);
-        final GenericElementChangeDescriptor<Long> removeOutEdge2 = new GenericElementChangeDescriptor<>(
+        final LongElementChangeDescriptor removeOutEdge2 = new LongElementChangeDescriptor(
                 ChangeDescriptorType.REMOVE, 2L, ChangeDescriptorName.OUT_EDGE);
-        final GenericElementChangeDescriptor<Long> addStartNode1 = new GenericElementChangeDescriptor<>(
+        final LongElementChangeDescriptor addStartNode1 = new LongElementChangeDescriptor(
                 ChangeDescriptorType.ADD, 1L, ChangeDescriptorName.START_NODE);
-        final GenericElementChangeDescriptor<Long> updateStartNode1 = new GenericElementChangeDescriptor<>(
+        final LongElementChangeDescriptor updateStartNode1 = new LongElementChangeDescriptor(
                 ChangeDescriptorType.UPDATE, 1L, 10L, ChangeDescriptorName.START_NODE);
-        final GenericElementChangeDescriptor<Long> addEndNode1 = new GenericElementChangeDescriptor<>(
+        final LongElementChangeDescriptor addEndNode1 = new LongElementChangeDescriptor(
                 ChangeDescriptorType.ADD, 1L, ChangeDescriptorName.END_NODE);
-        final GenericElementChangeDescriptor<Long> updateEndNode1 = new GenericElementChangeDescriptor<>(
+        final LongElementChangeDescriptor updateEndNode1 = new LongElementChangeDescriptor(
                 ChangeDescriptorType.UPDATE, 1L, 10L, ChangeDescriptorName.END_NODE);
 
         final List<ChangeDescriptor> goldenList = Arrays.asList(addTag1, addTag2, updateTag1,

@@ -6,22 +6,20 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**
- * A {@link ChangeDescriptor} for any kind of generic element. For e.g. a {@link Long} in cases of
- * startNodeIdentifier or inEdgeIdentifier.
+ * A {@link ChangeDescriptor} for an element of type {@link Long}. E.g. cases include
+ * startNodeIdentifiers, inEdgeIdentifiers, parentRelations, etc.
  * 
  * @author lcram
- * @param <T>
- *            the type of the element
  */
-public class GenericElementChangeDescriptor<T> implements ChangeDescriptor
+public class LongElementChangeDescriptor implements ChangeDescriptor
 {
     private final ChangeDescriptorType changeType;
-    private final T beforeElement;
-    private final T afterElement;
+    private final Long beforeElement;
+    private final Long afterElement;
     private final ChangeDescriptorName name;
 
-    public GenericElementChangeDescriptor(final ChangeDescriptorType changeType,
-            final T beforeElement, final T afterElement, final ChangeDescriptorName name)
+    public LongElementChangeDescriptor(final ChangeDescriptorType changeType,
+            final Long beforeElement, final Long afterElement, final ChangeDescriptorName name)
     {
         this.changeType = changeType;
         this.beforeElement = beforeElement;
@@ -29,8 +27,8 @@ public class GenericElementChangeDescriptor<T> implements ChangeDescriptor
         this.name = name;
     }
 
-    public GenericElementChangeDescriptor(final ChangeDescriptorType changeType,
-            final T afterElement, final ChangeDescriptorName name)
+    public LongElementChangeDescriptor(final ChangeDescriptorType changeType,
+            final Long afterElement, final ChangeDescriptorName name)
     {
         this.changeType = changeType;
         this.beforeElement = null;
@@ -38,12 +36,12 @@ public class GenericElementChangeDescriptor<T> implements ChangeDescriptor
         this.name = name;
     }
 
-    public T getAfterElement()
+    public Long getAfterElement()
     {
         return this.afterElement;
     }
 
-    public T getBeforeElement()
+    public Long getBeforeElement()
     {
         return this.beforeElement;
     }
