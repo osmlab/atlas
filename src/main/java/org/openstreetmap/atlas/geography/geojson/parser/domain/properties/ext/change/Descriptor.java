@@ -46,12 +46,12 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.annotation.Foreig
     
     public Long getId()
     {
-        return id;
+        return this.id;
     }
     
     public String getItemType()
     {
-        return itemType;
+        return this.itemType;
     }
     
     public String getKey()
@@ -76,7 +76,7 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.annotation.Foreig
     
     public String getRole()
     {
-        return role;
+        return this.role;
     }
     
     public String getType()
@@ -105,12 +105,12 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.annotation.Foreig
         this.beforeView = beforeView;
     }
     
-    public void setId(Long id)
+    public void setId(final Long id)
     {
         this.id = id;
     }
     
-    public void setItemType(String itemType)
+    public void setItemType(final String itemType)
     {
         this.itemType = itemType;
     }
@@ -135,7 +135,7 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.annotation.Foreig
         this.position = position;
     }
     
-    public void setRole(String role)
+    public void setRole(final String role)
     {
         this.role = role;
     }
