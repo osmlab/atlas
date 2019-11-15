@@ -88,7 +88,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      */
     private static final int MAXIMUM_ALLOWED_COLUMN = 225;
 
-    private SimpleOptionAndArgumentParser parser;
+    private final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
     private final DocumentationRegistrar registrar = new DocumentationRegistrar();
 
     private boolean useColorStdout = false;
@@ -166,7 +166,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         throwIfInvalidNameOrDescription();
 
         final String[] argsCopy = unpackSentinelArguments(args);
-        this.parser = new SimpleOptionAndArgumentParser(this.ignoreUnknownOptions);
+        this.parser.ignoreUnknownOptions(this.ignoreUnknownOptions);
 
         // fill out appropriate data structures so the execute() implementation can query
         registerOptionsAndArguments();

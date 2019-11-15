@@ -47,7 +47,8 @@ public class SimpleOptionAndArgumentParserTest
     @Test
     public void testIgnoreUnknownOptions()
     {
-        final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser(true);
+        final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
+        parser.ignoreUnknownOptions(true);
         parser.registerOption("opt1", "the 1st option", OptionOptionality.OPTIONAL, 1);
         parser.registerOption("opt2", "the 2nd option", OptionOptionality.OPTIONAL, 1);
 
@@ -67,7 +68,8 @@ public class SimpleOptionAndArgumentParserTest
         Assert.assertTrue(parser.hasOption("opt2"));
         Assert.assertFalse(parser.hasOption("opt3"));
 
-        final SimpleOptionAndArgumentParser parser2 = new SimpleOptionAndArgumentParser(true);
+        final SimpleOptionAndArgumentParser parser2 = new SimpleOptionAndArgumentParser();
+        parser2.ignoreUnknownOptions(true);
         parser2.registerOption("opt1", 'o', "the 1st option", OptionOptionality.OPTIONAL, 1);
 
         final List<String> arguments2 = Arrays.asList("-z", "-o");

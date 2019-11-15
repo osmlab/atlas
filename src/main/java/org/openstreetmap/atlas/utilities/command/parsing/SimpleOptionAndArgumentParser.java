@@ -235,14 +235,9 @@ public class SimpleOptionAndArgumentParser
     private final Map<String, List<String>> parsedArguments;
     private int currentContext;
     private boolean parseStepRanAtLeastOnce;
-    private final boolean ignoreUnknownOptions;
+    private boolean ignoreUnknownOptions;
 
     public SimpleOptionAndArgumentParser()
-    {
-        this(false);
-    }
-
-    public SimpleOptionAndArgumentParser(final boolean ignoreUnknownOptions)
     {
         this.contextToRegisteredOptions = new HashMap<>();
         this.contextToArgumentHintToArity = new HashMap<>();
@@ -259,7 +254,7 @@ public class SimpleOptionAndArgumentParser
         this.parsedArguments = new LinkedHashMap<>();
         this.currentContext = NO_CONTEXT;
         this.parseStepRanAtLeastOnce = false;
-        this.ignoreUnknownOptions = ignoreUnknownOptions;
+        this.ignoreUnknownOptions = false;
     }
 
     /**
@@ -497,6 +492,12 @@ public class SimpleOptionAndArgumentParser
             option = Optional.empty();
         }
         return option.isPresent();
+    }
+
+    public SimpleOptionAndArgumentParser ignoreUnknownOptions(final boolean ignore)
+    {
+        this.ignoreUnknownOptions = ignore;
+        return this;
     }
 
     public boolean isEmpty()
