@@ -87,11 +87,7 @@ public class ChangeValidator
 
     private <T> boolean differ(final T left, final T right, final BiPredicate<T, T> equal)
     {
-        if (left == null && right != null || left != null && right == null)
-        {
-            return true;
-        }
-        if (left != null/* right is implicitly not null here */)
+        if (left != null && right != null)
         {
             return !equal.test(left, right);
         }
