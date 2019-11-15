@@ -25,5 +25,8 @@
     <!-- Field name for "id" (which is used in some specs of geojson too) doesn't comply with checkstyle member name size rule (min 3 characters) -->
     <suppress checks="MemberName" files="src/test/java/org/openstreetmap/atlas/geography/geojson/parser/testdomain/BeanA.java" />
     <suppress checks="ParameterName" files="src/test/java/org/openstreetmap/atlas/geography/geojson/parser/testdomain/BeanA.java" />
+    <suppress checks="MemberName" files="src/main/java/org/openstreetmap/atlas/geography/geojson/parser/domain/properties/ext/change/Descriptor.java" />
+    <suppress checks="ParameterName" files="src/main/java/org/openstreetmap/atlas/geography/geojson/parser/domain/properties/ext/change/Descriptor.java" />
+
     <suppress checks="." files="src/generated/*" />
 </suppressions>
