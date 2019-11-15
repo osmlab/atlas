@@ -8,19 +8,27 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.annotation.Foreign;
 
 /**
+ * The Descriptor is a flattened version of subclasses of
+ * {@link org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptor}.
+ *
  * @author Yazad Khambata
  */
 @Foreign
 public class Descriptor implements Serializable
 {
+    private Long id;
     private String name;
     private String type;
+    private String itemType;
+    private String role;
     private String key;
     private String value;
     private String originalValue;
     private String position;
     private String beforeView;
     private String afterView;
+    private Long beforeElement;
+    private Long afterElement;
 
     public Descriptor()
     {
@@ -32,14 +40,34 @@ public class Descriptor implements Serializable
         return EqualsBuilder.reflectionEquals(this, that);
     }
 
+    public Long getAfterElement()
+    {
+        return this.afterElement;
+    }
+
     public String getAfterView()
     {
         return this.afterView;
     }
 
+    public Long getBeforeElement()
+    {
+        return this.beforeElement;
+    }
+
     public String getBeforeView()
     {
         return this.beforeView;
+    }
+
+    public Long getId()
+    {
+        return this.id;
+    }
+
+    public String getItemType()
+    {
+        return this.itemType;
     }
 
     public String getKey()
@@ -62,6 +90,11 @@ public class Descriptor implements Serializable
         return this.position;
     }
 
+    public String getRole()
+    {
+        return this.role;
+    }
+
     public String getType()
     {
         return this.type;
@@ -78,14 +111,34 @@ public class Descriptor implements Serializable
         return HashCodeBuilder.reflectionHashCode(this);
     }
 
+    public void setAfterElement(final Long afterElement)
+    {
+        this.afterElement = afterElement;
+    }
+
     public void setAfterView(final String afterView)
     {
         this.afterView = afterView;
     }
 
+    public void setBeforeElement(final Long beforeElement)
+    {
+        this.beforeElement = beforeElement;
+    }
+
     public void setBeforeView(final String beforeView)
     {
         this.beforeView = beforeView;
+    }
+
+    public void setId(final Long id)
+    {
+        this.id = id;
+    }
+
+    public void setItemType(final String itemType)
+    {
+        this.itemType = itemType;
     }
 
     public void setKey(final String key)
@@ -106,6 +159,11 @@ public class Descriptor implements Serializable
     public void setPosition(final String position)
     {
         this.position = position;
+    }
+
+    public void setRole(final String role)
+    {
+        this.role = role;
     }
 
     public void setType(final String type)

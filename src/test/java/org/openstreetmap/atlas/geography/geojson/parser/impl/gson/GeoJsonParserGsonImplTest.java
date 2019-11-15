@@ -16,6 +16,7 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.MultiPoi
 import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.MultiPolygon;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.Point;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.Polygon;
+import org.openstreetmap.atlas.geography.geojson.parser.domain.properties.ext.change.Descriptor;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.properties.ext.change.FeatureChangeProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +50,7 @@ public class GeoJsonParserGsonImplTest extends AbstractGeoJsonParserGsonImplTest
     }
 
     @Test
-    public void featureChangePropertiesExample()
+    public void featureChangePropertiesExample1()
     {
         final GeoJsonItem geoJsonItem = toGeoJsonItem();
 
@@ -57,6 +58,22 @@ public class GeoJsonParserGsonImplTest extends AbstractGeoJsonParserGsonImplTest
                 .asType(FeatureChangeProperties.class);
 
         Assert.assertNull(featureChangeProperties.getRelations());
+    }
+
+    @Test
+    public void featureChangePropertiesExample2()
+    {
+        final GeoJsonItem geoJsonItem = toGeoJsonItem();
+
+        final FeatureChangeProperties featureChangeProperties = geoJsonItem.getProperties()
+                .asType(FeatureChangeProperties.class);
+
+        final Descriptor descriptor = featureChangeProperties.getDescription().getDescriptors()[0];
+        Assert.assertEquals(402306209000000L, (long) descriptor.getId());
+        Assert.assertEquals("NODE", descriptor.getItemType());
+        Assert.assertEquals("via", descriptor.getRole());
+        Assert.assertEquals(9087654321L, (long) descriptor.getBeforeElement());
+        Assert.assertEquals(1234567890L, (long) descriptor.getAfterElement());
     }
 
     @Test

@@ -39,15 +39,16 @@ As well as other handy tools:
 * [Shard Exploration](/src/main/java/org/openstreetmap/atlas/geography/atlas/dynamic#dynamicatlas)
 * [Tag Filtering](/src/main/java/org/openstreetmap/atlas/tags/filters#tag-filtering)
 * [Atlas Filtering](/src/main/java/org/openstreetmap/atlas/geography/atlas#filtering-an-atlas)
-* [PBF Ingest](/src/main/java/org/openstreetmap/atlas/geography/atlas/raw/creation#README.md)
-* [Country Slicing](/src/main/java/org/openstreetmap/atlas/geography/atlas/raw/slicing#README.md)
-* [Way Sectioning](/src/main/java/org/openstreetmap/atlas/geography/atlas/raw/sectioning#README.md)
+* [PBF Ingest](/src/main/java/org/openstreetmap/atlas/geography/atlas/raw/creation)
+* [Country Slicing](/src/main/java/org/openstreetmap/atlas/geography/atlas/raw/slicing)
+* [Way Sectioning](/src/main/java/org/openstreetmap/atlas/geography/atlas/raw/sectioning)
 * [Cutting](/src/main/java/org/openstreetmap/atlas/geography/atlas#country-slicing)
 * [Routing](/src/main/java/org/openstreetmap/atlas/geography/atlas/routing#routing)
 * [Higher-level entities](/src/main/java/org/openstreetmap/atlas/geography/atlas/items/complex#complex-entities)
 * [Saving](/src/main/java/org/openstreetmap/atlas/geography/atlas#saving-an-atlas) / [Loading](/src/main/java/org/openstreetmap/atlas/geography/atlas#using-atlas)
+* [GeoJSON Parser](/src/main/java/org/openstreetmap/atlas/geography/geojson/parser)
 * [Command Line Tools](atlas-shell-tools)
-* [Atlas Query Language i.e. AQL](/src/main/groovy/org/openstreetmap/atlas/geography/atlas/dsl#README.md)
+* [Atlas Query Language i.e. AQL](/src/main/groovy/org/openstreetmap/atlas/geography/atlas/dsl)
 
 # Community
 
