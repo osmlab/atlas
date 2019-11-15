@@ -35,11 +35,11 @@ public class ChangeDescriptorComparator implements Comparator<ChangeDescriptor>
             return geometryChangeCompare((GeometryChangeDescriptor) left,
                     (GeometryChangeDescriptor) right);
         }
-        if (left instanceof GenericElementChangeDescriptor
-                && right instanceof GenericElementChangeDescriptor)
+        if (left instanceof LongElementChangeDescriptor
+                && right instanceof LongElementChangeDescriptor)
         {
-            return genericSetChangeCompare((GenericElementChangeDescriptor) left,
-                    (GenericElementChangeDescriptor) right);
+            return genericSetChangeCompare((LongElementChangeDescriptor) left,
+                    (LongElementChangeDescriptor) right);
         }
         if (left instanceof RelationMemberChangeDescriptor
                 && right instanceof RelationMemberChangeDescriptor)
@@ -51,8 +51,8 @@ public class ChangeDescriptorComparator implements Comparator<ChangeDescriptor>
         throw new CoreException("Could not compare {} vs {}", left, right);
     }
 
-    private int genericSetChangeCompare(final GenericElementChangeDescriptor left,
-            final GenericElementChangeDescriptor right)
+    private int genericSetChangeCompare(final LongElementChangeDescriptor left,
+            final LongElementChangeDescriptor right)
     {
         if (left.getName() != right.getName())
         {
