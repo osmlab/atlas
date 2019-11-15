@@ -172,8 +172,14 @@ public class DynamicTileSharding extends Command implements Sharding
 
         public Set<Node> leafNodesIntersecting(final PolyLine polyLine)
         {
-            final Set<Node> result = new HashSet<>();
             final Rectangle polyLineBounds = polyLine.bounds();
+            return leafNodesIntersecting(polyLine, polyLineBounds);
+        }
+
+        public Set<Node> leafNodesIntersecting(final PolyLine polyLine,
+                final Rectangle polyLineBounds)
+        {
+            final Set<Node> result = new HashSet<>();
             if (polyLineBounds.overlaps(bounds()))
             {
                 if (isFinal() && (polyLine.intersects(bounds())
@@ -185,7 +191,7 @@ public class DynamicTileSharding extends Command implements Sharding
                 {
                     for (final Node child : this.children)
                     {
-                        result.addAll(child.leafNodesIntersecting(polyLine));
+                        result.addAll(child.leafNodesIntersecting(polyLine, polyLineBounds));
                     }
                 }
             }
