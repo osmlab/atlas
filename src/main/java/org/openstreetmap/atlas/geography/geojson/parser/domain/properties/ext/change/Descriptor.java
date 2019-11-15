@@ -8,6 +8,9 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.annotation.Foreign;
 
 /**
+ * The Descriptor is a flattened version of subclasses of
+ * {@link org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptor}.
+ *
  * @author Yazad Khambata
  */
 @Foreign
