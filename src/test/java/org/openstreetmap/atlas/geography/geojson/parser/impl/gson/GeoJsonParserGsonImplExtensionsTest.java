@@ -183,4 +183,22 @@ public class GeoJsonParserGsonImplExtensionsTest extends AbstractGeoJsonParserGs
 
         Assert.fail("data data value should have caused a failure.");
     }
+
+    @Test
+    public void featureChangePropertiesRelationMemberDescriptor()
+    {
+        final String json = extractJsonForExtension();
+
+        final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
+
+        final FeatureChangeProperties featureChangeProperties = geoJsonParser
+                .deserializeExtension(json, FeatureChangeProperties.class);
+        log.info("featureChangeProperties:: {}.", featureChangeProperties);
+
+        final Descriptor descriptor = featureChangeProperties.getDescription().getDescriptors()[0];
+
+        Assert.assertEquals(402306209000000L, (long) descriptor.getId());
+        Assert.assertEquals("NODE", descriptor.getItemType());
+        Assert.assertEquals("via", descriptor.getRole());
+    }
 }
