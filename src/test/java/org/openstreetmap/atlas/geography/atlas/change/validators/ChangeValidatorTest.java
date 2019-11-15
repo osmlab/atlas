@@ -98,20 +98,6 @@ public class ChangeValidatorTest
     }
 
     @Test
-    public void testMismatchingEdgeNodes()
-    {
-        this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("does not match its backward edge start node");
-
-        final ChangeBuilder builder = new ChangeBuilder();
-        builder.add(FeatureChange.add(
-                new CompleteEdge(123L, PolyLine.TEST_POLYLINE, Maps.hashMap(), null, 456L, null)));
-        builder.add(FeatureChange.add(new CompleteEdge(-123L, PolyLine.TEST_POLYLINE.reversed(),
-                Maps.hashMap(), null, null, null)));
-        builder.get();
-    }
-
-    @Test
     public void testMismatchingEdgeParentRelations()
     {
         final ChangeBuilder builder = new ChangeBuilder();

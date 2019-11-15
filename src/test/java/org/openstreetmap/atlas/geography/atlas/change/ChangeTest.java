@@ -3,8 +3,10 @@ package org.openstreetmap.atlas.geography.atlas.change;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.utilities.collections.Maps;
@@ -47,6 +49,31 @@ public class ChangeTest extends AbstractChangeTest
         final Area area = (Area) merged.getAfterView();
         Assert.assertEquals(Polygon.TEST_BUILDING, area.asPolygon());
         Assert.assertEquals(Maps.hashMap("key", "value"), area.getTags());
+    }
+
+    @Test
+    public void testEdgeNodeValidation()
+    {
+        final CompleteEdge edge1 = new CompleteEdge(1L, PolyLine.SIMPLE_POLYLINE,
+                Maps.hashMap("key1", "value1", "newKey", "newValue"), null, null, null);
+        final CompleteEdge edge1Reverse = new CompleteEdge(-1L, PolyLine.SIMPLE_POLYLINE.reversed(),
+                Maps.hashMap("key1", "value1", "newKey", "newValue"), 2L, 1L, null);
+        final Change change1 = ChangeBuilder.newInstance()
+                .addAll(FeatureChange.add(edge1), FeatureChange.add(edge1Reverse)).get();
+        Assert.assertEquals(2, change1.changeCount());
+    }
+
+    @Test
+    public void testEdgeNodeValidationFail()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("Forward edge 1 start node CompleteNode");
+        final CompleteEdge edge2 = new CompleteEdge(1L, PolyLine.SIMPLE_POLYLINE,
+                Maps.hashMap("key1", "value1", "newKey", "newValue"), 3L, 2L, null);
+        final CompleteEdge edge2Reverse = new CompleteEdge(-1L, PolyLine.SIMPLE_POLYLINE.reversed(),
+                Maps.hashMap("key1", "value1", "newKey", "newValue"), 2L, 1L, null);
+        final Change change2 = ChangeBuilder.newInstance()
+                .addAll(FeatureChange.add(edge2), FeatureChange.add(edge2Reverse)).get();
     }
 
     @Test
