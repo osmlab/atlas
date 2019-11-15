@@ -14,8 +14,8 @@ import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptorComparator;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptorName;
-import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.GenericElementChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.GeometryChangeDescriptor;
+import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.LongElementChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.RelationMemberChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.TagChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
@@ -97,7 +97,7 @@ public final class ChangeDescriptorGenerator
         return this.changeDescriptorType;
     }
 
-    private List<GenericElementChangeDescriptor<Long>> generateEdgeStartEndDescriptors(
+    private List<LongElementChangeDescriptor> generateEdgeStartEndDescriptors(
             final ChangeDescriptorName name, final Function<CompleteEdge, Long> memberExtractor) // NOSONAR
     {
         final CompleteEdge beforeEntity = (CompleteEdge) this.beforeView;
@@ -170,10 +170,10 @@ public final class ChangeDescriptorGenerator
         return descriptors;
     }
 
-    private List<GenericElementChangeDescriptor<Long>> generateLongSetDescriptors(
+    private List<LongElementChangeDescriptor> generateLongSetDescriptors(
             final ChangeDescriptorName name, final Set<Long> beforeSet, final Set<Long> afterSet)
     {
-        final List<GenericElementChangeDescriptor<Long>> descriptors = new ArrayList<>();
+        final List<LongElementChangeDescriptor> descriptors = new ArrayList<>();
 
         final Set<Long> removedFromAfterView = com.google.common.collect.Sets.difference(beforeSet,
                 afterSet);
@@ -181,22 +181,22 @@ public final class ChangeDescriptorGenerator
                 beforeSet);
         for (final Long identifier : removedFromAfterView)
         {
-            descriptors.add(new GenericElementChangeDescriptor<>(ChangeDescriptorType.REMOVE,
-                    identifier, null, name));
+            descriptors.add(new LongElementChangeDescriptor(ChangeDescriptorType.REMOVE, identifier,
+                    null, name));
         }
         for (final Long identifier : addedToAfterView)
         {
-            descriptors.add(new GenericElementChangeDescriptor<>(ChangeDescriptorType.ADD,
-                    identifier, name));
+            descriptors.add(
+                    new LongElementChangeDescriptor(ChangeDescriptorType.ADD, identifier, name));
         }
         return descriptors;
     }
 
-    private List<GenericElementChangeDescriptor<Long>> generateLongValueDescriptors(
+    private List<LongElementChangeDescriptor> generateLongValueDescriptors(
             final ChangeDescriptorName name, final Long beforeIdentifier,
             final Long afterIdentifier)
     {
-        final List<GenericElementChangeDescriptor<Long>> descriptors = new ArrayList<>();
+        final List<LongElementChangeDescriptor> descriptors = new ArrayList<>();
 
         /*
          * This case occurs when an brand new Long value (e.g. startNode, endNode, etc.) is being
@@ -204,19 +204,19 @@ public final class ChangeDescriptorGenerator
          */
         if (beforeIdentifier == null)
         {
-            descriptors.add(new GenericElementChangeDescriptor<>(ChangeDescriptorType.ADD, null,
+            descriptors.add(new LongElementChangeDescriptor(ChangeDescriptorType.ADD, null,
                     afterIdentifier, name));
         }
         else
         {
-            descriptors.add(new GenericElementChangeDescriptor<>(ChangeDescriptorType.UPDATE,
+            descriptors.add(new LongElementChangeDescriptor(ChangeDescriptorType.UPDATE,
                     beforeIdentifier, afterIdentifier, name));
         }
 
         return descriptors;
     }
 
-    private List<GenericElementChangeDescriptor<Long>> generateNodeInOutDescriptors(
+    private List<LongElementChangeDescriptor> generateNodeInOutDescriptors(
             final ChangeDescriptorName name,
             final Function<CompleteNode, Set<Long>> memberExtractor)
     {
@@ -250,7 +250,7 @@ public final class ChangeDescriptorGenerator
         return generateLongSetDescriptors(name, beforeSet, afterSet);
     }
 
-    private List<GenericElementChangeDescriptor<Long>> generateParentRelationDescriptors(
+    private List<LongElementChangeDescriptor> generateParentRelationDescriptors(
             final Function<CompleteEntity, Set<Long>> memberExtractor)
     {
         final ChangeDescriptorName name = ChangeDescriptorName.PARENT_RELATION;
