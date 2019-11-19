@@ -68,4 +68,12 @@ public class WktMultiPolygonConverterTest
         Assert.assertEquals(truth, multiPolygon);
         Assert.assertEquals(wkt, CONVERTER.convert(truth));
     }
+
+    @Test
+    public void testEmptyMultiPolygon()
+    {
+        final MultiMap<Polygon, Polygon> outersToInners = new MultiMap<>();
+        final MultiPolygon multiPolygon = new MultiPolygon(outersToInners);
+        Assert.assertEquals("POLYGON EMPTY", multiPolygon.toWkt());
+    }
 }

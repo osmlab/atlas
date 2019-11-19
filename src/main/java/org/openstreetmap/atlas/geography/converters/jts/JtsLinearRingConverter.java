@@ -30,6 +30,11 @@ public class JtsLinearRingConverter implements TwoWayConverter<Polygon, LinearRi
     // (found x - must be 0 or >= 4)
     private static final int MINIMUM_LINEAR_RING_SIZE = 4;
 
+    public static LinearRing empty()
+    {
+        return new LinearRing(JtsCoordinateArrayConverter.empty(), FACTORY);
+    }
+
     @Override
     public Polygon backwardConvert(final LinearRing object)
     {

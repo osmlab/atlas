@@ -22,6 +22,12 @@ public class JtsCoordinateArrayConverter
 {
     private static final JtsLocationConverter LOCATION_CONVERTER = new JtsLocationConverter();
 
+    public static CoordinateSequence empty()
+    {
+        final Coordinate[] emptyCoordinateArray = new Coordinate[0];
+        return new CoordinateArraySequence(emptyCoordinateArray);
+    }
+
     @Override
     public Iterable<Location> backwardConvert(final CoordinateSequence coordinateSequence)
     {
