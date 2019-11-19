@@ -24,6 +24,12 @@ public class JtsPolygonToMultiPolygonConverter
     @Override
     public org.locationtech.jts.geom.Polygon backwardConvert(final MultiPolygon object)
     {
+        if (object.getOuterToInners().isEmpty())
+        {
+            final LinearRing[] emptyInners = new LinearRing[0];
+            return new org.locationtech.jts.geom.Polygon(JtsLinearRingConverter.empty(),
+                    emptyInners, FACTORY);
+        }
         if (object.getOuterToInners().keySet().size() != 1)
         {
             throw new CoreException(
