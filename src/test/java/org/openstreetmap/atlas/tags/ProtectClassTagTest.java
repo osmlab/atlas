@@ -34,7 +34,7 @@ public class ProtectClassTagTest
     public void getValueWrongTagTest()
     {
         final Optional<Integer> tagValue = ProtectClassTag
-                .getValue(Taggable.with("protect_class", "bad"));
+                .getValue(Taggable.with("highway", "primary"));
         Assert.assertFalse(tagValue.isPresent());
     }
 }
