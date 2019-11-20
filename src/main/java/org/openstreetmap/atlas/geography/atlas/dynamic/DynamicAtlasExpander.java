@@ -93,7 +93,7 @@ class DynamicAtlasExpander
 
     boolean areaCovered(final Area area)
     {
-        if (this.areaCoveredCache.contains(area.getIdentifier()))
+        if (!entityNotCached(area))
         {
             return true;
         }
@@ -106,7 +106,7 @@ class DynamicAtlasExpander
             // necessary.
             return true;
         }
-        this.areaCoveredCache.add(area.getIdentifier());
+        cacheEntity(area);
         final Iterable<? extends Shard> neededShards = this.sharding.shards(polygon);
         for (final Shard neededShard : neededShards)
         {
@@ -208,9 +208,7 @@ class DynamicAtlasExpander
 
     boolean lineItemCovered(final LineItem item)
     {
-        final long identifier = item.getIdentifier();
-        if ((item instanceof Edge && this.edgeCoveredCache.contains(identifier))
-                || this.lineCoveredCache.contains(identifier))
+        if (!entityNotCached(item))
         {
             return true;
         }
@@ -222,14 +220,7 @@ class DynamicAtlasExpander
             // necessary.
             return true;
         }
-        if (item instanceof Edge)
-        {
-            this.edgeCoveredCache.add(identifier);
-        }
-        else
-        {
-            this.lineCoveredCache.add(identifier);
-        }
+        cacheEntity(item);
         final Iterable<? extends Shard> neededShards = this.sharding.shardsIntersecting(polyLine);
         for (final Shard neededShard : neededShards)
         {
@@ -425,6 +416,30 @@ class DynamicAtlasExpander
         }
     }
 
+    private void cacheEntity(final AtlasEntity atlasEntity)
+    {
+        if (atlasEntity instanceof Area)
+        {
+            this.areaCoveredCache.add(atlasEntity.getIdentifier());
+        }
+        else if (atlasEntity instanceof LineItem)
+        {
+            cacheEntity((LineItem) atlasEntity);
+        }
+    }
+
+    private void cacheEntity(final LineItem lineItem)
+    {
+        if (lineItem instanceof Edge)
+        {
+            this.edgeCoveredCache.add(lineItem.getIdentifier());
+        }
+        else
+        {
+            this.lineCoveredCache.add(lineItem.getIdentifier());
+        }
+    }
+
     /**
      * @param entities
      *            The items to test for full coverage by the current shards
@@ -435,9 +450,44 @@ class DynamicAtlasExpander
     private <V extends AtlasEntity> boolean entitiesCovered(final Iterable<V> entities,
             final Predicate<V> entityCoveredPredicate)
     {
-        return Iterables.stream(entities)
-                .filter(entity -> this.policy.getAtlasEntitiesToConsiderForExpansion().test(entity))
-                .allMatch(entityCoveredPredicate);
+        return Iterables.stream(entities).filter(this::entityNotCached).filter(entity ->
+        {
+            final boolean toConsiderForExpansion = this.policy
+                    .getAtlasEntitiesToConsiderForExpansion().test(entity);
+            if (!toConsiderForExpansion)
+            {
+                cacheEntity(entity);
+            }
+            return toConsiderForExpansion;
+        }).allMatch(entityCoveredPredicate);
+    }
+
+    private boolean entityNotCached(final LineItem lineItem)
+    {
+        if (lineItem instanceof Edge)
+        {
+            return !this.edgeCoveredCache.contains(lineItem.getIdentifier());
+        }
+        else
+        {
+            return !this.lineCoveredCache.contains(lineItem.getIdentifier());
+        }
+    }
+
+    private boolean entityNotCached(final AtlasEntity atlasEntity)
+    {
+        if (atlasEntity instanceof Area)
+        {
+            return !this.areaCoveredCache.contains(atlasEntity.getIdentifier());
+        }
+        else if (atlasEntity instanceof LineItem)
+        {
+            return entityNotCached((LineItem) atlasEntity);
+        }
+        else
+        {
+            return true;
+        }
     }
 
     private List<Atlas> getNonNullAtlasShards()
