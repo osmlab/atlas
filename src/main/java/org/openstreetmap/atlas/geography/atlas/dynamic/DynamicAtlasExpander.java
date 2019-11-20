@@ -25,6 +25,7 @@ import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBean
 import org.openstreetmap.atlas.geography.atlas.dynamic.policy.DynamicAtlasPolicy;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
+import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.LineItem;
 import org.openstreetmap.atlas.geography.atlas.items.LocationItem;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
@@ -62,6 +63,9 @@ class DynamicAtlasExpander
     private boolean preemptiveLoadDone = false;
     // Number of times the udnerlying Multi-Atlas has been built.
     private int timesMultiAtlasWasBuiltUnderneath;
+    private final Set<Long> areaCoveredCache;
+    private final Set<Long> edgeCoveredCache;
+    private final Set<Long> lineCoveredCache;
 
     DynamicAtlasExpander(final DynamicAtlas dynamicAtlas, final DynamicAtlasPolicy policy)
     {
@@ -76,6 +80,10 @@ class DynamicAtlasExpander
         this.policy = policy;
         this.addNewShards(policy.getInitialShards());
         this.initialized = true;
+        // DynamicAtlas always expands, so it is ok to cache the features already covered by shards.
+        this.areaCoveredCache = new HashSet<>();
+        this.edgeCoveredCache = new HashSet<>();
+        this.lineCoveredCache = new HashSet<>();
     }
 
     public DynamicAtlasPolicy getPolicy()
@@ -85,6 +93,10 @@ class DynamicAtlasExpander
 
     boolean areaCovered(final Area area)
     {
+        if (this.areaCoveredCache.contains(area.getIdentifier()))
+        {
+            return true;
+        }
         final Polygon polygon = area.asPolygon();
         final MultiPolygon initialShardsBounds = this.policy.getInitialShardsBounds();
         if (!this.policy.isExtendIndefinitely() && !(polygon.overlaps(initialShardsBounds)
@@ -94,6 +106,7 @@ class DynamicAtlasExpander
             // necessary.
             return true;
         }
+        this.areaCoveredCache.add(area.getIdentifier());
         final Iterable<? extends Shard> neededShards = this.sharding.shards(polygon);
         for (final Shard neededShard : neededShards)
         {
@@ -195,6 +208,12 @@ class DynamicAtlasExpander
 
     boolean lineItemCovered(final LineItem item)
     {
+        final long identifier = item.getIdentifier();
+        if ((item instanceof Edge && this.edgeCoveredCache.contains(identifier))
+                || this.lineCoveredCache.contains(identifier))
+        {
+            return true;
+        }
         final PolyLine polyLine = item.asPolyLine();
         final MultiPolygon initialShardsBounds = this.policy.getInitialShardsBounds();
         if (!this.policy.isExtendIndefinitely() && !initialShardsBounds.overlaps(polyLine))
@@ -202,6 +221,14 @@ class DynamicAtlasExpander
             // If the policy is to not extend indefinitely, then assume that the loading is not
             // necessary.
             return true;
+        }
+        if (item instanceof Edge)
+        {
+            this.edgeCoveredCache.add(identifier);
+        }
+        else
+        {
+            this.lineCoveredCache.add(identifier);
         }
         final Iterable<? extends Shard> neededShards = this.sharding.shardsIntersecting(polyLine);
         for (final Shard neededShard : neededShards)
