@@ -71,24 +71,24 @@
         {
           "name": "PARENT_RELATION",
           "type": "ADD",
-          "afterView": "3"
+          "afterElement": "3"
         },
         {
           "name": "PARENT_RELATION",
           "type": "REMOVE",
-          "beforeView": "1"
+          "beforeElement": "1"
         },
         {
           "name": "START_NODE",
           "type": "UPDATE",
-          "beforeView": "1",
-          "afterView": "10"
+          "beforeElement": "1",
+          "afterElement": "10"
         },
         {
           "name": "END_NODE",
           "type": "UPDATE",
-          "beforeView": "2",
-          "afterView": "20"
+          "beforeElement": "2",
+          "afterElement": "20"
         }
       ]
     },
