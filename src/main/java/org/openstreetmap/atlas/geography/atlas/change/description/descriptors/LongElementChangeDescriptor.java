@@ -64,11 +64,11 @@ public class LongElementChangeDescriptor implements ChangeDescriptor
         final JsonObject descriptor = (JsonObject) ChangeDescriptor.super.toJsonElement();
         if (this.beforeElement != null)
         {
-            descriptor.addProperty("beforeView", this.beforeElement.toString());
+            descriptor.addProperty("beforeElement", this.beforeElement.toString());
         }
         if (this.afterElement != null)
         {
-            descriptor.addProperty("afterView", this.afterElement.toString());
+            descriptor.addProperty("afterElement", this.afterElement.toString());
         }
         return descriptor;
     }
