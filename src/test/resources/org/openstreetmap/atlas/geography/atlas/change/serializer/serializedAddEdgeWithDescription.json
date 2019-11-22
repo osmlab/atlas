@@ -58,22 +58,22 @@
         {
           "name": "PARENT_RELATION",
           "type": "ADD",
-          "afterView": "1"
+          "afterElement": "1"
         },
         {
           "name": "PARENT_RELATION",
           "type": "ADD",
-          "afterView": "2"
+          "afterElement": "2"
         },
         {
           "name": "START_NODE",
           "type": "ADD",
-          "afterView": "1"
+          "afterElement": "1"
         },
         {
           "name": "END_NODE",
           "type": "ADD",
-          "afterView": "2"
+          "afterElement": "2"
         }
       ]
     },
