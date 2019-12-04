@@ -18,11 +18,11 @@ setuptools.setup(
     url="https://github.com/osmlab/atlas",
     packages=setuptools.find_packages(exclude=("unit_tests",)),
     install_requires=[
-        'protobuf==2.6.1',
+        'protobuf==3.11.0',
         'shapely==1.6.4'
     ],
     classifiers=(
-        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
         "License :: OSI Approved :: BSD License"
     ),
