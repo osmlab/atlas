@@ -18,7 +18,7 @@ setuptools.setup(
     url="https://github.com/osmlab/atlas",
     packages=setuptools.find_packages(exclude=("unit_tests",)),
     install_requires=[
-        'protobuf==3.11.0',
+        'protobuf==2.6.1',
         'shapely==1.6.4'
     ],
     classifiers=(
