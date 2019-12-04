@@ -14,10 +14,17 @@ import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 @Tag(taginfo = "http://taginfo.openstreetmap.org/keys/junction#values", osm = "http://wiki.openstreetmap.org/wiki/Junctions")
 public enum JunctionTag
 {
-    ROUNDABOUT;
+    ROUNDABOUT,
+    CIRCULAR;
 
     @TagKey
     public static final String KEY = "junction";
+
+    public static boolean isCircular(final Taggable taggable)
+    {
+        final Optional<JunctionTag> junction = Validators.from(JunctionTag.class, taggable);
+        return junction.isPresent() && CIRCULAR == junction.get();
+    }
 
     public static boolean isRoundabout(final Taggable taggable)
     {
