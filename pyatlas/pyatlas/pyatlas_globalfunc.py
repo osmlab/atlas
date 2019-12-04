@@ -7,4 +7,4 @@ def hello_atlas():
     """
     Print a welcome message!
     """
-    print "Hello Atlas!"
+    print("Hello Atlas!")

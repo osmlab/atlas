@@ -68,9 +68,9 @@ class Location(Boundable):
         Location with degrees, use the geometry.location_with_degrees() module
         function.
         """
-        if not isinstance(latitude, (int, long)):
+        if not isinstance(latitude, int):
             raise TypeError('latitude must be an integer')
-        if not isinstance(longitude, (int, long)):
+        if not isinstance(longitude, int):
             raise TypeError('longitude must be an integer')
 
         if latitude > _LATITUDE_MAX_DM7 or latitude < _LATITUDE_MIN_DM7:
