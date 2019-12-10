@@ -15,7 +15,7 @@ def get_osm_identifier(full_atlas_identifier):
      Atlas ID: 222222001003 would return OSM ID: 222222
     """
     full_atlas_identifier = abs(full_atlas_identifier)
-    return full_atlas_identifier / (_IDENTIFIER_SCALE * _IDENTIFIER_SCALE)
+    return full_atlas_identifier // (_IDENTIFIER_SCALE * _IDENTIFIER_SCALE)
 
 
 def get_country_code(full_atlas_identifier):
@@ -26,7 +26,7 @@ def get_country_code(full_atlas_identifier):
     Atlas ID: 222222001003 would return country code: 1
     """
     full_atlas_identifier = abs(full_atlas_identifier)
-    return (full_atlas_identifier / _IDENTIFIER_SCALE) % _IDENTIFIER_SCALE
+    return (full_atlas_identifier // _IDENTIFIER_SCALE) % _IDENTIFIER_SCALE
 
 
 def get_way_section_index(full_atlas_identifier):

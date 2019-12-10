@@ -626,9 +626,9 @@ def _encode_number(number):
     encoded = ""
     while number >= _SIXTH_BIT_MASK:
         code_point = (_SIXTH_BIT_MASK | number & _FIVE_BIT_MASK) + _ENCODING_OFFSET_MINUS_ONE
-        encoded += unichr(code_point)
+        encoded += chr(code_point)
         number = _urshift32(number, _BIT_SHIFT)
-    encoded += unichr(number + _ENCODING_OFFSET_MINUS_ONE)
+    encoded += chr(number + _ENCODING_OFFSET_MINUS_ONE)
     return encoded
 
 
