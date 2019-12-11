@@ -10,17 +10,17 @@ be members of Relations.
 
 import zipfile
 
-import autogen.ProtoAtlasMetaData_pb2
-import autogen.ProtoLongArray_pb2
-import autogen.ProtoLongArrayOfArrays_pb2
-import autogen.ProtoIntegerStringDictionary_pb2
-import autogen.ProtoPackedTagStore_pb2
-import autogen.ProtoLongToLongMap_pb2
-import autogen.ProtoLongToLongMultiMap_pb2
-import autogen.ProtoPolyLineArray_pb2
-import autogen.ProtoPolygonArray_pb2
-import autogen.ProtoByteArrayOfArrays_pb2
-import autogen.ProtoIntegerArrayOfArrays_pb2
+import pyatlas.autogen.ProtoAtlasMetaData_pb2
+import pyatlas.autogen.ProtoLongArray_pb2
+import pyatlas.autogen.ProtoLongArrayOfArrays_pb2
+import pyatlas.autogen.ProtoIntegerStringDictionary_pb2
+import pyatlas.autogen.ProtoPackedTagStore_pb2
+import pyatlas.autogen.ProtoLongToLongMap_pb2
+import pyatlas.autogen.ProtoLongToLongMultiMap_pb2
+import pyatlas.autogen.ProtoPolyLineArray_pb2
+import pyatlas.autogen.ProtoPolygonArray_pb2
+import pyatlas.autogen.ProtoByteArrayOfArrays_pb2
+import pyatlas.autogen.ProtoIntegerArrayOfArrays_pb2
 
 import atlas_entities
 import geometry

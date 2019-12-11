@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
 # the field to blank before completing.
 setuptools.setup(
     name="pyatlas",
-    version=
+    version="5.8.8-SNAPSHOT",
     author="lucaspcram",
     author_email="lucaspcram@gmail.com",
     license="BSD License",
@@ -18,7 +18,7 @@ setuptools.setup(
     url="https://github.com/osmlab/atlas",
     packages=setuptools.find_packages(exclude=("unit_tests",)),
     install_requires=[
-        'protobuf==2.6.1',
+        'protobuf==3.11.1',
         'shapely==1.6.4'
     ],
     classifiers=(

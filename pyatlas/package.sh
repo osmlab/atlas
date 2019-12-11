@@ -58,7 +58,9 @@ fi
 #####################################################################
 echo "Preparing protoc..."
 # hack to grab the protoc version from dependencies.gradle
-protoc_version=$(grep 'protoc' "$gradle_project_root_dir/dependencies.gradle" | awk -F':' '{print $2; exit}' | tr -d "'" | tr -d ',')
+#protoc_version=$(grep 'protoc' "$gradle_project_root_dir/dependencies.gradle" | awk -F':' '{print $2; exit}' | tr -d "'" | tr -d ',')
+# TODO HACK FIXME hardcoding a proto3 version until we can upgrade atlas, proto2 is not compat with python3
+protoc_version='3.11.1'
 protoc_path="$pyatlas_root_dir/protoc"
 # detemine what platform we are on
 if [ ! -f "$protoc_path" ];
@@ -84,6 +86,21 @@ while IFS= read -r -d '' protofile
 do
     "$protoc_path" "$protofile" --proto_path="$protofiles_dir" --python_out="$pyatlas_root_dir/$pyatlas_srcdir/autogen" || err_shutdown "protoc invocation failed"
 done < <(find "$protofiles_dir" -type f -name "*.proto" -print0)
+
+# TODO HACK FIXME this is to fix badly generated import statements by proto3 library
+# See this solution: https://github.com/protocolbuffers/protobuf/issues/4546#issuecomment-384252863
+# FIXME this will fail if source file has a space
+pushd "$pyatlas_root_dir/$pyatlas_srcdir/autogen"
+if [ "$(uname)" == "Darwin" ];
+then
+    sed -i '' 's/^\(import.*pb2\)/from . \1/g' *.py
+elif [ "$(uname)" == "Linux" ];
+then
+    sed --in-place="" "s/^\(import.*pb2\)/from . \1/g" *.py
+else
+    err_shutdown "unrecognized platform $(uname)"
+fi
+popd
 
 
 ### build the module and documentation ###
