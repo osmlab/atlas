@@ -9,8 +9,8 @@ directly. Instead, entity objects should be obtained through the appropriate
 Atlas API method.
 """
 
-import identifier_converters
-import geometry
+import pyatlas.identifier_converters
+import pyatlas.geometry
 
 
 class EntityType(object):
@@ -40,7 +40,7 @@ class EntityType(object):
     }
 
 
-class AtlasEntity(geometry.Boundable):
+class AtlasEntity(pyatlas.geometry.Boundable):
     """
     A tagged, located entity in an Atlas. Can be a member of a relation.
     An AtlasEntity should not be instantiated directly. Use one of the
@@ -116,7 +116,7 @@ class AtlasEntity(geometry.Boundable):
         Get the OSM identifier of this AtlasEntity.
         """
         atlas_id = self.get_identifier()
-        return identifier_converters.get_osm_identifier(atlas_id)
+        return pyatlas.identifier_converters.get_osm_identifier(atlas_id)
 
     def get_parent_atlas(self):
         """
@@ -181,7 +181,7 @@ class Point(AtlasEntity):
         Get the Location of this Point.
         """
         long_location = self.get_parent_atlas()._get_pointLocations().elements[self.index]
-        return geometry.location_from_packed_int(long_location)
+        return pyatlas.geometry.location_from_packed_int(long_location)
 
     def get_tags(self):
         """
@@ -418,7 +418,7 @@ class Node(AtlasEntity):
         Get the Location of this Node.
         """
         long_location = self.get_parent_atlas()._get_nodeLocations().elements[self.index]
-        return geometry.location_from_packed_int(long_location)
+        return pyatlas.geometry.location_from_packed_int(long_location)
 
     def get_tags(self):
         """
@@ -718,7 +718,7 @@ class Edge(AtlasEntity):
         """
         Determine if this Edge is a way-sectioned road.
         """
-        return identifier_converters.get_way_section_index(self.get_identifier()) != 0
+        return pyatlas.identifier_converters.get_way_section_index(self.get_identifier()) != 0
 
     def get_type(self):
         """
@@ -822,7 +822,7 @@ class Relation(AtlasEntity):
 
         members = self.get_members()
         if len(members) == 0:
-            return geometry.Rectangle(0, 0)
+            return pyatlas.geometry.Rectangle(0, 0)
 
         entities_to_consider = []
         for member in self.get_members():
@@ -831,7 +831,7 @@ class Relation(AtlasEntity):
                 raise ValueError('entity was None, how did this happen?')
             entities_to_consider.append(entity)
 
-        return geometry.bounds_atlasentities(entities_to_consider)
+        return pyatlas.geometry.bounds_atlasentities(entities_to_consider)
 
     def intersects(self, polygon):
         """
