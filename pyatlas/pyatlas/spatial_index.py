@@ -160,7 +160,7 @@ class _CustomSTRtree(object):
         self._tree_handle = shapely.geos.lgeos.GEOSSTRtree_create(max(4, len(items)))
         for item in items:
             _lgeos.GEOSSTRtree_insert(self._tree_handle, item[1]._geom,
-                                      ctypes.py_object(long(item[0])))
+                                      ctypes.py_object(int(item[0])))
 
         geoms = [item[1] for item in items]
         self._geoms = list(geoms)

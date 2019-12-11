@@ -658,35 +658,35 @@ class Atlas(object):
     def _get_point_spatial_index(self):
         if self.point_spatial_index is None:
             self.point_spatial_index = pyatlas.spatial_index.SpatialIndex(
-                self, atlas_entities.EntityType.POINT, self.points())
+                self, pyatlas.atlas_entities.EntityType.POINT, self.points())
             self.point_spatial_index.initialize_rtree()
         return self.point_spatial_index
 
     def _get_line_spatial_index(self):
         if self.line_spatial_index is None:
             self.line_spatial_index = pyatlas.spatial_index.SpatialIndex(
-                self, atlas_entities.EntityType.LINE, self.lines())
+                self, pyatlas.atlas_entities.EntityType.LINE, self.lines())
             self.line_spatial_index.initialize_rtree()
         return self.line_spatial_index
 
     def _get_area_spatial_index(self):
         if self.area_spatial_index is None:
             self.area_spatial_index = pyatlas.spatial_index.SpatialIndex(
-                self, atlas_entities.EntityType.AREA, self.areas())
+                self, pyatlas.atlas_entities.EntityType.AREA, self.areas())
             self.area_spatial_index.initialize_rtree()
         return self.area_spatial_index
 
     def _get_node_spatial_index(self):
         if self.node_spatial_index is None:
             self.node_spatial_index = pyatlas.spatial_index.SpatialIndex(
-                self, atlas_entities.EntityType.NODE, self.nodes())
+                self, pyatlas.atlas_entities.EntityType.NODE, self.nodes())
             self.node_spatial_index.initialize_rtree()
         return self.node_spatial_index
 
     def _get_edge_spatial_index(self):
         if self.edge_spatial_index is None:
             self.edge_spatial_index = pyatlas.spatial_index.SpatialIndex(
-                self, atlas_entities.EntityType.EDGE, self.edges())
+                self, pyatlas.atlas_entities.EntityType.EDGE, self.edges())
             self.edge_spatial_index.initialize_rtree()
         return self.edge_spatial_index
 

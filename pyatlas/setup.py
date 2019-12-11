@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
 # the field to blank before completing.
 setuptools.setup(
     name="pyatlas",
-    version="5.8.8-SNAPSHOT",
+    version=
     author="lucaspcram",
     author_email="lucaspcram@gmail.com",
     license="BSD License",
