@@ -93,10 +93,10 @@ done < <(find "$protofiles_dir" -type f -name "*.proto" -print0)
 pushd "$pyatlas_root_dir/$pyatlas_srcdir/autogen"
 if [ "$(uname)" == "Darwin" ];
 then
-    sed -i '' 's/^\(import.*pb2\)/from . \1/g' *.py
+    sed -i '' 's/^\(import.*pb2\)/from . \1/g' ./*.py
 elif [ "$(uname)" == "Linux" ];
 then
-    sed --in-place="" "s/^\(import.*pb2\)/from . \1/g" *.py
+    sed --in-place="" "s/^\(import.*pb2\)/from . \1/g" ./*.py
 else
     err_shutdown "unrecognized platform $(uname)"
 fi
