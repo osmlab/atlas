@@ -62,7 +62,7 @@ fi
 ######################################
 echo "Setting up pyatlas venv..."
 venv_path="$pyatlas_root_dir/__pyatlas_venv__"
-if ! ${virtualenv_command} --python=python2.7 "$venv_path";
+if ! ${virtualenv_command} --python=python3 "$venv_path";
 then
     err_shutdown "virtualenv command returned non-zero exit status"
 fi

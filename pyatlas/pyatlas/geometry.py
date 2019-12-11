@@ -68,9 +68,9 @@ class Location(Boundable):
         Location with degrees, use the geometry.location_with_degrees() module
         function.
         """
-        if not isinstance(latitude, (int, long)):
+        if not isinstance(latitude, int):
             raise TypeError('latitude must be an integer')
-        if not isinstance(longitude, (int, long)):
+        if not isinstance(longitude, int):
             raise TypeError('longitude must be an integer')
 
         if latitude > _LATITUDE_MAX_DM7 or latitude < _LATITUDE_MIN_DM7:
@@ -233,7 +233,6 @@ class PolyLine(Boundable):
         for point in self.locations():
             latitude = int(round(dm7_as_degree(point.latitude) * precision))
             longitude = int(round(dm7_as_degree(point.longitude) * precision))
-
             encoded += _encode_number(latitude - old_latitude)
             delta_longitude = longitude - old_longitude
             if delta_longitude > _MAXIMUM_DELTA_LONGITUDE:
@@ -245,6 +244,9 @@ class PolyLine(Boundable):
             old_latitude = latitude
             old_longitude = longitude
             last = point
+
+        if type(encoded) is str:
+            encoded = bytes(encoded, 'utf-8')
 
         return encoded
 
@@ -626,9 +628,9 @@ def _encode_number(number):
     encoded = ""
     while number >= _SIXTH_BIT_MASK:
         code_point = (_SIXTH_BIT_MASK | number & _FIVE_BIT_MASK) + _ENCODING_OFFSET_MINUS_ONE
-        encoded += unichr(code_point)
+        encoded += chr(code_point)
         number = _urshift32(number, _BIT_SHIFT)
-    encoded += unichr(number + _ENCODING_OFFSET_MINUS_ONE)
+    encoded += chr(number + _ENCODING_OFFSET_MINUS_ONE)
     return encoded
 
 
@@ -647,7 +649,7 @@ def _decompress_bytestring(bytestring):
         shift = 0
         result = 0
         while True:
-            byte_encoded = ord(bytestring[index]) - _ENCODING_OFFSET_MINUS_ONE
+            byte_encoded = bytestring[index] - _ENCODING_OFFSET_MINUS_ONE
             result |= (byte_encoded & _FIVE_BIT_MASK) << shift
             shift += _BIT_SHIFT
             index += 1
@@ -663,7 +665,7 @@ def _decompress_bytestring(bytestring):
         shift = 0
         result = 0
         while True:
-            byte_encoded = ord(bytestring[index]) - _ENCODING_OFFSET_MINUS_ONE
+            byte_encoded = bytestring[index] - _ENCODING_OFFSET_MINUS_ONE
             result |= (byte_encoded & _FIVE_BIT_MASK) << shift
             shift += _BIT_SHIFT
             index += 1

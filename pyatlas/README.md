@@ -6,7 +6,7 @@
 To get setup in a new project folder, run:
 
     $ mkdir newproj && cd newproj
-    $ virtualenv venv --python=python2.7
+    $ virtualenv venv --python=python3
     $ source venv/bin/activate
 
 NOTE: `pyatlas` will automatically install the dependencies it needs, including
@@ -25,8 +25,8 @@ source yourself. Check the next section for more info.
 
 To test that everything went smoothly, create a file `helloatlas.py` with the following code:
 ```python
-import pyatlas
-pyatlas.hello_atlas()
+from pyatlas import pyatlas_globalfunc
+pyatlas_globalfunc.hello_atlas()
 ```
 Now run:
 
@@ -44,7 +44,7 @@ To build the `pyatlas` module from source, run:
 
     $ git clone https://github.com/osmlab/atlas.git
     $ cd atlas
-    $ ./gradlew buildPyatlas
+    $ ./gradlew cleanPyatlas buildPyatlas
 
 This will generate a wheel file at `pyatlas/dist`. You can now install this with `pip` like
 
@@ -64,7 +64,7 @@ open up `setup.py` and remove the lines that say
     .
     ],
 
-Then re-run the `./gradlew buildPyatlas` command from above and reinstall
+Then re-run the `./gradlew cleanPyatlas buildPyatlas` command from above and reinstall
 using `pip`. Note that you will now need to manage the required dependencies manually.
 
 ### Note on the formatter
@@ -90,7 +90,7 @@ with no formatter diff being displayed, check to make sure that the file has an 
 stored in the `doc` folder. To build
 the documentation, run the gradle build command:
 
-    $ ./gradlew buildPyatlas
+    $ ./gradlew cleanPyatlas buildPyatlas
 
 This will generate HTML files detailing the functions and classes available in each module.
 
