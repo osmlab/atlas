@@ -119,6 +119,29 @@ class PolyLinePolygonTest(unittest.TestCase):
         polygon2 = Polygon(loclist2)
         self.assertTrue(polygon.intersects(polygon2))
 
+    def test_intersects_polyline(self):
+        loclist = [
+            Location(-3, -3),
+            Location(-2, -2),
+            Location(-1, -1),
+            Location(0, 0),
+            Location(1, 1),
+            Location(2, 2),
+            Location(3, 3)
+        ]
+        loclist2 = [
+            Location(-3, 3),
+            Location(-2, 2),
+            Location(-1, 1),
+            Location(0, 0),
+            Location(-1, 1),
+            Location(-2, 2),
+            Location(-3, 3)
+        ]
+        polyline = PolyLine(loclist)
+        polyline2 = PolyLine(loclist2)
+        self.assertTrue(polyline.intersects_polyline(polyline2))
+
 
 if __name__ == "__main__":
     unittest.main()

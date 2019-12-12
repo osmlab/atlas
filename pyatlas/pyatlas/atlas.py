@@ -310,6 +310,20 @@ class Atlas(object):
 
         return frozenset(lines_set)
 
+    def lines_intersecting_polyline(self, polyline, predicate=lambda l: True):
+        """
+        Get a frozenset of all Lines within or intersecting some PolyLine. Can
+        optionally accept a predicate to further filter the Lines.
+        """
+        lines = self._get_line_spatial_index().get(polyline.bounds(), predicate=predicate)
+        lines_set = set()
+        for line in lines:
+            polyline = line.as_polyline()
+            if polyline.intersects_polyline(polyline):
+                lines_set.add(line)
+
+        return frozenset(lines_set)
+
     def lines_intersecting(self, polygon, predicate=lambda l: True):
         """
         Get a frozenset of all Lines within or intersecting some Polygon. Can
@@ -381,6 +395,20 @@ class Atlas(object):
         for edge in edges:
             polyline = edge.as_polyline()
             if location.bounds().overlaps_polyline(polyline):
+                edges_set.add(edge)
+
+        return frozenset(edges_set)
+
+    def edges_intersecting_polyline(self, polyline, predicate=lambda e: True):
+        """
+        Get a frozenset of all Edges within or intersecting some PolyLine. Can
+        optionally accept a predicate to further filter the Edges.
+        """
+        edges = self._get_edge_spatial_index().get(polyline.bounds(), predicate=predicate)
+        edges_set = set()
+        for edge in edges:
+            polyline = edge.as_polyline()
+            if polyline.intersects_polyline(polyline):
                 edges_set.add(edge)
 
         return frozenset(edges_set)

@@ -256,6 +256,14 @@ class PolyLine(Boundable):
         """
         return bounds_locations(self.locations())
 
+    def intersects_polyline(self, polyline):
+        """
+        Check if this PolyLine intersects some PolyLine.
+        """
+        shapely_polyline = polyline_to_shapely_linestring(polyline)
+        shapely_polyline_self = polyline_to_shapely_linestring(self)
+        return shapely_polyline_self.intersects(shapely_polyline)
+
     def intersects(self, polygon):
         """
         Check if this PolyLine intersects some Polygon.
