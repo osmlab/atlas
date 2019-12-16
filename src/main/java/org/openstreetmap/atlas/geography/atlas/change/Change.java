@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.change;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -17,6 +19,9 @@ import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescription;
+import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescriptorType;
+import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptorName;
+import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.TagChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.serializer.ChangeGeoJsonSerializer;
 import org.openstreetmap.atlas.geography.atlas.change.serializer.FeatureChangeGeoJsonSerializer;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEntity;
@@ -156,6 +161,11 @@ public class Change implements Located, Serializable
         return Objects.equals(this.featureChanges, that.featureChanges);
     }
 
+    public List<FeatureChange> getFeatureChanges()
+    {
+        return this.featureChanges;
+    }
+
     public int getIdentifier()
     {
         return this.identifier;
@@ -178,6 +188,23 @@ public class Change implements Located, Serializable
     public int hashCode()
     {
         return Objects.hashCode(this.featureChanges);
+    }
+
+    /**
+     * Transform this {@link Change} into a pretty string. This will use the pretty strings for
+     * {@link CompleteEntity} classes that make up this {@link Change}'s constituent
+     * {@link FeatureChange}s.
+     *
+     * @param featureChangeFormat
+     *            the format type for the the constituent {@link FeatureChange}s
+     * @param completeEntityFormat
+     *            the format type for the constituent {@link CompleteEntity}s
+     * @return the pretty string
+     */
+    public String prettify(final PrettifyStringFormat featureChangeFormat,
+            final PrettifyStringFormat completeEntityFormat)
+    {
+        return this.prettify(featureChangeFormat, completeEntityFormat, true);
     }
 
     /**
@@ -212,23 +239,6 @@ public class Change implements Located, Serializable
     }
 
     /**
-     * Transform this {@link Change} into a pretty string. This will use the pretty strings for
-     * {@link CompleteEntity} classes that make up this {@link Change}'s constituent
-     * {@link FeatureChange}s.
-     *
-     * @param featureChangeFormat
-     *            the format type for the the constituent {@link FeatureChange}s
-     * @param completeEntityFormat
-     *            the format type for the constituent {@link CompleteEntity}s
-     * @return the pretty string
-     */
-    public String prettify(final PrettifyStringFormat featureChangeFormat,
-            final PrettifyStringFormat completeEntityFormat)
-    {
-        return this.prettify(featureChangeFormat, completeEntityFormat, true);
-    }
-
-    /**
      * Save a JSON representation of that feature change.
      *
      * @param resource
@@ -251,6 +261,81 @@ public class Change implements Located, Serializable
     public void save(final WritableResource resource, final boolean showDescription)
     {
         new ChangeGeoJsonSerializer(true, showDescription).accept(this, resource);
+    }
+
+    public String summaryString()
+    {
+        final StringBuilder builder = new StringBuilder();
+
+        builder.append(this.getClass().getSimpleName() + " [");
+        builder.append("\n");
+        for (final ItemType itemType : ItemType.values())
+        {
+            for (final ChangeDescriptorType changeType : ChangeDescriptorType.values())
+            {
+                builder.append(itemType);
+                builder.append(" had ");
+                builder.append(changeCountFor(itemType, changeType));
+                builder.append(" ");
+                builder.append(changeType);
+                builder.append(" changes\n");
+            }
+        }
+        builder.append("]");
+
+        return builder.toString();
+    }
+
+    public Map<ItemType, Map<ChangeDescriptorType, Map<String, AtomicLong>>> tagCountMap()
+    {
+        final Map<ItemType, Map<ChangeDescriptorType, Map<String, AtomicLong>>> tagMap = new EnumMap<>(
+                ItemType.class);
+        for (final ItemType itemType : ItemType.values())
+        {
+            final Map<ChangeDescriptorType, Map<String, AtomicLong>> descriptorMap = new EnumMap<>(
+                    ChangeDescriptorType.class);
+            for (final ChangeDescriptorType type : ChangeDescriptorType.values())
+            {
+                descriptorMap.put(type, new HashMap<>());
+            }
+            tagMap.put(itemType, descriptorMap);
+
+            // The first stream here gets all update changes with Tag changes; the second
+            // iterates over those changes and places them in the map based on their tag key
+            // and update type
+            this.featureChanges.stream().filter(change -> change.getItemType().equals(itemType)
+                    && change.explain().getChangeDescriptorType()
+                            .equals(ChangeDescriptorType.UPDATE)
+                    && change.explain().getChangeDescriptors().stream().anyMatch(
+                            descriptor -> descriptor.getName().equals(ChangeDescriptorName.TAG)))
+                    .forEach(
+                            change -> change.explain().getChangeDescriptors().stream()
+                                    .filter(changeDescriptor -> changeDescriptor.getName()
+                                            .equals(ChangeDescriptorName.TAG))
+                                    .forEach(changeDescriptor ->
+                                    {
+                                        final TagChangeDescriptor tagChangeDescriptor = (TagChangeDescriptor) changeDescriptor;
+                                        if (tagMap.get(itemType)
+                                                .get(tagChangeDescriptor.getChangeDescriptorType())
+                                                .containsKey(tagChangeDescriptor.getKey()))
+                                        {
+                                            tagMap.get(itemType)
+                                                    .get(tagChangeDescriptor
+                                                            .getChangeDescriptorType())
+                                                    .get(tagChangeDescriptor.getKey())
+                                                    .incrementAndGet();
+                                        }
+                                        else
+                                        {
+                                            tagMap.get(itemType)
+                                                    .get(tagChangeDescriptor
+                                                            .getChangeDescriptorType())
+                                                    .put(tagChangeDescriptor.getKey(),
+                                                            new AtomicLong(1));
+                                        }
+                                    }));
+        }
+        return tagMap;
     }
 
     public String toJson()
@@ -339,8 +424,9 @@ public class Change implements Located, Serializable
         return this;
     }
 
-    List<FeatureChange> getFeatureChanges()
+    private long changeCountFor(final ItemType itemType, final ChangeDescriptorType changeType)
     {
-        return this.featureChanges;
+        return this.featureChanges.stream().filter(change -> change.getItemType().equals(itemType)
+                && change.explain().getChangeDescriptorType().equals(changeType)).count();
     }
 }
