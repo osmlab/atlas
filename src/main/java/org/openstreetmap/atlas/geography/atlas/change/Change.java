@@ -299,6 +299,10 @@ public class Change implements Located, Serializable
                 descriptorMap.put(type, new HashMap<>());
             }
             tagMap.put(itemType, descriptorMap);
+
+            // The first stream here gets all update changes with Tag changes; the second
+            // iterates over those changes and places them in the map based on their tag key
+            // and update type
             this.featureChanges.stream().filter(change -> change.getItemType().equals(itemType)
                     && change.explain().getChangeDescriptorType()
                             .equals(ChangeDescriptorType.UPDATE)

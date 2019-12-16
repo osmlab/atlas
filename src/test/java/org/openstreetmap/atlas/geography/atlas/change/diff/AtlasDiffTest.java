@@ -1,5 +1,8 @@
 package org.openstreetmap.atlas.geography.atlas.change.diff;
 
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
+
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -7,6 +10,8 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.change.Change;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeAtlas;
+import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescriptorType;
+import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,6 +100,22 @@ public class AtlasDiffTest
         final int expectedNumberOfChanges = 3;
 
         assertChangeAtlasConsistency(atlasX, atlasY, expectedNumberOfChanges);
+
+        final Change changeBeforeToAfter = new AtlasDiff(atlasX, atlasY).generateChange()
+                .orElseThrow(() -> new CoreException(
+                        "This Change should never be empty. The unit test may be broken."));
+        final Map<ItemType, Map<ChangeDescriptorType, Map<String, AtomicLong>>> tagCountMap = changeBeforeToAfter
+                .tagCountMap();
+        Assert.assertEquals(1, tagCountMap.get(ItemType.NODE).get(ChangeDescriptorType.ADD).size());
+        Assert.assertEquals(1,
+                tagCountMap.get(ItemType.NODE).get(ChangeDescriptorType.REMOVE).size());
+
+        Assert.assertEquals(2,
+                tagCountMap.get(ItemType.NODE).get(ChangeDescriptorType.ADD).get("tag2").get());
+        Assert.assertEquals(1,
+                tagCountMap.get(ItemType.NODE).get(ChangeDescriptorType.REMOVE).get("tag2").get());
+
+        System.out.println(tagCountMap);
     }
 
     private void assertChangeAtlasConsistency(final Atlas beforeAtlas, final Atlas afterAtlas,
