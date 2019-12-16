@@ -114,8 +114,6 @@ public class AtlasDiffTest
                 tagCountMap.get(ItemType.NODE).get(ChangeDescriptorType.ADD).get("tag2").get());
         Assert.assertEquals(1,
                 tagCountMap.get(ItemType.NODE).get(ChangeDescriptorType.REMOVE).get("tag2").get());
-
-        System.out.println(tagCountMap);
     }
 
     private void assertChangeAtlasConsistency(final Atlas beforeAtlas, final Atlas afterAtlas,
