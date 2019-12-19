@@ -80,8 +80,8 @@ public class DynamicAtlas extends BareAtlas // NOSONAR
     @Override
     public Iterable<Area> areasCovering(final Location location, final Predicate<Area> matcher)
     {
-        return this.expander.expand(() -> this.current.areasCovering(location, matcher),
-                this.expander::areaCovered, this::newArea);
+        return Iterables.filter(this.expander.expand(() -> this.current.areasCovering(location),
+                this.expander::areaCovered, this::newArea), matcher);
     }
 
     @Override
@@ -95,8 +95,8 @@ public class DynamicAtlas extends BareAtlas // NOSONAR
     public Iterable<Area> areasIntersecting(final GeometricSurface surface,
             final Predicate<Area> matcher)
     {
-        return this.expander.expand(() -> this.current.areasIntersecting(surface, matcher),
-                this.expander::areaCovered, this::newArea);
+        return Iterables.filter(this.expander.expand(() -> this.current.areasIntersecting(surface),
+                this.expander::areaCovered, this::newArea), matcher);
     }
 
     @Override
@@ -139,8 +139,8 @@ public class DynamicAtlas extends BareAtlas // NOSONAR
     @Override
     public Iterable<Edge> edgesContaining(final Location location, final Predicate<Edge> matcher)
     {
-        return this.expander.expand(() -> this.current.edgesContaining(location, matcher),
-                this.expander::lineItemCovered, this::newEdge);
+        return Iterables.filter(this.expander.expand(() -> this.current.edgesContaining(location),
+                this.expander::lineItemCovered, this::newEdge), matcher);
     }
 
     @Override
@@ -154,8 +154,8 @@ public class DynamicAtlas extends BareAtlas // NOSONAR
     public Iterable<Edge> edgesIntersecting(final GeometricSurface surface,
             final Predicate<Edge> matcher)
     {
-        return this.expander.expand(() -> this.current.edgesIntersecting(surface, matcher),
-                this.expander::lineItemCovered, this::newEdge);
+        return Iterables.filter(this.expander.expand(() -> this.current.edgesIntersecting(surface),
+                this.expander::lineItemCovered, this::newEdge), matcher);
     }
 
     @Override
@@ -234,8 +234,8 @@ public class DynamicAtlas extends BareAtlas // NOSONAR
     @Override
     public Iterable<Line> linesContaining(final Location location, final Predicate<Line> matcher)
     {
-        return this.expander.expand(() -> this.current.linesContaining(location, matcher),
-                this.expander::lineItemCovered, this::newLine);
+        return Iterables.filter(this.expander.expand(() -> this.current.linesContaining(location),
+                this.expander::lineItemCovered, this::newLine), matcher);
     }
 
     @Override
@@ -249,8 +249,8 @@ public class DynamicAtlas extends BareAtlas // NOSONAR
     public Iterable<Line> linesIntersecting(final GeometricSurface surface,
             final Predicate<Line> matcher)
     {
-        return this.expander.expand(() -> this.current.linesIntersecting(surface, matcher),
-                this.expander::lineItemCovered, this::newLine);
+        return Iterables.filter(this.expander.expand(() -> this.current.linesIntersecting(surface),
+                this.expander::lineItemCovered, this::newLine), matcher);
     }
 
     @Override
@@ -300,8 +300,8 @@ public class DynamicAtlas extends BareAtlas // NOSONAR
     @Override
     public Iterable<Node> nodesWithin(final GeometricSurface surface, final Predicate<Node> matcher)
     {
-        return this.expander.expand(() -> this.current.nodesWithin(surface, matcher),
-                this.expander::locationItemCovered, this::newNode);
+        return Iterables.filter(this.expander.expand(() -> this.current.nodesWithin(surface),
+                this.expander::locationItemCovered, this::newNode), matcher);
     }
 
     @Override
@@ -375,8 +375,8 @@ public class DynamicAtlas extends BareAtlas // NOSONAR
     public Iterable<Point> pointsWithin(final GeometricSurface surface,
             final Predicate<Point> matcher)
     {
-        return this.expander.expand(() -> this.current.pointsWithin(surface, matcher),
-                this.expander::locationItemCovered, this::newPoint);
+        return Iterables.filter(this.expander.expand(() -> this.current.pointsWithin(surface),
+                this.expander::locationItemCovered, this::newPoint), matcher);
     }
 
     /**
@@ -426,9 +426,10 @@ public class DynamicAtlas extends BareAtlas // NOSONAR
     public Iterable<Relation> relationsWithEntitiesIntersecting(final GeometricSurface surface,
             final Predicate<Relation> matcher)
     {
-        return this.expander.expand(
-                () -> this.current.relationsWithEntitiesIntersecting(surface, matcher),
-                this.expander::relationCovered, this::newRelation);
+        return Iterables.filter(
+                this.expander.expand(() -> this.current.relationsWithEntitiesIntersecting(surface),
+                        this.expander::relationCovered, this::newRelation),
+                matcher);
     }
 
     @Override

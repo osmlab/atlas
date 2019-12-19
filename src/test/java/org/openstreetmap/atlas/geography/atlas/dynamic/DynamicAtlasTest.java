@@ -17,7 +17,12 @@ import org.openstreetmap.atlas.geography.atlas.BareAtlas;
 import org.openstreetmap.atlas.geography.atlas.delta.AtlasDelta;
 import org.openstreetmap.atlas.geography.atlas.dynamic.policy.DynamicAtlasPolicy;
 import org.openstreetmap.atlas.geography.atlas.dynamic.rules.DynamicAtlasTestRule;
+import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
+import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.items.Line;
+import org.openstreetmap.atlas.geography.atlas.items.Node;
+import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
@@ -322,6 +327,48 @@ public class DynamicAtlasTest
                 atlasz12x1349y1869, atlasz12x1349y1870);
         Assert.assertEquals("Found differences: " + new AtlasDelta(atlas, multiAtlas).toString(),
                 atlas, multiAtlas);
+    }
+
+    @Test
+    public void testSpatialFilters()
+    {
+        final Area testArea = this.dynamicAtlas.area(1);
+        Assert.assertTrue(this.dynamicAtlas
+                .areasCovering(testArea.asPolygon().center(), area -> area.equals(testArea))
+                .iterator().hasNext());
+        Assert.assertTrue(this.dynamicAtlas
+                .areasIntersecting(testArea.bounds(), area -> area.equals(testArea)).iterator()
+                .hasNext());
+
+        final Edge testEdge = this.dynamicAtlas.edge(1000000);
+        Assert.assertTrue(this.dynamicAtlas
+                .edgesContaining(testEdge.end().getLocation(), edge -> edge.equals(testEdge))
+                .iterator().hasNext());
+        Assert.assertTrue(this.dynamicAtlas
+                .edgesIntersecting(testEdge.bounds(), edge -> edge.equals(testEdge)).iterator()
+                .hasNext());
+
+        final Line testLine = this.dynamicAtlas.line(1);
+        Assert.assertTrue(this.dynamicAtlas
+                .linesContaining(testLine.asPolyLine().first(), edge -> edge.equals(testLine))
+                .iterator().hasNext());
+        Assert.assertTrue(this.dynamicAtlas
+                .linesIntersecting(testLine.bounds(), edge -> edge.equals(testLine)).iterator()
+                .hasNext());
+
+        final Node testNode = this.dynamicAtlas.node(1);
+        Assert.assertTrue(
+                this.dynamicAtlas.nodesWithin(testNode.bounds(), edge -> edge.equals(testNode))
+                        .iterator().hasNext());
+
+        final Point testPoint = this.dynamicAtlas.point(1);
+        Assert.assertTrue(
+                this.dynamicAtlas.pointsWithin(testPoint.bounds(), edge -> edge.equals(testPoint))
+                        .iterator().hasNext());
+
+        final Relation testRelation = this.dynamicAtlas.relation(1);
+        Assert.assertTrue(this.dynamicAtlas.relationsWithEntitiesIntersecting(testRelation.bounds(),
+                edge -> edge.equals(testRelation)).iterator().hasNext());
     }
 
     @Test
