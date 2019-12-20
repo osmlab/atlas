@@ -23,6 +23,7 @@ import org.openstreetmap.atlas.utilities.time.Time;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 /**
  * A located entity with tags
@@ -131,14 +132,13 @@ public abstract class AtlasEntity
         properties.addProperty(GeoJsonUtils.ITEM_TYPE, String.valueOf(getType()));
 
         final Set<Relation> relations = relations();
-        if (relations.size() > 0)
+        if (!relations.isEmpty())
         {
             final JsonArray relationsArray = new JsonArray();
             properties.add("relations", relationsArray);
             for (final Relation relation : relations)
             {
-                final JsonObject relationObject = relation.getGeoJsonPropertiesWithoutMembers();
-                relationsArray.add(relationObject);
+                relationsArray.add(new JsonPrimitive(relation.getIdentifier()));
             }
         }
 
