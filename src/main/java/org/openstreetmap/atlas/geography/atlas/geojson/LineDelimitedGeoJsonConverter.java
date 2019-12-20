@@ -152,9 +152,11 @@ public class LineDelimitedGeoJsonConverter extends Command
         // Execute in a pool of threads so we limit how many atlases get loaded in parallel.
         try (Pool pool = new Pool(threads, "atlas-converter-worker"))
         {
-            pool.queue(() -> this.convertAtlases(atlasDirectory, geojsonDirectory));
-            TippecanoeCommands.concatenate(geojsonDirectory);
+            atlases.forEach(
+                    atlasFile -> pool.queue(() -> this.convertAtlas(atlasFile, geojsonDirectory)));
         }
+
+        TippecanoeCommands.concatenate(geojsonDirectory);
 
         logger.info(
                 "Finished converting directory of atlas shards into line-delimited GeoJSON in {}!",
@@ -174,19 +176,14 @@ public class LineDelimitedGeoJsonConverter extends Command
         return new SwitchList().with(ATLAS_DIRECTORY, GEOJSON_DIRECTORY, OVERWRITE, THREADS);
     }
 
-    private void convertAtlases(final Path atlasDirectory, final Path geojsonDirectory)
+    private void convertAtlas(final File atlasFile, final Path geojsonDirectory)
     {
-        final List<File> atlases = fetchAtlasFilesInDirectory(atlasDirectory);
-        atlases.parallelStream().forEach(atlasFile ->
-        {
-            final Time time = Time.now();
-            final Atlas atlas = ATLAS_RESOURCE_LOADER.load(atlasFile);
-            final String name = FilenameUtils.removeExtension(atlasFile.getName())
-                    + FileSuffix.GEO_JSON.toString();
-            final File geojsonFile = new File(geojsonDirectory.resolve(name).toFile());
-            atlas.saveAsLineDelimitedGeoJsonFeatures(geojsonFile, ENTITY_PREDICATE,
-                    this.jsonMutator);
-            logger.info("Saved {} in {}.", name, time.elapsedSince());
-        });
+        final Time time = Time.now();
+        final Atlas atlas = ATLAS_RESOURCE_LOADER.load(atlasFile);
+        final String name = FilenameUtils.removeExtension(atlasFile.getName())
+                + FileSuffix.GEO_JSON.toString();
+        final File geojsonFile = new File(geojsonDirectory.resolve(name).toFile());
+        atlas.saveAsLineDelimitedGeoJsonFeatures(geojsonFile, ENTITY_PREDICATE, this.jsonMutator);
+        logger.info("Saved {} in {}.", name, time.elapsedSince());
     }
 }
