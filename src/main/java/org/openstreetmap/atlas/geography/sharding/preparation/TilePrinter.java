@@ -28,6 +28,8 @@ public class TilePrinter extends Command
             value -> new File(value));
     private static final Switch<Integer> ZOOM_SWITCH = new Switch<>("zoom", "The zoom",
             value -> Integer.valueOf(value));
+    private static final Switch<String> USER = new Switch<>("user", "The user for the db",
+            value -> new String(value));
 
     private int index;
     private File folder;
@@ -44,17 +46,18 @@ public class TilePrinter extends Command
         this.index = 0;
         this.zoom = (int) command.get(ZOOM_SWITCH);
         this.folder = (File) command.get(OUTPUT_FOLDER);
+        final String user = (String) command.get(USER);
         this.folder.mkdirs();
         SafeBufferedWriter writer = getNextFile().writer();
-        writer.writeLine("CREATE SCHEMA sharding AUTHORIZATION osm;");
+        writer.writeLine("CREATE SCHEMA sharding AUTHORIZATION " + user + ";");
         writer.writeLine("DROP TABLE sharding.tiles;");
         writer.writeLine(
                 "CREATE TABLE sharding.tiles(tile text, bounds geometry) WITH ( OIDS=FALSE );");
-        writer.writeLine("ALTER TABLE sharding.tiles OWNER TO osm;");
+        writer.writeLine("ALTER TABLE sharding.tiles OWNER TO " + user + ";");
         writer.writeLine("DROP TABLE sharding.counts;");
         writer.writeLine(
                 "CREATE TABLE sharding.counts(tile text, count integer) WITH ( OIDS=FALSE );");
-        writer.writeLine("ALTER TABLE sharding.counts OWNER TO osm;");
+        writer.writeLine("ALTER TABLE sharding.counts OWNER TO " + user + ";");
 
         final Iterator<SlippyTile> tileIterator = SlippyTile.allTilesIterator(this.zoom,
                 Rectangle.MAXIMUM);
@@ -114,7 +117,7 @@ public class TilePrinter extends Command
     @Override
     protected SwitchList switches()
     {
-        return new SwitchList().with(ZOOM_SWITCH, OUTPUT_FOLDER);
+        return new SwitchList().with(ZOOM_SWITCH, OUTPUT_FOLDER, USER);
     }
 
     private File getNextFile()
