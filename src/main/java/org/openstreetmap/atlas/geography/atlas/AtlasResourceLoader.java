@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
+import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.atlas.builder.text.TextAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
@@ -21,7 +23,7 @@ import org.slf4j.LoggerFactory;
  * Load an {@link Atlas} from a {@link Resource} or an {@link Iterable} of {@link Resource}s.
  * Supports also loading based on a resource name filter. Note that by default, this class will
  * filter the provided {@link Iterable} and remove any {@link Resource} that does not have a valid
- * atlas file extension (defined in the {@link FileSuffix} enum). This funtionality can be disabled
+ * atlas file extension (defined in the {@link FileSuffix} enum). This functionality can be disabled
  * by calling {@link AtlasResourceLoader#withAtlasFileExtensionFilterSetTo(boolean)} with
  * {@code false}. Disabling this functionality is useful if combining this class with atlases
  * fetched from a cache that does not respect the .atlas file extension convention.
@@ -62,6 +64,8 @@ public class AtlasResourceLoader
 
     public static final Predicate<Resource> IS_ATLAS = FileSuffix.resourceFilter(FileSuffix.ATLAS)
             .or(FileSuffix.resourceFilter(FileSuffix.ATLAS, FileSuffix.GZIP));
+    public static final Predicate<Resource> IS_TEXT_ATLAS = FileSuffix
+            .resourceFilter(FileSuffix.ATLAS, FileSuffix.TEXT);
 
     private static final Logger logger = LoggerFactory.getLogger(AtlasResourceLoader.class);
 
@@ -84,30 +88,19 @@ public class AtlasResourceLoader
                 ? IS_ATLAS
                 : this.alwaysTrueAtlasFilter;
 
-        final List<Resource> resources = Iterables.stream(input).flatMap(this::resourcesIn)
+        final List<Resource> binaryResources = Iterables.stream(input).flatMap(this::resourcesIn)
                 .filter(toggleableAtlasFileFilter).filter(this.resourceFilter).collectToList();
-        final long size = resources.size();
+        final List<Resource> textResources = Iterables.stream(input).flatMap(this::resourcesIn)
+                .filter(IS_TEXT_ATLAS).filter(this.resourceFilter).collectToList();
+
+        final long size = binaryResources.size() + (long) textResources.size();
         if (size == 1)
         {
-            Atlas result = PackedAtlas.load(resources.get(0));
-            if (this.atlasEntityFilter != null)
-            {
-                final Optional<Atlas> subAtlas = result.subAtlas(this.atlasEntityFilter,
-                        AtlasCutType.SOFT_CUT);
-                result = subAtlas.isPresent() ? subAtlas.get() : null;
-            }
-            return result;
+            return loadSingleAtlas(binaryResources, textResources);
         }
         else if (size > 1)
         {
-            final MultiAtlas result = this.atlasEntityFilter == null
-                    ? MultiAtlas.loadFromPackedAtlas(resources)
-                    : MultiAtlas.loadFromPackedAtlas(resources, this.atlasEntityFilter);
-            if (this.multiAtlasName != null)
-            {
-                result.setName(this.multiAtlasName);
-            }
-            return result;
+            return loadMultipleAtlases(binaryResources, textResources);
         }
         else
         {
@@ -185,6 +178,102 @@ public class AtlasResourceLoader
     {
         setResourceFilter(filter);
         return this;
+    }
+
+    private Atlas loadMultipleAtlases(final List<Resource> binaryResources,
+            final List<Resource> textResources)
+    {
+        /*
+         * There are three scenarios that must be handled. 1) There were only binary atlases. 2)
+         * There was a mix of binary and text atlases. 3) There were only text atlases.
+         */
+
+        MultiAtlas resultAtlas = null;
+        if (!binaryResources.isEmpty())
+        {
+            resultAtlas = this.atlasEntityFilter == null
+                    ? MultiAtlas.loadFromPackedAtlas(binaryResources)
+                    : MultiAtlas.loadFromPackedAtlas(binaryResources, this.atlasEntityFilter);
+        }
+        if (!textResources.isEmpty())
+        {
+            final List<Atlas> textAtlases = loadTextAtlasesFromResources(textResources);
+            if (!textAtlases.isEmpty())
+            {
+                final MultiAtlas textMultiAtlas = new MultiAtlas(textAtlases);
+                /*
+                 * In this case, 'resultAtlas' is not null because there was a mix of binary and
+                 * text atlases.
+                 */
+                if (resultAtlas != null)
+                {
+                    resultAtlas = new MultiAtlas(resultAtlas, textMultiAtlas);
+                }
+                /*
+                 * For this case, there was no previous resultAtlas since no binary atlases for
+                 * found.
+                 */
+                else
+                {
+                    resultAtlas = textMultiAtlas;
+                }
+            }
+        }
+
+        if (this.multiAtlasName != null && resultAtlas != null)
+        {
+            resultAtlas.setName(this.multiAtlasName);
+        }
+        return resultAtlas;
+    }
+
+    private Atlas loadSingleAtlas(final List<Resource> binaryResources,
+            final List<Resource> textResources)
+    {
+        Atlas result;
+        if (!binaryResources.isEmpty())
+        {
+            result = PackedAtlas.load(binaryResources.get(0));
+        }
+        else if (!textResources.isEmpty())
+        {
+            result = new TextAtlasBuilder().read(textResources.get(0));
+        }
+        else
+        {
+            throw new CoreException("Could not find any resources to load!");
+        }
+        if (this.atlasEntityFilter != null)
+        {
+            final Optional<Atlas> subAtlas = result.subAtlas(this.atlasEntityFilter,
+                    AtlasCutType.SOFT_CUT);
+            result = subAtlas.orElse(null);
+        }
+        return result;
+    }
+
+    private List<Atlas> loadTextAtlasesFromResources(final List<Resource> textResources)
+    {
+        final List<Atlas> textAtlases = new ArrayList<>();
+        for (final Resource textResource : textResources)
+        {
+            final Atlas atlas = new TextAtlasBuilder().read(textResource);
+            if (this.atlasEntityFilter != null)
+            {
+                final Optional<Atlas> filtered = atlas.subAtlas(this.atlasEntityFilter,
+                        AtlasCutType.SOFT_CUT);
+                if (!filtered.isPresent())
+                {
+                    continue;
+                }
+                textAtlases.add(filtered.get());
+            }
+            else
+            {
+                textAtlases.add(atlas);
+            }
+        }
+        return textAtlases;
     }
 
     private List<Resource> resourcesIn(final Resource resource)
