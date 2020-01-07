@@ -88,6 +88,11 @@ public class AtlasResourceLoader
                 ? IS_ATLAS
                 : this.alwaysTrueAtlasFilter;
 
+        /*
+         * FIXME These filters are wonky when the resource name is null, since the name filters let
+         * null-named resources pass through. What we should do is disallow resources will
+         * null-names, and fix all unit tests that forget to set a resource name.
+         */
         final List<Resource> binaryResources = Iterables.stream(input).flatMap(this::resourcesIn)
                 .filter(toggleableAtlasFileFilter).filter(this.resourceFilter).collectToList();
         final List<Resource> textResources = Iterables.stream(input).flatMap(this::resourcesIn)
