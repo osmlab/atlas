@@ -13,6 +13,7 @@ import com.google.common.base.Joiner;
 public enum FileSuffix
 {
     ATLAS(".atlas"),
+    TEXT_ATLAS(".atlas.txt"),
     CHANGESET(".cs"),
     CSV(".csv"),
     GEO_JSON(".geojson"),
@@ -48,7 +49,7 @@ public enum FileSuffix
     public static Predicate<Resource> resourceFilter(final FileSuffix... listOfSuffixes)
     {
         final String suffix = Joiner.on("").join(listOfSuffixes);
-        return resource -> resource.getName() == null || resource.getName().endsWith(suffix);
+        return resource -> resource.getName().endsWith(suffix);
     }
 
     public static Optional<FileSuffix> suffixFor(final String value)

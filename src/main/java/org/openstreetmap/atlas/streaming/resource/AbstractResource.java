@@ -25,6 +25,10 @@ public abstract class AbstractResource implements Resource
     @Override
     public String getName()
     {
+        if (this.name == null)
+        {
+            return Resource.super.getName();
+        }
         return this.name;
     }
 
