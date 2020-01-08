@@ -96,7 +96,7 @@ public interface Resource
      */
     default String getName()
     {
-        return null;
+        return getClass().getName() + "@" + Integer.toHexString(hashCode());
     }
 
     /**
