@@ -77,7 +77,7 @@ public class AtlasResourceLoader3
     private String multiAtlasName;
     private boolean filterForAtlasFileExtension = true;
 
-    public AtlasResourceLoader()
+    public AtlasResourceLoader3()
     {
         this.resourceFilter = resource -> true;
         this.atlasEntityFilter = null;
@@ -160,7 +160,7 @@ public class AtlasResourceLoader3
      *            filter which {@link AtlasEntity}s to include/exclude in the {@link Atlas}
      * @return fluent interface requires this be returned
      */
-    public AtlasResourceLoader withAtlasEntityFilter(final Predicate<AtlasEntity> filter)
+    public AtlasResourceLoader3 withAtlasEntityFilter(final Predicate<AtlasEntity> filter)
     {
         setAtlasEntityFilter(filter);
         return this;
@@ -173,13 +173,13 @@ public class AtlasResourceLoader3
      *            whether to enable or disable
      * @return the modified {@link AtlasResourceLoader}
      */
-    public AtlasResourceLoader withAtlasFileExtensionFilterSetTo(final boolean value)
+    public AtlasResourceLoader3 withAtlasFileExtensionFilterSetTo(final boolean value)
     {
         this.filterForAtlasFileExtension = value;
         return this;
     }
 
-    public AtlasResourceLoader withMultiAtlasName(final String multiAtlasName)
+    public AtlasResourceLoader3 withMultiAtlasName(final String multiAtlasName)
     {
         this.multiAtlasName = multiAtlasName;
         return this;
@@ -192,7 +192,7 @@ public class AtlasResourceLoader3
      *            filter which {@link Resource} to load
      * @return fluent interface requires this be returned
      */
-    public AtlasResourceLoader withResourceFilter(final Predicate<Resource> filter)
+    public AtlasResourceLoader3 withResourceFilter(final Predicate<Resource> filter)
     {
         setResourceFilter(filter);
         return this;
