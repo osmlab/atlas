@@ -14,6 +14,7 @@ public enum FileSuffix
 {
     ATLAS(".atlas"),
     TEXT_ATLAS(".atlas.txt"),
+    GZIP_ATLAS(".atlas.gz"),
     CHANGESET(".cs"),
     CSV(".csv"),
     GEO_JSON(".geojson"),

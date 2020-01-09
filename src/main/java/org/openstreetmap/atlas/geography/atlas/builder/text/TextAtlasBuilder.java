@@ -86,7 +86,6 @@ public class TextAtlasBuilder
     }
 
     private static final Logger logger = LoggerFactory.getLogger(TextAtlasBuilder.class);
-
     private static final String NODES_HEADER = "# Nodes";
     private static final String EDGES_HEADER = "# Edges";
     private static final String AREAS_HEADER = "# Areas";
@@ -97,6 +96,11 @@ public class TextAtlasBuilder
     private static final String SECONDARY_SEPARATOR = " || ";
     private static final String TERTIARY_SEPARATOR = " -> ";
     private static final String SEPARATOR_REPLACEMENT = " ";
+
+    public static String getNodesHeader()
+    {
+        return NODES_HEADER;
+    }
 
     public PackedAtlas read(final Resource resource)
     {

@@ -120,6 +120,17 @@ public class AtlasResourceLoader
         return load(Iterables.from(resource));
     }
 
+    public Atlas loadRecursively(final File... file)
+    {
+        return loadRecursively(Iterables.from(file));
+    }
+
+    public Atlas loadRecursively(final Iterable<File> input)
+    {
+        // TODO
+        return null;
+    }
+
     /**
      * Optionally add an {@link AtlasEntity} filter
      *
