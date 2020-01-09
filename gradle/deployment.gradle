@@ -22,7 +22,6 @@ signing
 {
     sign configurations.archives
 }
-build.dependsOn.remove(signArchives)
 
 uploadArchives
 {

@@ -94,10 +94,12 @@ jacocoTestReport {
         csv.enabled true
         html.destination file("${buildDir}/reports/jacoco")
     }
+    // Below, works with gradle 6
+    // See https://stackoverflow.com/a/54213986/1558687
     afterEvaluate {
-        classDirectories = files(classDirectories.files.collect {
+        classDirectories.setFrom(files(classDirectories.files.collect {
             fileTree(dir: it, exclude: 'org/openstreetmap/atlas/proto/**')
-        })
+        }))
     }
     sourceSets sourceSets.main
     executionData fileTree(project.rootDir.absolutePath).include("**/jacoco/*.exec")
