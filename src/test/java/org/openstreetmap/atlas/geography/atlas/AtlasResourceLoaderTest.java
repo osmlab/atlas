@@ -18,11 +18,9 @@ import org.openstreetmap.atlas.geography.Latitude;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Longitude;
 import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader.AtlasFileSelector;
-import org.openstreetmap.atlas.geography.atlas.builder.text.TextAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
-import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
@@ -155,65 +153,6 @@ public class AtlasResourceLoaderTest
         assert identifier.equals(deserializedIdentifier);
         assert numOfEdges == deserializedNumOfEdges;
         assert numOfNodes == deserializedNumOfNodes;
-    }
-
-    @Test
-    public void testLoadTextBasedAtlasMulti()
-    {
-        final PackedAtlasBuilder builder1 = new PackedAtlasBuilder();
-        builder1.addPoint(1, new Location(Latitude.degrees(1), Longitude.degrees(1)),
-                Maps.hashMap("a", "b"));
-        final Atlas packedAtlas1 = builder1.get();
-
-        final PackedAtlasBuilder builder2 = new PackedAtlasBuilder();
-        builder2.addPoint(2, new Location(Latitude.degrees(2), Longitude.degrees(2)),
-                Maps.hashMap("c", "d"));
-        final Atlas packedAtlas2 = builder2.get();
-
-        final PackedAtlasBuilder builder3 = new PackedAtlasBuilder();
-        builder3.addPoint(3, new Location(Latitude.degrees(3), Longitude.degrees(3)),
-                Maps.hashMap("e", "f"));
-        final Atlas packedAtlas3 = builder3.get();
-
-        final TextAtlasBuilder textBuilder1 = new TextAtlasBuilder();
-        final ByteArrayResource atlasTextResource1 = new ByteArrayResource()
-                .withName("iAmATextAtlas1.atlas.txt");
-        textBuilder1.write(packedAtlas1, atlasTextResource1);
-
-        final TextAtlasBuilder textBuilder2 = new TextAtlasBuilder();
-        final ByteArrayResource atlasTextResource2 = new ByteArrayResource()
-                .withName("iAmATextAtlas2.atlas.txt");
-        textBuilder2.write(packedAtlas2, atlasTextResource2);
-
-        final ByteArrayResource atlasBinaryResource1 = new ByteArrayResource()
-                .withName("iAmABinaryAtlas1.atlas");
-        packedAtlas3.save(atlasBinaryResource1);
-
-        final Atlas loadedAtlas1 = new AtlasResourceLoader().load(atlasTextResource1,
-                atlasTextResource2);
-        Assert.assertEquals(new MultiAtlas(packedAtlas1, packedAtlas2), loadedAtlas1);
-
-        final Atlas loadedAtlas2 = new AtlasResourceLoader().load(atlasTextResource1,
-                atlasTextResource2, atlasBinaryResource1);
-        Assert.assertEquals(new MultiAtlas(packedAtlas1, packedAtlas2, packedAtlas3), loadedAtlas2);
-    }
-
-    @Test
-    public void testLoadTextBasedAtlasSingle()
-    {
-        final PackedAtlasBuilder builder = new PackedAtlasBuilder();
-        builder.addPoint(1, new Location(Latitude.degrees(0), Longitude.degrees(0)),
-                Maps.hashMap("a", "b"));
-        final Atlas packedAtlas = builder.get();
-
-        final TextAtlasBuilder textBuilder = new TextAtlasBuilder();
-        final ByteArrayResource atlasTextResource = new ByteArrayResource()
-                .withName("iAmATextAtlas.atlas.txt");
-        textBuilder.write(packedAtlas, atlasTextResource);
-
-        final Atlas loadedAtlas = new AtlasResourceLoader().load(atlasTextResource);
-
-        Assert.assertEquals(packedAtlas, loadedAtlas);
     }
 
     @Test
