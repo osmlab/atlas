@@ -49,38 +49,35 @@ public class IsAtlasTestCase
     @Test
     public void atlasCapsName()
     {
-        Assert.assertFalse(AtlasResourceLoader.IS_ATLAS.test(new NamedResource("somefile.ATLAS")));
+        Assert.assertFalse(
+                AtlasResourceLoader.HAS_ATLAS_EXTENSION.test(new NamedResource("somefile.ATLAS")));
     }
 
     @Test
     public void atlasCompressed()
     {
-        Assert.assertTrue(
-                AtlasResourceLoader.IS_ATLAS.test(new NamedResource("somefile.atlas.gz")));
+        Assert.assertTrue(AtlasResourceLoader.HAS_ATLAS_EXTENSION
+                .test(new NamedResource("somefile.atlas.gz")));
     }
 
     @Test
     public void atlasName()
     {
-        Assert.assertTrue(AtlasResourceLoader.IS_ATLAS.test(new NamedResource("somefile.atlas")));
+        Assert.assertTrue(
+                AtlasResourceLoader.HAS_ATLAS_EXTENSION.test(new NamedResource("somefile.atlas")));
     }
 
     @Test
     public void compressed()
     {
-        Assert.assertFalse(AtlasResourceLoader.IS_ATLAS.test(new NamedResource("somefile.gz")));
+        Assert.assertFalse(
+                AtlasResourceLoader.HAS_ATLAS_EXTENSION.test(new NamedResource("somefile.gz")));
     }
 
     @Test
     public void nonAtlasName()
     {
-        Assert.assertFalse(AtlasResourceLoader.IS_ATLAS.test(new NamedResource("somefile.txt")));
+        Assert.assertFalse(
+                AtlasResourceLoader.HAS_ATLAS_EXTENSION.test(new NamedResource("somefile.txt")));
     }
-
-    @Test
-    public void nullName()
-    {
-        Assert.assertTrue(AtlasResourceLoader.IS_ATLAS.test(new NamedResource(null)));
-    }
-
 }

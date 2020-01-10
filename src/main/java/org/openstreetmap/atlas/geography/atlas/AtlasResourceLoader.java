@@ -2,9 +2,13 @@ package org.openstreetmap.atlas.geography.atlas;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
+import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.atlas.builder.text.TextAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
@@ -18,59 +22,46 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Load an {@link Atlas} from a {@link Resource} or an {@link Iterable} of {@link Resource}s.
- * Supports also loading based on a resource name filter. Note that by default, this class will
- * filter the provided {@link Iterable} and remove any {@link Resource} that does not have a valid
- * atlas file extension (defined in the {@link FileSuffix} enum). This funtionality can be disabled
- * by calling {@link AtlasResourceLoader#withAtlasFileExtensionFilterSetTo(boolean)} with
- * {@code false}. Disabling this functionality is useful if combining this class with atlases
- * fetched from a cache that does not respect the .atlas file extension convention.
+ * Load an {@link Atlas} from a {@link Resource} or an {@link Iterable} of {@link Resource}s. Also
+ * supports loading based on a resource name filter. To recursively load all {@link Atlas}es in a
+ * directory, see the {@link AtlasResourceLoader#loadRecursively} method.
  *
- * @author cstaylor
- * @author mgostintsev
- * @author matthieun
- * @author remegraw
+ * @author lcram
  */
 public class AtlasResourceLoader
 {
-    /**
-     * @author matthieun
-     */
-    protected static final class AtlasFileSelector
-    {
-        public List<Resource> select(final File file)
-        {
-            final List<Resource> result = new ArrayList<>();
-            if (file != null && file.exists())
-            {
-                file.listFilesRecursively().forEach(child ->
-                {
-                    if (child.isGzipped())
-                    {
-                        child.setDecompressor(Decompressor.GZIP);
-                    }
-                    result.add(child);
-                });
-            }
-            else
-            {
-                logger.warn("File {} does not exist.", file);
-            }
-            return result;
-        }
-    }
-
-    public static final Predicate<Resource> IS_ATLAS = FileSuffix.resourceFilter(FileSuffix.ATLAS)
-            .or(FileSuffix.resourceFilter(FileSuffix.ATLAS, FileSuffix.GZIP));
+    public static final Predicate<Resource> HAS_TEXT_ATLAS_EXTENSION = FileSuffix
+            .resourceFilter(FileSuffix.TEXT_ATLAS);
+    public static final Predicate<Resource> HAS_ATLAS_EXTENSION = FileSuffix
+            .resourceFilter(FileSuffix.ATLAS).or(FileSuffix.resourceFilter(FileSuffix.GZIP_ATLAS));
 
     private static final Logger logger = LoggerFactory.getLogger(AtlasResourceLoader.class);
-
-    private final Predicate<Resource> alwaysTrueAtlasFilter = resource -> true;
-
+    private static final Predicate<Resource> CONTENTS_LOOK_LIKE_TEXT_ATLAS = resource ->
+    {
+        checkFileExistsAndIsNotDirectory(resource);
+        return resource.firstLine().equals(TextAtlasBuilder.getNodesHeader());
+    };
     private Predicate<Resource> resourceFilter;
     private Predicate<AtlasEntity> atlasEntityFilter;
     private String multiAtlasName;
-    private boolean filterForAtlasFileExtension = true;
+
+    private static void checkFileExistsAndIsNotDirectory(final Resource resource)
+    {
+        if (resource instanceof File)
+        {
+            final File fileResource = (File) resource;
+            if (!fileResource.exists())
+            {
+                throw new CoreException("Resource {} was of type File but it could not be found",
+                        resource.getName());
+            }
+            else if (fileResource.isDirectory())
+            {
+                throw new CoreException("Resource {} was of type File but it was a directory",
+                        resource.getName());
+            }
+        }
+    }
 
     public AtlasResourceLoader()
     {
@@ -78,46 +69,145 @@ public class AtlasResourceLoader
         this.atlasEntityFilter = null;
     }
 
-    public Atlas load(final Iterable<? extends Resource> input)
+    /**
+     * Load an {@link Atlas} from the provided {@link Resource}(s). If more than one
+     * {@link Resource} is provided, the method will utilize the {@link MultiAtlas} to combine them.
+     * This method will fail with an exception if any of the provided {@link Resource}s do not
+     * contain a valid binary or text {@link Atlas}. This method should never return null.
+     *
+     * @param resources
+     *            the {@link Resource}(s) from which to load
+     * @return the non-null loaded {@link Atlas}
+     */
+    public Atlas load(final Resource... resources)
     {
-        final Predicate<Resource> toggleableAtlasFileFilter = this.filterForAtlasFileExtension
-                ? IS_ATLAS
-                : this.alwaysTrueAtlasFilter;
+        return load(Iterables.from(resources));
+    }
 
-        final List<Resource> resources = Iterables.stream(input).flatMap(this::resourcesIn)
-                .filter(toggleableAtlasFileFilter).filter(this.resourceFilter).collectToList();
-        final long size = resources.size();
-        if (size == 1)
+    /**
+     * Load an {@link Atlas} from an {@link Iterable} of {@link Resource}s. If more than one
+     * {@link Resource} is provided, the method will utilize the {@link MultiAtlas} to combine them.
+     * This method will fail with an exception if any of the provided {@link Resource}s do not
+     * contain a valid binary or text {@link Atlas}. This method should never return null.
+     *
+     * @param resources
+     *            the {@link Iterable} of {@link Resource}s from which to load
+     * @return the non-null loaded {@link Atlas}
+     */
+    public Atlas load(final Iterable<? extends Resource> resources)
+    {
+        final List<Resource> atlasResources = Iterables.stream(resources)
+                .flatMap(this::upcastAndRemoveNullResources).filter(this.resourceFilter)
+                .collectToList();
+
+        final Optional<Atlas> resultAtlasOptional;
+        if (atlasResources.isEmpty())
         {
-            Atlas result = PackedAtlas.load(resources.get(0));
-            if (this.atlasEntityFilter != null)
-            {
-                final Optional<Atlas> subAtlas = result.subAtlas(this.atlasEntityFilter,
-                        AtlasCutType.SOFT_CUT);
-                result = subAtlas.isPresent() ? subAtlas.get() : null;
-            }
-            return result;
+            throw new CoreException("No loadable Resources were found.");
         }
-        else if (size > 1)
+        else if (atlasResources.size() == 1)
         {
-            final MultiAtlas result = this.atlasEntityFilter == null
-                    ? MultiAtlas.loadFromPackedAtlas(resources)
-                    : MultiAtlas.loadFromPackedAtlas(resources, this.atlasEntityFilter);
-            if (this.multiAtlasName != null)
-            {
-                result.setName(this.multiAtlasName);
-            }
-            return result;
+            resultAtlasOptional = loadAtlasResource(atlasResources.get(0));
         }
         else
         {
-            return null;
+            resultAtlasOptional = loadMultipleAtlasResources(atlasResources);
         }
+
+        if (!resultAtlasOptional.isPresent())
+        {
+            throw new CoreException(
+                    "Unable to load atlas from provided Resources. If you are seeing this you likely found a bug with AtlasResourceLoader. Please report it.");
+        }
+        Atlas resultAtlas = resultAtlasOptional.get();
+
+        // Apply the filter at the end
+        if (this.atlasEntityFilter != null)
+        {
+            final Optional<Atlas> subAtlas = resultAtlas.subAtlas(this.atlasEntityFilter,
+                    AtlasCutType.SOFT_CUT);
+            resultAtlas = subAtlas.orElseThrow(
+                    () -> new CoreException("Entity filter resulted in an empty atlas"));
+        }
+        return resultAtlas;
     }
 
-    public Atlas load(final Resource... resource)
+    /**
+     * Load an {@link Atlas} from the provided {@link File} {@link Resource}(s). If any of the
+     * provided {@link File}(s) are directories, the method will recursively descend into the
+     * directory and include every {@link Atlas} it discovers. It identifies {@link Atlas}es by
+     * looking for {@link FileSuffix#ATLAS}, {@link FileSuffix#TEXT_ATLAS}, and
+     * {@link FileSuffix#GZIP_ATLAS} file extensions. Like with the {@link AtlasResourceLoader#load}
+     * method, this method will utilize the {@link MultiAtlas} to combine the {@link Atlas}es. This
+     * method should never return null.
+     *
+     * @param resources
+     *            the {@link File} {@link Resource}(s) from which to load
+     * @return the non-null loaded {@link Atlas}
+     */
+    public Atlas loadRecursively(final Resource... resources)
     {
-        return load(Iterables.from(resource));
+        return loadRecursively(Iterables.from(resources));
+    }
+
+    /**
+     * Load an {@link Atlas} from an {@link Iterable} of {@link File} {@link Resource}s. If any of
+     * the provided {@link File}(s) are directories, the method will recursively descend into the
+     * directory and include every {@link Atlas} it discovers. It identifies {@link Atlas}es by
+     * looking for {@link FileSuffix#ATLAS}, {@link FileSuffix#TEXT_ATLAS}, and
+     * {@link FileSuffix#GZIP_ATLAS} file extensions. Like with the {@link AtlasResourceLoader#load}
+     * method, this method will utilize the {@link MultiAtlas} to combine the {@link Atlas}es. This
+     * method should never return null.
+     *
+     * @param resources
+     *            the {@link Iterable} of {@link File} {@link Resource}s from which to load
+     * @return the non-null loaded {@link Atlas}
+     */
+    public Atlas loadRecursively(final Iterable<Resource> resources)
+    {
+        final List<Resource> atlasResources = Iterables.stream(resources).filter(Objects::nonNull)
+                .flatMap(this::expandFileOrDirectoryRecursively)
+                .filter(HAS_ATLAS_EXTENSION.or(HAS_TEXT_ATLAS_EXTENSION))
+                .filter(this.resourceFilter).collectToList();
+
+        final Optional<Atlas> resultAtlasOptional = loadMultipleAtlasResources(atlasResources);
+        if (!resultAtlasOptional.isPresent())
+        {
+            throw new CoreException(
+                    "Unable to load atlas from provided Resources. If you are seeing this you likely found a bug with AtlasResourceLoader. Please report it.");
+        }
+        Atlas resultAtlas = resultAtlasOptional.get();
+
+        // Apply the filter at the end
+        if (this.atlasEntityFilter != null)
+        {
+            final Optional<Atlas> subAtlas = resultAtlas.subAtlas(this.atlasEntityFilter,
+                    AtlasCutType.SOFT_CUT);
+            resultAtlas = subAtlas.orElseThrow(
+                    () -> new CoreException("Entity filter resulted in an empty atlas"));
+        }
+        return resultAtlas;
+    }
+
+    /**
+     * // TODO fill in doc
+     * 
+     * @param resources
+     *            the {@link Resource}(s) from which to load
+     * @return an {@link Optional} wrapping the loaded {@link Atlas} if present
+     */
+    public Optional<Atlas> safeLoad(final Resource... resources)
+    {
+        // TODO fill in overloaded versions
+        try
+        {
+            return Optional.of(load(resources));
+        }
+        catch (final Exception exception)
+        {
+            logger.warn("Could not load atlas from supplied resources", exception);
+            return Optional.empty();
+        }
     }
 
     /**
@@ -156,18 +246,12 @@ public class AtlasResourceLoader
     }
 
     /**
-     * Enable or disable atlas file extension filtering on this loader.
+     * Set the name for the {@link MultiAtlas} that results from the load.
      *
-     * @param value
-     *            whether to enable or disable
-     * @return the modified {@link AtlasResourceLoader}
+     * @param multiAtlasName
+     *            the name
+     * @return instance of {@link AtlasResourceLoader} for method chaining
      */
-    public AtlasResourceLoader withAtlasFileExtensionFilterSetTo(final boolean value)
-    {
-        this.filterForAtlasFileExtension = value;
-        return this;
-    }
-
     public AtlasResourceLoader withMultiAtlasName(final String multiAtlasName)
     {
         this.multiAtlasName = multiAtlasName;
@@ -179,7 +263,7 @@ public class AtlasResourceLoader
      *
      * @param filter
      *            filter which {@link Resource} to load
-     * @return fluent interface requires this be returned
+     * @return instance of {@link AtlasResourceLoader} for method chaining
      */
     public AtlasResourceLoader withResourceFilter(final Predicate<Resource> filter)
     {
@@ -187,19 +271,143 @@ public class AtlasResourceLoader
         return this;
     }
 
-    private List<Resource> resourcesIn(final Resource resource)
+    private List<Resource> expandFileOrDirectoryRecursively(final Resource resource)
+    {
+        if (resource == null)
+        {
+            return new ArrayList<>();
+        }
+
+        if (!(resource instanceof File))
+        {
+            throw new CoreException("Resource {} was not a File, instead was {}",
+                    resource.getName(), resource.getClass().getName());
+        }
+
+        final File file = (File) resource;
+        final List<Resource> result = new ArrayList<>();
+        if (file.isDirectory())
+        {
+            file.listFilesRecursively().forEach(child ->
+            {
+                if (child.isGzipped())
+                {
+                    child.setDecompressor(Decompressor.GZIP);
+                }
+                result.add(child);
+            });
+        }
+        else
+        {
+            result.add(file);
+        }
+
+        return result;
+    }
+
+    private List<Resource> filterForBinaryAtlasResources(final List<Resource> atlasResources)
+    {
+        return atlasResources.stream().filter(CONTENTS_LOOK_LIKE_TEXT_ATLAS.negate())
+                .collect(Collectors.toList());
+    }
+
+    private List<Resource> filterForTextAtlasResources(final List<Resource> atlasResources)
+    {
+        return atlasResources.stream().filter(CONTENTS_LOOK_LIKE_TEXT_ATLAS)
+                .collect(Collectors.toList());
+    }
+
+    private Optional<Atlas> loadAtlasResource(final Resource resource)
+    {
+        final Atlas result;
+
+        if (CONTENTS_LOOK_LIKE_TEXT_ATLAS.test(resource))
+        {
+            result = new TextAtlasBuilder().read(resource);
+        }
+        else
+        {
+            try
+            {
+                result = PackedAtlas.load(resource);
+            }
+            catch (final Exception exception)
+            {
+                throw new CoreException("Failed to load an atlas from {} with name {}",
+                        resource.getClass().getName(), resource.getName(), exception);
+            }
+        }
+        return Optional.ofNullable(result);
+    }
+
+    private Optional<Atlas> loadMultipleAtlasResources(final List<Resource> atlasResources)
+    {
+        final List<Resource> binaryResources = filterForBinaryAtlasResources(atlasResources);
+        final List<Resource> textResources = filterForTextAtlasResources(atlasResources);
+
+        if (binaryResources.isEmpty() && textResources.isEmpty())
+        {
+            throw new CoreException("No loadable Resources were found.");
+        }
+
+        /*
+         * There are three scenarios that must be handled. 1) There were only binary atlases. 2)
+         * There was a mix of binary and text atlases. 3) There were only text atlases.
+         */
+        MultiAtlas resultAtlas = null;
+        if (!binaryResources.isEmpty())
+        {
+            resultAtlas = MultiAtlas.loadFromPackedAtlas(binaryResources);
+        }
+        if (!textResources.isEmpty())
+        {
+            final List<Atlas> textAtlases = loadTextAtlases(textResources);
+            if (!textAtlases.isEmpty())
+            {
+                final MultiAtlas textMultiAtlas = new MultiAtlas(textAtlases);
+                /*
+                 * In this case, 'resultAtlas' is not null because there was a mix of binary and
+                 * text atlases.
+                 */
+                if (resultAtlas != null)
+                {
+                    resultAtlas = new MultiAtlas(resultAtlas, textMultiAtlas);
+                }
+                /*
+                 * For this case, there was no previous resultAtlas since no binary atlases were
+                 * found.
+                 */
+                else
+                {
+                    resultAtlas = textMultiAtlas;
+                }
+            }
+        }
+
+        if (this.multiAtlasName != null && resultAtlas != null)
+        {
+            resultAtlas.setName(this.multiAtlasName);
+        }
+        return Optional.ofNullable(resultAtlas);
+    }
+
+    private List<Atlas> loadTextAtlases(final List<Resource> textAtlasResources)
+    {
+        final List<Atlas> textAtlases = new ArrayList<>();
+        for (final Resource textResource : textAtlasResources)
+        {
+            final Atlas atlas = new TextAtlasBuilder().read(textResource);
+            textAtlases.add(atlas);
+        }
+        return textAtlases;
+    }
+
+    private List<Resource> upcastAndRemoveNullResources(final Resource resource)
     {
         final List<Resource> result = new ArrayList<>();
         if (resource != null)
         {
-            if (resource instanceof File)
-            {
-                result.addAll(new AtlasFileSelector().select((File) resource));
-            }
-            else
-            {
-                result.add(resource);
-            }
+            result.add(resource);
         }
         return result;
     }

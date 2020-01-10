@@ -293,10 +293,8 @@ public class PackedAtlasSerializerTest
         atlas.setSaveSerializationFormat(AtlasSerializationFormat.PROTOBUF);
         atlas.save(protoResource);
 
-        final Atlas javaAtlas = new AtlasResourceLoader().withAtlasFileExtensionFilterSetTo(false)
-                .load(javaResource);
-        final Atlas protoAtlas = new AtlasResourceLoader().withAtlasFileExtensionFilterSetTo(false)
-                .load(protoResource);
+        final Atlas javaAtlas = PackedAtlas.load(javaResource);
+        final Atlas protoAtlas = PackedAtlas.load(protoResource);
 
         Assert.assertEquals(2, javaResource.getNumberStreamsClosed());
         Assert.assertEquals(1, protoResource.getNumberStreamsClosed());
