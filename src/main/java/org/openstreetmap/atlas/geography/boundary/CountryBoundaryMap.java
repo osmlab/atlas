@@ -907,6 +907,11 @@ public class CountryBoundaryMap implements Serializable, GeoJson
         // Last piece is cells
         STRtree gridIndexFromFile = null;
 
+        if (resource == null)
+        {
+            throw new CoreException("Boundary map resource is null and could not be read.");
+        }
+
         for (final String line : resource.lines())
         {
             // Ignore empty lines
