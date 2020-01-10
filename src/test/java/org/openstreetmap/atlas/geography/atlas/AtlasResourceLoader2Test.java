@@ -30,8 +30,7 @@ public class AtlasResourceLoader2Test
         final ByteArrayResource nonAtlasResource = new ByteArrayResource();
         nonAtlasResource.writeAndClose("some random data");
 
-        System.out
-                .println(new AtlasResourceLoader2().load(atlasResource, nonAtlasResource) == null);
+        System.out.println(new AtlasResourceLoader2().load(atlasResource) == null);
     }
 
     @Test
@@ -39,6 +38,13 @@ public class AtlasResourceLoader2Test
     {
         Assert.assertNull(new AtlasResourceLoader2().load(new File(
                 Paths.get(System.getProperty("user.home"), "FileThatDoesntExist").toString())));
+    }
+
+    @Test
+    public void missingDirectory2()
+    {
+        Assert.assertNull(new AtlasResourceLoader2().load(
+                new File(Paths.get(System.getProperty("user.home")).toString()), new File("asd")));
     }
 
     @Test

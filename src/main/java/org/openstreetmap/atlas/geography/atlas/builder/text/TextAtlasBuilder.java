@@ -188,7 +188,13 @@ public class TextAtlasBuilder
                 }
             }
         }
-        return (PackedAtlas) builder.get();
+        final PackedAtlas atlas = (PackedAtlas) builder.get();
+        if (atlas == null)
+        {
+            throw new CoreException(
+                    "Atlas resulting from PackedAtlasBuilder was null. This is likely because your atlas was either empty or only contained relations.");
+        }
+        return atlas;
     }
 
     public void write(final Atlas atlas, final WritableResource resource)

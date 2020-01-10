@@ -205,7 +205,7 @@ public final class PackedAtlasBuilder implements AtlasBuilder
         if (Iterables.size(this.atlas) == this.atlas.numberOfRelations())
         {
             logger.warn(
-                    "An Atlas is Located, and therefore cannot be made of only relations (which cannot be loacted as there are no other features).");
+                    "An Atlas is Located, and therefore cannot be made of only relations (which cannot be located as there are no other features).");
             return null;
         }
         verifyNegativeEdgesHaveMasterEdge();
