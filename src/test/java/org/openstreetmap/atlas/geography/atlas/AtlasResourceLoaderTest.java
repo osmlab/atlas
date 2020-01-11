@@ -22,7 +22,8 @@ import org.openstreetmap.atlas.utilities.collections.Maps;
  */
 public class AtlasResourceLoaderTest
 {
-    private static final long SIZE = 8192L;
+    private static final long BYTE_ARRAY_SIZE = 8192L;
+
     @Rule
     public final ExpectedException expectedException = ExpectedException.none();
 
@@ -130,7 +131,8 @@ public class AtlasResourceLoaderTest
     private Resource getAtlasResource(final Supplier<Atlas> atlasSupplier)
     {
         final Atlas atlas = atlasSupplier.get();
-        final ByteArrayResource resource = new ByteArrayResource(SIZE).withName("hello.atlas");
+        final ByteArrayResource resource = new ByteArrayResource(BYTE_ARRAY_SIZE)
+                .withName("hello.atlas");
         atlas.save(resource);
         return resource;
     }
@@ -158,7 +160,8 @@ public class AtlasResourceLoaderTest
     private Resource getTextAtlasResource(final Supplier<Atlas> atlasSupplier)
     {
         final Atlas atlas = atlasSupplier.get();
-        final ByteArrayResource resource = new ByteArrayResource(SIZE).withName("hello.atlas.txt");
+        final ByteArrayResource resource = new ByteArrayResource(BYTE_ARRAY_SIZE)
+                .withName("hello.atlas.txt");
         new TextAtlasBuilder().write(atlas, resource);
         return resource;
     }

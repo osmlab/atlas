@@ -28,6 +28,10 @@ import org.slf4j.LoggerFactory;
  *
  * @author lcram
  */
+/*
+ * TODO: Add more tests, specifically for the resource filter and the safeLoad functions. Also, test
+ * more failure conditions.
+ */
 public class AtlasResourceLoader
 {
     public static final Predicate<Resource> HAS_TEXT_ATLAS_EXTENSION = FileSuffix
