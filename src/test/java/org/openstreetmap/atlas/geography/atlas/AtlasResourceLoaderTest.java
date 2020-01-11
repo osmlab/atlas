@@ -40,23 +40,26 @@ public class AtlasResourceLoaderTest
     @Test
     public void basicLoadTest()
     {
-        Atlas atlas = new AtlasResourceLoader().load(getAtlasResource(this::getSinglePointAtlas));
+        final Atlas atlas = new AtlasResourceLoader()
+                .load(getAtlasResource(this::getSinglePointAtlas));
         Assert.assertEquals(1, atlas.numberOfPoints());
 
-        atlas = new AtlasResourceLoader().load(getTextAtlasResource(this::getSinglePointAtlas));
-        Assert.assertEquals(1, atlas.numberOfPoints());
+        final Atlas atlasFromText = new AtlasResourceLoader()
+                .load(getTextAtlasResource(this::getSinglePointAtlas));
+        Assert.assertEquals(1, atlasFromText.numberOfPoints());
     }
 
     @Test
     public void multipleLoadTest()
     {
-        final Atlas atlasLoadedFromAllPacked = new AtlasResourceLoader().load(
-                getAtlasResource(this::getSinglePointAtlas),
-                getAtlasResource(this::getMultiplePointAtlas));
+        final Atlas atlasLoadedFromAllPacked = new AtlasResourceLoader().withMultiAtlasName("foo")
+                .load(getAtlasResource(this::getSinglePointAtlas),
+                        getAtlasResource(this::getMultiplePointAtlas));
         Assert.assertEquals(3, atlasLoadedFromAllPacked.numberOfPoints());
         Assert.assertEquals(Maps.hashMap("a", "b"), atlasLoadedFromAllPacked.point(1L).getTags());
         Assert.assertEquals(Maps.hashMap("c", "d"), atlasLoadedFromAllPacked.point(2L).getTags());
         Assert.assertEquals(Maps.hashMap("e", "f"), atlasLoadedFromAllPacked.point(3L).getTags());
+        Assert.assertEquals("foo", atlasLoadedFromAllPacked.getName());
 
         final Atlas atlasLoadedFromPackedTextMix = new AtlasResourceLoader().load(
                 getAtlasResource(this::getSinglePointAtlas),
@@ -76,6 +79,13 @@ public class AtlasResourceLoaderTest
         Assert.assertEquals(Maps.hashMap("a", "b"), atlasLoadedFromAllText.point(1L).getTags());
         Assert.assertEquals(Maps.hashMap("c", "d"), atlasLoadedFromAllText.point(2L).getTags());
         Assert.assertEquals(Maps.hashMap("e", "f"), atlasLoadedFromAllText.point(3L).getTags());
+
+        final Atlas filteredAtlas = new AtlasResourceLoader()
+                .withAtlasEntityFilter(entity -> entity.getIdentifier() != 3)
+                .load(getAtlasResource(this::getMultiplePointAtlas));
+        Assert.assertEquals(2, filteredAtlas.numberOfPoints());
+        Assert.assertEquals(Maps.hashMap("a", "b"), filteredAtlas.point(1L).getTags());
+        Assert.assertEquals(Maps.hashMap("c", "d"), filteredAtlas.point(2L).getTags());
     }
 
     @Test
@@ -103,6 +113,13 @@ public class AtlasResourceLoaderTest
             Assert.assertEquals(Maps.hashMap("a", "b"), atlas.point(1L).getTags());
             Assert.assertEquals(Maps.hashMap("c", "d"), atlas.point(2L).getTags());
             Assert.assertEquals(Maps.hashMap("e", "f"), atlas.point(3L).getTags());
+
+            final Atlas filteredAtlas = new AtlasResourceLoader()
+                    .withAtlasEntityFilter(entity -> entity.getIdentifier() != 3L)
+                    .loadRecursively(parent);
+            Assert.assertEquals(2, filteredAtlas.numberOfPoints());
+            Assert.assertEquals(Maps.hashMap("a", "b"), filteredAtlas.point(1L).getTags());
+            Assert.assertEquals(Maps.hashMap("c", "d"), filteredAtlas.point(2L).getTags());
         }
         finally
         {

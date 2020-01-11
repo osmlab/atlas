@@ -36,11 +36,13 @@ public class AtlasResourceLoader
             .resourceFilter(FileSuffix.ATLAS).or(FileSuffix.resourceFilter(FileSuffix.GZIP_ATLAS));
 
     private static final Logger logger = LoggerFactory.getLogger(AtlasResourceLoader.class);
+
     private static final Predicate<Resource> CONTENTS_LOOK_LIKE_TEXT_ATLAS = resource ->
     {
         checkFileExistsAndIsNotDirectory(resource);
         return resource.firstLine().equals(TextAtlasBuilder.getNodesHeader());
     };
+
     private Predicate<Resource> resourceFilter;
     private Predicate<AtlasEntity> atlasEntityFilter;
     private String multiAtlasName;
@@ -57,7 +59,8 @@ public class AtlasResourceLoader
             }
             else if (fileResource.isDirectory())
             {
-                throw new CoreException("Resource {} was of type File but it was a directory",
+                throw new CoreException(
+                        "Resource {} was of type File but it was a directory. Try loadRecursively instead.",
                         resource.getName());
             }
         }
@@ -119,17 +122,8 @@ public class AtlasResourceLoader
             throw new CoreException(
                     "Unable to load atlas from provided Resources. If you are seeing this you likely found a bug with AtlasResourceLoader. Please report it.");
         }
-        Atlas resultAtlas = resultAtlasOptional.get();
-
         // Apply the filter at the end
-        if (this.atlasEntityFilter != null)
-        {
-            final Optional<Atlas> subAtlas = resultAtlas.subAtlas(this.atlasEntityFilter,
-                    AtlasCutType.SOFT_CUT);
-            resultAtlas = subAtlas.orElseThrow(
-                    () -> new CoreException("Entity filter resulted in an empty atlas"));
-        }
-        return resultAtlas;
+        return applyEntityFilter(resultAtlasOptional.get());
     }
 
     /**
@@ -176,32 +170,74 @@ public class AtlasResourceLoader
             throw new CoreException(
                     "Unable to load atlas from provided Resources. If you are seeing this you likely found a bug with AtlasResourceLoader. Please report it.");
         }
-        Atlas resultAtlas = resultAtlasOptional.get();
-
         // Apply the filter at the end
-        if (this.atlasEntityFilter != null)
-        {
-            final Optional<Atlas> subAtlas = resultAtlas.subAtlas(this.atlasEntityFilter,
-                    AtlasCutType.SOFT_CUT);
-            resultAtlas = subAtlas.orElseThrow(
-                    () -> new CoreException("Entity filter resulted in an empty atlas"));
-        }
-        return resultAtlas;
+        return applyEntityFilter(resultAtlasOptional.get());
     }
 
     /**
-     * // TODO fill in doc
-     * 
+     * This safe load method will never throw an exception. If any if the provided {@link Resource}s
+     * cannot be loaded into an {@link Atlas}, it will simply return an empty {@link Optional}.
+     *
      * @param resources
      *            the {@link Resource}(s) from which to load
      * @return an {@link Optional} wrapping the loaded {@link Atlas} if present
      */
     public Optional<Atlas> safeLoad(final Resource... resources)
     {
-        // TODO fill in overloaded versions
+        return safeLoad(Iterables.from(resources));
+    }
+
+    /**
+     * This safe load method will never throw an exception. If any if the provided {@link Resource}s
+     * cannot be loaded into an {@link Atlas}, it will simply return an empty {@link Optional}.
+     *
+     * @param resources
+     *            the {@link Iterable} of {@link Resource}(s) from which to load
+     * @return an {@link Optional} wrapping the loaded {@link Atlas} if present
+     */
+    public Optional<Atlas> safeLoad(final Iterable<Resource> resources)
+    {
         try
         {
             return Optional.of(load(resources));
+        }
+        catch (final Exception exception)
+        {
+            logger.warn("Could not load atlas from supplied resources", exception);
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * This safe load method will never throw an exception. If any if the provided {@link Resource}s
+     * cannot be loaded into an {@link Atlas}, it will simply return an empty {@link Optional}. See
+     * the documentation for {@link AtlasResourceLoader#loadRecursively(Resource...)} for details on
+     * how the recursive load works.
+     *
+     * @param resources
+     *            the {@link Iterable} of {@link Resource}(s) from which to load
+     * @return an {@link Optional} wrapping the loaded {@link Atlas} if present
+     */
+    public Optional<Atlas> safeLoadRecursively(final Resource... resources)
+    {
+        return safeLoadRecursively(Iterables.from(resources));
+    }
+
+    /**
+     * This safe load method will never throw an exception. If any if the provided {@link Resource}s
+     * cannot be loaded into an {@link Atlas}, it will simply return an empty {@link Optional}. See
+     * the documentation for {@link AtlasResourceLoader#loadRecursively(Resource...)} for details on
+     * how the recursive load works.
+     *
+     * @param resources
+     *            the {@link Iterable} of {@link Resource}(s) from which to load
+     * @return an {@link Optional} wrapping the loaded {@link Atlas} if present
+     */
+    public Optional<Atlas> safeLoadRecursively(final Iterable<Resource> resources)
+    {
+        try
+        {
+            return Optional.of(loadRecursively(resources));
         }
         catch (final Exception exception)
         {
@@ -269,6 +305,18 @@ public class AtlasResourceLoader
     {
         setResourceFilter(filter);
         return this;
+    }
+
+    private Atlas applyEntityFilter(final Atlas atlasToFilter)
+    {
+        if (this.atlasEntityFilter != null)
+        {
+            final Optional<Atlas> subAtlas = atlasToFilter.subAtlas(this.atlasEntityFilter,
+                    AtlasCutType.SOFT_CUT);
+            return subAtlas.orElseThrow(
+                    () -> new CoreException("Entity filter resulted in an empty atlas"));
+        }
+        return atlasToFilter;
     }
 
     private List<Resource> expandFileOrDirectoryRecursively(final Resource resource)
