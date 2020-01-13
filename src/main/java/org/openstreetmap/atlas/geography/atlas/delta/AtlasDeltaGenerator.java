@@ -60,9 +60,8 @@ public class AtlasDeltaGenerator extends Command
 
     private static List<File> fetchAtlasFilesInDirectory(final Path directory)
     {
-        return new File(directory.toFile()).listFilesRecursively().stream().filter(
-                HAS_ATLAS_EXTENSION)
-                .collect(Collectors.toList());
+        return new File(directory.toFile()).listFilesRecursively().stream()
+                .filter(HAS_ATLAS_EXTENSION).collect(Collectors.toList());
     }
 
     public AtlasDeltaGenerator(final Logger logger)
