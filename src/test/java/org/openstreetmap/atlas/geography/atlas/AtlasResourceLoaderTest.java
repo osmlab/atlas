@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas;
 
+import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.junit.Assert;
@@ -15,6 +17,7 @@ import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.Resource;
+import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 
 /**
@@ -90,6 +93,21 @@ public class AtlasResourceLoaderTest
     }
 
     @Test
+    public void safeLoadTest()
+    {
+        Optional<Atlas> atlas = new AtlasResourceLoader()
+                .safeLoad(getAtlasResource(this::getSinglePointAtlas));
+        Assert.assertTrue(atlas.isPresent());
+        Assert.assertEquals(1, atlas.get().numberOfPoints());
+
+        final ByteArrayResource nonAtlasResource = new ByteArrayResource();
+        nonAtlasResource.writeAndClose("some random data");
+
+        atlas = new AtlasResourceLoader().safeLoad(nonAtlasResource);
+        Assert.assertFalse(atlas.isPresent());
+    }
+
+    @Test
     public void testLoadRecursively()
     {
         final File parent = File.temporaryFolder();
@@ -126,6 +144,144 @@ public class AtlasResourceLoaderTest
         {
             parent.deleteRecursively();
         }
+    }
+
+    @Test
+    public void testLoadSingleFileRecursively()
+    {
+        final File parent = File.temporaryFolder();
+        try
+        {
+            final File atlasFile = parent.child("hello.atlas");
+            getMultiplePointAtlas().save(atlasFile);
+
+            final Atlas atlas = new AtlasResourceLoader().loadRecursively(atlasFile);
+            Assert.assertEquals(3, atlas.numberOfPoints());
+            Assert.assertEquals(Maps.hashMap("a", "b"), atlas.point(1L).getTags());
+            Assert.assertEquals(Maps.hashMap("c", "d"), atlas.point(2L).getTags());
+            Assert.assertEquals(Maps.hashMap("e", "f"), atlas.point(3L).getTags());
+        }
+        finally
+        {
+            parent.deleteRecursively();
+        }
+    }
+
+    @Test
+    public void testResourceFilter()
+    {
+        final StringResource stringResource = new StringResource().withName("hello.atlas.txt");
+        new TextAtlasBuilder().write(getSinglePointAtlas(), stringResource);
+
+        final Resource otherResource = getAtlasResource(this::getMultiplePointAtlas);
+
+        final Atlas atlas = new AtlasResourceLoader()
+                .withResourceFilter(resource -> resource instanceof StringResource)
+                .load(stringResource, otherResource);
+
+        Assert.assertEquals(1, atlas.numberOfPoints());
+        Assert.assertEquals(Maps.hashMap("a", "b"), atlas.point(1L).getTags());
+    }
+
+    @Test
+    public void testSafeLoadRecursively()
+    {
+        final File parent = File.temporaryFolder();
+        final File subFolder = parent.child("subfolder");
+        subFolder.mkdirs();
+        try
+        {
+            final File atlasFile1 = parent.child("hello1.atlas.txt");
+            new TextAtlasBuilder().write(getSinglePointAtlas(), atlasFile1);
+
+            final File atlasFile2 = subFolder.child("hello2.atlas");
+            getMultiplePointAtlas().save(atlasFile2);
+
+            final File notAtlas1 = parent.child("random1.txt");
+            notAtlas1.writeAndClose("hello world");
+
+            final File notAtlas2 = subFolder.child("random2.txt");
+            notAtlas2.writeAndClose("hello world again");
+
+            final Optional<Atlas> atlas = new AtlasResourceLoader().safeLoadRecursively(parent);
+            Assert.assertTrue(atlas.isPresent());
+            Assert.assertEquals(3, atlas.get().numberOfPoints());
+            Assert.assertEquals(Maps.hashMap("a", "b"), atlas.get().point(1L).getTags());
+            Assert.assertEquals(Maps.hashMap("c", "d"), atlas.get().point(2L).getTags());
+            Assert.assertEquals(Maps.hashMap("e", "f"), atlas.get().point(3L).getTags());
+        }
+        finally
+        {
+            parent.deleteRecursively();
+        }
+    }
+
+    @Test
+    public void testSafeLoadRecursivelyFail()
+    {
+        final File parent = File.temporaryFolder();
+        final File subFolder = parent.child("subfolder");
+        subFolder.mkdirs();
+        try
+        {
+            final File atlasFile1 = parent.child("hello1.atlas.txt");
+            new TextAtlasBuilder().write(getSinglePointAtlas(), atlasFile1);
+
+            final File atlasFile2 = subFolder.child("hello2.atlas");
+            getMultiplePointAtlas().save(atlasFile2);
+
+            final File corruptedAtlas1 = parent.child("corrupted.atlas");
+            corruptedAtlas1.writeAndClose("some random non-atlas data");
+
+            final File notAtlas1 = parent.child("random1.txt");
+            notAtlas1.writeAndClose("hello world");
+
+            final Optional<Atlas> atlas = new AtlasResourceLoader().safeLoadRecursively(parent);
+            Assert.assertFalse(atlas.isPresent());
+        }
+        finally
+        {
+            parent.deleteRecursively();
+        }
+    }
+
+    @Test
+    public void tryFilterThatEmptiesAnAtlas()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("Entity filter resulted in an empty atlas");
+        final Atlas filteredAtlas = new AtlasResourceLoader()
+                .withAtlasEntityFilter(entity -> entity.getIdentifier() != 1)
+                .load(getAtlasResource(this::getSinglePointAtlas));
+    }
+
+    @Test
+    public void tryToLoadDirectoryNonRecursively()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage(
+                "was of type File but it was a directory. Try loadRecursively instead.");
+        final Atlas atlas = new AtlasResourceLoader()
+                .load(new File(Paths.get(System.getProperty("user.home")).toString()));
+    }
+
+    @Test
+    public void tryToLoadNonExistentFile()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("was of type File but it could not be found");
+        final Atlas atlas = new AtlasResourceLoader().load(new File(
+                Paths.get(System.getProperty("user.home"), "SomeFileThatDoesNotExist").toString()));
+    }
+
+    @Test
+    public void tryToLoadNonFileRecursively()
+    {
+        final Resource resource = getAtlasResource(this::getSinglePointAtlas);
+
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("was not a File, instead was");
+        final Atlas atlas = new AtlasResourceLoader().loadRecursively(resource);
     }
 
     private Resource getAtlasResource(final Supplier<Atlas> atlasSupplier)

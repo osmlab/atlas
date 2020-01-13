@@ -151,6 +151,17 @@ public class TextAtlasBuilder
         }
         final AtlasSize size = new AtlasSize(numberOfEdges, numberOfNodes, numberOfAreas,
                 numberOfLines, numberOfPoints, numberOfRelations);
+
+        if (size.getEntityNumber() == 0)
+        {
+            throw new CoreException("Invalid text Atlas, it appears to be empty!");
+        }
+
+        if (size.getNonRelationEntityNumber() == 0 && size.getRelationNumber() > 0)
+        {
+            throw new CoreException("Invalid text Atlas, it only contained Relations!");
+        }
+
         final AtlasMetaData metaData = new AtlasMetaData(size, true, "unknown", "TextAtlas",
                 "unknown", "unknown", Maps.hashMap());
         final PackedAtlasBuilder builder = new PackedAtlasBuilder().withSizeEstimates(size)
@@ -191,8 +202,7 @@ public class TextAtlasBuilder
         final PackedAtlas atlas = (PackedAtlas) builder.get();
         if (atlas == null)
         {
-            throw new CoreException(
-                    "Atlas resulting from PackedAtlasBuilder was null. This is likely because your atlas was either empty or only contained relations.");
+            throw new CoreException("Atlas resulting from PackedAtlasBuilder was null.");
         }
         return atlas;
     }
