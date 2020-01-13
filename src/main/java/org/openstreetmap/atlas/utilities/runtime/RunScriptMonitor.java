@@ -67,9 +67,9 @@ public abstract class RunScriptMonitor
     protected void parse(final InputStream standardOut, final InputStream standardErr)
     {
         this.out = new Thread(
-                () -> parseStandardOutput(new InputStreamResource(standardOut).lines()));
+                () -> parseStandardOutput(new InputStreamResource(() -> standardOut).lines()));
         this.err = new Thread(
-                () -> parseStandardError(new InputStreamResource(standardErr).lines()));
+                () -> parseStandardError(new InputStreamResource(() -> standardErr).lines()));
         this.out.setPriority(Thread.MAX_PRIORITY);
         this.err.setPriority(Thread.MAX_PRIORITY);
         this.out.start();
