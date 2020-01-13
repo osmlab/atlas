@@ -57,7 +57,7 @@ public class ConfiguredTaggableFilterTest
     public void testDefaultOsmosisWayConfiguration()
     {
         final Resource wayResource = new InputStreamResource(
-                getClass().getClassLoader().getResourceAsStream(
+                () -> getClass().getClassLoader().getResourceAsStream(
                         "org/openstreetmap/atlas/geography/atlas/pbf/osm-pbf-way.json"));
         final Configuration wayConfiguration = new StandardConfiguration(wayResource);
         final ConfiguredTaggableFilter wayFilter = new ConfiguredTaggableFilter(wayConfiguration);

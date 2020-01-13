@@ -84,10 +84,11 @@ public class ShardFileOverlapsPolygonTest
     public void testInputStreamResource()
     {
         // input stream resources require name to be set explicitly
-        Assert.assertTrue(PREDICATE.test(new InputStreamResource(new StringInputStream("foo bar"))
-                .withName("/some/path/XYZ_11-1095-641.atlas.gz")));
+        Assert.assertTrue(
+                PREDICATE.test(new InputStreamResource(() -> new StringInputStream("foo bar"))
+                        .withName("/some/path/XYZ_11-1095-641.atlas.gz")));
         Assert.assertFalse(
-                PREDICATE.test(new InputStreamResource(new StringInputStream("foo bar"))));
+                PREDICATE.test(new InputStreamResource(() -> new StringInputStream("foo bar"))));
     }
 
     @Test

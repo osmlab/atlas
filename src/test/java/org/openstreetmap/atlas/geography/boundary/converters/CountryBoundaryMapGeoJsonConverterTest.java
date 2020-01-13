@@ -15,12 +15,11 @@ public class CountryBoundaryMapGeoJsonConverterTest
     @Test
     public void testConvertToString()
     {
-        final String expected = new StringResource(
-                CountryBoundaryMapTest.class.getResourceAsStream("AAA_boundary.expected.json"))
-                        .all();
+        final String expected = new StringResource(() -> CountryBoundaryMapTest.class
+                .getResourceAsStream("AAA_boundary.expected.json")).all();
         final CountryBoundaryMap mapWithGridIndex = CountryBoundaryMap
-                .fromPlainText(new InputStreamResource(
-                        CountryBoundaryMapTest.class.getResourceAsStream("AAA_boundary.txt")));
+                .fromPlainText(new InputStreamResource(() -> CountryBoundaryMapTest.class
+                        .getResourceAsStream("AAA_boundary.txt")));
         final String jsonMap = new CountryBoundaryMapGeoJsonConverter().prettyPrint(true)
                 .convertToString(mapWithGridIndex);
         Assert.assertEquals(expected, jsonMap);
