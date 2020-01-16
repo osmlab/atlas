@@ -1,6 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.delta;
 
-import static org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader.IS_ATLAS;
+import static org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader.HAS_ATLAS_EXTENSION;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -60,8 +60,8 @@ public class AtlasDeltaGenerator extends Command
 
     private static List<File> fetchAtlasFilesInDirectory(final Path directory)
     {
-        return new File(directory.toFile()).listFilesRecursively().stream().filter(IS_ATLAS)
-                .collect(Collectors.toList());
+        return new File(directory.toFile()).listFilesRecursively().stream()
+                .filter(HAS_ATLAS_EXTENSION).collect(Collectors.toList());
     }
 
     public AtlasDeltaGenerator(final Logger logger)

@@ -27,9 +27,6 @@ import org.slf4j.LoggerFactory;
  */
 public class MultiAtlasOverlappingNodesFixerTest extends Command
 {
-    private static final Logger logger = LoggerFactory
-            .getLogger(MultiAtlasOverlappingNodesFixerTest.class);
-
     public static final Switch<File> FOLDER = new Switch<>("folder",
             "The folder containing Atlas files for routing test", value -> new File(value),
             Optionality.REQUIRED);
@@ -37,7 +34,8 @@ public class MultiAtlasOverlappingNodesFixerTest extends Command
             value -> Location.forString(value), Optionality.REQUIRED);
     public static final Switch<Location> END = new Switch<>("end", "The routing end location",
             value -> Location.forString(value), Optionality.REQUIRED);
-
+    private static final Logger logger = LoggerFactory
+            .getLogger(MultiAtlasOverlappingNodesFixerTest.class);
     @Rule
     public MultiAtlasOverlappingNodesFixerTestRule setup = new MultiAtlasOverlappingNodesFixerTestRule();
 
@@ -95,9 +93,9 @@ public class MultiAtlasOverlappingNodesFixerTest extends Command
     @Override
     protected int onRun(final CommandMap command)
     {
-        final MultiAtlas atlas = MultiAtlas
-                .loadFromPackedAtlas(((File) command.get(FOLDER)).listFilesRecursively().stream()
-                        .filter(AtlasResourceLoader.IS_ATLAS).collect(Collectors.toList()));
+        final MultiAtlas atlas = MultiAtlas.loadFromPackedAtlas(((File) command.get(FOLDER))
+                .listFilesRecursively().stream().filter(AtlasResourceLoader.HAS_ATLAS_EXTENSION)
+                .collect(Collectors.toList()));
         final Route route = AStarRouter.dijkstra(atlas, Distance.meters(100))
                 .route((Location) command.get(START), (Location) command.get(END));
         logger.info("Route found: {}", route);
