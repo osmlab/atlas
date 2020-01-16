@@ -9,6 +9,7 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIdentifierFactory;
 import org.openstreetmap.atlas.tags.HighwayTag;
+import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 
 import com.google.gson.JsonObject;
 
@@ -232,6 +233,12 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
             }
         }
         return false;
+    }
+
+    @Override
+    public boolean isCountrySliced()
+    {
+        return this.connectedNodes().stream().anyMatch(SyntheticBoundaryNodeTag::isBoundaryNode);
     }
 
     /**

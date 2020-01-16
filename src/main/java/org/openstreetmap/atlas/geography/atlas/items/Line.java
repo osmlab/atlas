@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.items;
 
+import java.util.regex.Pattern;
+
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 
 /**
@@ -10,6 +12,7 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 public abstract class Line extends LineItem
 {
     private static final long serialVersionUID = 5348604376185677L;
+    private static final Pattern CUT_IDENTIFIER_PATTERN = Pattern.compile("\\d*[1-9]000");
 
     protected Line(final Atlas atlas)
     {
@@ -20,6 +23,12 @@ public abstract class Line extends LineItem
     public ItemType getType()
     {
         return ItemType.LINE;
+    }
+
+    @Override
+    public boolean isCountrySliced()
+    {
+        return CUT_IDENTIFIER_PATTERN.matcher(String.valueOf(this.getIdentifier())).matches();
     }
 
     @Override

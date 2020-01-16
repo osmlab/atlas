@@ -23,6 +23,12 @@ public abstract class Point extends LocationItem
     }
 
     @Override
+    public boolean isCountrySliced()
+    {
+        return false;
+    }
+
+    @Override
     public String toDiffViewFriendlyString()
     {
         final String relationsString = this.parentRelationsAsDiffViewFriendlyString();

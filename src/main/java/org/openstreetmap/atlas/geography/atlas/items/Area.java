@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.atlas.items;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
@@ -23,6 +24,7 @@ import com.google.gson.JsonObject;
 public abstract class Area extends AtlasItem
 {
     private static final long serialVersionUID = 5244165133018408045L;
+    private static final Pattern CUT_IDENTIFIER_PATTERN = Pattern.compile("\\d*[1-9]000");
 
     protected Area(final Atlas atlas)
     {
@@ -75,6 +77,12 @@ public abstract class Area extends AtlasItem
     public boolean intersects(final GeometricSurface surface)
     {
         return surface.overlaps(asPolygon());
+    }
+
+    @Override
+    public boolean isCountrySliced()
+    {
+        return CUT_IDENTIFIER_PATTERN.matcher(String.valueOf(this.getIdentifier())).matches();
     }
 
     @Override

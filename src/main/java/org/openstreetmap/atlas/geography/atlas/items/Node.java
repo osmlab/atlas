@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 
 import org.apache.commons.lang3.Validate;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -94,6 +95,12 @@ public abstract class Node extends LocationItem
      * @return The {@link Edge}s that end at this node
      */
     public abstract SortedSet<Edge> inEdges();
+
+    @Override
+    public boolean isCountrySliced()
+    {
+        return SyntheticBoundaryNodeTag.isBoundaryNode(this);
+    }
 
     /**
      * @return The {@link Edge}s that start at this node

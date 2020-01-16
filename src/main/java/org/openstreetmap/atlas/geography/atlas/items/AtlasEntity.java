@@ -194,6 +194,11 @@ public abstract class AtlasEntity
     public abstract boolean intersects(GeometricSurface surface);
 
     /**
+     * @return true if the entity has been sliced at a country border
+     */
+    public abstract boolean isCountrySliced();
+
+    /**
      * @return If available, the {@link Time} at which the entity was last edited.
      */
     public Optional<Time> lastEdit()

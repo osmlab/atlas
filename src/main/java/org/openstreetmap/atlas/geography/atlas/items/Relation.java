@@ -304,6 +304,12 @@ public abstract class Relation extends AtlasEntity
         return intersectsInternal(surface, new LinkedHashSet<>());
     }
 
+    @Override
+    public boolean isCountrySliced()
+    {
+        return this.members().stream().anyMatch(member -> member.getEntity().isCountrySliced());
+    }
+
     public boolean isMultiPolygon()
     {
         return Validators.isOfType(this, RelationTypeTag.class, RelationTypeTag.MULTIPOLYGON,
