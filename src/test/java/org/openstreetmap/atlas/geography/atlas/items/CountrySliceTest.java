@@ -17,13 +17,13 @@ public class CountrySliceTest
     @Test
     public void areaNotSliced()
     {
-        Assert.assertFalse(this.rule.getAtlas().area(1000000L).isCountrySliced());
+        Assert.assertFalse(this.rule.getAtlas().area(1L).isCountrySliced());
     }
 
     @Test
     public void areaSliced()
     {
-        Assert.assertTrue(this.rule.getAtlas().area(2001000L).isCountrySliced());
+        Assert.assertTrue(this.rule.getAtlas().area(2010000L).isCountrySliced());
     }
 
     @Test
@@ -63,15 +63,15 @@ public class CountrySliceTest
     }
 
     @Test
-    public void pointAlsoNotSliced()
-    {
-        Assert.assertFalse(this.rule.getAtlas().point(2000000L).isCountrySliced());
-    }
-
-    @Test
     public void pointNotSliced()
     {
         Assert.assertFalse(this.rule.getAtlas().point(1000000L).isCountrySliced());
+    }
+
+    @Test
+    public void pointSliced()
+    {
+        Assert.assertTrue(this.rule.getAtlas().point(2000000L).isCountrySliced());
     }
 
     @Test

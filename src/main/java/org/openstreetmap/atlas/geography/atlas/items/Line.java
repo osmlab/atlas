@@ -1,7 +1,5 @@
 package org.openstreetmap.atlas.geography.atlas.items;
 
-import java.util.regex.Pattern;
-
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 
 /**
@@ -12,7 +10,8 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 public abstract class Line extends LineItem
 {
     private static final long serialVersionUID = 5348604376185677L;
-    private static final Pattern CUT_IDENTIFIER_PATTERN = Pattern.compile("\\d*[1-9]000");
+    private static final int IDENTIFIER_SUFFIX_LENGTH = 6;
+    private static final int COUNTRY_SLICED_DIVISOR = 1000;
 
     protected Line(final Atlas atlas)
     {
@@ -28,7 +27,14 @@ public abstract class Line extends LineItem
     @Override
     public boolean isCountrySliced()
     {
-        return CUT_IDENTIFIER_PATTERN.matcher(String.valueOf(this.getIdentifier())).matches();
+        // Get the last 6 digits of the identifier
+        final String stringIdentifier = String.valueOf(this.getIdentifier());
+        final int lastSix = stringIdentifier.length() > IDENTIFIER_SUFFIX_LENGTH ? Integer.parseInt(
+                stringIdentifier.substring(stringIdentifier.length() - IDENTIFIER_SUFFIX_LENGTH))
+                : 0;
+        // If the the last 6 digits are not equal to 0 and are dividable by 1000 then this is
+        // country sliced
+        return lastSix != 0 && lastSix % COUNTRY_SLICED_DIVISOR == 0;
     }
 
     @Override

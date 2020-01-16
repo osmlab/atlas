@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.items;
 
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 
 /**
  * A Point that is not navigable.
@@ -25,7 +26,7 @@ public abstract class Point extends LocationItem
     @Override
     public boolean isCountrySliced()
     {
-        return false;
+        return SyntheticBoundaryNodeTag.isBoundaryNode(this);
     }
 
     @Override

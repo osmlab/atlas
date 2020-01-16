@@ -31,9 +31,9 @@ public class CountrySliceTestRule extends CoreTestRule
                             "synthetic_boundary_node=yes" }) },
             // Areas
             areas = {
-                    @Area(id = "1000000", coordinates = { @Loc(value = ONE), @Loc(value = TWO),
+                    @Area(id = "1", coordinates = { @Loc(value = ONE), @Loc(value = TWO),
                             @Loc(value = THREE), @Loc(value = ONE) }),
-                    @Area(id = "2001000", coordinates = { @Loc(value = ONE), @Loc(value = TWO),
+                    @Area(id = "2010000", coordinates = { @Loc(value = ONE), @Loc(value = TWO),
                             @Loc(value = THREE), @Loc(value = ONE) }) },
             // Edges
             edges = { @Edge(id = "1000000", coordinates = { @Loc(value = ONE), @Loc(value = TWO) }),
@@ -45,15 +45,16 @@ public class CountrySliceTestRule extends CoreTestRule
                             @Loc(value = THREE) }) },
             // Points
             points = { @Point(id = "1000000", coordinates = @Loc(value = ONE)),
-                    @Point(id = "2000000", coordinates = @Loc(value = THREE)) },
+                    @Point(id = "2000000", coordinates = @Loc(value = THREE), tags = {
+                            "synthetic_boundary_node=yes" }) },
             // Relations
             relations = {
                     @Relation(id = "1000000", members = {
                             @Member(id = "1000000", role = "", type = "node"),
-                            @Member(id = "1000000", role = "", type = "area") }),
+                            @Member(id = "1", role = "", type = "area") }),
                     @Relation(id = "2000000", members = {
                             @Member(id = "1000000", role = "", type = "node"),
-                            @Member(id = "2001000", role = "", type = "area") }) })
+                            @Member(id = "2010000", role = "", type = "area") }) })
     private Atlas atlas;
 
     public Atlas getAtlas()
