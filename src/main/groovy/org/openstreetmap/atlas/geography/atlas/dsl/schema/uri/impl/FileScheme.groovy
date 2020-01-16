@@ -33,7 +33,7 @@ class FileScheme extends AbstractScheme {
      */
     @Override
     Atlas loadAtlas(final String uriExcludingScheme) {
-        log.info("Load Recurssive: ${uriExcludingScheme}")
+        log.info("Load Recursive: ${uriExcludingScheme}")
         final Atlas atlas = new AtlasResourceLoader().loadRecursively(new File(uriExcludingScheme))
         atlas
     }
