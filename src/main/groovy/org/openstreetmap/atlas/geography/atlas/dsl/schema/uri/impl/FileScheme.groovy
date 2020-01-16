@@ -6,6 +6,8 @@ import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader
 import org.openstreetmap.atlas.geography.atlas.dsl.util.Valid
 import org.openstreetmap.atlas.streaming.resource.File
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import java.util.function.Supplier
 import java.util.stream.Collectors
@@ -18,6 +20,7 @@ import java.util.stream.Collectors
 @Singleton
 class FileScheme extends AbstractScheme {
     static final String SCHEME = "file"
+    private static final Logger log = LoggerFactory.getLogger(FileScheme.class);
 
     @Override
     String name() {
@@ -30,10 +33,8 @@ class FileScheme extends AbstractScheme {
      */
     @Override
     Atlas loadAtlas(final String uriExcludingScheme) {
-        final List<File> list = toFiles(uriExcludingScheme)
-
-        final Atlas atlas = new AtlasResourceLoader().load(list)
-
+        log.info("Load Recurssive: ${uriExcludingScheme}")
+        final Atlas atlas = new AtlasResourceLoader().loadRecursively(new File(uriExcludingScheme))
         atlas
     }
 

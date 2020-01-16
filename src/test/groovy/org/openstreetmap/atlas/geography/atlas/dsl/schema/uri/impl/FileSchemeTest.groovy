@@ -1,7 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.dsl.schema.uri.impl
 
 import org.apache.commons.io.IOUtils
-import org.junit.Ignore
 import org.junit.Test
 import org.openstreetmap.atlas.geography.atlas.Atlas
 import org.openstreetmap.atlas.geography.atlas.dsl.AbstractAQLTest
@@ -55,17 +54,5 @@ class FileSchemeTest extends AbstractAQLTest {
 
         def number = reloadedAtlas.size().nodeNumber
         assert number == 167
-    }
-
-    @Test
-    @Ignore
-    void testLoadOsmXml() {
-        final String baseClasspath = "/data/"
-
-        final List<String> fileNames = ["Alcatraz/Alcatraz.osm", "ButterflyPark/ButterflyPark.osm"]
-
-        String fileBasePath = saveInTmp(fileNames, baseClasspath)
-
-        assert SchemeSupport.instance.loadOsmXml("file:${fileBasePath}").size().nodeNumber == 167
     }
 }

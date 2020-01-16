@@ -85,7 +85,7 @@ class ClasspathScheme extends AbstractScheme {
     private InputStream getResourceAsStreamStrict(String uriExcludingScheme) {
         final InputStream inputStream = this.getClass().getResourceAsStream(uriExcludingScheme)
 
-        Valid.isTrue inputStream != null
+        Valid.isTrue inputStream != null, "[${uriExcludingScheme}] resuled in NULL inputStream."
 
         inputStream
     }
