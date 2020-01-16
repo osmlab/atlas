@@ -5,6 +5,8 @@ import org.junit.Test
 import org.openstreetmap.atlas.geography.atlas.Atlas
 import org.openstreetmap.atlas.geography.atlas.dsl.schema.AtlasSchema
 import org.openstreetmap.atlas.streaming.resource.File
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import java.nio.charset.Charset
 
@@ -14,6 +16,8 @@ import static org.openstreetmap.atlas.geography.atlas.dsl.query.QueryBuilderFact
  * @author Yazad Khambata
  */
 class UsingTest {
+    private static final Logger log = LoggerFactory.getLogger(UsingTest.class);
+
     @Test
     void testUsingAtlasFromClasspath() {
         def atlasSchema = using "classpath:/org/openstreetmap/atlas/geography/atlas/ECU_6-16-31.atlas"
@@ -81,7 +85,7 @@ class UsingTest {
 
     @Test
     void testUsingMultipleTextAtlasFromClasspath2() {
-        def atlasSchema = using "classpath:/org/openstreetmap/atlas/geography/atlas/command/DNK_Copenhagen/DNK_1.txt,DNK_2.txt,DNK_3.txt;/org/openstreetmap/atlas/geography/atlas/raw/sectioning/oneWayRing.atlas.txt,simpleBiDirectionalLine.atlas.txt"
+        def atlasSchema = using "classpath:/org/openstreetmap/atlas/geography/atlas/command/DNK_Copenhagen/DNK_1.atlas.txt,DNK_2.atlas.txt,DNK_3.atlas.txt;/org/openstreetmap/atlas/geography/atlas/raw/sectioning/oneWayRing.atlas.txt,simpleBiDirectionalLine.atlas.txt"
 
         multiVerify(atlasSchema)
     }
@@ -89,7 +93,7 @@ class UsingTest {
     @Test
     void testUsingMultipleTextAtlasFromFile() {
         final Map<String, List<String>> classpathData = [
-                '/org/openstreetmap/atlas/geography/atlas/command/DNK_Copenhagen': ['DNK_1.txt', 'DNK_2.txt', 'DNK_3.txt'],
+                '/org/openstreetmap/atlas/geography/atlas/command/DNK_Copenhagen': ['DNK_1.atlas.txt', 'DNK_2.atlas.txt', 'DNK_3.atlas.txt'],
                 '/org/openstreetmap/atlas/geography/atlas/raw/sectioning'        : ['oneWayRing.atlas.txt', 'simpleBiDirectionalLine.atlas.txt']
         ]
 
@@ -100,6 +104,9 @@ class UsingTest {
             final List<String> fileNames = entry.getValue()
 
             def physicalPath = "/tmp/${uuid}/${root.hashCode()}"
+
+            log.info("physicalPath: ${physicalPath}.")
+
             new java.io.File(physicalPath).mkdirs()
             fileNames.stream().forEach({ fileName ->
                 final InputStream inputStream = UsingTest.class.getResourceAsStream("${root}/${fileName}")
@@ -109,6 +116,9 @@ class UsingTest {
         })
 
         def atlasSchema = using "file:/tmp/${uuid}"
+
+        log.info("SIZE: ${atlasSchema.atlasMediator.atlas.size()}")
+
         multiVerify(atlasSchema)
     }
 
