@@ -32,7 +32,7 @@ public abstract class Line extends LineItem
         final int lastSix = stringIdentifier.length() > IDENTIFIER_SUFFIX_LENGTH ? Integer.parseInt(
                 stringIdentifier.substring(stringIdentifier.length() - IDENTIFIER_SUFFIX_LENGTH))
                 : 0;
-        // If the the last 6 digits are not equal to 0 and are dividable by 1000 then this is
+        // If the the last 6 digits are not equal to 0 and are divisible by 1000 then this is
         // country sliced
         return lastSix != 0 && lastSix % COUNTRY_SLICED_DIVISOR == 0;
     }
