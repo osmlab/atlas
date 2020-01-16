@@ -48,7 +48,7 @@ public abstract class AbstractAtlasSubCommand implements FlexibleSubCommand
         final File path = (File) command.get(INPUT_FOLDER_PARAMETER);
 
         Stream<Atlas> atlases = path.listFilesRecursively().stream()
-                .filter(AtlasResourceLoader.IS_ATLAS)
+                .filter(AtlasResourceLoader.HAS_ATLAS_EXTENSION)
                 .map(atlas -> new AtlasResourceLoader().load(atlas));
 
         if ((Boolean) command.get(PARALLEL_FLAG))

@@ -112,7 +112,7 @@ public class LineDelimitedGeoJsonConverter extends Command
     private static List<File> fetchAtlasFilesInDirectory(final Path directory)
     {
         return new File(directory.toFile()).listFilesRecursively().stream()
-                .filter(AtlasResourceLoader.IS_ATLAS).collect(Collectors.toList());
+                .filter(AtlasResourceLoader.HAS_ATLAS_EXTENSION).collect(Collectors.toList());
     }
 
     @Override

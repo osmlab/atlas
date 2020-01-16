@@ -239,6 +239,12 @@ public class AtlasSize implements Serializable, GeoJsonProperties
         return this.edgeNumber;
     }
 
+    public long getEntityNumber()
+    {
+        return this.nodeNumber + this.edgeNumber + this.pointNumber + this.lineNumber
+                + this.areaNumber + this.relationNumber;
+    }
+
     @Override
     public JsonObject getGeoJsonProperties()
     {
@@ -260,6 +266,12 @@ public class AtlasSize implements Serializable, GeoJsonProperties
     public long getNodeNumber()
     {
         return this.nodeNumber;
+    }
+
+    public long getNonRelationEntityNumber()
+    {
+        return this.nodeNumber + this.edgeNumber + this.pointNumber + this.lineNumber
+                + this.areaNumber;
     }
 
     public long getPointNumber()

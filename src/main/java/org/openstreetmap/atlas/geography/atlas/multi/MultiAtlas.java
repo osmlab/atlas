@@ -157,9 +157,18 @@ public class MultiAtlas extends AbstractAtlas
         {
             throw new CoreException("Can't create an atlas from zero resources");
         }
-        return new MultiAtlas(
-                Iterables.translate(resources, resource -> PackedAtlas.load(resource)),
-                lotsOfOverlap);
+        return new MultiAtlas(Iterables.translate(resources, resource ->
+        {
+            try
+            {
+                return PackedAtlas.load(resource);
+            }
+            catch (final Exception exception)
+            {
+                throw new CoreException("Failed to load an atlas from {} with name {}",
+                        resource.getClass().getName(), resource.getName(), exception);
+            }
+        }), lotsOfOverlap);
     }
 
     /**
@@ -187,12 +196,25 @@ public class MultiAtlas extends AbstractAtlas
         {
             throw new CoreException("Can't create an atlas from zero resources");
         }
-        final Iterable<Atlas> validAtlases = Iterables.translate(
-                Iterables.stream(Iterables.translate(resources,
-                        resource -> PackedAtlas.load(resource).subAtlas(filter,
-                                AtlasCutType.SOFT_CUT)))
-                        .filter(Optional::isPresent),
-                Optional::get);
+        final Iterable<Atlas> validAtlases = Iterables
+                .translate(Iterables.stream(Iterables.translate(resources, resource ->
+                {
+                    final Atlas atlas;
+                    try
+                    {
+                        atlas = PackedAtlas.load(resource);
+                    }
+                    catch (final Exception exception)
+                    {
+                        throw new CoreException("Failed to load an atlas from {} with name {}",
+                                resource.getClass().getName(), resource.getName(), exception);
+                    }
+                    return atlas.subAtlas(filter, AtlasCutType.SOFT_CUT);
+                })).filter(Optional::isPresent), Optional::get);
+        if (Iterables.size(validAtlases) == 0)
+        {
+            throw new CoreException("Provided entity filter will result in an empty Atlas");
+        }
         return new MultiAtlas(validAtlases, lotsOfOverlap);
     }
 

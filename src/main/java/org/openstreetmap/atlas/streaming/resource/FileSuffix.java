@@ -13,6 +13,8 @@ import com.google.common.base.Joiner;
 public enum FileSuffix
 {
     ATLAS(".atlas"),
+    TEXT_ATLAS(".atlas.txt"),
+    GZIP_ATLAS(".atlas.gz"),
     CHANGESET(".cs"),
     CSV(".csv"),
     GEO_JSON(".geojson"),
@@ -31,7 +33,7 @@ public enum FileSuffix
     WKT(".wkt"),
     WKB(".wkb");
 
-    private String suffix;
+    private final String suffix;
 
     public static FileSuffix getEnum(final String value)
     {
@@ -42,19 +44,13 @@ public enum FileSuffix
     public static Predicate<Path> pathFilter(final FileSuffix... listOfSuffixes)
     {
         final String suffix = Joiner.on("").join(listOfSuffixes);
-        return path ->
-        {
-            return path.getFileName().toString().toLowerCase().endsWith(suffix);
-        };
+        return path -> path.getFileName().toString().toLowerCase().endsWith(suffix);
     }
 
     public static Predicate<Resource> resourceFilter(final FileSuffix... listOfSuffixes)
     {
         final String suffix = Joiner.on("").join(listOfSuffixes);
-        return resource ->
-        {
-            return resource.getName() == null || resource.getName().endsWith(suffix);
-        };
+        return resource -> resource.getName().endsWith(suffix);
     }
 
     public static Optional<FileSuffix> suffixFor(final String value)
