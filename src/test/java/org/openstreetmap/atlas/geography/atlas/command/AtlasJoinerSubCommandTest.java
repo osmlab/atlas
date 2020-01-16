@@ -25,8 +25,8 @@ public class AtlasJoinerSubCommandTest
     @BeforeClass
     public static void createBinaryAtlases()
     {
-        final List<String> shardList = Arrays.asList(TXT_PATH + "/DNK_1.txt",
-                TXT_PATH + "/DNK_2.txt", TXT_PATH + "/DNK_3.txt");
+        final List<String> shardList = Arrays.asList(TXT_PATH + "/DNK_1.atlas.txt",
+                TXT_PATH + "/DNK_2.atlas.txt", TXT_PATH + "/DNK_3.atlas.txt");
         shardList.forEach(shard -> new TextAtlasBuilder().read(new File(shard))
                 .save(new File(SHARD_PATH.getPath() + shard.replace("txt", "atlas"))));
     }
