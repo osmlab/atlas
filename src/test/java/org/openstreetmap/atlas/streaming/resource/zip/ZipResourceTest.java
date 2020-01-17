@@ -52,12 +52,11 @@ public class ZipResourceTest
         }
     }
 
-    private static final Logger logger = LoggerFactory.getLogger(ZipResourceTest.class);
-
     public static final String NAME_1 = "entry1.txt";
     public static final String CONTENTS_1 = "I am entry 1.";
     public static final String NAME_2 = "entry2.txt";
     public static final String CONTENTS_2 = "I am entry 2.";
+    private static final Logger logger = LoggerFactory.getLogger(ZipResourceTest.class);
 
     public static void main(final String[] args)
     {
@@ -223,8 +222,8 @@ public class ZipResourceTest
     @Test
     public void testZipResource()
     {
-        final ZipResource resource = new ZipResource(
-                new InputStreamResource(ZipResourceTest.class.getResourceAsStream("test.zip")));
+        final ZipResource resource = new ZipResource(new InputStreamResource(
+                () -> ZipResourceTest.class.getResourceAsStream("test.zip")));
         int counter = 0;
         for (final Resource entry : resource.entries())
         {
@@ -248,8 +247,8 @@ public class ZipResourceTest
     @Test
     public void testZipResourceStopBefore()
     {
-        final ZipResource resource = new ZipResource(
-                new InputStreamResource(ZipResourceTest.class.getResourceAsStream("test.zip")));
+        final ZipResource resource = new ZipResource(new InputStreamResource(
+                () -> ZipResourceTest.class.getResourceAsStream("test.zip")));
         final Iterator<Resource> entryIterator = resource.entries().iterator();
         entryIterator.next();
         final String failMessage = "Should not have been able to print the contents of "

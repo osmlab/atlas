@@ -74,7 +74,7 @@ public class CountryBoundaryMapTest
         // feature with the pre-built index.
         final Time start = Time.now();
         final CountryBoundaryMap mapWithGridIndex = CountryBoundaryMap
-                .fromPlainText(new InputStreamResource(CountryBoundaryMapTest.class
+                .fromPlainText(new InputStreamResource(() -> CountryBoundaryMapTest.class
                         .getResourceAsStream("MAF_AIA_osm_boundaries_with_grid_index.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
         Assert.assertTrue(mapWithGridIndex.hasGridIndex());
@@ -88,7 +88,7 @@ public class CountryBoundaryMapTest
         // Construct the grid index on the fly
         final Time start2 = Time.now();
         final CountryBoundaryMap mapFromOsmTextFile = CountryBoundaryMap
-                .fromPlainText(new InputStreamResource(CountryBoundaryMapTest.class
+                .fromPlainText(new InputStreamResource(() -> CountryBoundaryMapTest.class
                         .getResourceAsStream("MAF_AIA_osm_boundaries.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
         Assert.assertFalse(mapFromOsmTextFile.hasGridIndex());
@@ -113,9 +113,10 @@ public class CountryBoundaryMapTest
     @Test
     public void testAntiMeridian()
     {
-        final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new InputStreamResource(
-                CountryBoundaryMapTest.class.getResourceAsStream("HTI_DOM_osm_boundaries.txt.gz"))
-                        .withDecompressor(Decompressor.GZIP));
+        final CountryBoundaryMap map = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> CountryBoundaryMapTest.class
+                        .getResourceAsStream("HTI_DOM_osm_boundaries.txt.gz"))
+                                .withDecompressor(Decompressor.GZIP));
         Assert.assertFalse(map.hasGridIndex());
         final LineString lineString = (LineString) TestUtility
                 .createJtsGeometryFromWKT("LINESTRING ( -179 18.84927, 179 18.84927 )");
@@ -149,7 +150,7 @@ public class CountryBoundaryMapTest
     public void testBoundaryLoading() throws ParseException
     {
         final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new InputStreamResource(
-                CountryBoundaryMapTest.class.getResourceAsStream("CIV_osm_boundaries.txt.gz"))
+                () -> CountryBoundaryMapTest.class.getResourceAsStream("CIV_osm_boundaries.txt.gz"))
                         .withDecompressor(Decompressor.GZIP));
         Assert.assertFalse(map.hasGridIndex());
         Assert.assertEquals("CIV", firstCountryName(map));
@@ -203,9 +204,10 @@ public class CountryBoundaryMapTest
     @Test
     public void testFeatureCrossingCountryBoundary() throws ParseException
     {
-        final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new InputStreamResource(
-                CountryBoundaryMapTest.class.getResourceAsStream("HTI_DOM_osm_boundaries.txt.gz"))
-                        .withDecompressor(Decompressor.GZIP));
+        final CountryBoundaryMap map = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> CountryBoundaryMapTest.class
+                        .getResourceAsStream("HTI_DOM_osm_boundaries.txt.gz"))
+                                .withDecompressor(Decompressor.GZIP));
         Assert.assertFalse(map.hasGridIndex());
 
         final WKTReader reader = new WKTReader();
@@ -229,9 +231,10 @@ public class CountryBoundaryMapTest
         countries.add("DOM");
 
         // Initialize grid index
-        final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new InputStreamResource(
-                CountryBoundaryMapTest.class.getResourceAsStream("HTI_DOM_osm_boundaries.txt.gz"))
-                        .withDecompressor(Decompressor.GZIP));
+        final CountryBoundaryMap map = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> CountryBoundaryMapTest.class
+                        .getResourceAsStream("HTI_DOM_osm_boundaries.txt.gz"))
+                                .withDecompressor(Decompressor.GZIP));
         Assert.assertFalse(map.hasGridIndex());
         map.initializeGridIndex(countries);
         Assert.assertTrue(map.hasGridIndex());
@@ -278,9 +281,10 @@ public class CountryBoundaryMapTest
     @Test
     public void testForceSlicing()
     {
-        final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new InputStreamResource(
-                CountryBoundaryMapTest.class.getResourceAsStream("HTI_DOM_osm_boundaries.txt.gz"))
-                        .withDecompressor(Decompressor.GZIP));
+        final CountryBoundaryMap map = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> CountryBoundaryMapTest.class
+                        .getResourceAsStream("HTI_DOM_osm_boundaries.txt.gz"))
+                                .withDecompressor(Decompressor.GZIP));
         Assert.assertFalse(map.hasGridIndex());
         final Set<String> countries = new HashSet<>();
         countries.add("HTI");
@@ -313,9 +317,10 @@ public class CountryBoundaryMapTest
     @Test
     public void testGetCountryCode()
     {
-        final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new InputStreamResource(
-                CountryBoundaryMapTest.class.getResourceAsStream("HTI_DOM_osm_boundaries.txt.gz"))
-                        .withDecompressor(Decompressor.GZIP));
+        final CountryBoundaryMap map = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> CountryBoundaryMapTest.class
+                        .getResourceAsStream("HTI_DOM_osm_boundaries.txt.gz"))
+                                .withDecompressor(Decompressor.GZIP));
         Assert.assertFalse(map.hasGridIndex());
 
         Point point = JTS_POINT_CONVERTER
@@ -336,9 +341,10 @@ public class CountryBoundaryMapTest
     @Test
     public void testGridIndexDeconstructionAndReconstruction()
     {
-        final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new InputStreamResource(
-                CountryBoundaryMapTest.class.getResourceAsStream("HTI_DOM_osm_boundaries.txt.gz"))
-                        .withDecompressor(Decompressor.GZIP));
+        final CountryBoundaryMap map = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> CountryBoundaryMapTest.class
+                        .getResourceAsStream("HTI_DOM_osm_boundaries.txt.gz"))
+                                .withDecompressor(Decompressor.GZIP));
         Assert.assertFalse(map.hasGridIndex());
 
         final Set<String> countries = new HashSet<>(Arrays.asList("HTI", "DOM"));
@@ -373,9 +379,10 @@ public class CountryBoundaryMapTest
     @Test(expected = CoreException.class)
     public void testGridIndexReconstructionWithMissingCountryCode()
     {
-        final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new InputStreamResource(
-                CountryBoundaryMapTest.class.getResourceAsStream("HTI_DOM_osm_boundaries.txt.gz"))
-                        .withDecompressor(Decompressor.GZIP));
+        final CountryBoundaryMap map = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> CountryBoundaryMapTest.class
+                        .getResourceAsStream("HTI_DOM_osm_boundaries.txt.gz"))
+                                .withDecompressor(Decompressor.GZIP));
         Assert.assertFalse(map.hasGridIndex());
 
         final Set<String> countries = new HashSet<>(
@@ -388,9 +395,10 @@ public class CountryBoundaryMapTest
     public void testIndexBuildWithMultipleThreads()
     {
         // Read map file
-        final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new InputStreamResource(
-                CountryBoundaryMapTest.class.getResourceAsStream("MAF_AIA_osm_boundaries.txt.gz"))
-                        .withDecompressor(Decompressor.GZIP));
+        final CountryBoundaryMap map = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> CountryBoundaryMapTest.class
+                        .getResourceAsStream("MAF_AIA_osm_boundaries.txt.gz"))
+                                .withDecompressor(Decompressor.GZIP));
         Assert.assertFalse(map.hasGridIndex());
 
         // Create several threads and try to initialize index simultaneously
@@ -429,7 +437,7 @@ public class CountryBoundaryMapTest
     public void testNearestNeighborCountryCodeOnMultiLineStringOutsideBoundary()
     {
         final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new InputStreamResource(
-                CountryBoundaryMapTest.class.getResourceAsStream("DMA_boundary.txt")));
+                () -> CountryBoundaryMapTest.class.getResourceAsStream("DMA_boundary.txt")));
         final PolyLine polyLine = PolyLine.wkt(new InputStreamResource(
                 () -> CountryBoundaryMapTest.class.getResourceAsStream("DMA_snake_polyline.wkt"))
                         .firstLine());
@@ -453,7 +461,7 @@ public class CountryBoundaryMapTest
     {
         // Generate grid index for the first time
         final CountryBoundaryMap firstMap = CountryBoundaryMap
-                .fromPlainText(new InputStreamResource(CountryBoundaryMapTest.class
+                .fromPlainText(new InputStreamResource(() -> CountryBoundaryMapTest.class
                         .getResourceAsStream("MAF_AIA_osm_boundaries.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
         Assert.assertFalse(firstMap.hasGridIndex());
@@ -463,7 +471,7 @@ public class CountryBoundaryMapTest
 
         // Read grid index from file
         final CountryBoundaryMap secondMap = CountryBoundaryMap
-                .fromPlainText(new InputStreamResource(CountryBoundaryMapTest.class
+                .fromPlainText(new InputStreamResource(() -> CountryBoundaryMapTest.class
                         .getResourceAsStream("MAF_AIA_osm_boundaries_with_grid_index.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
         Assert.assertTrue(secondMap.hasGridIndex());
@@ -482,7 +490,7 @@ public class CountryBoundaryMapTest
 
         // Generate grid index for the first time
         final CountryBoundaryMap firstMap = CountryBoundaryMap
-                .fromPlainText(new InputStreamResource(CountryBoundaryMapTest.class
+                .fromPlainText(new InputStreamResource(() -> CountryBoundaryMapTest.class
                         .getResourceAsStream("MAF_AIA_osm_boundaries.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
         Assert.assertFalse(firstMap.hasGridIndex());
@@ -491,7 +499,7 @@ public class CountryBoundaryMapTest
 
         // Read grid index from file
         final CountryBoundaryMap secondMap = CountryBoundaryMap
-                .fromPlainText(new InputStreamResource(CountryBoundaryMapTest.class
+                .fromPlainText(new InputStreamResource(() -> CountryBoundaryMapTest.class
                         .getResourceAsStream("MAF_AIA_osm_boundaries_with_grid_index.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
         Assert.assertTrue(secondMap.hasGridIndex());
@@ -508,9 +516,10 @@ public class CountryBoundaryMapTest
                 Location.forString("18.0298609, -63.0665379"),
                 Location.forString("18.0298052, -63.0663907"));
         final CountryBoundaryMap partialStMartinMap = new CountryBoundaryMap(rectangleInStMartin);
-        partialStMartinMap.readFromPlainText(new InputStreamResource(
-                CountryBoundaryMapTest.class.getResourceAsStream("MAF_AIA_osm_boundaries.txt.gz"))
-                        .withDecompressor(Decompressor.GZIP));
+        partialStMartinMap
+                .readFromPlainText(new InputStreamResource(() -> CountryBoundaryMapTest.class
+                        .getResourceAsStream("MAF_AIA_osm_boundaries.txt.gz"))
+                                .withDecompressor(Decompressor.GZIP));
         Assert.assertFalse(partialStMartinMap.hasGridIndex());
 
         Assert.assertEquals(1, partialStMartinMap.size());
@@ -522,8 +531,8 @@ public class CountryBoundaryMapTest
                 Location.forString("18.096068, -63.0643537"),
                 Location.forString("18.0927713, -63.0612415"));
         final CountryBoundaryMap partialAIAMap = new CountryBoundaryMap(rectangleInAIA);
-        partialAIAMap.readFromPlainText(new InputStreamResource(
-                CountryBoundaryMapTest.class.getResourceAsStream("MAF_AIA_osm_boundaries.txt.gz"))
+        partialAIAMap.readFromPlainText(new InputStreamResource(() -> CountryBoundaryMapTest.class
+                .getResourceAsStream("MAF_AIA_osm_boundaries.txt.gz"))
                         .withDecompressor(Decompressor.GZIP));
         Assert.assertFalse(partialAIAMap.hasGridIndex());
         Assert.assertEquals(1, partialAIAMap.size());
@@ -536,7 +545,7 @@ public class CountryBoundaryMapTest
     public void testWithinBoundingBoxButNotWithinBoundary()
     {
         final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new InputStreamResource(
-                CountryBoundaryMapTest.class.getResourceAsStream("DMA_boundary.txt")));
+                () -> CountryBoundaryMapTest.class.getResourceAsStream("DMA_boundary.txt")));
         final Location location = Location.forWkt("POINT (-61.6678538 15.2957509)");
         final CountryCodeProperties countryCodeProperties = map.getCountryCodeISO3(location);
         Assert.assertTrue(countryCodeProperties.usingNearestNeighbor());

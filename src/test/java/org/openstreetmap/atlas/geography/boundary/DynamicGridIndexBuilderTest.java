@@ -31,15 +31,17 @@ public class DynamicGridIndexBuilderTest
             final String filename)
     {
         // Generate grid index for the first time
-        final CountryBoundaryMap firstMap = CountryBoundaryMap.fromPlainText(
-                new InputStreamResource(CountryBoundaryMapTest.class.getResourceAsStream(filename))
-                        .withDecompressor(Decompressor.GZIP));
+        final CountryBoundaryMap firstMap = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(
+                        () -> CountryBoundaryMapTest.class.getResourceAsStream(filename))
+                                .withDecompressor(Decompressor.GZIP));
         firstMap.initializeGridIndex(countries);
 
         // Generate grid index for the second time
-        final CountryBoundaryMap secondMap = CountryBoundaryMap.fromPlainText(
-                new InputStreamResource(CountryBoundaryMapTest.class.getResourceAsStream(filename))
-                        .withDecompressor(Decompressor.GZIP));
+        final CountryBoundaryMap secondMap = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(
+                        () -> CountryBoundaryMapTest.class.getResourceAsStream(filename))
+                                .withDecompressor(Decompressor.GZIP));
         secondMap.initializeGridIndex(countries);
 
         // Compare
@@ -76,7 +78,7 @@ public class DynamicGridIndexBuilderTest
 
         // Generate grid index for the first time
         final CountryBoundaryMap firstMap = CountryBoundaryMap
-                .fromPlainText(new InputStreamResource(CountryBoundaryMapTest.class
+                .fromPlainText(new InputStreamResource(() -> CountryBoundaryMapTest.class
                         .getResourceAsStream("MAF_AIA_osm_boundaries.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
         final Envelope maxEnvelope = new Envelope(Longitude.MIN_VALUE, Longitude.MAX_VALUE,

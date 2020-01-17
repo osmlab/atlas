@@ -49,7 +49,7 @@ public class CountryShardListingTest
         final StringList countries = new StringList();
         countries.add("DMA");
         final CountryBoundaryMap boundaries = CountryBoundaryMap
-                .fromPlainText(new InputStreamResource(CountryShardListingTest.class
+                .fromPlainText(new InputStreamResource(() -> CountryShardListingTest.class
                         .getResourceAsStream("DMA_as_world_osm_boundaries.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
         final Sharding sharding = Sharding.forString("dynamic@"

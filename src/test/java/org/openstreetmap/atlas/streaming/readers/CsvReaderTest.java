@@ -31,9 +31,9 @@ public class CsvReaderTest
     public void init()
     {
         this.resource = new InputStreamResource(
-                CsvReaderTest.class.getResourceAsStream("data.csv"));
+                () -> CsvReaderTest.class.getResourceAsStream("data.csv"));
         this.wrongResource = new InputStreamResource(
-                CsvReaderTest.class.getResourceAsStream("wrongData.csv"));
+                () -> CsvReaderTest.class.getResourceAsStream("wrongData.csv"));
         // Create the schema with 3 converters in order.
         this.schema = new CsvSchema(CONVERTER1, CONVERTER2, CONVERTER3);
     }
