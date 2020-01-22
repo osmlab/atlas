@@ -22,14 +22,6 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
  */
 public final class GeometryOperation
 {
-    public enum Operation
-    {
-        UNION,
-        INTERSECTION,
-        DIFFERENCE,
-        SYM_DIFFERENCE
-    }
-
     private static final JtsMultiPolygonToMultiPolygonConverter JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER = new JtsMultiPolygonToMultiPolygonConverter();
     private static final JtsMultiPolygonConverter JTS_MULTI_POLYGON_CONVERTER = new JtsMultiPolygonConverter();
 
