@@ -7,6 +7,9 @@ import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
 
+/**
+ * @author matthieun
+ */
 public class GeometryOperationTest
 {
     private final MultiPolygon multiPolygon1 = MultiPolygon.forOuters(Polygon.wkt(
