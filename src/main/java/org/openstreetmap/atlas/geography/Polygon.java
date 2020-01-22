@@ -197,9 +197,7 @@ public class Polygon extends PolyLine implements GeometricSurface
         // if this value overflows, use JTS to correctly calculate covers
         if (awtOverflows())
         {
-            final org.locationtech.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
-            final Point point = new JtsPointConverter().convert(location);
-            return polygon.covers(point);
+            return fullyGeometricallyEnclosesJTS(location);
         }
         // for most cases use the faster awt covers
         else
@@ -290,6 +288,23 @@ public class Polygon extends PolyLine implements GeometricSurface
             }
         }
         return this.fullyGeometricallyEncloses(segment.middle());
+    }
+
+    /**
+     * Tests if this {@link Polygon} fully encloses (geometrically contains) a {@link Location}
+     * according to the JTS definition, which includes points touching all boundaries of the
+     * polygon.
+     * 
+     * @param location
+     *            The location to test
+     * @return True if the {@link Polygon} fully encloses (geometrically contains) the
+     *         {@link Location}
+     */
+    public boolean fullyGeometricallyEnclosesJTS(final Location location)
+    {
+        final org.locationtech.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
+        final Point point = new JtsPointConverter().convert(location);
+        return polygon.covers(point);
     }
 
     @Override
