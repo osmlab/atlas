@@ -1,5 +1,7 @@
 # Geometry Clipping
 
+Rules below are deprecated
+
 Subject|Clipping|Result
 -------|-------|-------
 PolyLine|Polygon|List of PolyLines

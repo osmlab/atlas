@@ -15,7 +15,9 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
  * Clip {@link Polygon}s using the JTS library
  *
  * @author matthieun
+ * @deprecated Use {@link GeometryOperation} instead.
  */
+@Deprecated
 public class PolygonClipper
 {
     private final Geometry jtsClipping;
