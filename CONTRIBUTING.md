@@ -35,7 +35,7 @@ Enhancements are also handled with GitHub issues. Make sure to include the follo
 
 ### Requirements
 
-* Oracle JDK 8
+* OpenJDK 11
 * Gradle
 
 ### First contribution
