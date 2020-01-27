@@ -14,7 +14,9 @@ import org.slf4j.LoggerFactory;
  * Utility class to compute geometry clips
  *
  * @author matthieun
+ * @deprecated Use {@link GeometryOperation} instead.
  */
+@Deprecated
 public class Clip
 {
     /**
@@ -27,7 +29,7 @@ public class Clip
         AND,
         OR,
         NOT,
-        XOR;
+        XOR
     }
 
     private static final Logger logger = LoggerFactory.getLogger(Clip.class);
