@@ -21,7 +21,9 @@ import org.openstreetmap.atlas.utilities.maps.MultiMap;
  * {@link Polygon}s and {@link MultiPolygon}s.
  *
  * @author matthieun
+ * @deprecated Use {@link GeometryOperation} instead.
  */
+@Deprecated
 public class MultiPolygonClipper
 {
     private final Set<org.locationtech.jts.geom.Polygon> jtsClippings;
