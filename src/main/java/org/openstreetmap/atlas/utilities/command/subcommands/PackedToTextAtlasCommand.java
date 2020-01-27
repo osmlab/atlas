@@ -109,7 +109,8 @@ public class PackedToTextAtlasCommand extends AtlasLoaderCommand
         if (this.optionAndArgumentDelegate
                 .getParserContext() == AbstractAtlasShellToolsCommand.DEFAULT_CONTEXT)
         {
-            outputFile = new File(concatenatedPath.toAbsolutePath().toString() + FileSuffix.TEXT);
+            outputFile = new File(
+                    concatenatedPath.toAbsolutePath().toString() + FileSuffix.TEXT_ATLAS);
             outputAtlas.saveAsText(outputFile);
         }
         else if (this.optionAndArgumentDelegate.getParserContext() == GEOJSON_CONTEXT)
