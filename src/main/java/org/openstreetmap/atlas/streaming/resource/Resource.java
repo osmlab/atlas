@@ -105,7 +105,7 @@ public interface Resource
      */
     default boolean isGzipped()
     {
-        return FileSuffix.GZIP.matches(this) || FileSuffix.GZIP_ATLAS.matches(this);
+        return FileSuffix.GZIP.matches(this);
     }
 
     /**

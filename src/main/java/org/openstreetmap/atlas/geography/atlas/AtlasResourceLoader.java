@@ -14,6 +14,7 @@ import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
+import org.openstreetmap.atlas.streaming.resource.AbstractResource;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.streaming.resource.Resource;
@@ -31,18 +32,21 @@ import org.slf4j.LoggerFactory;
 public class AtlasResourceLoader
 {
     public static final Predicate<Resource> HAS_TEXT_ATLAS_EXTENSION = FileSuffix
-            .resourceFilter(FileSuffix.TEXT_ATLAS);
+            .resourceFilter(FileSuffix.ATLAS, FileSuffix.TEXT)
+            .or(FileSuffix.resourceFilter(FileSuffix.ATLAS, FileSuffix.TEXT, FileSuffix.GZIP));
     public static final Predicate<Resource> HAS_ATLAS_EXTENSION = FileSuffix
-            .resourceFilter(FileSuffix.ATLAS).or(FileSuffix.resourceFilter(FileSuffix.GZIP_ATLAS));
+            .resourceFilter(FileSuffix.ATLAS)
+            .or(FileSuffix.resourceFilter(FileSuffix.ATLAS, FileSuffix.GZIP));
 
     private static final Logger logger = LoggerFactory.getLogger(AtlasResourceLoader.class);
 
     private static final Predicate<Resource> CONTENTS_LOOK_LIKE_TEXT_ATLAS = resource ->
     {
         checkFileExistsAndIsNotDirectory(resource);
+        setDecompressorFor(resource);
+
         return resource.firstLine().equals(TextAtlasBuilder.getNodesHeader());
     };
-
     private Predicate<Resource> resourceFilter;
     private Predicate<AtlasEntity> atlasEntityFilter;
     private String multiAtlasName;
@@ -62,6 +66,23 @@ public class AtlasResourceLoader
                 throw new CoreException(
                         "Resource {} was of type File but it was a directory. Try loadRecursively instead.",
                         resource.getName());
+            }
+        }
+    }
+
+    private static void setDecompressorFor(final Resource resource)
+    {
+        if (FileSuffix.GZIP.matches(resource))
+        {
+            if (resource instanceof AbstractResource)
+            {
+                ((AbstractResource) resource).setDecompressor(Decompressor.GZIP);
+            }
+            else
+            {
+                throw new CoreException(
+                        "Provide resource was of type {} which does not support decompression.",
+                        resource.getClass().getName());
             }
         }
     }
@@ -130,10 +151,9 @@ public class AtlasResourceLoader
      * Load an {@link Atlas} from the provided {@link File} {@link Resource}(s). If any of the
      * provided {@link File}(s) are directories, the method will recursively descend into the
      * directory and include every {@link Atlas} it discovers. It identifies {@link Atlas}es by
-     * looking for {@link FileSuffix#ATLAS}, {@link FileSuffix#TEXT_ATLAS}, and
-     * {@link FileSuffix#GZIP_ATLAS} file extensions. Like with the {@link AtlasResourceLoader#load}
-     * method, this method will utilize the {@link MultiAtlas} to combine the {@link Atlas}es. This
-     * method should never return null.
+     * looking for {@link FileSuffix#ATLAS} file extensions. Like with the
+     * {@link AtlasResourceLoader#load} method, this method will utilize the {@link MultiAtlas} to
+     * combine the {@link Atlas}es. This method should never return null.
      *
      * @param resources
      *            the {@link File} {@link Resource}(s) from which to load
@@ -148,10 +168,9 @@ public class AtlasResourceLoader
      * Load an {@link Atlas} from an {@link Iterable} of {@link File} {@link Resource}s. If any of
      * the provided {@link File}(s) are directories, the method will recursively descend into the
      * directory and include every {@link Atlas} it discovers. It identifies {@link Atlas}es by
-     * looking for {@link FileSuffix#ATLAS}, {@link FileSuffix#TEXT_ATLAS}, and
-     * {@link FileSuffix#GZIP_ATLAS} file extensions. Like with the {@link AtlasResourceLoader#load}
-     * method, this method will utilize the {@link MultiAtlas} to combine the {@link Atlas}es. This
-     * method should never return null.
+     * looking for {@link FileSuffix#ATLAS} file extensions. Like with the
+     * {@link AtlasResourceLoader#load} method, this method will utilize the {@link MultiAtlas} to
+     * combine the {@link Atlas}es. This method should never return null.
      *
      * @param resources
      *            the {@link Iterable} of {@link File} {@link Resource}s from which to load
@@ -371,6 +390,7 @@ public class AtlasResourceLoader
 
         if (CONTENTS_LOOK_LIKE_TEXT_ATLAS.test(resource))
         {
+            setDecompressorFor(resource);
             result = new TextAtlasBuilder().read(resource);
         }
         else
@@ -444,6 +464,7 @@ public class AtlasResourceLoader
         final List<Atlas> textAtlases = new ArrayList<>();
         for (final Resource textResource : textAtlasResources)
         {
+            setDecompressorFor(textResource);
             final Atlas atlas = new TextAtlasBuilder().read(textResource);
             textAtlases.add(atlas);
         }
