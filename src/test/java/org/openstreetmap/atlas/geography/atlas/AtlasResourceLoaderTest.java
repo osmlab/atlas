@@ -14,6 +14,7 @@ import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Longitude;
 import org.openstreetmap.atlas.geography.atlas.builder.text.TextAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
+import org.openstreetmap.atlas.streaming.compression.Compressor;
 import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.Resource;
@@ -39,6 +40,18 @@ public class AtlasResourceLoaderTest
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage("Failed to load an atlas");
         new AtlasResourceLoader().load(nonAtlasResource);
+    }
+
+    @Test
+    public void basicCompressedLoadTest()
+    {
+        final Atlas atlas = new AtlasResourceLoader()
+                .load(getCompressedAtlasResource(this::getSinglePointAtlas));
+        Assert.assertEquals(1, atlas.numberOfPoints());
+
+        final Atlas atlasFromText = new AtlasResourceLoader()
+                .load(getCompressedTextAtlasResource(this::getSinglePointAtlas));
+        Assert.assertEquals(1, atlasFromText.numberOfPoints());
     }
 
     @Test
@@ -290,6 +303,26 @@ public class AtlasResourceLoaderTest
         final ByteArrayResource resource = new ByteArrayResource(BYTE_ARRAY_SIZE)
                 .withName("hello.atlas");
         atlas.save(resource);
+        return resource;
+    }
+
+    private Resource getCompressedAtlasResource(final Supplier<Atlas> atlasSupplier)
+    {
+        final Atlas atlas = atlasSupplier.get();
+        final ByteArrayResource resource = new ByteArrayResource(BYTE_ARRAY_SIZE)
+                .withName("hello.atlas.gz");
+        resource.setCompressor(Compressor.GZIP);
+        atlas.save(resource);
+        return resource;
+    }
+
+    private Resource getCompressedTextAtlasResource(final Supplier<Atlas> atlasSupplier)
+    {
+        final Atlas atlas = atlasSupplier.get();
+        final ByteArrayResource resource = new ByteArrayResource(BYTE_ARRAY_SIZE)
+                .withName("hello.atlas.txt.gz");
+        resource.setCompressor(Compressor.GZIP);
+        new TextAtlasBuilder().write(atlas, resource);
         return resource;
     }
 
