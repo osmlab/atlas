@@ -478,7 +478,7 @@ public class TestAtlasHandler implements FieldHandler
         final ClassResource resource = new ClassResource(completeName);
         FileSuffix.suffixFor(completeName).ifPresent(suffix ->
         {
-            if (suffix == FileSuffix.GZIP)
+            if (suffix == FileSuffix.GZIP || suffix == FileSuffix.GZIP_ATLAS)
             {
                 resource.setDecompressor(Decompressor.GZIP);
             }
