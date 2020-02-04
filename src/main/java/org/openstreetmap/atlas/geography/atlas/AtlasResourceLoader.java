@@ -388,6 +388,17 @@ public class AtlasResourceLoader
     {
         final Atlas result;
 
+        if (resource instanceof File)
+        {
+            checkFileExistsAndIsNotDirectory(resource);
+        }
+
+        if (resource.length() == 0L)
+        {
+            throw new CoreException("{} {} had zero length!", resource.getClass().getName(),
+                    resource.getName());
+        }
+
         if (CONTENTS_LOOK_LIKE_TEXT_ATLAS.test(resource))
         {
             setDecompressorFor(resource);
@@ -410,6 +421,19 @@ public class AtlasResourceLoader
 
     private Optional<Atlas> loadMultipleAtlasResources(final List<Resource> atlasResources)
     {
+        atlasResources.forEach(resource ->
+        {
+            if (resource instanceof File)
+            {
+                checkFileExistsAndIsNotDirectory(resource);
+            }
+            if (resource.length() == 0L)
+            {
+                throw new CoreException("{} {} had zero length!", resource.getClass().getName(),
+                        resource.getName());
+            }
+        });
+
         final List<Resource> binaryResources = filterForBinaryAtlasResources(atlasResources);
         final List<Resource> textResources = filterForTextAtlasResources(atlasResources);
 

@@ -43,6 +43,27 @@ public class AtlasResourceLoaderTest
     }
 
     @Test
+    public void attemptToLoadResourcesWithMixedEmpty()
+    {
+        final ByteArrayResource emptyResource = new ByteArrayResource();
+        final Resource atlasResource = getAtlasResource(this::getSinglePointAtlas);
+
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("had zero length!");
+        new AtlasResourceLoader().load(atlasResource, emptyResource);
+    }
+
+    @Test
+    public void attemptToLoadSingleEmptyResource()
+    {
+        final ByteArrayResource emptyResource = new ByteArrayResource();
+
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("had zero length!");
+        new AtlasResourceLoader().load(emptyResource);
+    }
+
+    @Test
     public void basicCompressedLoadTest()
     {
         final Atlas atlas = new AtlasResourceLoader()
@@ -283,7 +304,7 @@ public class AtlasResourceLoaderTest
     {
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage("was of type File but it could not be found");
-        final Atlas atlas = new AtlasResourceLoader().load(new File(
+        new AtlasResourceLoader().load(new File(
                 Paths.get(System.getProperty("user.home"), "SomeFileThatDoesNotExist").toString()));
     }
 
