@@ -25,7 +25,7 @@ Create a groovy file with 2 imports listed below. Notice these are `static` star
 /*Optional package statement if applicable.*/
 
 import static org.openstreetmap.atlas.geography.atlas.dsl.query.QueryBuilderFactory.*
-import static org.openstreetmap.atlas.geography.atlas.dsl.schema.AtlasDB.getEdge
+import static org.openstreetmap.atlas.geography.atlas.dsl.schema.AtlasDB.*
 ```
 
 - Load Atlas (or OSM) file(s)
