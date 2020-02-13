@@ -75,7 +75,7 @@ delete myAtlas.edge where edge.hasTag(highway: "footway") and not(edge.hasTag(fo
 ```sql
 
 /*Load*/ 
-atlas = using "classpath:/data/Alcatraz/Alcatraz.osm"
+atlas = using "classpath:/data/Alcatraz/Alcatraz.atlas"
 
 /*Run some select queries to explore the data.*/
 select edge._ from atlas.edge limit 100
