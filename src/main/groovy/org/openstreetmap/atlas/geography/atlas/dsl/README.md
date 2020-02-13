@@ -25,7 +25,7 @@ Create a groovy file with 2 imports listed below. Notice these are `static` star
 /*Optional package statement if applicable.*/
 
 import static org.openstreetmap.atlas.geography.atlas.dsl.query.QueryBuilderFactory.*
-import static org.openstreetmap.atlas.geography.atlas.dsl.schema.AtlasDB.getEdge
+import static org.openstreetmap.atlas.geography.atlas.dsl.schema.AtlasDB.*
 ```
 
 - Load Atlas (or OSM) file(s)
@@ -75,7 +75,7 @@ delete myAtlas.edge where edge.hasTag(highway: "footway") and not(edge.hasTag(fo
 ```sql
 
 /*Load*/ 
-atlas = using "classpath:/data/Alcatraz/Alcatraz.osm"
+atlas = using "classpath:/data/Alcatraz/Alcatraz.atlas"
 
 /*Run some select queries to explore the data.*/
 select edge._ from atlas.edge limit 100
