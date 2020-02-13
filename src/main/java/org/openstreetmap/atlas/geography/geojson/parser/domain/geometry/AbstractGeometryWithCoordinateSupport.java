@@ -12,10 +12,12 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.foreign.ForeignFi
  *
  * @param <C>
  *            - coordinate data type.
+ * @param <G>
+ *            - Atlas Geometry.
  * @author Yazad Khambata
  */
-public abstract class AbstractGeometryWithCoordinateSupport<C> extends AbstractGeometry
-        implements GeometryWithCoordinates<C>
+public abstract class AbstractGeometryWithCoordinateSupport<C, G> extends AbstractGeometry
+        implements GeometryWithCoordinates<C, G>
 {
     public static Object extractRawCoordinates(final Map<String, Object> map)
     {
