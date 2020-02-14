@@ -5,6 +5,8 @@ import org.openstreetmap.atlas.geography.atlas.dsl.query.Query
 import org.openstreetmap.atlas.geography.atlas.dsl.query.optimizer.optimization.QueryOptimizationTransformer
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity
 
+import java.util.stream.Collectors
+
 /**
  * Domain representing the analysis.
  *
@@ -18,5 +20,25 @@ class Analysis<E extends AtlasEntity> {
 
     boolean checkIfOptimized() {
         !optimizedQuery?.is(originalQuery)
+    }
+
+    @Override
+    String toString() {
+        """
+==================================================
+------------------------
+Query Analysis
+------------------------
+
+originalQuery          : ${originalQuery}
+optimizedQuery         : ${optimizedQuery}
+checkIfOptimized       : ${checkIfOptimized()}
+
+optimizationTrace:
+
+${optimizationTrace.entrySet().stream().map { entry -> "" + entry.key + "\n" + entry.value }.collect(Collectors.joining("\n")) }
+
+==================================================
+"""
     }
 }
