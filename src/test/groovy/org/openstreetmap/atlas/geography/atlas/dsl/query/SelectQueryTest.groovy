@@ -25,7 +25,7 @@ class SelectQueryTest extends AbstractAQLTest {
     void testSelectFunctionFields() {
         def atlas = usingAlcatraz()
 
-        def selectEdge = select edge.id, edge.startId, edge.endId, edge.tags, edge.start, edge.end from atlas.edge where edge.hasTag(source: 'yahoo') and edge.hasTag('name')
+        def selectEdge = select edge.id, edge.startId, edge.endId, edge.tags, edge.start, edge.end from atlas.edge where edge.hasTag(source: 'yahoo') and edge.hasTag('access')
         final Result<Edge> resultEdge = exec selectEdge
 
         assert resultEdge.getTable() instanceof AtlasTable
@@ -36,6 +36,7 @@ class SelectQueryTest extends AbstractAQLTest {
         def selectNode = select node.id, node.inEdgeIds, node.inEdges, node.outEdges, node.outEdgeIds from atlas.node where node.hasIds(startEndNodeIds)
         final Result resultNode = exec selectNode
 
+        assert listStartEndNodeIds.size() == 2
         assert listStartEndNodeIds.sort() == resultNode.relevantIdentifiers.sort()
     }
 
