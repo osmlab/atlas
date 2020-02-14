@@ -166,7 +166,6 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
      */
     private List<Geometry> convertToJtsGeometryAndSlice(final Line line)
     {
-        List<Geometry> result = new ArrayList<>();
         final long lineIdentifier = line.getIdentifier();
 
         // Create the JTS Geometry from Line
@@ -181,12 +180,12 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         }
 
         // Slice the JTS Geometry
-        result = sliceGeometry(geometry, line);
+        List<Geometry> result = sliceGeometry(geometry, line);
 
         final boolean multipolygonResult = Iterables.stream(result)
                 .anyMatch(geom -> geom instanceof org.locationtech.jts.geom.Polygon
                         && ((org.locationtech.jts.geom.Polygon) geom).getNumInteriorRing() > 0);
-        if ((result == null || result.isEmpty()) && line.isClosed() || multipolygonResult)
+        if (result.isEmpty() && line.isClosed() || multipolygonResult)
         {
             if (multipolygonResult)
             {
@@ -200,8 +199,9 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
             result = sliceGeometry(geometry, line);
         }
 
-        // It was not tagged, so error
-        if (result == null || result.isEmpty())
+        // It was not tagged, so check to see if we set the ISO code for the whole geometry (skipped
+        // slicing)
+        if (result.isEmpty())
         {
             if (CountryBoundaryMap.getGeometryProperty(geometry, ISOCountryTag.KEY).isEmpty())
             {
@@ -631,11 +631,9 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
             }
 
             final Geometry target = geometry;
-            List<org.locationtech.jts.geom.Polygon> candidates = boundary
-                    .query(target.getEnvelopeInternal());
-
-            // Remove duplicates
-            candidates = candidates.stream().distinct().collect(Collectors.toList());
+            final List<org.locationtech.jts.geom.Polygon> candidates = boundary
+                    .query(target.getEnvelopeInternal()).stream().distinct()
+                    .collect(Collectors.toList());
 
             // Performance improvement, if only one polygon returned no need to do any further
             // evaluation (except when geometry has to be sliced at all costs)
@@ -644,7 +642,6 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                 final String countryCode = CountryBoundaryMap.getGeometryProperty(candidates.get(0),
                         ISOCountryTag.KEY);
                 CountryBoundaryMap.setGeometryProperty(target, ISOCountryTag.KEY, countryCode);
-                addResult(target, results);
                 return results;
             }
 
@@ -667,7 +664,6 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                 final String countryCode = CountryBoundaryMap.getGeometryProperty(candidates.get(0),
                         ISOCountryTag.KEY);
                 CountryBoundaryMap.setGeometryProperty(target, ISOCountryTag.KEY, countryCode);
-                addResult(target, results);
                 return results;
             }
 

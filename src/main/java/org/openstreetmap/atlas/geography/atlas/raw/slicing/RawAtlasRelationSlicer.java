@@ -46,7 +46,6 @@ import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.AbstractIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.CountrySlicingIdentifierFactory;
-import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.PointIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryRelation;
 import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
@@ -220,11 +219,10 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
 
         // Get all the boundary map polygons for the countries being sliced only, deduplicated
         final List<org.locationtech.jts.geom.Polygon> polygonsForSlicedCountries = polygons.stream()
-                .distinct().filter(polygon ->
-                {
-                    return this.getCountries().contains(
-                            CountryBoundaryMap.getGeometryProperty(polygon, ISOCountryTag.KEY));
-                }).collect(Collectors.toList());
+                .distinct()
+                .filter(polygon -> this.getCountries().contains(
+                        CountryBoundaryMap.getGeometryProperty(polygon, ISOCountryTag.KEY)))
+                .collect(Collectors.toList());
 
         for (final org.locationtech.jts.geom.Polygon polygon : polygonsForSlicedCountries)
         {
@@ -252,10 +250,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                 {
                     final GeometryCollection collection = (GeometryCollection) clipped;
                     final LineMerger merger = new LineMerger();
-                    CountryBoundaryMap.geometries(collection).forEach(clippedGeometry ->
-                    {
-                        merger.add(clippedGeometry);
-                    });
+                    CountryBoundaryMap.geometries(collection).forEach(merger::add);
                     merger.getMergedLineStrings()
                             .forEach(lineString -> CountryBoundaryMap.setGeometryProperty(
                                     (Geometry) lineString, ISOCountryTag.KEY, countryCode));
@@ -298,24 +293,19 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
     }
 
     /**
-     * Given a {@link LineString} and corresponding {@link CountrySlicingIdentifierFactory}s for
-     * point and line identifier generation, creates a new {@link Line} and any new {@link Point}s,
-     * if necessary. The new {@link Line} is then added as a member for the given {@link Relation}
-     * {@link Identifier}. Corresponding synthetic tags are added to the relation to signify an
-     * added relation member.
+     * Given a {@link LineString} representing a new border line, creates a new {@link Line}. The
+     * new {@link Line} is then added as a member for the given {@link Relation} {@link Identifier}.
+     * Corresponding synthetic tags are added to the relation to signify an added relation member.
      *
      * @param lineString
      *            The JTS {@link LineString} that describes the {@link Line} to create
      * @param relationIdentifier
      *            The {@link Relation} identifier to which to add the new {@link Line} as a member
      *            for
-     * @param pointIdentifierGenerator
-     *            The {@link CountrySlicingIdentifierFactory} for new {@link Point}s
      * @param outers
      *            The outer members for the relation being sliced
      */
     private CompleteLine createNewBorderLineMemberForRelation(final LineString lineString,
-            final PointIdentifierFactory pointIdentifierGenerator,
             final List<RelationMember> outers, final long relationIdentifier)
     {
         final List<Location> newLineLocations = new ArrayList<>(lineString.getNumPoints());
@@ -397,11 +387,8 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
      *
      * @param lineString
      *            The JTS {@link LineString} that describes the {@link Line} to create
-     * @param pointIdentifierGenerator
-     *            The {@link CountrySlicingIdentifierFactory} for new {@link Point}s
      */
-    private CompleteLine createNewMergedLineMemberForRelation(final LineString lineString,
-            final PointIdentifierFactory pointIdentifierGenerator)
+    private CompleteLine createNewMergedLineMemberForRelation(final LineString lineString)
     {
         // Create the patched line
         final Map<String, String> newLineTags = createLineTags(lineString, new HashMap<>());
@@ -746,8 +733,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
      *            The list of inner {@link RelationMember}s
      */
     private void mergeOverlappingClosedMembers(final CompleteRelation relation,
-            final List<RelationMember> outers, final List<RelationMember> inners,
-            final PointIdentifierFactory pointIdentifierFactory)
+            final List<RelationMember> outers, final List<RelationMember> inners)
     {
         final long relationIdentifier = relation.getIdentifier();
         final List<RelationMember> closedOuters = generateMemberList(relationIdentifier, outers,
@@ -839,8 +825,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                     possibleCountryCode.get());
 
             // Create points, lines and update members
-            addedMembers.add(
-                    createNewMergedLineMemberForRelation(exteriorRing, pointIdentifierFactory));
+            addedMembers.add(createNewMergedLineMemberForRelation(exteriorRing));
         }
 
         final List<RelationMember> updatedRelationMembers = new ArrayList<>();
@@ -887,8 +872,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
      *            All the outer relation members
      */
     private void patchNonClosedMembers(final CompleteRelation relation,
-            final List<RelationMember> outers, final List<RelationMember> inners,
-            final PointIdentifierFactory pointIdentifierFactory)
+            final List<RelationMember> outers, final List<RelationMember> inners)
     {
         final long relationIdentifier = relation.getIdentifier();
 
@@ -953,7 +937,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                 for (final LineString borderLine : borderLines)
                 {
                     final CompleteLine completeBorderLine = createNewBorderLineMemberForRelation(
-                            borderLine, pointIdentifierFactory, outers, relation.getIdentifier());
+                            borderLine, outers, relation.getIdentifier());
                     if (completeBorderLine != null)
                     {
                         this.changes.add(FeatureChange.add(completeBorderLine, getStartingAtlas()));
@@ -1011,21 +995,18 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                 .collect(Collectors.groupingBy(RelationMember::getRole));
         final List<RelationMember> outers = roleMap.get(RelationTypeTag.MULTIPOLYGON_ROLE_OUTER);
         final List<RelationMember> inners = roleMap.get(RelationTypeTag.MULTIPOLYGON_ROLE_INNER);
-        final PointIdentifierFactory pointIdentifierFactory = new PointIdentifierFactory(
-                relation.getIdentifier());
         final CompleteRelation updatedRelation = CompleteRelation.from(relation);
 
         if (outers != null && !outers.isEmpty())
         {
-            patchNonClosedMembers(updatedRelation, outers, inners, pointIdentifierFactory);
+            patchNonClosedMembers(updatedRelation, outers, inners);
             // We only want to merge members for modified relations. Unless we touched the relation
             // directly, we will leave the "mergeable" relation as is since it's a more true
             // representation of OSM data.
             if (inners != null && !inners.isEmpty()
                     && containsSlicedMember(new MultiIterable<>(outers, inners)))
             {
-                mergeOverlappingClosedMembers(updatedRelation, outers, inners,
-                        pointIdentifierFactory);
+                mergeOverlappingClosedMembers(updatedRelation, outers, inners);
             }
         }
 
