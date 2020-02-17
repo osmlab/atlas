@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -552,21 +551,16 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
      *            The identifier for the original {@link Line} being sliced
      * @param candidates
      *            The collection of candidate slice {@link Geometry}
-     * @param results
-     *            The current running collection of valid slice {@link Geometry}
      * @param target
      *            The JTS {@link Geometry} for the {@link Line} being sliced
      * @return True if the entity lays entirely in one country, false otherwise.
      */
     private boolean relateCandidates(final long identifier,
-            final List<org.locationtech.jts.geom.Polygon> candidates, final List<Geometry> results,
-            final Geometry target)
+            final List<org.locationtech.jts.geom.Polygon> candidates, final Geometry target)
     {
         // Check relation of target to all polygons
-        final Iterator<org.locationtech.jts.geom.Polygon> candidateIterator = candidates.iterator();
-        while (candidateIterator.hasNext())
+        for (final org.locationtech.jts.geom.Polygon candidate : candidates)
         {
-            final org.locationtech.jts.geom.Polygon candidate = candidateIterator.next();
             final String countryCode = CountryBoundaryMap.getGeometryProperty(candidate,
                     ISOCountryTag.KEY);
             if (Strings.isNullOrEmpty(countryCode))
@@ -586,14 +580,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                     {
                         CountryBoundaryMap.setGeometryProperty(target, ISOCountryTag.KEY,
                                 countryCode);
-                        addResult(target, results);
                         return true;
-                    }
-
-                    // No intersection, remove from candidate list
-                    if (!matrix.isIntersects())
-                    {
-                        candidateIterator.remove();
                     }
                 }
                 catch (final Exception e)
@@ -652,7 +639,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                         numberCountries);
             }
 
-            if (relateCandidates(line.getIdentifier(), candidates, results, target))
+            if (relateCandidates(line.getIdentifier(), candidates, target))
             {
                 return results;
             }
@@ -738,7 +725,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
     private void sliceLine(final Line line, final Atlas atlas, final ChangeBuilder lineChanges)
     {
         final List<Geometry> slices = convertToJtsGeometryAndSlice(line);
-        if (slices == null || slices.isEmpty())
+        if (slices.isEmpty())
         {
             final CompleteLine updatedLine = CompleteLine.shallowFrom(line).withTags(line.getTags())
                     .withAddedTag(ISOCountryTag.KEY, ISOCountryTag.COUNTRY_MISSING);

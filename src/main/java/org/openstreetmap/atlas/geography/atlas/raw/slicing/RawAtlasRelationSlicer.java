@@ -226,17 +226,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
 
         for (final org.locationtech.jts.geom.Polygon polygon : polygonsForSlicedCountries)
         {
-            final IntersectionMatrix matrix;
-            try
-            {
-                matrix = target.relate(polygon);
-            }
-            catch (final Exception e)
-            {
-                logger.warn("Error slicing feature: {}, {}", identifier, e.getMessage());
-                continue;
-            }
-
+            final IntersectionMatrix matrix = target.relate(polygon);
             if (matrix.isWithin())
             {
                 return results;
@@ -246,6 +236,10 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                 final Geometry clipped = target.intersection(polygon.getExteriorRing());
                 final String countryCode = CountryBoundaryMap.getGeometryProperty(polygon,
                         ISOCountryTag.KEY);
+                if (clipped.isEmpty())
+                {
+                    continue;
+                }
                 if (clipped instanceof GeometryCollection)
                 {
                     final GeometryCollection collection = (GeometryCollection) clipped;
@@ -361,7 +355,7 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
         if (newLineLocations.get(newLineLocations.size() - 1).distanceTo(originalLast)
                 .isGreaterThan(SNAP_DISTANCE))
         {
-            logger.warn(
+            logger.error(
                     "For relation {}, snapped last location by {} feet, not adding synthetic line",
                     relationIdentifier, newLineLocations.get(newLineLocations.size() - 1)
                             .distanceTo(originalLast).asFeet());
