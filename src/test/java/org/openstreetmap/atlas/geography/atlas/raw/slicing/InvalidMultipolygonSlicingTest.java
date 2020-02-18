@@ -218,13 +218,12 @@ public class InvalidMultipolygonSlicingTest
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
         final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
-        System.out.println(slicedAtlas);
 
         // Assert that we CAN build a valid building with this relation
         new ComplexBuildingFinder().find(slicedAtlas)
                 .forEach(building -> Assert.assertFalse(building.getError().isPresent()));
 
-        Assert.assertEquals(29, slicedAtlas.numberOfPoints());
+        Assert.assertEquals(13, slicedAtlas.numberOfPoints());
         Assert.assertEquals(7, slicedAtlas.numberOfLines());
         Assert.assertEquals(rawAtlas.numberOfRelations() * 2, slicedAtlas.numberOfRelations());
     }

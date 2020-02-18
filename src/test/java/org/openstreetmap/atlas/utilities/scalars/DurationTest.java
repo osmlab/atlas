@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.time.Time;
 
 /**
@@ -72,5 +73,19 @@ public class DurationTest
         // sort and test
         durationUnsorted.sort(Duration::compareTo);
         Assert.assertEquals(durationSorted, durationUnsorted);
+    }
+
+    @Test
+    public void testTimes()
+    {
+        final Duration duration = Duration.ONE_SECOND;
+        Assert.assertEquals(2.0, duration.times(2.0).asSeconds(), 3);
+        Assert.assertEquals(5000.0, duration.times(5000.0).asSeconds(), 3);
+    }
+
+    @Test(expected = CoreException.class)
+    public void testTimesException()
+    {
+        Duration.ONE_SECOND.times(-2.0);
     }
 }
