@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -22,7 +21,6 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryCollection;
 import org.locationtech.jts.geom.IntersectionMatrix;
-import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.geom.TopologyException;
 import org.locationtech.jts.index.strtree.GeometryItemDistance;
@@ -119,8 +117,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                 this.addResult(part, results);
             });
         }
-        else if (geometry instanceof LineString
-                || geometry instanceof org.locationtech.jts.geom.Polygon)
+        else if (isSignificantGeometry(geometry))
         {
             results.add(geometry);
         }
@@ -128,7 +125,8 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         {
             if (logger.isErrorEnabled())
             {
-                logger.error("Resulting slice was a {}, ignoring it.", geometry.toText());
+                logger.error("Resulting slice was trivial geometry {}, ignoring it.",
+                        geometry.toText());
             }
         }
     }
@@ -167,34 +165,26 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
      */
     private List<Geometry> convertToJtsGeometryAndSlice(final Line line)
     {
-        List<Geometry> result;
         final long lineIdentifier = line.getIdentifier();
 
         // Create the JTS Geometry from Line
         Geometry geometry;
-
-        if (isAtlasEdge(line))
+        if (line.isClosed() && !isAtlasEdge(line))
         {
-            geometry = JTS_POLYLINE_CONVERTER.convert(line.asPolyLine());
-        }
-        else if (line.isClosed())
-        {
-            // A Polygon
             geometry = JTS_POLYGON_CONVERTER.convert(new Polygon(line));
         }
         else
         {
-            // A PolyLine
             geometry = JTS_POLYLINE_CONVERTER.convert(line.asPolyLine());
         }
 
         // Slice the JTS Geometry
-        result = sliceGeometry(geometry, line);
+        List<Geometry> result = sliceGeometry(geometry, line);
 
         final boolean multipolygonResult = Iterables.stream(result)
                 .anyMatch(geom -> geom instanceof org.locationtech.jts.geom.Polygon
                         && ((org.locationtech.jts.geom.Polygon) geom).getNumInteriorRing() > 0);
-        if ((result == null || result.isEmpty()) && line.isClosed() || multipolygonResult)
+        if (result.isEmpty() && line.isClosed() || multipolygonResult)
         {
             if (multipolygonResult)
             {
@@ -208,10 +198,19 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
             result = sliceGeometry(geometry, line);
         }
 
-        if (result == null || result.isEmpty())
+        // It was not tagged, so check to see if we set the ISO code for the whole geometry (skipped
+        // slicing)
+        if (result.isEmpty())
         {
-            logger.error("Invalid Geometry for line {} for Atlas {}", lineIdentifier,
-                    getShardOrAtlasName());
+            if (CountryBoundaryMap.getGeometryProperty(geometry, ISOCountryTag.KEY).isEmpty())
+            {
+                logger.error("Invalid Geometry for line {} for Atlas {}", lineIdentifier,
+                        getShardOrAtlasName());
+            }
+            else
+            {
+                result.add(geometry);
+            }
         }
 
         return result;
@@ -314,7 +313,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                 // If the remaining piece is very small and we ignore it. This helps avoid
                 // cutting features just a little over boundary lines and generating too many
                 // new nodes, which is both unnecessary and exhausts node identifier resources.
-                if (isSignificantGeometry(currentTarget)
+                if (!isSignificantGeometry(currentTarget)
                         && new DiscreteHausdorffDistance(currentTarget, candidate)
                                 .orientedDistance() < CountryBoundaryMap.LINE_BUFFER)
                 {
@@ -552,21 +551,16 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
      *            The identifier for the original {@link Line} being sliced
      * @param candidates
      *            The collection of candidate slice {@link Geometry}
-     * @param results
-     *            The current running collection of valid slice {@link Geometry}
      * @param target
      *            The JTS {@link Geometry} for the {@link Line} being sliced
      * @return True if the entity lays entirely in one country, false otherwise.
      */
     private boolean relateCandidates(final long identifier,
-            final List<org.locationtech.jts.geom.Polygon> candidates, final List<Geometry> results,
-            final Geometry target)
+            final List<org.locationtech.jts.geom.Polygon> candidates, final Geometry target)
     {
         // Check relation of target to all polygons
-        final Iterator<org.locationtech.jts.geom.Polygon> candidateIterator = candidates.iterator();
-        while (candidateIterator.hasNext())
+        for (final org.locationtech.jts.geom.Polygon candidate : candidates)
         {
-            final org.locationtech.jts.geom.Polygon candidate = candidateIterator.next();
             final String countryCode = CountryBoundaryMap.getGeometryProperty(candidate,
                     ISOCountryTag.KEY);
             if (Strings.isNullOrEmpty(countryCode))
@@ -586,14 +580,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                     {
                         CountryBoundaryMap.setGeometryProperty(target, ISOCountryTag.KEY,
                                 countryCode);
-                        addResult(target, results);
                         return true;
-                    }
-
-                    // No intersection, remove from candidate list
-                    if (!matrix.isIntersects())
-                    {
-                        candidateIterator.remove();
                     }
                 }
                 catch (final Exception e)
@@ -631,8 +618,9 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
             }
 
             final Geometry target = geometry;
-            List<org.locationtech.jts.geom.Polygon> candidates = boundary
-                    .query(target.getEnvelopeInternal());
+            final List<org.locationtech.jts.geom.Polygon> candidates = boundary
+                    .query(target.getEnvelopeInternal()).stream().distinct()
+                    .collect(Collectors.toList());
 
             // Performance improvement, if only one polygon returned no need to do any further
             // evaluation (except when geometry has to be sliced at all costs)
@@ -641,16 +629,6 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                 final String countryCode = CountryBoundaryMap.getGeometryProperty(candidates.get(0),
                         ISOCountryTag.KEY);
                 CountryBoundaryMap.setGeometryProperty(target, ISOCountryTag.KEY, countryCode);
-                addResult(target, results);
-                return results;
-            }
-
-            // Remove duplicates and avoid slicing across too many polygons for performance reasons
-            candidates = candidates.stream().distinct().collect(Collectors.toList());
-            if (candidates.size() > boundary.getPolygonSliceLimit())
-            {
-                logger.warn("Skipping slicing way {} due to too many intersecting polygons [{}]",
-                        line.getIdentifier(), candidates.size());
                 return results;
             }
 
@@ -661,7 +639,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                         numberCountries);
             }
 
-            if (relateCandidates(line.getIdentifier(), candidates, results, target))
+            if (relateCandidates(line.getIdentifier(), candidates, target))
             {
                 return results;
             }
@@ -673,7 +651,6 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                 final String countryCode = CountryBoundaryMap.getGeometryProperty(candidates.get(0),
                         ISOCountryTag.KEY);
                 CountryBoundaryMap.setGeometryProperty(target, ISOCountryTag.KEY, countryCode);
-                addResult(target, results);
                 return results;
             }
 
@@ -748,7 +725,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
     private void sliceLine(final Line line, final Atlas atlas, final ChangeBuilder lineChanges)
     {
         final List<Geometry> slices = convertToJtsGeometryAndSlice(line);
-        if (slices == null || slices.isEmpty())
+        if (slices.isEmpty())
         {
             final CompleteLine updatedLine = CompleteLine.shallowFrom(line).withTags(line.getTags())
                     .withAddedTag(ISOCountryTag.KEY, ISOCountryTag.COUNTRY_MISSING);
