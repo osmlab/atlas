@@ -7,7 +7,6 @@ import org.openstreetmap.atlas.geography.atlas.dsl.query.analyzer.impl.QueryAnal
 import org.openstreetmap.atlas.geography.atlas.dsl.query.difference.Difference
 import org.openstreetmap.atlas.geography.atlas.dsl.query.difference.DifferenceGenerator
 import org.openstreetmap.atlas.geography.atlas.dsl.query.explain.ExplainerImpl
-import org.openstreetmap.atlas.geography.atlas.dsl.query.explain.Explanation
 import org.openstreetmap.atlas.geography.atlas.dsl.query.optimizer.RuleBasedOptimizerImpl
 import org.openstreetmap.atlas.geography.atlas.dsl.selection.constraints.Constraint
 import org.openstreetmap.atlas.geography.atlas.dsl.field.Field
@@ -146,14 +145,13 @@ class QueryBuilder {
 
     Closure<Analysis> explain = { queryOrBuilder ->
         newQuerySetup(Statement.EXPLAIN)
-
         clauses[Clause.__IT__] = [queryOrBuilder: queryOrBuilder]
 
-        //ExplainerImpl.instance.dumpExplanation(queryOrBuilder)
-
-        QueryAnalyzer queryAnalyzer = new QueryAnalyzerImpl(ExplainerImpl.instance, RuleBasedOptimizerImpl.defaultOptimizer())
+        final QueryAnalyzer queryAnalyzer = new QueryAnalyzerImpl(ExplainerImpl.instance, RuleBasedOptimizerImpl.defaultOptimizer())
 
         final Analysis analysis = queryAnalyzer.analyze(queryOrBuilder)
+        analysis.dump()
+
         analysis
     }
 

@@ -109,7 +109,7 @@ class Delete<E extends AtlasEntity> extends Query<E> implements Commitable {
 DELETE
     ${table}
 WHERE
-    ${conditionalConstructList}
+${conditionalConstructList.toPrettyString("\t")}
         """
     }
 }

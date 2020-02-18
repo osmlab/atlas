@@ -25,7 +25,6 @@ class ScanStrategy<E extends AtlasEntity> {
     static class IndexUsageInfo<E extends AtlasEntity> {
         IndexSetting indexSetting
         Constraint<E> constraint
-
         IndexNonUseReason indexNonUseReason
 
         IndexUsageInfo(IndexSetting indexSetting, Constraint<E> constraint) {
@@ -43,6 +42,14 @@ class ScanStrategy<E extends AtlasEntity> {
 
         boolean isIndexUsed() {
             indexNonUseReason == null
+        }
+
+        String toPrettyString() {
+            """
+Potential Index              : ${indexSetting}.
+Index Actually Used?         : ${isIndexUsed()};
+Reason for not using index?  : ${indexNonUseReason}
+"""
         }
     }
 }
