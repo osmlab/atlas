@@ -38,4 +38,10 @@ public class MultiPolygon extends AbstractGeometryWithCoordinateSupport<List<Lis
     {
         return this.value.getForeignFields();
     }
+    
+    @Override
+    public Object toAtlasGeometry()
+    {
+        return null;
+    }
 }

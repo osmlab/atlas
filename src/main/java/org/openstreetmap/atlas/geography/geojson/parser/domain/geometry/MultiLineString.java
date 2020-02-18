@@ -34,8 +34,7 @@ public class MultiLineString extends AbstractGeometryWithCoordinateSupport<List<
     public List<PolyLine> toAtlasGeometry()
     {
         final List<List<Location>> listsOfLocations = Positions.toCollectionsOfLocations(coordinates.getValue());
-        final List<PolyLine> polyLines = listsOfLocations.stream().map(PolyLine::new).collect(
-                Collectors.toList());
+        final List<PolyLine> polyLines = listsOfLocations.stream().map(PolyLine::new).collect(Collectors.toList());
         return polyLines;
     }
 }

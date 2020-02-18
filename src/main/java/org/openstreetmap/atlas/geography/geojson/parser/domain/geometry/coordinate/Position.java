@@ -45,19 +45,6 @@ public class Position implements Serializable
         return HashCodeBuilder.reflectionHashCode(this);
     }
     
-    /**
-     * The order of longitude and latitude in GeoJson as per the RFC is [lon, lat, alt].
-     * <p>
-     * However the order longitude and latitude is not shared in various atlas constructors, hence
-     * the flip in the order.
-     *
-     * @return - the {@link Location} represented by the {@link Position}.
-     */
-    public Location toLocation()
-    {
-        return new Location(Latitude.degrees(coordinate2), Longitude.degrees(coordinate1));
-    }
-    
     @Override
     public String toString()
     {

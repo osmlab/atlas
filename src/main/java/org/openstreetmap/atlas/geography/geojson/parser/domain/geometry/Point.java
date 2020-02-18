@@ -6,6 +6,7 @@ import java.util.Map;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordinate.Coordinates;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordinate.Position;
+import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordinate.Positions;
 
 /**
  * @author Yazad Khambata
@@ -29,6 +30,6 @@ public class Point extends AbstractGeometryWithCoordinateSupport<Position, Locat
     @Override
     public Located toAtlasGeometry()
     {
-        return coordinates.getValue().toLocation();
+        return Positions.toLocation(coordinates.getValue());
     }
 }
