@@ -17,10 +17,8 @@ public final class Duration implements Serializable, Comparable<Duration>
     public static final Duration ONE_HOUR = hours(1);
     public static final Duration ONE_MINUTE = minutes(1);
     public static final Duration ONE_SECOND = seconds(1);
-
     public static final Duration ZERO = milliseconds(0);
     public static final Duration MAXIMUM = milliseconds(Long.MAX_VALUE);
-
     private static final long NANOSECONDS_PER_MILLISECONDS = 1_000_000;
     private static final long MILLISECONDS_PER_SECOND = 1000;
 
