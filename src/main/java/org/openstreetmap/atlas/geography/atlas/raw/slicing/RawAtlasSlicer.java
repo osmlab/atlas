@@ -60,6 +60,9 @@ public abstract class RawAtlasSlicer
             SEVEN_DIGIT_PRECISION_SCALE);
     protected static final PrecisionReducerCoordinateOperation PRECISION_REDUCER = new PrecisionReducerCoordinateOperation(
             PRECISION_MODEL, true);
+
+    // The snap distance here is set to 2 feet as that seems to cover most cases without
+    // allowing for distances that are overly concerning
     protected static final Distance SNAP_DISTANCE = Distance.inches(24);
 
     private final AtlasLoadingOption loadingOption;

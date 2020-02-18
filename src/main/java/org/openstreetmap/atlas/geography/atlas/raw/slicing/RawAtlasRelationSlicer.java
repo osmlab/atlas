@@ -258,7 +258,8 @@ public class RawAtlasRelationSlicer extends RawAtlasSlicer
                 else
                 {
                     throw new CoreException(
-                            "Unexpected geometry {} encountered during country slicing.", clipped);
+                            "Unexpected geometry {} encountered while slicing relation {}.",
+                            clipped, identifier);
                 }
             }
         }
