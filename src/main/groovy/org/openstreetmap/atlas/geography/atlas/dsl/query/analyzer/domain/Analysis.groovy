@@ -41,7 +41,7 @@ class Analysis<E extends AtlasEntity> {
 ------------------------
 Query Analysis
 ------------------------
-[I] Was the query optimized?                            : ${checkIfOptimized()}
+[I] Was the query optimized?                             : ${checkIfOptimized()}
 
 ---
 [II] Original Query                                      :  
