@@ -184,6 +184,15 @@ public final class Duration implements Serializable, Comparable<Duration>
         }
     }
 
+    public Duration times(final double multiplier)
+    {
+        if (multiplier < 0)
+        {
+            throw new CoreException("Duration multiplier cannot be negative. Was {}", multiplier);
+        }
+        return Duration.seconds(this.asSeconds() * multiplier);
+    }
+
     @Override
     public String toString()
     {

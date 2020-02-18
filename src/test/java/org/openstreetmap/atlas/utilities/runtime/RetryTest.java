@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.utilities.runtime;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.utilities.scalars.Duration;
 import org.slf4j.Logger;
@@ -18,6 +19,11 @@ public class RetryTest
     private static class NeedsAction implements Runnable
     {
         private boolean blocked = true;
+
+        public boolean isBlocked()
+        {
+            return this.blocked;
+        }
 
         @Override
         public void run()
@@ -38,11 +44,17 @@ public class RetryTest
         }
     }
 
-    private static final Logger logger = LoggerFactory.getLogger(RetryTest.class);
-
-    private final Runnable runnable = new Runnable()
+    /**
+     * @author matthieun
+     */
+    private static class WithCounter implements Runnable
     {
         private int counter = 0;
+
+        public int getCounter()
+        {
+            return this.counter;
+        }
 
         @Override
         public void run()
@@ -56,37 +68,35 @@ public class RetryTest
                 logger.info("Success");
             }
         }
-    };
+    }
+
+    private static final Logger logger = LoggerFactory.getLogger(RetryTest.class);
 
     private final NeedsAction needAction = new NeedsAction();
+    private final WithCounter withCounter = new WithCounter();
 
     @Test
     public void testHandleException()
     {
-        final Retry retry = new Retry(5, Duration.milliseconds(1));
-        retry.run(this.runnable);
+        final Retry retry = new Retry(5, Duration.milliseconds(1)).withQuadratic(true);
+        Assert.assertTrue(retry.isQuadratic());
+        retry.run(this.withCounter);
+        Assert.assertEquals(5, this.withCounter.getCounter());
     }
 
     @Test
     public void testRunBeforeRetry()
     {
-        final Retry retry = new Retry(1, Duration.milliseconds(1));
-        retry.run(this.needAction, () -> this.needAction.unBlock());
+        final Retry retry = new Retry(1, Duration.milliseconds(1)).withQuiet(true);
+        Assert.assertTrue(retry.isQuiet());
+        retry.run(this.needAction, this.needAction::unBlock);
+        Assert.assertFalse(this.needAction.isBlocked());
     }
 
-    @Test
+    @Test(expected = RuntimeException.class)
     public void testThrowException()
     {
         final Retry retry = new Retry(2, Duration.milliseconds(1));
-        try
-        {
-            retry.run(this.runnable);
-        }
-        catch (final Exception e)
-        {
-            logger.info("Threw the exception! Success");
-            return;
-        }
-        throw new RuntimeException("The Retry did not throw the exception in time");
+        retry.run(this.withCounter);
     }
 }

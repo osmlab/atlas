@@ -104,9 +104,9 @@ public class RelationSlicingTest
                 slicedAtlas.relation(214805001000L).getTag(ISOCountryTag.KEY).get());
         Assert.assertEquals("LBR",
                 slicedAtlas.relation(214805002000L).getTag(ISOCountryTag.KEY).get());
-        Assert.assertEquals("-4281585566310780626",
+        Assert.assertEquals("-8036582537415278650",
                 slicedAtlas.relation(214805001000L).getTag(SyntheticRelationMemberAdded.KEY).get());
-        Assert.assertEquals("4302789678153283194",
+        Assert.assertEquals("-4590745532357463517",
                 slicedAtlas.relation(214805002000L).getTag(SyntheticRelationMemberAdded.KEY).get());
 
         // check the non multipolygon relation and make sure it was left intact and tagged with both
@@ -182,7 +182,7 @@ public class RelationSlicingTest
 
         Assert.assertEquals("LBR",
                 slicedAtlas.relation(214805002000L).getTag(ISOCountryTag.KEY).get());
-        Assert.assertEquals("4302789678153283194",
+        Assert.assertEquals("-4590745532357463517",
                 slicedAtlas.relation(214805002000L).getTag(SyntheticRelationMemberAdded.KEY).get());
 
         // check the non multipolygon relation and make sure it was left intact and tagged with only
@@ -247,9 +247,8 @@ public class RelationSlicingTest
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
         final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
-
         Assert.assertEquals(8, slicedAtlas.numberOfLines());
-        Assert.assertEquals(14, slicedAtlas.numberOfPoints());
+        Assert.assertEquals(11, slicedAtlas.numberOfPoints());
         Assert.assertEquals(2, slicedAtlas.numberOfRelations());
 
         // Just for fun (and to validate the sliced multi-polygon validity) - create Complex
@@ -272,7 +271,7 @@ public class RelationSlicingTest
 
         final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
 
-        Assert.assertEquals(31, slicedAtlas.numberOfPoints());
+        Assert.assertEquals(29, slicedAtlas.numberOfPoints());
         Assert.assertEquals(2, slicedAtlas.numberOfLines());
         Assert.assertEquals(2, slicedAtlas.numberOfRelations());
     }
@@ -289,7 +288,7 @@ public class RelationSlicingTest
 
         final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
 
-        Assert.assertEquals(16, slicedAtlas.numberOfPoints());
+        Assert.assertEquals(11, slicedAtlas.numberOfPoints());
         Assert.assertEquals(6, slicedAtlas.numberOfLines());
         Assert.assertEquals(2, slicedAtlas.numberOfRelations());
 
@@ -308,7 +307,7 @@ public class RelationSlicingTest
 
         final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
 
-        Assert.assertEquals(17, slicedAtlas.numberOfPoints());
+        Assert.assertEquals(13, slicedAtlas.numberOfPoints());
         Assert.assertEquals(6, slicedAtlas.numberOfLines());
         Assert.assertEquals(2, slicedAtlas.numberOfRelations());
 
