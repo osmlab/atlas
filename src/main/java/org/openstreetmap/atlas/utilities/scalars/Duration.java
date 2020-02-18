@@ -12,19 +12,16 @@ import org.openstreetmap.atlas.exception.CoreException;
 public final class Duration implements Serializable, Comparable<Duration>
 {
     private static final long serialVersionUID = 8306012362496627267L;
-
-    public static final Duration ONE_DAY = hours(24);
-    public static final Duration ONE_HOUR = hours(1);
-    public static final Duration ONE_MINUTE = minutes(1);
-    public static final Duration ONE_SECOND = seconds(1);
     public static final Duration ZERO = milliseconds(0);
     public static final Duration MAXIMUM = milliseconds(Long.MAX_VALUE);
-
     private static final long NANOSECONDS_PER_MILLISECONDS = 1_000_000;
     private static final long MILLISECONDS_PER_SECOND = 1000;
+    public static final Duration ONE_SECOND = seconds(1);
     private static final long SECONDS_PER_MINUTE = 60;
+    public static final Duration ONE_MINUTE = minutes(1);
     private static final long MINUTES_PER_HOUR = 60;
-
+    public static final Duration ONE_DAY = hours(24);
+    public static final Duration ONE_HOUR = hours(1);
     private final long milliseconds;
 
     public static Duration hours(final double hours)
@@ -182,6 +179,15 @@ public final class Duration implements Serializable, Comparable<Duration>
         {
             throw new CoreException("Could not sleep {}", this, e);
         }
+    }
+
+    public Duration times(final double multiplier)
+    {
+        if (multiplier < 0)
+        {
+            throw new CoreException("Duration multiplier cannot be negative. Was {}", multiplier);
+        }
+        return Duration.seconds(this.asSeconds() * multiplier);
     }
 
     @Override
