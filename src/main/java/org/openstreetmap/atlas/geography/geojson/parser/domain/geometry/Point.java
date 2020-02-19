@@ -3,7 +3,7 @@ package org.openstreetmap.atlas.geography.geojson.parser.domain.geometry;
 import java.util.List;
 import java.util.Map;
 
-import org.openstreetmap.atlas.geography.Located;
+import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordinate.Coordinates;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordinate.Position;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordinate.Positions;
@@ -11,16 +11,16 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordina
 /**
  * @author Yazad Khambata
  */
-public class Point extends AbstractGeometryWithCoordinateSupport<Position, Located>
+public class Point extends AbstractGeometryWithCoordinateSupport<Position, Location>
 {
     private Coordinates<Position> coordinates;
-
+    
     public Point(final Map<String, Object> map)
     {
         super(map);
         this.coordinates = Coordinates.forPoint((List<Double>) extractRawCoordinates(map));
     }
-
+    
     @Override
     public Coordinates<Position> getCoordinates()
     {
@@ -28,8 +28,8 @@ public class Point extends AbstractGeometryWithCoordinateSupport<Position, Locat
     }
     
     @Override
-    public Located toAtlasGeometry()
+    public Location toAtlasGeometry()
     {
-        return Positions.toLocation(coordinates.getValue());
+        return Positions.toLocation(this.coordinates.getValue());
     }
 }

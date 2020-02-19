@@ -9,6 +9,6 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.base.type.Geometr
 public interface Geometry extends GeoJsonItem
 {
     GeometryType getGeometryType();
-
+    
     String getTypeValue();
 }
