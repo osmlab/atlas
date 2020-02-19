@@ -308,7 +308,6 @@ public class BigNodeFinder implements Finder<BigNode>
                     junctionEdgeIds);
             logger.debug("Merged bigNode Route : {}. Number of Edges : {}", mergedCandidate,
                     mergedCandidate.size());
-
             /*
              * mergedRoutes are formed after strict connectivity checks. But mergedRoutes can share
              * same node. Each node must have 1-1 mapping with a big node. So we merge routes into
@@ -316,6 +315,7 @@ public class BigNodeFinder implements Finder<BigNode>
              */
             final Set<Node> nodes = new HashSet<>();
             mergedCandidate.forEach(edge -> nodes.addAll(edge.connectedNodes()));
+
             final Set<BigNodeCandidate> bigNodesMergeCandidates = new HashSet<>();
             for (final Node node : nodes)
             {
@@ -381,6 +381,26 @@ public class BigNodeFinder implements Finder<BigNode>
         Iterables.stream(this.find(atlas)).flatMap(BigNode::asGeoJsonRestrictedPath)
                 .forEach(features::add);
         new GeoJsonBuilder().create(features).save(writableResource);
+    }
+
+    /**
+     * Identify {@link Edge} name matches when both {@link Edge}s have same names. When strict mode
+     * parameter is set to {@code true}, both edge names must be non-empty and must match. Exact
+     * match is recommended for residential roads
+     */
+    private boolean edgeNameExactMatch(final Edge edgeA, final Edge edgeB, final boolean strictMode)
+    {
+        final Optional<String> edgeAName = this.nameFinder.best(edgeA);
+        final Optional<String> edgeBName = this.nameFinder.best(edgeB);
+        if (edgeAName.isPresent() && edgeBName.isPresent())
+        {
+            return nameExactMatch(edgeAName.get(), edgeBName.get());
+        }
+        if (!strictMode && (!edgeAName.isPresent() || !edgeBName.isPresent()))
+        {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -526,16 +546,28 @@ public class BigNodeFinder implements Finder<BigNode>
                 // If the candidateRoute has inEdge and outEdge that are in opposite direction
                 for (final Edge outEdge : candidateRoute.end().outEdges())
                 {
-                    /*
+                    /**
                      * Usually Dual Carriage Way roads are one way. OutEdge and inEdge cannot have
                      * name mismatch. Including other Car Navigable roads like Service roads
                      * increases false positive cases.
                      */
-                    if (outEdge.highwayTag().isMoreImportantThanOrEqualTo(HighwayTag.RESIDENTIAL)
+                    if (outEdge.highwayTag().isMoreImportantThanOrEqualTo(HighwayTag.UNCLASSIFIED)
                             && this.edgeDirectionComparator.isOppositeDirection(inEdge, outEdge,
                                     false)
                             && !outEdge.hasReverseEdge() && !inEdge.hasReverseEdge()
                             && edgeNameFuzzyMatch(outEdge, inEdge, false))
+                    {
+                        return true;
+                    }
+                    /**
+                     * Enforce stricter name checks for Residential Roads to reduce false positives
+                     * and over merging of big nodes
+                     */
+                    if (outEdge.highwayTag() == HighwayTag.RESIDENTIAL
+                            && this.edgeDirectionComparator.isOppositeDirection(inEdge, outEdge,
+                                    false)
+                            && !outEdge.hasReverseEdge() && !inEdge.hasReverseEdge()
+                            && edgeNameExactMatch(outEdge, inEdge, true))
                     {
                         return true;
                     }
@@ -555,11 +587,6 @@ public class BigNodeFinder implements Finder<BigNode>
         if (isCandidateJunctionEdge(candidateEdge))
         {
             final Set<Edge> candidateRouteEdges = Sets.newHashSet(candidateRoute);
-            // Remove the first edge of a multi-edge route to ensure bigger routes have a cycle
-            if (candidateRoute.size() > 1)
-            {
-                candidateRouteEdges.remove(candidateRoute.start());
-            }
             final Set<Long> candidateRouteEdgeIds = candidateRouteEdges.stream()
                     .map(edge -> edge.getIdentifier()).collect(Collectors.toSet());
 
@@ -668,6 +695,11 @@ public class BigNodeFinder implements Finder<BigNode>
             }
         }
         return edgeTag;
+    }
+
+    private boolean nameExactMatch(final String nameA, final String nameB)
+    {
+        return nameA.equalsIgnoreCase(nameB);
     }
 
     private boolean nameFuzzyMatch(final String nameA, final String nameB)
