@@ -14,19 +14,19 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordina
 public class Point extends AbstractGeometryWithCoordinateSupport<Position, Location>
 {
     private Coordinates<Position> coordinates;
-    
+
     public Point(final Map<String, Object> map)
     {
         super(map);
         this.coordinates = Coordinates.forPoint((List<Double>) extractRawCoordinates(map));
     }
-    
+
     @Override
     public Coordinates<Position> getCoordinates()
     {
         return this.coordinates;
     }
-    
+
     @Override
     public Location toAtlasGeometry()
     {

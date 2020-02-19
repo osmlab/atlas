@@ -15,20 +15,20 @@ public class MultiPoint
         extends AbstractGeometryWithCoordinateSupport<List<Position>, List<Location>>
 {
     private Coordinates<List<Position>> coordinates;
-    
+
     public MultiPoint(final Map<String, Object> map)
     {
         super(map, null);
-        this.coordinates = Coordinates.forMultiPoint(
-                (List<List<Double>>) extractRawCoordinates(map));
+        this.coordinates = Coordinates
+                .forMultiPoint((List<List<Double>>) extractRawCoordinates(map));
     }
-    
+
     @Override
     public Coordinates<List<Position>> getCoordinates()
     {
         return this.coordinates;
     }
-    
+
     @Override
     public List<Location> toAtlasGeometry()
     {

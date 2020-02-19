@@ -17,27 +17,27 @@ public class MultiLineString
         extends AbstractGeometryWithCoordinateSupport<List<List<Position>>, List<PolyLine>>
 {
     private Coordinates<List<List<Position>>> coordinates;
-    
+
     public MultiLineString(final Map<String, Object> map)
     {
         super(map, null);
-        this.coordinates = Coordinates.forMultiLineString(
-                (List<List<List<Double>>>) extractRawCoordinates(map));
+        this.coordinates = Coordinates
+                .forMultiLineString((List<List<List<Double>>>) extractRawCoordinates(map));
     }
-    
+
     @Override
     public Coordinates<List<List<Position>>> getCoordinates()
     {
         return this.coordinates;
     }
-    
+
     @Override
     public List<PolyLine> toAtlasGeometry()
     {
-        final List<List<Location>> listsOfLocations = Positions.toCollectionsOfLocations(
-                this.coordinates.getValue());
-        final List<PolyLine> polyLines = listsOfLocations.stream().map(PolyLine::new).collect(
-                Collectors.toList());
+        final List<List<Location>> listsOfLocations = Positions
+                .toCollectionsOfLocations(this.coordinates.getValue());
+        final List<PolyLine> polyLines = listsOfLocations.stream().map(PolyLine::new)
+                .collect(Collectors.toList());
         return polyLines;
     }
 }

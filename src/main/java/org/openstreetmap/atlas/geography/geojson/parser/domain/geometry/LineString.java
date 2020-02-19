@@ -16,31 +16,31 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordina
 public class LineString extends AbstractGeometryWithCoordinateSupport<List<Position>, PolyLine>
 {
     private MultiPoint value;
-    
+
     public LineString(final Map<String, Object> map)
     {
         super(map, null);
         this.value = new MultiPoint(map);
     }
-    
+
     @Override
     public Bbox getBbox()
     {
         return this.value.getBbox();
     }
-    
+
     @Override
     public Coordinates<List<Position>> getCoordinates()
     {
         return this.value.getCoordinates();
     }
-    
+
     @Override
     public ForeignFields getForeignFields()
     {
         return this.value.getForeignFields();
     }
-    
+
     @Override
     public PolyLine toAtlasGeometry()
     {

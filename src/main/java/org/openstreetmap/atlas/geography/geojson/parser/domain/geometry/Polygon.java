@@ -16,35 +16,35 @@ public class Polygon extends
         AbstractGeometryWithCoordinateSupport<List<List<Position>>, org.openstreetmap.atlas.geography.Polygon>
 {
     private MultiLineString value;
-    
+
     public Polygon(final Map<String, Object> map)
     {
         super(map, null);
         this.value = new MultiLineString(map);
     }
-    
+
     @Override
     public Bbox getBbox()
     {
         return this.value.getBbox();
     }
-    
+
     public Coordinates<List<List<Position>>> getCoordinates()
     {
         return this.value.getCoordinates();
     }
-    
+
     @Override
     public ForeignFields getForeignFields()
     {
         return this.value.getForeignFields();
     }
-    
+
     @Override
     public org.openstreetmap.atlas.geography.Polygon toAtlasGeometry()
     {
-        final org.openstreetmap.atlas.geography.Polygon atlasPolygon = Positions.toAtlasPolygonFromMultiLineString(
-                this.value);
+        final org.openstreetmap.atlas.geography.Polygon atlasPolygon = Positions
+                .toAtlasPolygonFromMultiLineString(this.value);
         return atlasPolygon;
     }
 }
