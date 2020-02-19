@@ -231,6 +231,20 @@ This means that for the auto-mapper to work you need to follow the `JavaBean` st
 * 1D arrays of Java Beans.
 * A Map of scalar values in it's `key` and `value`.
 
+#### Parsed Geo JSON Geometry to Atlas Geometry mapping
+
+
+
+| Geo Json Geometry        | Atlas Geometry        |
+| -------------------------|-----------------------|
+| Point                    | Location              |
+| MultiPoint               | List<Location>        |
+| LineString               | PolyLine              |
+| MultiLineString          | List<PolyLine>        |
+| Polygon                  | Polygon               |
+| MultiPolygon             | MultiPolygon          |
+| GeometryCollection       | *N/A*                 | 
+
 #### Restrictions
 
 | Restriction                                    | Reason                                                                                                      | Workaround                                                                                                                         |
