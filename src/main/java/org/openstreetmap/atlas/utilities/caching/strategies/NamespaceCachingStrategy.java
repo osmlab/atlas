@@ -41,7 +41,7 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
     private static final String PROPERTY_LOCAL_TEMPORARY_DIRECTORY = "java.io.tmpdir";
     private static final String TEMPORARY_DIRECTORY_STRING = System
             .getProperty(PROPERTY_LOCAL_TEMPORARY_DIRECTORY);
-    private static final Retry RETRY = new Retry(5, Duration.ONE_SECOND);
+    private static final Retry RETRY = new Retry(5, Duration.ONE_SECOND).withQuadratic(true);
 
     private final String namespace;
     private boolean preserveFileExtension;
