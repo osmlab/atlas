@@ -235,15 +235,15 @@ This means that for the auto-mapper to work you need to follow the `JavaBean` st
 
 
 
-| Geo Json Geometry        | Atlas Geometry        |
-| -------------------------|-----------------------|
-| Point                    | Location              |
-| MultiPoint               | List<Location>        |
-| LineString               | PolyLine              |
-| MultiLineString          | List<PolyLine>        |
-| Polygon                  | Polygon               |
-| MultiPolygon             | MultiPolygon          |
-| GeometryCollection       | *N/A*                 | 
+| Geo Json Geometry        | Atlas Geometry                                                                        |
+| -------------------------|---------------------------------------------------------------------------------------|
+| Point                    | `Location`                                                                            |
+| MultiPoint               | `List<Location>`                                                                      |
+| LineString               | `PolyLine`                                                                            |
+| MultiLineString          | `List<PolyLine>`                                                                      |
+| Polygon                  | `Polygon`                                                                             |
+| MultiPolygon             | `List<Polygon>`                                                                       |
+| GeometryCollection       | *N/A* (Non-GeometryCollection children can be converted to the above.)                | 
 
 #### Restrictions
 
