@@ -18,36 +18,36 @@ public class MultiPolygon
         extends AbstractGeometryWithCoordinateSupport<List<List<Position>>, List<Polygon>>
 {
     private MultiLineString value;
-    
+
     public MultiPolygon(final Map<String, Object> map)
     {
         super(map, null);
         this.value = new MultiLineString(map);
     }
-    
+
     @Override
     public Bbox getBbox()
     {
         return this.value.getBbox();
     }
-    
+
     @Override
     public Coordinates<List<List<Position>>> getCoordinates()
     {
         return this.value.getCoordinates();
     }
-    
+
     @Override
     public ForeignFields getForeignFields()
     {
         return this.value.getForeignFields();
     }
-    
+
     @Override
     public List<Polygon> toAtlasGeometry()
     {
-        final List<org.openstreetmap.atlas.geography.Polygon> atlasPolygons = Positions.toListOfAtlasPolygonsFromMultiLineString(
-                this.value);
+        final List<org.openstreetmap.atlas.geography.Polygon> atlasPolygons = Positions
+                .toListOfAtlasPolygonsFromMultiLineString(this.value);
         Validate.notEmpty(atlasPolygons);
         return atlasPolygons;
     }

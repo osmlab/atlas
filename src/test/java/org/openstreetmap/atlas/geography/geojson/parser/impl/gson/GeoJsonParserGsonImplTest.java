@@ -32,45 +32,45 @@ import org.slf4j.LoggerFactory;
 public class GeoJsonParserGsonImplTest extends AbstractGeoJsonParserGsonImplTest
 {
     private static final Logger log = LoggerFactory.getLogger(GeoJsonParserGsonImplTest.class);
-    
+
     @Test
     public void feature1()
     {
         final GeoJsonItem geoJsonItem = toGeoJsonItem();
-        
+
         Assert.assertTrue(geoJsonItem instanceof Feature);
         Assert.assertTrue(((Feature) geoJsonItem).getGeometry() instanceof LineString);
     }
-    
+
     @Test
     public void feature2()
     {
         final GeoJsonItem geoJsonItem = toGeoJsonItem();
-        
+
         Assert.assertTrue(geoJsonItem instanceof Feature);
         Assert.assertTrue(((Feature) geoJsonItem).getGeometry() instanceof Polygon);
-        
+
     }
-    
+
     @Test
     public void featureChangePropertiesExample1()
     {
         final GeoJsonItem geoJsonItem = toGeoJsonItem();
-        
-        final FeatureChangeProperties featureChangeProperties = geoJsonItem.getProperties().asType(
-                FeatureChangeProperties.class);
-        
+
+        final FeatureChangeProperties featureChangeProperties = geoJsonItem.getProperties()
+                .asType(FeatureChangeProperties.class);
+
         Assert.assertNull(featureChangeProperties.getRelations());
     }
-    
+
     @Test
     public void featureChangePropertiesExample2()
     {
         final GeoJsonItem geoJsonItem = toGeoJsonItem();
-        
-        final FeatureChangeProperties featureChangeProperties = geoJsonItem.getProperties().asType(
-                FeatureChangeProperties.class);
-        
+
+        final FeatureChangeProperties featureChangeProperties = geoJsonItem.getProperties()
+                .asType(FeatureChangeProperties.class);
+
         final Descriptor descriptor = featureChangeProperties.getDescription().getDescriptors()[0];
         Assert.assertEquals(402306209000000L, (long) descriptor.getId());
         Assert.assertEquals("NODE", descriptor.getItemType());
@@ -78,59 +78,59 @@ public class GeoJsonParserGsonImplTest extends AbstractGeoJsonParserGsonImplTest
         Assert.assertEquals(9087654321L, (long) descriptor.getBeforeElement());
         Assert.assertEquals(1234567890L, (long) descriptor.getAfterElement());
     }
-    
+
     @Test
     public void featureCollection1()
     {
         final GeoJsonItem geoJsonItem = toGeoJsonItem();
-        
+
         Assert.assertTrue(geoJsonItem instanceof FeatureCollection);
         Assert.assertEquals(3, ((FeatureCollection) geoJsonItem).getFeatures().size());
     }
-    
+
     @Test
     public void featureWithExtendedProperties()
     {
         final GeoJsonItem geoJsonItem = toGeoJsonItem();
-        
+
         Assert.assertTrue(geoJsonItem instanceof Feature);
         Assert.assertTrue(((Feature) geoJsonItem).getGeometry() instanceof LineString);
-        
-        final FeatureChangeProperties featureChangeProperties = geoJsonItem.getProperties().asType(
-                FeatureChangeProperties.class);
-        
+
+        final FeatureChangeProperties featureChangeProperties = geoJsonItem.getProperties()
+                .asType(FeatureChangeProperties.class);
+
         Assert.assertEquals(9, featureChangeProperties.getDescription().getDescriptors().length);
         Assert.assertFalse(featureChangeProperties.getWKT().isEmpty());
-        
+
         log.info("featureChangeProperties:: {}.", featureChangeProperties);
     }
-    
+
     @Test
     public void foreignFieldsNested()
     {
         final GeoJsonItem geoJsonItem = toGeoJsonItem();
-        
+
         Assert.assertTrue(geoJsonItem instanceof Point);
     }
-    
+
     @Test
     public void foreignFieldsSimple()
     {
         final GeoJsonItem geoJsonItem = toGeoJsonItem();
-        
+
         Assert.assertTrue(geoJsonItem instanceof Point);
         Assert.assertFalse(geoJsonItem.getForeignFields().asMap().isEmpty());
     }
-    
+
     @Test
     public void geometryCollectionBasic()
     {
         final GeoJsonItem geoJsonItem = toGeoJsonItem();
-        
+
         Assert.assertTrue(geoJsonItem instanceof GeometryCollection);
         Assert.assertFalse(((GeometryCollection) geoJsonItem).getGeometries().isEmpty());
     }
-    
+
     @Test
     public void geometryCollectionChildConversion()
     {
@@ -138,24 +138,25 @@ public class GeoJsonParserGsonImplTest extends AbstractGeoJsonParserGsonImplTest
         Assert.assertTrue(geoJsonItem instanceof GeometryCollection);
         Assert.assertFalse(((GeometryCollection) geoJsonItem).getGeometries().isEmpty());
     }
-    
+
     @Test
     public void geometryCollectionRecursiveNested()
     {
         final GeoJsonItem geoJsonItem = toGeoJsonItem();
-        
-        final int innermostLevelSize = (((GeometryCollection) ((GeometryCollection) ((GeometryCollection) ((GeometryCollection) geoJsonItem).getGeometries().get(
-                3)).getGeometries().get(3)).getGeometries().get(3))).getGeometries().size();
-        
+
+        final int innermostLevelSize = (((GeometryCollection) ((GeometryCollection) ((GeometryCollection) ((GeometryCollection) geoJsonItem)
+                .getGeometries().get(3)).getGeometries().get(3)).getGeometries().get(3)))
+                        .getGeometries().size();
+
         Assert.assertEquals(3, innermostLevelSize);
     }
-    
+
     @Test
     public void lineString()
     {
         Assert.assertTrue(toGeoJsonItem() instanceof LineString);
     }
-    
+
     @Test
     public void lineStringConversion()
     {
@@ -171,13 +172,13 @@ public class GeoJsonParserGsonImplTest extends AbstractGeoJsonParserGsonImplTest
         Assert.assertEquals((Double) first.getLatitude().asDegrees(),
                 lineString.getCoordinates().getValue().get(0).getCoordinate2());
     }
-    
+
     @Test
     public void multiLineString()
     {
         Assert.assertTrue(toGeoJsonItem() instanceof MultiLineString);
     }
-    
+
     @Test
     public void multiLineStringConversion()
     {
@@ -192,13 +193,13 @@ public class GeoJsonParserGsonImplTest extends AbstractGeoJsonParserGsonImplTest
         Assert.assertEquals(multiLineString.getCoordinates().getValue().get(0).size(),
                 firstPolyLine.size());
     }
-    
+
     @Test
     public void multiPoint()
     {
         Assert.assertTrue(toGeoJsonItem() instanceof MultiPoint);
     }
-    
+
     @Test
     public void multiPointConversion()
     {
@@ -214,46 +215,48 @@ public class GeoJsonParserGsonImplTest extends AbstractGeoJsonParserGsonImplTest
         Assert.assertEquals((Double) first.getLatitude().asDegrees(),
                 multiPoint.getCoordinates().getValue().get(0).getCoordinate2());
     }
-    
+
     @Test
     public void multiPolygon()
     {
         Assert.assertTrue(toGeoJsonItem() instanceof MultiPolygon);
     }
-    
+
     @Test
     public void multiPolygonConversion()
     {
         final GeoJsonItem geoJsonItem = toGeoJsonItem();
         Assert.assertTrue(geoJsonItem instanceof MultiPolygon);
         final MultiPolygon multiPolygon = (MultiPolygon) geoJsonItem;
-        final List<org.openstreetmap.atlas.geography.Polygon> atlasPolygons = multiPolygon.toAtlasGeometry();
+        final List<org.openstreetmap.atlas.geography.Polygon> atlasPolygons = multiPolygon
+                .toAtlasGeometry();
         Assert.assertEquals(2, multiPolygon.getCoordinates().getValue().size());
         Assert.assertEquals(multiPolygon.getCoordinates().getValue().size(), atlasPolygons.size());
     }
-    
+
     @Test
     public void multiPolygonDonut()
     {
         final GeoJsonItem geoJsonItem = toGeoJsonItem();
         Assert.assertTrue(geoJsonItem instanceof MultiPolygon);
         final MultiPolygon multiPolygon = (MultiPolygon) geoJsonItem;
-        final List<org.openstreetmap.atlas.geography.Polygon> atlasMultiPolygon = multiPolygon.toAtlasGeometry();
+        final List<org.openstreetmap.atlas.geography.Polygon> atlasMultiPolygon = multiPolygon
+                .toAtlasGeometry();
         log.info("SIZE: {}.", atlasMultiPolygon.size());
     }
-    
+
     @Test
     public void point()
     {
         Assert.assertTrue(toGeoJsonItem() instanceof Point);
     }
-    
+
     @Test
     public void pointConversion()
     {
         final GeoJsonItem geoJsonItem = toGeoJsonItem();
         Assert.assertTrue(geoJsonItem instanceof Point);
-        
+
         final Point point = (Point) geoJsonItem;
         final Location location = point.toAtlasGeometry();
         Assert.assertNotNull(location);
@@ -263,31 +266,31 @@ public class GeoJsonParserGsonImplTest extends AbstractGeoJsonParserGsonImplTest
         Assert.assertEquals((Double) location.getLatitude().asDegrees(),
                 point.getCoordinates().getValue().getCoordinate2());
     }
-    
+
     @Test
     public void pointWithBbox2D()
     {
         final GeoJsonItem geoJsonItem = toGeoJsonItem();
-        
+
         Assert.assertTrue(geoJsonItem instanceof Point);
         Assert.assertTrue(geoJsonItem.getBbox() instanceof Bbox2D);
     }
-    
+
     @Test
     public void pointWithBbox3D()
     {
         final GeoJsonItem geoJsonItem = toGeoJsonItem();
-        
+
         Assert.assertTrue(geoJsonItem instanceof Point);
         Assert.assertTrue(geoJsonItem.getBbox() instanceof Bbox3D);
     }
-    
+
     @Test
     public void polygon()
     {
         Assert.assertTrue(toGeoJsonItem() instanceof Polygon);
     }
-    
+
     @Test
     public void polygonConversion()
     {
@@ -299,7 +302,7 @@ public class GeoJsonParserGsonImplTest extends AbstractGeoJsonParserGsonImplTest
         Assert.assertEquals(5, polygon.getCoordinates().getValue().get(0).size());
         Assert.assertEquals(polygon.getCoordinates().getValue().get(0).size(), atlasPolygon.size());
     }
-    
+
     @Test
     public void propertiesNested()
     {
@@ -307,12 +310,12 @@ public class GeoJsonParserGsonImplTest extends AbstractGeoJsonParserGsonImplTest
         Assert.assertEquals(3,
                 ((Map<String, Object>) geoJsonItem.getProperties().get("prop0")).size());
     }
-    
+
     @Test
     public void propertiesSimple()
     {
         final GeoJsonItem geoJsonItem = toGeoJsonItem();
-        
+
         Assert.assertEquals(2, geoJsonItem.getProperties().asMap().size());
     }
 }
