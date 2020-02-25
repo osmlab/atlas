@@ -55,4 +55,8 @@ class ConditionalConstructList<E extends AtlasEntity> implements List<Conditiona
 
         new ConditionalConstructList<E>(copyOfConditionalConstructs)
     }
+
+    String toPrettyString(final String prependBeforeEachConditionalConstruct) {
+        """${conditionalConstructs?.stream().map {conditionalConstruct -> "${prependBeforeEachConditionalConstruct?:""}${conditionalConstruct}"}.collect(Collectors.joining("\n")) }"""
+    }
 }
