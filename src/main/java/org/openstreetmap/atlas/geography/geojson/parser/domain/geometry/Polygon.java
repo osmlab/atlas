@@ -43,8 +43,6 @@ public class Polygon extends
     @Override
     public org.openstreetmap.atlas.geography.Polygon toAtlasGeometry()
     {
-        final org.openstreetmap.atlas.geography.Polygon atlasPolygon = Positions
-                .toAtlasPolygonFromMultiLineString(this.value);
-        return atlasPolygon;
+        return Positions.toAtlasPolygonFromMultiLineString(this.value);
     }
 }

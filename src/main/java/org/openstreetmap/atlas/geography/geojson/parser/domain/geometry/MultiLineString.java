@@ -36,8 +36,6 @@ public class MultiLineString
     {
         final List<List<Location>> listsOfLocations = Positions
                 .toCollectionsOfLocations(this.coordinates.getValue());
-        final List<PolyLine> polyLines = listsOfLocations.stream().map(PolyLine::new)
-                .collect(Collectors.toList());
-        return polyLines;
+        return listsOfLocations.stream().map(PolyLine::new).collect(Collectors.toList());
     }
 }

@@ -45,7 +45,6 @@ public class LineString extends AbstractGeometryWithCoordinateSupport<List<Posit
     public PolyLine toAtlasGeometry()
     {
         final List<Location> locations = this.value.toAtlasGeometry();
-        final PolyLine polyLine = new PolyLine(locations);
-        return polyLine;
+        return new PolyLine(locations);
     }
 }

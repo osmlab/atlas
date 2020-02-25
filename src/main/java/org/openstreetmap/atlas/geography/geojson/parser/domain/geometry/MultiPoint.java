@@ -32,7 +32,6 @@ public class MultiPoint
     @Override
     public List<Location> toAtlasGeometry()
     {
-        final List<Location> locations = Positions.toLocations(this.coordinates.getValue());
-        return locations;
+        return Positions.toLocations(this.coordinates.getValue());
     }
 }

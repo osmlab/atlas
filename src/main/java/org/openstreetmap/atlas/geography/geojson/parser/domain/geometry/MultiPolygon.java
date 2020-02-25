@@ -46,9 +46,7 @@ public class MultiPolygon
     @Override
     public List<Polygon> toAtlasGeometry()
     {
-        final List<org.openstreetmap.atlas.geography.Polygon> atlasPolygons = Positions
-                .toListOfAtlasPolygonsFromMultiLineString(this.value);
-        Validate.notEmpty(atlasPolygons);
-        return atlasPolygons;
+        Validate.notEmpty(Positions.toListOfAtlasPolygonsFromMultiLineString(this.value));
+        return Positions.toListOfAtlasPolygonsFromMultiLineString(this.value);
     }
 }
