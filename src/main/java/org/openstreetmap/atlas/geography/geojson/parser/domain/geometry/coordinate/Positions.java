@@ -44,7 +44,7 @@ public final class Positions
         {
             Validate.isTrue(expectedSize == multiLineString.getCoordinates().getValue().size());
         }
-    
+
         return multiLineString.getCoordinates().getValue().stream()
                 .map(positions -> new Polygon(Positions.toLocations(positions)))
                 .collect(Collectors.toList());
