@@ -122,7 +122,7 @@ SELECT
 FROM
     ${table}
 WHERE
-    ${conditionalConstructList}
+${conditionalConstructList.toPrettyString("\t")}
 LIMIT
     ${limit}
         """

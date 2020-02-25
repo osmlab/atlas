@@ -14,7 +14,7 @@ import org.openstreetmap.atlas.geography.atlas.dsl.util.Valid
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity
 
 /**
- * Indexing can be used if and only if,
+ * Indexing can be used IFF,
  * <ul>
  *     <li>The FIRST constraint can fetch from the optionalIndexInfo<li/>
  *     <li>one of the 2 conditions are met,
