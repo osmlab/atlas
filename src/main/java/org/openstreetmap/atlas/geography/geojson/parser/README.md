@@ -233,8 +233,6 @@ This means that for the auto-mapper to work you need to follow the `JavaBean` st
 
 #### Parsed Geo JSON Geometry to Atlas Geometry mapping
 
-
-
 | Geo Json Geometry        | Atlas Geometry                                                                        |
 | -------------------------|---------------------------------------------------------------------------------------|
 | Point                    | `Location`                                                                            |
