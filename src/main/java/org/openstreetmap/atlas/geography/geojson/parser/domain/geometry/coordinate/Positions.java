@@ -44,11 +44,10 @@ public final class Positions
         {
             Validate.isTrue(expectedSize == multiLineString.getCoordinates().getValue().size());
         }
-
-        final List<Polygon> polygons = multiLineString.getCoordinates().getValue().stream()
+    
+        return multiLineString.getCoordinates().getValue().stream()
                 .map(positions -> new Polygon(Positions.toLocations(positions)))
                 .collect(Collectors.toList());
-        return polygons;
     }
 
     public static List<Polygon> toListOfAtlasPolygonsFromMultiLineString(
