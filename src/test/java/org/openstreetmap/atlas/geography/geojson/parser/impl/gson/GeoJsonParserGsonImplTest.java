@@ -1,9 +1,12 @@
 package org.openstreetmap.atlas.geography.geojson.parser.impl.gson;
 
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.base.GeoJsonItem;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.bbox.Bbox2D;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.bbox.Bbox3D;
@@ -129,6 +132,14 @@ public class GeoJsonParserGsonImplTest extends AbstractGeoJsonParserGsonImplTest
     }
 
     @Test
+    public void geometryCollectionChildConversion()
+    {
+        final GeoJsonItem geoJsonItem = toGeoJsonItem();
+        Assert.assertTrue(geoJsonItem instanceof GeometryCollection);
+        Assert.assertFalse(((GeometryCollection) geoJsonItem).getGeometries().isEmpty());
+    }
+
+    @Test
     public void geometryCollectionRecursiveNested()
     {
         final GeoJsonItem geoJsonItem = toGeoJsonItem();
@@ -143,41 +154,117 @@ public class GeoJsonParserGsonImplTest extends AbstractGeoJsonParserGsonImplTest
     @Test
     public void lineString()
     {
-        final GeoJsonItem geoJsonItem = toGeoJsonItem();
+        Assert.assertTrue(toGeoJsonItem() instanceof LineString);
+    }
 
+    @Test
+    public void lineStringConversion()
+    {
+        final GeoJsonItem geoJsonItem = toGeoJsonItem();
         Assert.assertTrue(geoJsonItem instanceof LineString);
+        final LineString lineString = (LineString) geoJsonItem;
+        final PolyLine polyLine = lineString.toAtlasGeometry();
+        Assert.assertEquals(3, lineString.getCoordinates().getValue().size());
+        Assert.assertEquals(lineString.getCoordinates().getValue().size(), polyLine.size());
+        final Location first = polyLine.first();
+        Assert.assertEquals((Double) first.getLongitude().asDegrees(),
+                lineString.getCoordinates().getValue().get(0).getCoordinate1());
+        Assert.assertEquals((Double) first.getLatitude().asDegrees(),
+                lineString.getCoordinates().getValue().get(0).getCoordinate2());
     }
 
     @Test
     public void multiLineString()
     {
-        final GeoJsonItem geoJsonItem = toGeoJsonItem();
+        Assert.assertTrue(toGeoJsonItem() instanceof MultiLineString);
+    }
 
+    @Test
+    public void multiLineStringConversion()
+    {
+        final GeoJsonItem geoJsonItem = toGeoJsonItem();
         Assert.assertTrue(geoJsonItem instanceof MultiLineString);
+        final MultiLineString multiLineString = (MultiLineString) geoJsonItem;
+        final List<PolyLine> polyLines = multiLineString.toAtlasGeometry();
+        Assert.assertEquals(2, multiLineString.getCoordinates().getValue().size());
+        Assert.assertEquals(multiLineString.getCoordinates().getValue().size(), polyLines.size());
+        final PolyLine firstPolyLine = polyLines.get(0);
+        Assert.assertEquals(5, multiLineString.getCoordinates().getValue().get(0).size());
+        Assert.assertEquals(multiLineString.getCoordinates().getValue().get(0).size(),
+                firstPolyLine.size());
     }
 
     @Test
     public void multiPoint()
     {
-        final GeoJsonItem geoJsonItem = toGeoJsonItem();
+        Assert.assertTrue(toGeoJsonItem() instanceof MultiPoint);
+    }
 
+    @Test
+    public void multiPointConversion()
+    {
+        final GeoJsonItem geoJsonItem = toGeoJsonItem();
         Assert.assertTrue(geoJsonItem instanceof MultiPoint);
+        final MultiPoint multiPoint = (MultiPoint) geoJsonItem;
+        final List<Location> locations = multiPoint.toAtlasGeometry();
+        Assert.assertEquals(3, multiPoint.getCoordinates().getValue().size());
+        Assert.assertEquals(multiPoint.getCoordinates().getValue().size(), locations.size());
+        final Location first = locations.get(0);
+        Assert.assertEquals((Double) first.getLongitude().asDegrees(),
+                multiPoint.getCoordinates().getValue().get(0).getCoordinate1());
+        Assert.assertEquals((Double) first.getLatitude().asDegrees(),
+                multiPoint.getCoordinates().getValue().get(0).getCoordinate2());
     }
 
     @Test
     public void multiPolygon()
     {
-        final GeoJsonItem geoJsonItem = toGeoJsonItem();
+        Assert.assertTrue(toGeoJsonItem() instanceof MultiPolygon);
+    }
 
+    @Test
+    public void multiPolygonConversion()
+    {
+        final GeoJsonItem geoJsonItem = toGeoJsonItem();
         Assert.assertTrue(geoJsonItem instanceof MultiPolygon);
+        final MultiPolygon multiPolygon = (MultiPolygon) geoJsonItem;
+        final List<org.openstreetmap.atlas.geography.Polygon> atlasPolygons = multiPolygon
+                .toAtlasGeometry();
+        Assert.assertEquals(2, multiPolygon.getCoordinates().getValue().size());
+        Assert.assertEquals(multiPolygon.getCoordinates().getValue().size(), atlasPolygons.size());
+    }
+
+    @Test
+    public void multiPolygonDonut()
+    {
+        final GeoJsonItem geoJsonItem = toGeoJsonItem();
+        Assert.assertTrue(geoJsonItem instanceof MultiPolygon);
+        final MultiPolygon multiPolygon = (MultiPolygon) geoJsonItem;
+        final List<org.openstreetmap.atlas.geography.Polygon> atlasMultiPolygon = multiPolygon
+                .toAtlasGeometry();
+        log.info("SIZE: {}.", atlasMultiPolygon.size());
     }
 
     @Test
     public void point()
     {
-        final GeoJsonItem geoJsonItem = toGeoJsonItem();
+        Assert.assertTrue(toGeoJsonItem() instanceof Point);
+    }
 
+    @Test
+    public void pointConversion()
+    {
+        final GeoJsonItem geoJsonItem = toGeoJsonItem();
         Assert.assertTrue(geoJsonItem instanceof Point);
+
+        final Point point = (Point) geoJsonItem;
+        final Location location = point.toAtlasGeometry();
+        Assert.assertNotNull(location);
+        log.info("Location: {}.", location);
+        Assert.assertEquals((Double) location.getLongitude().asDegrees(),
+                point.getCoordinates().getValue().getCoordinate1());
+        Assert.assertEquals((Double) location.getLatitude().asDegrees(),
+                point.getCoordinates().getValue().getCoordinate2());
     }
 
     @Test
@@ -201,8 +288,19 @@ public class GeoJsonParserGsonImplTest extends AbstractGeoJsonParserGsonImplTest
     @Test
     public void polygon()
     {
+        Assert.assertTrue(toGeoJsonItem() instanceof Polygon);
+    }
+
+    @Test
+    public void polygonConversion()
+    {
         final GeoJsonItem geoJsonItem = toGeoJsonItem();
         Assert.assertTrue(geoJsonItem instanceof Polygon);
+        final Polygon polygon = (Polygon) geoJsonItem;
+        final org.openstreetmap.atlas.geography.Polygon atlasPolygon = polygon.toAtlasGeometry();
+        log.info("Atlas Polygon: {}.", atlasPolygon);
+        Assert.assertEquals(5, polygon.getCoordinates().getValue().get(0).size());
+        Assert.assertEquals(polygon.getCoordinates().getValue().get(0).size(), atlasPolygon.size());
     }
 
     @Test

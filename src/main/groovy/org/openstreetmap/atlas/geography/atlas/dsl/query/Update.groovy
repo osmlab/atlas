@@ -134,7 +134,7 @@ UPDATE
 SET
     ${mutants}
 WHERE
-    ${conditionalConstructList}
+${conditionalConstructList.toPrettyString("\t")}
 """
     }
 }
