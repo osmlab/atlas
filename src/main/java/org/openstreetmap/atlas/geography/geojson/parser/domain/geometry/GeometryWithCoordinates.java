@@ -7,9 +7,13 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordina
  *
  * @param <C>
  *            - value of the coordinates.
+ * @param <G>
+ *            - The compatible Atlas Geometry that this geojson can be converted to.
  * @author Yazad Khambata
  */
-public interface GeometryWithCoordinates<C> extends Geometry
+public interface GeometryWithCoordinates<C, G> extends Geometry
 {
     Coordinates<C> getCoordinates();
+
+    G toAtlasGeometry();
 }

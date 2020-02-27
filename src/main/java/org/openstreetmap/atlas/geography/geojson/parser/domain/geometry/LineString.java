@@ -3,6 +3,8 @@ package org.openstreetmap.atlas.geography.geojson.parser.domain.geometry;
 import java.util.List;
 import java.util.Map;
 
+import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.bbox.Bbox;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.foreign.ForeignFields;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordinate.Coordinates;
@@ -11,7 +13,8 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordina
 /**
  * @author Yazad Khambata
  */
-public class LineString extends AbstractGeometryWithCoordinateSupport<List<Position>>
+@SuppressWarnings("squid:S2160")
+public class LineString extends AbstractGeometryWithCoordinateSupport<List<Position>, PolyLine>
 {
     private MultiPoint value;
 
@@ -37,5 +40,12 @@ public class LineString extends AbstractGeometryWithCoordinateSupport<List<Posit
     public ForeignFields getForeignFields()
     {
         return this.value.getForeignFields();
+    }
+
+    @Override
+    public PolyLine toAtlasGeometry()
+    {
+        final List<Location> locations = this.value.toAtlasGeometry();
+        return new PolyLine(locations);
     }
 }
