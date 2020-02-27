@@ -13,6 +13,7 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordina
 /**
  * @author Yazad Khambata
  */
+@SuppressWarnings("squid:S2160")
 public class LineString extends AbstractGeometryWithCoordinateSupport<List<Position>, PolyLine>
 {
     private MultiPoint value;

@@ -3,6 +3,8 @@ package org.openstreetmap.atlas.geography.geojson.parser.domain.geometry;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordinate.Coordinates;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordinate.Position;
@@ -11,6 +13,7 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordina
 /**
  * @author Yazad Khambata
  */
+@SuppressWarnings("squid:S2160")
 public class Point extends AbstractGeometryWithCoordinateSupport<Position, Location>
 {
     private Coordinates<Position> coordinates;

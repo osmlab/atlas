@@ -12,6 +12,7 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordina
 /**
  * @author Yazad Khambata
  */
+@SuppressWarnings("squid:S2160")
 public class Polygon extends
         AbstractGeometryWithCoordinateSupport<List<List<Position>>, org.openstreetmap.atlas.geography.Polygon>
 {

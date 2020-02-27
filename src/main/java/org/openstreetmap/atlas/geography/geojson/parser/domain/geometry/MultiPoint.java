@@ -11,6 +11,7 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordina
 /**
  * @author Yazad Khambata
  */
+@SuppressWarnings("squid:S2160")
 public class MultiPoint
         extends AbstractGeometryWithCoordinateSupport<List<Position>, List<Location>>
 {
