@@ -13,8 +13,7 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordina
 /**
  * @author Yazad Khambata
  */
-@SuppressWarnings("squid:S2160")
-public class Point extends AbstractGeometryWithCoordinateSupport<Position, Location>
+@SuppressWarnings("squid:S2160") public class Point extends AbstractGeometryWithCoordinateSupport<Position, Location>
 {
     private Coordinates<Position> coordinates;
 
