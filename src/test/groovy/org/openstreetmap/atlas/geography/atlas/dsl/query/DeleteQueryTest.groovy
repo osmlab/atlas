@@ -6,6 +6,7 @@ import org.openstreetmap.atlas.geography.atlas.change.FeatureChange
 import org.openstreetmap.atlas.geography.atlas.dsl.AbstractAQLTest
 import org.openstreetmap.atlas.geography.atlas.dsl.query.difference.Difference
 import org.openstreetmap.atlas.geography.atlas.dsl.query.result.Result
+import org.openstreetmap.atlas.geography.atlas.dsl.schema.AtlasDB
 import org.openstreetmap.atlas.geography.atlas.items.Edge
 import org.openstreetmap.atlas.geography.atlas.items.ItemType
 
@@ -56,5 +57,23 @@ class DeleteQueryTest extends AbstractAQLTest {
                 .collect(Collectors.toList())
 
         assert featureChangesByItemType[(ItemType.NODE)].size() == terminalIds.size()
+    }
+
+    @Test
+    void docTest() {
+        def atlasSchema = usingAlcatraz()
+        def delete1 = delete atlasSchema.edge where edge.hasTag(highway: "footway") and not(edge.hasTag(foot: "yes"))
+        def result1 = exec delete1
+
+        def delete2 = QueryBuilderFactory
+                .delete(atlasSchema.edge)
+                .where(AtlasDB.edge.hasTag(highway: "footway"))
+                .and(
+                        QueryBuilderFactory.not(
+                                AtlasDB.edge.hasTag(foot: "yes")
+                        )
+                )
+        def result2 = exec delete2
+        assert result1.relevantIdentifiers.sort() == result2.relevantIdentifiers.sort()
     }
 }
