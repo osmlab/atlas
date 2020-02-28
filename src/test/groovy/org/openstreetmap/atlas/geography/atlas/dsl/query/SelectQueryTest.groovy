@@ -7,6 +7,7 @@ import org.openstreetmap.atlas.geography.atlas.dsl.TestConstants
 import org.openstreetmap.atlas.geography.atlas.dsl.query.explain.ExplainerImpl
 import org.openstreetmap.atlas.geography.atlas.dsl.query.explain.Explanation
 import org.openstreetmap.atlas.geography.atlas.dsl.query.result.Result
+import org.openstreetmap.atlas.geography.atlas.dsl.schema.AtlasDB
 import org.openstreetmap.atlas.geography.atlas.dsl.schema.table.AtlasTable
 import org.openstreetmap.atlas.geography.atlas.dsl.selection.constraints.ScanType
 import org.openstreetmap.atlas.geography.atlas.items.Edge
@@ -38,6 +39,29 @@ class SelectQueryTest extends AbstractAQLTest {
 
         assert listStartEndNodeIds.size() == 2
         assert listStartEndNodeIds.sort() == resultNode.relevantIdentifiers.sort()
+    }
+
+    @Test
+    void testDoc() {
+        def atlas = usingAlcatraz()
+
+        def selectEdge1 = select edge.id, edge.startId, edge.endId, edge.tags, edge.start, edge.end from atlas.edge where edge.hasTag(source: 'yahoo') and edge.hasTag('access')
+        final Result<Edge> resultEdge1 = exec selectEdge1
+
+        def selectEdge2 = QueryBuilderFactory
+                .select(AtlasDB.edge.id,
+                        AtlasDB.edge.startId,
+                        AtlasDB.edge.endId,
+                        AtlasDB.edge.tags,
+                        AtlasDB.edge.start,
+                        AtlasDB.edge.end)
+                .from(/*AtlasSchema*/ atlas.edge)
+                .where(AtlasDB.edge.hasTag(source: 'yahoo'))
+                .and(AtlasDB.edge.hasTag('access'))
+
+        final Result<Edge> resultEdge2 = exec selectEdge2
+
+        assert resultEdge1.relevantIdentifiers.sort() == resultEdge2.relevantIdentifiers.sort()
     }
 
     @Test
@@ -138,7 +162,7 @@ class SelectQueryTest extends AbstractAQLTest {
         def atlas = usingAlcatraz()
 
         def polygon = [
-               TestConstants.Polygons.northernPartOfAlcatraz
+                TestConstants.Polygons.northernPartOfAlcatraz
         ]
 
         def select1 = select relation.id, relation.osmId, relation.allRelationsWithSameOsmIdentifier, relation.allKnownOsmMembers, relation.osmRelationIdentifier, relation.isMultiPolygon, relation.members from atlas.relation where not(relation.isWithin(polygon))
@@ -198,7 +222,7 @@ class SelectQueryTest extends AbstractAQLTest {
 
         def select4 = select edge.id, edge.tags, edge.osmTags from atlas.edge where edge.hasIds(select3)
 
-        final Explanation explanation1 = ExplainerImpl.instance.explain( select1)
+        final Explanation explanation1 = ExplainerImpl.instance.explain(select1)
         assert !explanation1.scanStrategy.indexUsageInfo.isIndexUsed()
 
         final Explanation explanation2 = ExplainerImpl.instance.explain(select2)
