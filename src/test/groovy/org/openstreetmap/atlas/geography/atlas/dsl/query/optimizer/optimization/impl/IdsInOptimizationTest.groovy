@@ -17,6 +17,7 @@ import java.util.stream.Collectors
 
 import static org.openstreetmap.atlas.geography.atlas.dsl.query.QueryBuilderFactory.exec
 import static org.openstreetmap.atlas.geography.atlas.dsl.query.QueryBuilderFactory.getSelect
+import static org.openstreetmap.atlas.geography.atlas.dsl.query.QueryBuilderFactory.not
 import static org.openstreetmap.atlas.geography.atlas.dsl.schema.AtlasDB.getRelation
 
 /**
@@ -47,6 +48,14 @@ class IdsInOptimizationTest extends BaseOptimizationTest {
         def select1 = select relation._ from atlas.relation where relation.hasIds(1, 3) or relation.hasLastUserName("whatever")
 
         OptimizationTestHelper.instance.abstractQueryOptimizationTransform().isApplicable(QueryAnalyzerImpl.from(ExplainerImpl.instance.explain(select1)))
+        assertNotApplicable(select1)
+    }
+
+    @Test
+    void testEligibility4() {
+        def atlas = usingAlcatraz()
+        def select1 = select relation._ from atlas.relation where relation.hasId(1) or not(relation.hasId(2))
+
         assertNotApplicable(select1)
     }
 

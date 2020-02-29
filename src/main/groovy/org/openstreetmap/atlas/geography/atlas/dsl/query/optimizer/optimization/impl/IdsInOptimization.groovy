@@ -19,7 +19,7 @@ import java.util.stream.Collectors
  *
  * IFF,
  *  1. All constraints are based on ID_UNIQUE_INDEX - hasId(anId), hasIds(id1, id2, id3, ...), hasIds(innerSelect) is used
- *  2. Only or clause is used.
+ *  2. Only 'or' clause is used (no 'and' or 'not').
  *
  * @author Yazad Khambata
  */

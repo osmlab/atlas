@@ -7,11 +7,13 @@ import org.openstreetmap.atlas.geography.atlas.dsl.AbstractAQLTest
 import org.openstreetmap.atlas.geography.atlas.dsl.query.explain.ExplainerImpl
 import org.openstreetmap.atlas.geography.atlas.dsl.query.explain.Explanation
 import org.openstreetmap.atlas.geography.atlas.dsl.query.result.MutantResult
+import org.openstreetmap.atlas.geography.atlas.dsl.query.result.Result
 import org.openstreetmap.atlas.geography.atlas.dsl.selection.constraints.ScanType
 
 import java.util.stream.Collectors
 
 import static org.openstreetmap.atlas.geography.atlas.dsl.query.QueryBuilderFactory.*
+import static org.openstreetmap.atlas.geography.atlas.dsl.query.QueryBuilderFactory.exec
 import static org.openstreetmap.atlas.geography.atlas.dsl.schema.AtlasDB.*
 
 /**
@@ -90,5 +92,21 @@ class UpdateQueryTest extends AbstractAQLTest {
             assert theAtlas.node(featureChange.getIdentifier()).getTag(key).isPresent()
             assert !featureChange.getAfterView().getTag(key).isPresent()
         }
+    }
+
+    @Test
+    void docTest() {
+        def atlasSchema = usingAlcatraz()
+        def update1 = update atlasSchema.node set node.addTag(abc: "xyz") where node.hasIds(307459622000000, 307446836000000)
+        def result1 = exec update1
+
+        def update2 = QueryBuilderFactory
+                .update( atlasSchema.node)
+                .set( node.addTag(abc: "xyz"))
+                .where(node.hasIds(307459622000000, 307446836000000))
+
+        def result2 = exec update2
+
+        assert result1.relevantIdentifiers.sort() == result2.relevantIdentifiers.sort()
     }
 }
