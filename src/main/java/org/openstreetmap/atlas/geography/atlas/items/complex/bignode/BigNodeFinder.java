@@ -567,7 +567,8 @@ public class BigNodeFinder implements Finder<BigNode>
                             && this.edgeDirectionComparator.isOppositeDirection(inEdge, outEdge,
                                     false)
                             && !outEdge.hasReverseEdge() && !inEdge.hasReverseEdge()
-                            && edgeNameExactMatch(outEdge, inEdge, true))
+                            && edgeNameExactMatch(outEdge, inEdge,
+                                    inEdge.highwayTag() != HighwayTag.RESIDENTIAL))
                     {
                         return true;
                     }
