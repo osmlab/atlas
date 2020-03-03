@@ -4,7 +4,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.LineString;
@@ -81,8 +80,8 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         final List<String> inputWKT = new ArrayList<>();
         if (this.optionAndArgumentDelegate.hasOption(INPUT_FILE_OPTION_LONG))
         {
-            inputWKT.addAll(readWKTFromFile(
-                    this.optionAndArgumentDelegate.getOptionArgument(INPUT_FILE_OPTION_LONG)));
+            inputWKT.addAll(readWKTFromFile(this.optionAndArgumentDelegate
+                    .getOptionArgument(INPUT_FILE_OPTION_LONG).orElse(null)));
         }
         inputWKT.addAll(this.optionAndArgumentDelegate.getVariadicArgument(INPUT_WKT));
 
@@ -226,16 +225,16 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         }
     }
 
-    private List<String> readWKTFromFile(final Optional<String> pathOptional)
+    private List<String> readWKTFromFile(final String path)
     {
-        if (!pathOptional.isPresent())
+        if (path == null)
         {
             throw new AtlasShellToolsException();
         }
-        final Path inputPath = Paths.get(pathOptional.get());
+        final Path inputPath = Paths.get(path);
         if (inputPath.toString().startsWith("~"))
         {
-            this.outputDelegate.printlnWarnMessage("the \'~\' was not expanded by your shell");
+            this.outputDelegate.printlnWarnMessage("the '~' was not expanded by your shell");
         }
         if (!inputPath.toAbsolutePath().toFile().canRead()
                 || !inputPath.toAbsolutePath().toFile().isFile())
