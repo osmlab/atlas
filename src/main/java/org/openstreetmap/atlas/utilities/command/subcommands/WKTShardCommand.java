@@ -47,12 +47,17 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
     private static final String SLIPPY_OPTION_DESCRIPTION = "The slippy tile zoom level for the sharding.";
     private static final String SLIPPY_OPTION_HINT = "zoom";
 
+    private static final String GEOHASH_OPTION_LONG = "geohash";
+    private static final String GEOHASH_OPTION_DESCRIPTION = "The geohash precision level for the sharding.";
+    private static final String GEOHASH_OPTION_HINT = "precision";
+
     private static final String INPUT_FILE_OPTION_LONG = "input";
     private static final String INPUT_FILE_OPTION_DESCRIPTION = "An input file from which to source the WKT entities. See DESCRIPTION section for details.";
     private static final String INPUT_FILE_OPTION_HINT = "file";
 
     private static final Integer TREE_CONTEXT = 3;
     private static final Integer SLIPPY_CONTEXT = 4;
+    private static final Integer GEOHASH_CONTEXT = 5;
 
     private static final String INPUT_WKT = "wkt";
 
@@ -102,6 +107,13 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
                     "slippy@" + this.optionAndArgumentDelegate.getOptionArgument(SLIPPY_OPTION_LONG)
                             .orElseThrow(AtlasShellToolsException::new));
         }
+        else if (this.optionAndArgumentDelegate.getParserContext() == GEOHASH_CONTEXT
+                && this.optionAndArgumentDelegate.hasOption(GEOHASH_OPTION_LONG))
+        {
+            sharding = Sharding.forString("geohash@"
+                    + this.optionAndArgumentDelegate.getOptionArgument(GEOHASH_OPTION_LONG)
+                            .orElseThrow(AtlasShellToolsException::new));
+        }
         else
         {
             throw new AtlasShellToolsException();
@@ -147,13 +159,16 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
     public void registerOptionsAndArguments()
     {
         registerArgument(INPUT_WKT, ArgumentArity.VARIADIC, ArgumentOptionality.OPTIONAL,
-                TREE_CONTEXT, SLIPPY_CONTEXT);
+                TREE_CONTEXT, SLIPPY_CONTEXT, GEOHASH_CONTEXT);
         registerOptionWithRequiredArgument(INPUT_FILE_OPTION_LONG, INPUT_FILE_OPTION_DESCRIPTION,
-                OptionOptionality.OPTIONAL, INPUT_FILE_OPTION_HINT, TREE_CONTEXT, SLIPPY_CONTEXT);
+                OptionOptionality.OPTIONAL, INPUT_FILE_OPTION_HINT, TREE_CONTEXT, SLIPPY_CONTEXT,
+                GEOHASH_CONTEXT);
         registerOptionWithRequiredArgument(TREE_OPTION_LONG, TREE_OPTION_DESCRIPTION,
                 OptionOptionality.REQUIRED, TREE_OPTION_HINT, TREE_CONTEXT);
         registerOptionWithRequiredArgument(SLIPPY_OPTION_LONG, SLIPPY_OPTION_DESCRIPTION,
                 OptionOptionality.REQUIRED, SLIPPY_OPTION_HINT, SLIPPY_CONTEXT);
+        registerOptionWithRequiredArgument(GEOHASH_OPTION_LONG, GEOHASH_OPTION_DESCRIPTION,
+                OptionOptionality.REQUIRED, GEOHASH_OPTION_HINT, GEOHASH_CONTEXT);
         super.registerOptionsAndArguments();
     }
 
