@@ -4,5 +4,9 @@ See all dynamic shards (defined in tree.txt) that intersect some given lines:
 #$ wkt-shard --tree=/Users/example/path/to/tree.txt "LINESTRING (30 10, 10 30, 40 40)" "LINESTRING (40 15, 15 30, 50 50)"
 See all slippy tile shards that intersect a point, using a slippy tile sharding at zoom 10:
 #$ wkt-shard --slippy=10 "POINT (10 30)"
-See all slippy tile shards that intersect some WKTs, taken from a file:
-#$ wkt-shard --slippy=10 --input /Users/example/Desktop/wkt-input.txt
+See all precision 5 geohash tile shards that intersect some WKTs, taken from a file:
+#$ wkt-shard --geohash=5 --input /Users/example/Desktop/wkt-input.txt
+See countries that intersect some given shards and WKTs:
+#$ wkt-shard --country-boundary /Users/example/world_boundaries.txt 1-2-3 7zzz 'POINT (10 30)'
+See which dynamic shards from tree 'tree.txt' intersect with geohash tile 7zzz
+#$ wkt-shard --tree /Users/example/tree.txt 7zzz

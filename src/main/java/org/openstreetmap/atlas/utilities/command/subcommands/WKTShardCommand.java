@@ -18,6 +18,7 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
+import org.openstreetmap.atlas.geography.sharding.converters.StringToShardConverter;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
@@ -54,11 +55,16 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
     private static final String INPUT_FILE_OPTION_DESCRIPTION = "An input file from which to source the WKT entities. See DESCRIPTION section for details.";
     private static final String INPUT_FILE_OPTION_HINT = "file";
 
+    private static final String COUNTRY_BOUNDARY_OPTION_LONG = "country-boundary";
+    private static final String COUNTRY_BOUNDARY_OPTION_DESCRIPTION = "A country boundary file to use for intersection checks. See DESCRIPTION section for details.";
+    private static final String COUNTRY_BOUNDARY_OPTION_HINT = "file";
+
     private static final Integer TREE_CONTEXT = 3;
     private static final Integer SLIPPY_CONTEXT = 4;
     private static final Integer GEOHASH_CONTEXT = 5;
+    private static final Integer COUNTRY_BOUNDARY_CONTEXT = 6;
 
-    private static final String INPUT_WKT = "wkt";
+    private static final String INPUT_WKT_SHARD = "wkt|shard";
 
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
@@ -77,15 +83,15 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
     @Override
     public int execute()
     {
-        final List<String> inputWKT = new ArrayList<>();
+        final List<String> inputWktOrShard = new ArrayList<>();
         if (this.optionAndArgumentDelegate.hasOption(INPUT_FILE_OPTION_LONG))
         {
-            inputWKT.addAll(readWKTFromFile(this.optionAndArgumentDelegate
+            inputWktOrShard.addAll(readWKTFromFile(this.optionAndArgumentDelegate
                     .getOptionArgument(INPUT_FILE_OPTION_LONG).orElse(null)));
         }
-        inputWKT.addAll(this.optionAndArgumentDelegate.getVariadicArgument(INPUT_WKT));
+        inputWktOrShard.addAll(this.optionAndArgumentDelegate.getVariadicArgument(INPUT_WKT_SHARD));
 
-        if (inputWKT.isEmpty())
+        if (inputWktOrShard.isEmpty())
         {
             this.outputDelegate.printlnWarnMessage("no input WKTs were found");
             return 0;
@@ -113,18 +119,24 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
                     + this.optionAndArgumentDelegate.getOptionArgument(GEOHASH_OPTION_LONG)
                             .orElseThrow(AtlasShellToolsException::new));
         }
+        else if (this.optionAndArgumentDelegate.getParserContext() == COUNTRY_BOUNDARY_CONTEXT
+                && this.optionAndArgumentDelegate.hasOption(COUNTRY_BOUNDARY_OPTION_LONG))
+        {
+            // TODO handle CountryBoundary case
+            sharding = null;
+        }
         else
         {
             throw new AtlasShellToolsException();
         }
 
-        for (int i = 0; i < inputWKT.size(); i++)
+        for (int i = 0; i < inputWktOrShard.size(); i++)
         {
-            final String wkt = inputWKT.get(i);
-            parseWKTAndPrintOutput(wkt, sharding);
+            final String wktOrShard = inputWktOrShard.get(i);
+            parseWktOrShardAndPrintOutput(wktOrShard, sharding);
 
             // Only print a separating newline if there were multiple entries
-            if (i < inputWKT.size() - 1)
+            if (i < inputWktOrShard.size() - 1)
             {
                 this.outputDelegate.printlnStdout("");
             }
@@ -142,7 +154,7 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
     @Override
     public String getSimpleDescription()
     {
-        return "get the shards that intersect some given WKT(s)";
+        return "perform various intersection lookups";
     }
 
     @Override
@@ -157,36 +169,57 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
     @Override
     public void registerOptionsAndArguments()
     {
-        registerArgument(INPUT_WKT, ArgumentArity.VARIADIC, ArgumentOptionality.OPTIONAL,
-                TREE_CONTEXT, SLIPPY_CONTEXT, GEOHASH_CONTEXT);
+        registerArgument(INPUT_WKT_SHARD, ArgumentArity.VARIADIC, ArgumentOptionality.OPTIONAL,
+                TREE_CONTEXT, SLIPPY_CONTEXT, GEOHASH_CONTEXT, COUNTRY_BOUNDARY_CONTEXT);
         registerOptionWithRequiredArgument(INPUT_FILE_OPTION_LONG, INPUT_FILE_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, INPUT_FILE_OPTION_HINT, TREE_CONTEXT, SLIPPY_CONTEXT,
-                GEOHASH_CONTEXT);
+                GEOHASH_CONTEXT, COUNTRY_BOUNDARY_CONTEXT);
         registerOptionWithRequiredArgument(TREE_OPTION_LONG, TREE_OPTION_DESCRIPTION,
                 OptionOptionality.REQUIRED, TREE_OPTION_HINT, TREE_CONTEXT);
         registerOptionWithRequiredArgument(SLIPPY_OPTION_LONG, SLIPPY_OPTION_DESCRIPTION,
                 OptionOptionality.REQUIRED, SLIPPY_OPTION_HINT, SLIPPY_CONTEXT);
         registerOptionWithRequiredArgument(GEOHASH_OPTION_LONG, GEOHASH_OPTION_DESCRIPTION,
                 OptionOptionality.REQUIRED, GEOHASH_OPTION_HINT, GEOHASH_CONTEXT);
+        registerOptionWithRequiredArgument(COUNTRY_BOUNDARY_OPTION_LONG,
+                COUNTRY_BOUNDARY_OPTION_DESCRIPTION, OptionOptionality.REQUIRED,
+                COUNTRY_BOUNDARY_OPTION_HINT, COUNTRY_BOUNDARY_CONTEXT);
         super.registerOptionsAndArguments();
     }
 
-    private void parseWKTAndPrintOutput(final String wkt, final Sharding sharding)
+    private void parseShardIntersectionCase(final String wktOrShard, final Sharding sharding)
     {
         final WKTReader reader = new WKTReader();
         Geometry geometry = null;
         try
         {
-            geometry = reader.read(wkt);
+            geometry = reader.read(wktOrShard);
         }
         catch (final ParseException exception)
         {
-            logger.error("unable to parse {}", wkt, exception);
+            logger.warn("unable to parse {} as wkt", wktOrShard, exception);
+            // input String was not a WKT, so try parsing it as a shard string
+            try
+            {
+                final StringToShardConverter converter = new StringToShardConverter();
+                final Shard shard = converter.convert(wktOrShard);
+                geometry = new WKTReader().read(shard.toWkt());
+            }
+            catch (final Exception exception2)
+            {
+                logger.warn("unable to parse {} as shard", wktOrShard, exception2);
+            }
+        }
+
+        if (geometry == null)
+        {
+            this.outputDelegate.printlnErrorMessage(
+                    "unable to parse " + wktOrShard + " as WKT or shard string");
+            return;
         }
 
         if (geometry instanceof Point)
         {
-            this.outputDelegate.printlnStdout(wkt + " covered by:", TTYAttribute.BOLD);
+            this.outputDelegate.printlnStdout(wktOrShard + " covered by:", TTYAttribute.BOLD);
             final Location location = new JtsPointConverter().backwardConvert((Point) geometry);
             final Iterable<? extends Shard> shards = sharding.shardsCovering(location);
             for (final Shard shard : shards)
@@ -196,7 +229,7 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         }
         else if (geometry instanceof LineString)
         {
-            this.outputDelegate.printlnStdout(wkt + " intersects:", TTYAttribute.BOLD);
+            this.outputDelegate.printlnStdout(wktOrShard + " intersects:", TTYAttribute.BOLD);
             final PolyLine polyline = new JtsPolyLineConverter()
                     .backwardConvert((LineString) geometry);
             final Iterable<? extends Shard> shards = sharding.shardsIntersecting(polyline);
@@ -207,7 +240,7 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         }
         else if (geometry instanceof Polygon)
         {
-            this.outputDelegate.printlnStdout(wkt + " intersects:", TTYAttribute.BOLD);
+            this.outputDelegate.printlnStdout(wktOrShard + " intersects:", TTYAttribute.BOLD);
             final org.openstreetmap.atlas.geography.Polygon polygon = new JtsPolygonConverter()
                     .backwardConvert((Polygon) geometry);
             final Iterable<? extends Shard> shards = sharding.shards(polygon);
@@ -221,7 +254,20 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
          */
         else
         {
-            this.outputDelegate.printlnErrorMessage("unsupported geometry type " + wkt);
+            this.outputDelegate.printlnErrorMessage("unsupported geometry type " + wktOrShard);
+        }
+    }
+
+    private void parseWktOrShardAndPrintOutput(final String wktOrShard, final Sharding sharding)
+    {
+        if (sharding != null)
+        {
+            parseShardIntersectionCase(wktOrShard, sharding);
+        }
+        else
+        {
+            // TODO handle CountryBoundary case
+            this.outputDelegate.printlnWarnMessage("TODO handle CountryBoundary case");
         }
     }
 
