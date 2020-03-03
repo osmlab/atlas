@@ -13,6 +13,8 @@ import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
+import org.openstreetmap.atlas.geography.boundary.CountryBoundary;
+import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
@@ -86,7 +88,7 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         final List<String> inputWktOrShard = new ArrayList<>();
         if (this.optionAndArgumentDelegate.hasOption(INPUT_FILE_OPTION_LONG))
         {
-            inputWktOrShard.addAll(readWKTFromFile(this.optionAndArgumentDelegate
+            inputWktOrShard.addAll(readInputsFromFile(this.optionAndArgumentDelegate
                     .getOptionArgument(INPUT_FILE_OPTION_LONG).orElse(null)));
         }
         inputWktOrShard.addAll(this.optionAndArgumentDelegate.getVariadicArgument(INPUT_WKT_SHARD));
@@ -97,7 +99,8 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
             return 0;
         }
 
-        final Sharding sharding;
+        Sharding sharding = null;
+        CountryBoundaryMap countryBoundaryMap = null;
         if (this.optionAndArgumentDelegate.getParserContext() == TREE_CONTEXT
                 && this.optionAndArgumentDelegate.hasOption(TREE_OPTION_LONG))
         {
@@ -122,8 +125,14 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         else if (this.optionAndArgumentDelegate.getParserContext() == COUNTRY_BOUNDARY_CONTEXT
                 && this.optionAndArgumentDelegate.hasOption(COUNTRY_BOUNDARY_OPTION_LONG))
         {
-            // TODO handle CountryBoundary case
-            sharding = null;
+            final File boundaryMapFile = new File(this.optionAndArgumentDelegate
+                    .getOptionArgument(COUNTRY_BOUNDARY_OPTION_LONG).get());
+            if (!boundaryMapFile.exists())
+            {
+                this.outputDelegate.printlnErrorMessage("boundary file "
+                        + boundaryMapFile.getAbsolutePath().toString() + " does not exist");
+            }
+            countryBoundaryMap = CountryBoundaryMap.fromPlainText(boundaryMapFile);
         }
         else
         {
@@ -133,7 +142,7 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         for (int i = 0; i < inputWktOrShard.size(); i++)
         {
             final String wktOrShard = inputWktOrShard.get(i);
-            parseWktOrShardAndPrintOutput(wktOrShard, sharding);
+            parseWktOrShardAndPrintOutput(wktOrShard, sharding, countryBoundaryMap);
 
             // Only print a separating newline if there were multiple entries
             if (i < inputWktOrShard.size() - 1)
@@ -186,29 +195,62 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         super.registerOptionsAndArguments();
     }
 
+    private void parseBoundaryMapIntersectionCase(final String wktOrShard,
+            final CountryBoundaryMap countryBoundaryMap)
+    {
+        final Geometry geometry = parseWktOrShardString(wktOrShard);
+
+        if (geometry == null)
+        {
+            this.outputDelegate.printlnErrorMessage(
+                    "unable to parse " + wktOrShard + " as WKT or shard string");
+            return;
+        }
+
+        if (geometry instanceof Point)
+        {
+            this.outputDelegate.printlnStdout(wktOrShard + " covered by:", TTYAttribute.BOLD);
+            final Location location = new JtsPointConverter().backwardConvert((Point) geometry);
+            final List<CountryBoundary> boundaries = countryBoundaryMap.boundaries(location);
+            for (final CountryBoundary boundary : boundaries)
+            {
+                this.outputDelegate.printlnStdout(boundary.getCountryName(), TTYAttribute.GREEN);
+            }
+        }
+        else if (geometry instanceof LineString)
+        {
+            this.outputDelegate.printlnStdout(wktOrShard + " intersects:", TTYAttribute.BOLD);
+            final PolyLine polyline = new JtsPolyLineConverter()
+                    .backwardConvert((LineString) geometry);
+            final List<CountryBoundary> boundaries = countryBoundaryMap.boundaries(polyline);
+            for (final CountryBoundary boundary : boundaries)
+            {
+                this.outputDelegate.printlnStdout(boundary.getCountryName(), TTYAttribute.GREEN);
+            }
+        }
+        else if (geometry instanceof Polygon)
+        {
+            this.outputDelegate.printlnStdout(wktOrShard + " intersects:", TTYAttribute.BOLD);
+            final org.openstreetmap.atlas.geography.Polygon polygon = new JtsPolygonConverter()
+                    .backwardConvert((Polygon) geometry);
+            final List<CountryBoundary> boundaries = countryBoundaryMap.boundaries(polygon);
+            for (final CountryBoundary boundary : boundaries)
+            {
+                this.outputDelegate.printlnStdout(boundary.getCountryName(), TTYAttribute.GREEN);
+            }
+        }
+        /*
+         * TODO handle more geometry types? e.g. MultiPoint, MultiLineString, and MultiPolygon?
+         */
+        else
+        {
+            this.outputDelegate.printlnErrorMessage("unsupported geometry type " + wktOrShard);
+        }
+    }
+
     private void parseShardIntersectionCase(final String wktOrShard, final Sharding sharding)
     {
-        final WKTReader reader = new WKTReader();
-        Geometry geometry = null;
-        try
-        {
-            geometry = reader.read(wktOrShard);
-        }
-        catch (final ParseException exception)
-        {
-            logger.warn("unable to parse {} as wkt", wktOrShard, exception);
-            // input String was not a WKT, so try parsing it as a shard string
-            try
-            {
-                final StringToShardConverter converter = new StringToShardConverter();
-                final Shard shard = converter.convert(wktOrShard);
-                geometry = new WKTReader().read(shard.toWkt());
-            }
-            catch (final Exception exception2)
-            {
-                logger.warn("unable to parse {} as shard", wktOrShard, exception2);
-            }
-        }
+        final Geometry geometry = parseWktOrShardString(wktOrShard);
 
         if (geometry == null)
         {
@@ -258,7 +300,8 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         }
     }
 
-    private void parseWktOrShardAndPrintOutput(final String wktOrShard, final Sharding sharding)
+    private void parseWktOrShardAndPrintOutput(final String wktOrShard, final Sharding sharding,
+            final CountryBoundaryMap countryBoundaryMap)
     {
         if (sharding != null)
         {
@@ -266,12 +309,37 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         }
         else
         {
-            // TODO handle CountryBoundary case
-            this.outputDelegate.printlnWarnMessage("TODO handle CountryBoundary case");
+            parseBoundaryMapIntersectionCase(wktOrShard, countryBoundaryMap);
         }
     }
 
-    private List<String> readWKTFromFile(final String path)
+    private Geometry parseWktOrShardString(final String wktOrShard)
+    {
+        final WKTReader reader = new WKTReader();
+        Geometry geometry = null;
+        try
+        {
+            geometry = reader.read(wktOrShard);
+        }
+        catch (final ParseException exception)
+        {
+            logger.warn("unable to parse {} as wkt", wktOrShard, exception);
+            // input String was not a WKT, so try parsing it as a shard string
+            try
+            {
+                final StringToShardConverter converter = new StringToShardConverter();
+                final Shard shard = converter.convert(wktOrShard);
+                geometry = new WKTReader().read(shard.toWkt());
+            }
+            catch (final Exception exception2)
+            {
+                logger.warn("unable to parse {} as shard", wktOrShard, exception2);
+            }
+        }
+        return geometry;
+    }
+
+    private List<String> readInputsFromFile(final String path)
     {
         if (path == null)
         {
