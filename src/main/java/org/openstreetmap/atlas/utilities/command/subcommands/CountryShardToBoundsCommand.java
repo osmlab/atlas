@@ -41,7 +41,7 @@ public class CountryShardToBoundsCommand extends AbstractAtlasShellToolsCommand
     private static final String COUNTRY_BOUNDARY_OPTION_HINT = "boundary-file";
 
     private static final String SHARD = "shard";
-    private static final String COUNTRY = "country";
+    private static final String COUNTRY = "ISO3-country-code";
 
     private static final Integer SHARD_CONTEXT = 3;
     private static final Integer COUNTRY_CONTEXT = 4;

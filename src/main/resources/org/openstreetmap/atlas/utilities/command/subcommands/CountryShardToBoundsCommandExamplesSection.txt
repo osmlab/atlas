@@ -1,8 +1,10 @@
 Get the boundaries of some SlippyTile shards:
-#$ shard-bounds 9-168-233 9-168-234
+#$ country-shard-bounds 9-168-233 9-168-234
 Get the boundary of a GeoHashTile shard:
-#$ shard-bounds dd4fb
+#$ country-shard-bounds dd4fb
 Get the boundaries of an assortment of shards:
-#$ shard-bounds DMA_9-168-233 1-2-3 f45tkp8n
+#$ country-shard-bounds DMA_9-168-233 1-2-3 f45tkp8n
 Get the shard, if it exists, with the given bounds:
-#$ shard-bounds --reverse 'POLYGON ((0 -85.0511288, 0 0, 180 0, 180 -85.0511288, 0 -85.0511288))'
+#$ country-shard-bounds --reverse 'POLYGON ((0 -85.0511288, 0 0, 180 0, 180 -85.0511288, 0 -85.0511288))'
+Get the boundaries for some countries:
+#$ country-shard-bounds --country-boundary ~/boundaries.txt DMA USA
