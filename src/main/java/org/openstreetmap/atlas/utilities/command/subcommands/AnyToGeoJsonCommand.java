@@ -38,9 +38,9 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
     private static final String SHARDING_OPTION_DESCRIPTION = "The sharding to convert, e.g. dynamic@/Users/foo/my-tree.txt";
     private static final String SHARDING_OPTION_HINT = "type@parameter";
 
-    private static final String BOUNDARY_OPTION_LONG = "boundary";
-    private static final String BOUNDARY_OPTION_DESCRIPTION = "The path to a boundary file to be converted.";
-    private static final String BOUNDARY_OPTION_HINT = "boundary-file";
+    private static final String COUNTRY_BOUNDARY_OPTION_LONG = "country-boundary";
+    private static final String COUNTRY_BOUNDARY_OPTION_DESCRIPTION = "The path to a boundary file to be converted.";
+    private static final String COUNTRY_BOUNDARY_OPTION_HINT = "boundary-file";
 
     private static final String COUNTRIES_OPTION_LONG = "countries";
     private static final Character COUNTRIES_OPTION_SHORT = 'c';
@@ -65,7 +65,7 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
             + FileSuffix.GEO_JSON;
     private static final String SHARDING_FILE = OUTPUT_FILE + "-" + SHARDING_OPTION_LONG
             + FileSuffix.GEO_JSON;
-    private static final String BOUNDARY_FILE = OUTPUT_FILE + "-" + BOUNDARY_OPTION_LONG
+    private static final String BOUNDARY_FILE = OUTPUT_FILE + "-" + COUNTRY_BOUNDARY_OPTION_LONG
             + FileSuffix.GEO_JSON;
 
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
@@ -134,8 +134,9 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
                 OptionOptionality.REQUIRED, ATLAS_OPTION_HINT, ATLAS_CONTEXT);
         registerOptionWithRequiredArgument(SHARDING_OPTION_LONG, SHARDING_OPTION_DESCRIPTION,
                 OptionOptionality.REQUIRED, SHARDING_OPTION_HINT, SHARDING_CONTEXT);
-        registerOptionWithRequiredArgument(BOUNDARY_OPTION_LONG, BOUNDARY_OPTION_DESCRIPTION,
-                OptionOptionality.REQUIRED, BOUNDARY_OPTION_HINT, BOUNDARY_CONTEXT);
+        registerOptionWithRequiredArgument(COUNTRY_BOUNDARY_OPTION_LONG,
+                COUNTRY_BOUNDARY_OPTION_DESCRIPTION, OptionOptionality.REQUIRED,
+                COUNTRY_BOUNDARY_OPTION_HINT, BOUNDARY_CONTEXT);
         registerOptionWithRequiredArgument(COUNTRIES_OPTION_LONG, COUNTRIES_OPTION_SHORT,
                 COUNTRIES_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL, COUNTRIES_OPTION_HINT,
                 BOUNDARY_CONTEXT);
@@ -191,8 +192,8 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
         {
             this.outputDelegate.printlnCommandMessage("reading CountryBoundaryMap from file...");
         }
-        final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(
-                new File(this.optionAndArgumentDelegate.getOptionArgument(BOUNDARY_OPTION_LONG)
+        final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new File(
+                this.optionAndArgumentDelegate.getOptionArgument(COUNTRY_BOUNDARY_OPTION_LONG)
                         .orElseThrow(AtlasShellToolsException::new)));
         final String boundaryJson;
         if (countries.isEmpty())

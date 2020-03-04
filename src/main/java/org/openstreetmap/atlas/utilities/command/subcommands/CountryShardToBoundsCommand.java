@@ -3,6 +3,8 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 import java.util.List;
 
 import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.geography.boundary.CountryBoundary;
+import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.converters.WktPolygonConverter;
 import org.openstreetmap.atlas.geography.sharding.GeoHashSharding;
 import org.openstreetmap.atlas.geography.sharding.GeoHashTile;
@@ -10,6 +12,8 @@ import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.geography.sharding.SlippyTileSharding;
 import org.openstreetmap.atlas.geography.sharding.converters.StringToShardConverter;
+import org.openstreetmap.atlas.streaming.resource.File;
+import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
@@ -23,26 +27,34 @@ import org.slf4j.LoggerFactory;
 /**
  * @author lcram
  */
-public class ShardToBoundsCommand extends AbstractAtlasShellToolsCommand
+public class CountryShardToBoundsCommand extends AbstractAtlasShellToolsCommand
 {
-    private static final Logger logger = LoggerFactory.getLogger(ShardToBoundsCommand.class);
+    private static final Logger logger = LoggerFactory.getLogger(CountryShardToBoundsCommand.class);
 
     private static final String REVERSE_OPTION_LONG = "reverse";
     private static final String REVERSE_OPTION_DESCRIPTION = "Convert given WKT bound(s) to SlippyTile/GeoHashTile shard(s) if possible. Supports up to slippy zoom level "
             + Sharding.SLIPPY_ZOOM_MAXIMUM + " and geohash precision "
             + GeoHashTile.MAXIMUM_PRECISION + ".";
 
-    private static final String INPUT = "input";
+    private static final String COUNTRY_BOUNDARY_OPTION_LONG = "country-boundary";
+    private static final String COUNTRY_BOUNDARY_OPTION_DESCRIPTION = "A boundary file to use as a source. See DESCRIPTION section for details.";
+    private static final String COUNTRY_BOUNDARY_OPTION_HINT = "boundary-file";
+
+    private static final String SHARD = "shard";
+    private static final String COUNTRY = "country";
+
+    private static final Integer SHARD_CONTEXT = 3;
+    private static final Integer COUNTRY_CONTEXT = 4;
 
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
 
     public static void main(final String[] args)
     {
-        new ShardToBoundsCommand().runSubcommandAndExit(args);
+        new CountryShardToBoundsCommand().runSubcommandAndExit(args);
     }
 
-    public ShardToBoundsCommand()
+    public CountryShardToBoundsCommand()
     {
         this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
@@ -51,9 +63,112 @@ public class ShardToBoundsCommand extends AbstractAtlasShellToolsCommand
     @Override
     public int execute()
     {
+        if (this.optionAndArgumentDelegate.getParserContext() == SHARD_CONTEXT)
+        {
+            return executeShardContext();
+        }
+        else if (this.optionAndArgumentDelegate.getParserContext() == COUNTRY_CONTEXT)
+        {
+            return executeCountryContext();
+        }
+        else
+        {
+            throw new AtlasShellToolsException();
+        }
+    }
+
+    @Override
+    public String getCommandName()
+    {
+        return "country-shard-bounds";
+    }
+
+    @Override
+    public String getSimpleDescription()
+    {
+        return "get the WKT bounds of given shard(s) or countries";
+    }
+
+    @Override
+    public void registerManualPageSections()
+    {
+        addManualPageSection("DESCRIPTION", CountryShardToBoundsCommand.class
+                .getResourceAsStream("CountryShardToBoundsCommandDescriptionSection.txt"));
+        addManualPageSection("EXAMPLES", CountryShardToBoundsCommand.class
+                .getResourceAsStream("CountryShardToBoundsCommandExamplesSection.txt"));
+    }
+
+    @Override
+    public void registerOptionsAndArguments()
+    {
+        registerOption(REVERSE_OPTION_LONG, REVERSE_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL);
+        registerOptionWithRequiredArgument(COUNTRY_BOUNDARY_OPTION_LONG,
+                COUNTRY_BOUNDARY_OPTION_DESCRIPTION, OptionOptionality.REQUIRED,
+                COUNTRY_BOUNDARY_OPTION_HINT, COUNTRY_CONTEXT);
+        registerArgument(SHARD, ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED,
+                SHARD_CONTEXT);
+        registerArgument(COUNTRY, ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED,
+                COUNTRY_CONTEXT);
+        super.registerOptionsAndArguments();
+    }
+
+    private int executeCountryContext()
+    {
+        final CountryBoundaryMap countryBoundaryMap;
+        final File boundaryMapFile = new File(
+                this.optionAndArgumentDelegate.getOptionArgument(COUNTRY_BOUNDARY_OPTION_LONG)
+                        .orElseThrow(AtlasShellToolsException::new));
+        if (!boundaryMapFile.exists())
+        {
+            this.outputDelegate.printlnErrorMessage(
+                    "boundary file " + boundaryMapFile.getAbsolutePath() + " does not exist");
+        }
+        if (this.optionAndArgumentDelegate.hasVerboseOption())
+        {
+            this.outputDelegate.printlnCommandMessage("loading country boundary map...");
+        }
+        countryBoundaryMap = CountryBoundaryMap.fromPlainText(boundaryMapFile);
+        if (this.optionAndArgumentDelegate.hasVerboseOption())
+        {
+            this.outputDelegate.printlnCommandMessage("loaded boundary map");
+        }
+
+        final List<String> countryCodes = this.optionAndArgumentDelegate
+                .getVariadicArgument(COUNTRY);
+
+        for (int i = 0; i < countryCodes.size(); i++)
+        {
+            final String countryCode = countryCodes.get(i);
+            this.outputDelegate.printlnStdout(countryCode + " boundary:", TTYAttribute.BOLD);
+            final List<CountryBoundary> boundaries = countryBoundaryMap
+                    .countryBoundary(countryCode);
+            if (boundaries == null || boundaries.isEmpty())
+            {
+                this.outputDelegate.printlnWarnMessage("no boundaries found for " + countryCode);
+            }
+            else
+            {
+                for (final CountryBoundary boundary : boundaries)
+                {
+                    this.outputDelegate.printlnStdout(boundary.getBoundary().toWkt(),
+                            TTYAttribute.GREEN);
+                }
+            }
+
+            if (i < countryCodes.size() - 1)
+            {
+                this.outputDelegate.printlnStdout("");
+            }
+        }
+
+        return 0;
+    }
+
+    private int executeShardContext()
+    {
         if (this.optionAndArgumentDelegate.hasOption(REVERSE_OPTION_LONG))
         {
-            final List<String> wkts = this.optionAndArgumentDelegate.getVariadicArgument(INPUT);
+            final List<String> wkts = this.optionAndArgumentDelegate.getVariadicArgument(SHARD);
 
             for (int i = 0; i < wkts.size(); i++)
             {
@@ -69,7 +184,7 @@ public class ShardToBoundsCommand extends AbstractAtlasShellToolsCommand
         }
         else
         {
-            final List<String> shards = this.optionAndArgumentDelegate.getVariadicArgument(INPUT);
+            final List<String> shards = this.optionAndArgumentDelegate.getVariadicArgument(SHARD);
 
             for (int i = 0; i < shards.size(); i++)
             {
@@ -85,35 +200,6 @@ public class ShardToBoundsCommand extends AbstractAtlasShellToolsCommand
         }
 
         return 0;
-    }
-
-    @Override
-    public String getCommandName()
-    {
-        return "shard-bounds";
-    }
-
-    @Override
-    public String getSimpleDescription()
-    {
-        return "get the WKT bounds of given shard(s)";
-    }
-
-    @Override
-    public void registerManualPageSections()
-    {
-        addManualPageSection("DESCRIPTION", ShardToBoundsCommand.class
-                .getResourceAsStream("ShardToBoundsCommandDescriptionSection.txt"));
-        addManualPageSection("EXAMPLES", ShardToBoundsCommand.class
-                .getResourceAsStream("ShardToBoundsCommandExamplesSection.txt"));
-    }
-
-    @Override
-    public void registerOptionsAndArguments()
-    {
-        registerOption(REVERSE_OPTION_LONG, REVERSE_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL);
-        registerArgument(INPUT, ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED);
-        super.registerOptionsAndArguments();
     }
 
     private void parseShardAndPrintOutput(final String shardName)

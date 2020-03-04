@@ -58,8 +58,8 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
     private static final String INPUT_FILE_OPTION_HINT = "file";
 
     private static final String COUNTRY_BOUNDARY_OPTION_LONG = "country-boundary";
-    private static final String COUNTRY_BOUNDARY_OPTION_DESCRIPTION = "A country boundary file to use for intersection checks. See DESCRIPTION section for details.";
-    private static final String COUNTRY_BOUNDARY_OPTION_HINT = "file";
+    private static final String COUNTRY_BOUNDARY_OPTION_DESCRIPTION = "A boundary file to use for intersection checks. See DESCRIPTION section for details.";
+    private static final String COUNTRY_BOUNDARY_OPTION_HINT = "boundary-file";
 
     private static final Integer TREE_CONTEXT = 3;
     private static final Integer SLIPPY_CONTEXT = 4;
