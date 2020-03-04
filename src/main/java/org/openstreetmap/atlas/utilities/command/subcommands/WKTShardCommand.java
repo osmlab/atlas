@@ -3,7 +3,10 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.LineString;
@@ -23,6 +26,7 @@ import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.geography.sharding.converters.StringToShardConverter;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
+import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
@@ -132,6 +136,7 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
             {
                 this.outputDelegate.printlnErrorMessage(
                         "boundary file " + boundaryMapFile.getAbsolutePath() + " does not exist");
+                return 1;
             }
             if (this.optionAndArgumentDelegate.hasVerboseOption())
             {
@@ -264,7 +269,8 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         }
         else if (geometry instanceof Polygon)
         {
-            this.outputDelegate.printlnStdout(wktOrShard + " contains:", TTYAttribute.BOLD);
+            this.outputDelegate.printlnStdout(wktOrShard + " contains or intersects:",
+                    TTYAttribute.BOLD);
             final org.openstreetmap.atlas.geography.Polygon polygon = new JtsPolygonConverter()
                     .backwardConvert((Polygon) geometry);
             if (sharding != null)
@@ -278,39 +284,15 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
 
             if (countryBoundaryMap != null)
             {
-                final List<CountryBoundary> boundaries = countryBoundaryMap.boundaries(polygon);
-                // TODO debug remove
-                // this.outputDelegate.printlnStdout(countryBoundaryMap
-                // .query(geometry.getEnvelopeInternal()).stream().distinct()
-                // .collect(Collectors.toMap(polygon2 -> CountryBoundaryMap
-                // .getGeometryProperty(polygon2, ISOCountryTag.KEY),
-                // polygon2 -> polygon2))
-                // .toString());
-                // this.outputDelegate.printlnStdout(
-                // "atlas polygon: " + polygon.bounds().asEnvelope().toString());
-                // this.outputDelegate
-                // .printlnStdout("JTS geom: " + geometry.getEnvelopeInternal().toString());
-                // final List<org.locationtech.jts.geom.Polygon> polygons = countryBoundaryMap
-                // .query(geometry.getEnvelopeInternal()).stream().distinct()
-                // .collect(Collectors.toList());
-                // final List<String> countries = new ArrayList<>();
-                // final JtsPolyLineConverter JTS_POLYLINE_CONVERTER = new JtsPolyLineConverter();
-                // polygons.forEach(polygon2 ->
-                // {
-                // final LineString converted = JTS_POLYLINE_CONVERTER
-                // .convert(new PolyLine(polygon.closedLoop()));
-                // this.outputDelegate.printlnStdout("poly: "
-                // + CountryBoundaryMap.getGeometryProperty(polygon2, ISOCountryTag.KEY)
-                // + "\ninter: " + polygon2.intersects(converted));
-                // this.outputDelegate.printlnStdout(converted.toString());
-                // countries.add(
-                // CountryBoundaryMap.getGeometryProperty(polygon2, ISOCountryTag.KEY));
-                // });
-                // this.outputDelegate.printlnStdout(countries.toString());
-                for (final CountryBoundary boundary : boundaries)
+                final List<org.locationtech.jts.geom.Polygon> polygons = countryBoundaryMap
+                        .query(geometry.getEnvelopeInternal()).stream().distinct()
+                        .collect(Collectors.toList());
+                final Set<String> countries = new HashSet<>();
+                polygons.forEach(polygon2 -> countries
+                        .add(CountryBoundaryMap.getGeometryProperty(polygon2, ISOCountryTag.KEY)));
+                for (final String country : countries)
                 {
-                    this.outputDelegate.printlnStdout(boundary.getCountryName(),
-                            TTYAttribute.GREEN);
+                    this.outputDelegate.printlnStdout(country, TTYAttribute.GREEN);
                 }
             }
         }

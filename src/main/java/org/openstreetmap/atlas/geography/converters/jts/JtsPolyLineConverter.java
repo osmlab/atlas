@@ -27,6 +27,11 @@ public class JtsPolyLineConverter implements TwoWayConverter<PolyLine, LineStrin
     @Override
     public LineString convert(final PolyLine polyLine)
     {
+        /*
+         * Occasionally this method may be called with a PolyLine that is actually a Polygon. In
+         * those cases, we want to properly return a LinearRing so as not to break downstream code
+         * that expects Polygon-like closed-ness.
+         */
         if (polyLine instanceof Polygon)
         {
             final Polygon polygon = (Polygon) polyLine;
