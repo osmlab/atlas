@@ -2,7 +2,9 @@ package org.openstreetmap.atlas.geography.converters.jts;
 
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.LinearRing;
 import org.openstreetmap.atlas.geography.PolyLine;
+import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
 
 /**
@@ -25,6 +27,13 @@ public class JtsPolyLineConverter implements TwoWayConverter<PolyLine, LineStrin
     @Override
     public LineString convert(final PolyLine polyLine)
     {
+        if (polyLine instanceof Polygon)
+        {
+            final Polygon polygon = (Polygon) polyLine;
+            return new LinearRing(
+                    COORDINATE_ARRAY_CONVERTER.convert(new PolyLine(polygon.closedLoop())),
+                    FACTORY);
+        }
         return new LineString(COORDINATE_ARRAY_CONVERTER.convert(polyLine), FACTORY);
     }
 }
