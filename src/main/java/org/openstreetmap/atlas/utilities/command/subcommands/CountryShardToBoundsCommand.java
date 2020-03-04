@@ -122,6 +122,7 @@ public class CountryShardToBoundsCommand extends AbstractAtlasShellToolsCommand
         {
             this.outputDelegate.printlnErrorMessage(
                     "boundary file " + boundaryMapFile.getAbsolutePath() + " does not exist");
+            return 1;
         }
         if (this.optionAndArgumentDelegate.hasVerboseOption())
         {

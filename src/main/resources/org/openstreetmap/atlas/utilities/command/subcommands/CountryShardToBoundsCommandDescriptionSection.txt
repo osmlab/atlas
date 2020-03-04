@@ -8,5 +8,5 @@ whose bounds exactly match a given WKT. If no matches are found, the command wil
 exit.
 
 Use the '--country-boundary' option to instead show the WKT boundary for given country code(s). The
-code should be provided in ISO2 or ISO3 format. If you are unsure of the ISO code for your desired
+code(s) should be provided in ISO2 or ISO3 format. If you are unsure of the ISO code for your desired
 country, try using the 'iso-country-code' command.
