@@ -125,14 +125,23 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         else if (this.optionAndArgumentDelegate.getParserContext() == COUNTRY_BOUNDARY_CONTEXT
                 && this.optionAndArgumentDelegate.hasOption(COUNTRY_BOUNDARY_OPTION_LONG))
         {
-            final File boundaryMapFile = new File(this.optionAndArgumentDelegate
-                    .getOptionArgument(COUNTRY_BOUNDARY_OPTION_LONG).get());
+            final File boundaryMapFile = new File(
+                    this.optionAndArgumentDelegate.getOptionArgument(COUNTRY_BOUNDARY_OPTION_LONG)
+                            .orElseThrow(AtlasShellToolsException::new));
             if (!boundaryMapFile.exists())
             {
-                this.outputDelegate.printlnErrorMessage("boundary file "
-                        + boundaryMapFile.getAbsolutePath().toString() + " does not exist");
+                this.outputDelegate.printlnErrorMessage(
+                        "boundary file " + boundaryMapFile.getAbsolutePath() + " does not exist");
+            }
+            if (this.optionAndArgumentDelegate.hasVerboseOption())
+            {
+                this.outputDelegate.printlnCommandMessage("loading country boundary map...");
             }
             countryBoundaryMap = CountryBoundaryMap.fromPlainText(boundaryMapFile);
+            if (this.optionAndArgumentDelegate.hasVerboseOption())
+            {
+                this.outputDelegate.printlnCommandMessage("loaded boundary map");
+            }
         }
         else
         {
@@ -195,121 +204,94 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         super.registerOptionsAndArguments();
     }
 
-    private void parseBoundaryMapIntersectionCase(final String wktOrShard,
-            final CountryBoundaryMap countryBoundaryMap)
-    {
-        final Geometry geometry = parseWktOrShardString(wktOrShard);
-
-        if (geometry == null)
-        {
-            this.outputDelegate.printlnErrorMessage(
-                    "unable to parse " + wktOrShard + " as WKT or shard string");
-            return;
-        }
-
-        if (geometry instanceof Point)
-        {
-            this.outputDelegate.printlnStdout(wktOrShard + " covered by:", TTYAttribute.BOLD);
-            final Location location = new JtsPointConverter().backwardConvert((Point) geometry);
-            final List<CountryBoundary> boundaries = countryBoundaryMap.boundaries(location);
-            for (final CountryBoundary boundary : boundaries)
-            {
-                this.outputDelegate.printlnStdout(boundary.getCountryName(), TTYAttribute.GREEN);
-            }
-        }
-        else if (geometry instanceof LineString)
-        {
-            this.outputDelegate.printlnStdout(wktOrShard + " intersects:", TTYAttribute.BOLD);
-            final PolyLine polyline = new JtsPolyLineConverter()
-                    .backwardConvert((LineString) geometry);
-            final List<CountryBoundary> boundaries = countryBoundaryMap.boundaries(polyline);
-            for (final CountryBoundary boundary : boundaries)
-            {
-                this.outputDelegate.printlnStdout(boundary.getCountryName(), TTYAttribute.GREEN);
-            }
-        }
-        else if (geometry instanceof Polygon)
-        {
-            this.outputDelegate.printlnStdout(wktOrShard + " intersects:", TTYAttribute.BOLD);
-            final org.openstreetmap.atlas.geography.Polygon polygon = new JtsPolygonConverter()
-                    .backwardConvert((Polygon) geometry);
-            final List<CountryBoundary> boundaries = countryBoundaryMap.boundaries(polygon);
-            for (final CountryBoundary boundary : boundaries)
-            {
-                this.outputDelegate.printlnStdout(boundary.getCountryName(), TTYAttribute.GREEN);
-            }
-        }
-        /*
-         * TODO handle more geometry types? e.g. MultiPoint, MultiLineString, and MultiPolygon?
-         */
-        else
-        {
-            this.outputDelegate.printlnErrorMessage("unsupported geometry type " + wktOrShard);
-        }
-    }
-
-    private void parseShardIntersectionCase(final String wktOrShard, final Sharding sharding)
-    {
-        final Geometry geometry = parseWktOrShardString(wktOrShard);
-
-        if (geometry == null)
-        {
-            this.outputDelegate.printlnErrorMessage(
-                    "unable to parse " + wktOrShard + " as WKT or shard string");
-            return;
-        }
-
-        if (geometry instanceof Point)
-        {
-            this.outputDelegate.printlnStdout(wktOrShard + " covered by:", TTYAttribute.BOLD);
-            final Location location = new JtsPointConverter().backwardConvert((Point) geometry);
-            final Iterable<? extends Shard> shards = sharding.shardsCovering(location);
-            for (final Shard shard : shards)
-            {
-                this.outputDelegate.printlnStdout(shard.toString(), TTYAttribute.GREEN);
-            }
-        }
-        else if (geometry instanceof LineString)
-        {
-            this.outputDelegate.printlnStdout(wktOrShard + " intersects:", TTYAttribute.BOLD);
-            final PolyLine polyline = new JtsPolyLineConverter()
-                    .backwardConvert((LineString) geometry);
-            final Iterable<? extends Shard> shards = sharding.shardsIntersecting(polyline);
-            for (final Shard shard : shards)
-            {
-                this.outputDelegate.printlnStdout(shard.toString(), TTYAttribute.GREEN);
-            }
-        }
-        else if (geometry instanceof Polygon)
-        {
-            this.outputDelegate.printlnStdout(wktOrShard + " intersects:", TTYAttribute.BOLD);
-            final org.openstreetmap.atlas.geography.Polygon polygon = new JtsPolygonConverter()
-                    .backwardConvert((Polygon) geometry);
-            final Iterable<? extends Shard> shards = sharding.shards(polygon);
-            for (final Shard shard : shards)
-            {
-                this.outputDelegate.printlnStdout(shard.toString(), TTYAttribute.GREEN);
-            }
-        }
-        /*
-         * TODO handle more geometry types? e.g. MultiPoint, MultiLineString, and MultiPolygon?
-         */
-        else
-        {
-            this.outputDelegate.printlnErrorMessage("unsupported geometry type " + wktOrShard);
-        }
-    }
-
     private void parseWktOrShardAndPrintOutput(final String wktOrShard, final Sharding sharding,
             final CountryBoundaryMap countryBoundaryMap)
     {
-        if (sharding != null)
+        final Geometry geometry = parseWktOrShardString(wktOrShard);
+
+        if (geometry == null)
         {
-            parseShardIntersectionCase(wktOrShard, sharding);
+            this.outputDelegate.printlnErrorMessage(
+                    "unable to parse " + wktOrShard + " as WKT or shard string");
+            return;
         }
+
+        if (geometry instanceof Point)
+        {
+            this.outputDelegate.printlnStdout(wktOrShard + " covered by:", TTYAttribute.BOLD);
+            final Location location = new JtsPointConverter().backwardConvert((Point) geometry);
+            if (sharding != null)
+            {
+                final Iterable<? extends Shard> shards = sharding.shardsCovering(location);
+                for (final Shard shard : shards)
+                {
+                    this.outputDelegate.printlnStdout(shard.toString(), TTYAttribute.GREEN);
+                }
+            }
+            if (countryBoundaryMap != null)
+            {
+                final List<CountryBoundary> boundaries = countryBoundaryMap.boundaries(location);
+                for (final CountryBoundary boundary : boundaries)
+                {
+                    this.outputDelegate.printlnStdout(boundary.getCountryName(),
+                            TTYAttribute.GREEN);
+                }
+            }
+        }
+        else if (geometry instanceof LineString)
+        {
+            this.outputDelegate.printlnStdout(wktOrShard + " intersects:", TTYAttribute.BOLD);
+            final PolyLine polyline = new JtsPolyLineConverter()
+                    .backwardConvert((LineString) geometry);
+            if (sharding != null)
+            {
+                final Iterable<? extends Shard> shards = sharding.shardsIntersecting(polyline);
+                for (final Shard shard : shards)
+                {
+                    this.outputDelegate.printlnStdout(shard.toString(), TTYAttribute.GREEN);
+                }
+            }
+
+            if (countryBoundaryMap != null)
+            {
+                final List<CountryBoundary> boundaries = countryBoundaryMap.boundaries(polyline);
+                for (final CountryBoundary boundary : boundaries)
+                {
+                    this.outputDelegate.printlnStdout(boundary.getCountryName(),
+                            TTYAttribute.GREEN);
+                }
+            }
+        }
+        else if (geometry instanceof Polygon)
+        {
+            this.outputDelegate.printlnStdout(wktOrShard + " intersects:", TTYAttribute.BOLD);
+            final org.openstreetmap.atlas.geography.Polygon polygon = new JtsPolygonConverter()
+                    .backwardConvert((Polygon) geometry);
+            if (sharding != null)
+            {
+                final Iterable<? extends Shard> shards = sharding.shards(polygon);
+                for (final Shard shard : shards)
+                {
+                    this.outputDelegate.printlnStdout(shard.toString(), TTYAttribute.GREEN);
+                }
+            }
+
+            if (countryBoundaryMap != null)
+            {
+                final List<CountryBoundary> boundaries = countryBoundaryMap.boundaries(polygon);
+                for (final CountryBoundary boundary : boundaries)
+                {
+                    this.outputDelegate.printlnStdout(boundary.getCountryName(),
+                            TTYAttribute.GREEN);
+                }
+            }
+        }
+        /*
+         * TODO handle more geometry types? e.g. MultiPoint, MultiLineString, and MultiPolygon?
+         */
         else
         {
-            parseBoundaryMapIntersectionCase(wktOrShard, countryBoundaryMap);
+            this.outputDelegate.printlnErrorMessage("unsupported geometry type " + wktOrShard);
         }
     }
 
