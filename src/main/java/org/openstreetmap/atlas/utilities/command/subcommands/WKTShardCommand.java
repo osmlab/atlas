@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -105,48 +106,33 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
 
         Sharding sharding = null;
         CountryBoundaryMap countryBoundaryMap = null;
-        if (this.optionAndArgumentDelegate.getParserContext() == TREE_CONTEXT
-                && this.optionAndArgumentDelegate.hasOption(TREE_OPTION_LONG))
+        if (this.optionAndArgumentDelegate.getParserContext() == TREE_CONTEXT)
         {
             sharding = Sharding.forString(
                     "dynamic@" + this.optionAndArgumentDelegate.getOptionArgument(TREE_OPTION_LONG)
                             .orElseThrow(AtlasShellToolsException::new));
         }
-        else if (this.optionAndArgumentDelegate.getParserContext() == SLIPPY_CONTEXT
-                && this.optionAndArgumentDelegate.hasOption(SLIPPY_OPTION_LONG))
+        else if (this.optionAndArgumentDelegate.getParserContext() == SLIPPY_CONTEXT)
         {
             sharding = Sharding.forString(
                     "slippy@" + this.optionAndArgumentDelegate.getOptionArgument(SLIPPY_OPTION_LONG)
                             .orElseThrow(AtlasShellToolsException::new));
         }
-        else if (this.optionAndArgumentDelegate.getParserContext() == GEOHASH_CONTEXT
-                && this.optionAndArgumentDelegate.hasOption(GEOHASH_OPTION_LONG))
+        else if (this.optionAndArgumentDelegate.getParserContext() == GEOHASH_CONTEXT)
         {
             sharding = Sharding.forString("geohash@"
                     + this.optionAndArgumentDelegate.getOptionArgument(GEOHASH_OPTION_LONG)
                             .orElseThrow(AtlasShellToolsException::new));
         }
-        else if (this.optionAndArgumentDelegate.getParserContext() == COUNTRY_BOUNDARY_CONTEXT
-                && this.optionAndArgumentDelegate.hasOption(COUNTRY_BOUNDARY_OPTION_LONG))
+        else if (this.optionAndArgumentDelegate.getParserContext() == COUNTRY_BOUNDARY_CONTEXT)
         {
-            final File boundaryMapFile = new File(
-                    this.optionAndArgumentDelegate.getOptionArgument(COUNTRY_BOUNDARY_OPTION_LONG)
-                            .orElseThrow(AtlasShellToolsException::new));
-            if (!boundaryMapFile.exists())
+            final Optional<CountryBoundaryMap> mapOptional = loadCountryBoundaryMap();
+            if (!mapOptional.isPresent())
             {
-                this.outputDelegate.printlnErrorMessage(
-                        "boundary file " + boundaryMapFile.getAbsolutePath() + " does not exist");
+                this.outputDelegate.printlnErrorMessage("failed to load country boundary");
                 return 1;
             }
-            if (this.optionAndArgumentDelegate.hasVerboseOption())
-            {
-                this.outputDelegate.printlnCommandMessage("loading country boundary map...");
-            }
-            countryBoundaryMap = CountryBoundaryMap.fromPlainText(boundaryMapFile);
-            if (this.optionAndArgumentDelegate.hasVerboseOption())
-            {
-                this.outputDelegate.printlnCommandMessage("loaded boundary map");
-            }
+            countryBoundaryMap = mapOptional.get();
         }
         else
         {
@@ -209,6 +195,30 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         super.registerOptionsAndArguments();
     }
 
+    private Optional<CountryBoundaryMap> loadCountryBoundaryMap()
+    {
+        final Optional<CountryBoundaryMap> countryBoundaryMap;
+        final File boundaryMapFile = new File(
+                this.optionAndArgumentDelegate.getOptionArgument(COUNTRY_BOUNDARY_OPTION_LONG)
+                        .orElseThrow(AtlasShellToolsException::new));
+        if (!boundaryMapFile.exists())
+        {
+            this.outputDelegate.printlnErrorMessage(
+                    "boundary file " + boundaryMapFile.getAbsolutePath() + " does not exist");
+            return Optional.empty();
+        }
+        if (this.optionAndArgumentDelegate.hasVerboseOption())
+        {
+            this.outputDelegate.printlnCommandMessage("loading country boundary map...");
+        }
+        countryBoundaryMap = Optional.of(CountryBoundaryMap.fromPlainText(boundaryMapFile));
+        if (this.optionAndArgumentDelegate.hasVerboseOption())
+        {
+            this.outputDelegate.printlnCommandMessage("loaded boundary map");
+        }
+        return countryBoundaryMap;
+    }
+
     private void parseWktOrShardAndPrintOutput(final String wktOrShard, final Sharding sharding,
             final CountryBoundaryMap countryBoundaryMap)
     {
@@ -223,78 +233,15 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
 
         if (geometry instanceof Point)
         {
-            this.outputDelegate.printlnStdout(wktOrShard + " covered by:", TTYAttribute.BOLD);
-            final Location location = new JtsPointConverter().backwardConvert((Point) geometry);
-            if (sharding != null)
-            {
-                final Iterable<? extends Shard> shards = sharding.shardsCovering(location);
-                for (final Shard shard : shards)
-                {
-                    this.outputDelegate.printlnStdout(shard.toString(), TTYAttribute.GREEN);
-                }
-            }
-            if (countryBoundaryMap != null)
-            {
-                final List<CountryBoundary> boundaries = countryBoundaryMap.boundaries(location);
-                for (final CountryBoundary boundary : boundaries)
-                {
-                    this.outputDelegate.printlnStdout(boundary.getCountryName(),
-                            TTYAttribute.GREEN);
-                }
-            }
+            printPointOutput(wktOrShard, geometry, sharding, countryBoundaryMap);
         }
         else if (geometry instanceof LineString)
         {
-            this.outputDelegate.printlnStdout(wktOrShard + " intersects:", TTYAttribute.BOLD);
-            final PolyLine polyline = new JtsPolyLineConverter()
-                    .backwardConvert((LineString) geometry);
-            if (sharding != null)
-            {
-                final Iterable<? extends Shard> shards = sharding.shardsIntersecting(polyline);
-                for (final Shard shard : shards)
-                {
-                    this.outputDelegate.printlnStdout(shard.toString(), TTYAttribute.GREEN);
-                }
-            }
-
-            if (countryBoundaryMap != null)
-            {
-                final List<CountryBoundary> boundaries = countryBoundaryMap.boundaries(polyline);
-                for (final CountryBoundary boundary : boundaries)
-                {
-                    this.outputDelegate.printlnStdout(boundary.getCountryName(),
-                            TTYAttribute.GREEN);
-                }
-            }
+            printLineStringOutput(wktOrShard, geometry, sharding, countryBoundaryMap);
         }
         else if (geometry instanceof Polygon)
         {
-            this.outputDelegate.printlnStdout(wktOrShard + " contains or intersects:",
-                    TTYAttribute.BOLD);
-            final org.openstreetmap.atlas.geography.Polygon polygon = new JtsPolygonConverter()
-                    .backwardConvert((Polygon) geometry);
-            if (sharding != null)
-            {
-                final Iterable<? extends Shard> shards = sharding.shards(polygon);
-                for (final Shard shard : shards)
-                {
-                    this.outputDelegate.printlnStdout(shard.toString(), TTYAttribute.GREEN);
-                }
-            }
-
-            if (countryBoundaryMap != null)
-            {
-                final List<org.locationtech.jts.geom.Polygon> polygons = countryBoundaryMap
-                        .query(geometry.getEnvelopeInternal()).stream().distinct()
-                        .collect(Collectors.toList());
-                final Set<String> countries = new HashSet<>();
-                polygons.forEach(polygon2 -> countries
-                        .add(CountryBoundaryMap.getGeometryProperty(polygon2, ISOCountryTag.KEY)));
-                for (final String country : countries)
-                {
-                    this.outputDelegate.printlnStdout(country, TTYAttribute.GREEN);
-                }
-            }
+            printPolygonOutput(wktOrShard, geometry, sharding, countryBoundaryMap);
         }
         /*
          * TODO handle more geometry types? e.g. MultiPoint, MultiLineString, and MultiPolygon?
@@ -329,6 +276,84 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
             }
         }
         return geometry;
+    }
+
+    private void printLineStringOutput(final String wktOrShard, final Geometry geometry,
+            final Sharding sharding, final CountryBoundaryMap countryBoundaryMap)
+    {
+        this.outputDelegate.printlnStdout(wktOrShard + " intersects:", TTYAttribute.BOLD);
+        final PolyLine polyline = new JtsPolyLineConverter().backwardConvert((LineString) geometry);
+        if (sharding != null)
+        {
+            final Iterable<? extends Shard> shards = sharding.shardsIntersecting(polyline);
+            for (final Shard shard : shards)
+            {
+                this.outputDelegate.printlnStdout(shard.toString(), TTYAttribute.GREEN);
+            }
+        }
+
+        if (countryBoundaryMap != null)
+        {
+            final List<CountryBoundary> boundaries = countryBoundaryMap.boundaries(polyline);
+            for (final CountryBoundary boundary : boundaries)
+            {
+                this.outputDelegate.printlnStdout(boundary.getCountryName(), TTYAttribute.GREEN);
+            }
+        }
+    }
+
+    private void printPointOutput(final String wktOrShard, final Geometry geometry,
+            final Sharding sharding, final CountryBoundaryMap countryBoundaryMap)
+    {
+        this.outputDelegate.printlnStdout(wktOrShard + " covered by:", TTYAttribute.BOLD);
+        final Location location = new JtsPointConverter().backwardConvert((Point) geometry);
+        if (sharding != null)
+        {
+            final Iterable<? extends Shard> shards = sharding.shardsCovering(location);
+            for (final Shard shard : shards)
+            {
+                this.outputDelegate.printlnStdout(shard.toString(), TTYAttribute.GREEN);
+            }
+        }
+        if (countryBoundaryMap != null)
+        {
+            final List<CountryBoundary> boundaries = countryBoundaryMap.boundaries(location);
+            for (final CountryBoundary boundary : boundaries)
+            {
+                this.outputDelegate.printlnStdout(boundary.getCountryName(), TTYAttribute.GREEN);
+            }
+        }
+    }
+
+    private void printPolygonOutput(final String wktOrShard, final Geometry geometry,
+            final Sharding sharding, final CountryBoundaryMap countryBoundaryMap)
+    {
+        this.outputDelegate.printlnStdout(wktOrShard + " contains or intersects:",
+                TTYAttribute.BOLD);
+        final org.openstreetmap.atlas.geography.Polygon polygon = new JtsPolygonConverter()
+                .backwardConvert((Polygon) geometry);
+        if (sharding != null)
+        {
+            final Iterable<? extends Shard> shards = sharding.shards(polygon);
+            for (final Shard shard : shards)
+            {
+                this.outputDelegate.printlnStdout(shard.toString(), TTYAttribute.GREEN);
+            }
+        }
+
+        if (countryBoundaryMap != null)
+        {
+            final List<org.locationtech.jts.geom.Polygon> polygons = countryBoundaryMap
+                    .query(geometry.getEnvelopeInternal()).stream().distinct()
+                    .collect(Collectors.toList());
+            final Set<String> countries = new HashSet<>();
+            polygons.forEach(polygon2 -> countries
+                    .add(CountryBoundaryMap.getGeometryProperty(polygon2, ISOCountryTag.KEY)));
+            for (final String country : countries)
+            {
+                this.outputDelegate.printlnStdout(country, TTYAttribute.GREEN);
+            }
+        }
     }
 
     private List<String> readInputsFromFile(final String path)

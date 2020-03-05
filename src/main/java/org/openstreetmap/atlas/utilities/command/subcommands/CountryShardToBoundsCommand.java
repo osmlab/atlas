@@ -86,7 +86,7 @@ public class CountryShardToBoundsCommand extends AbstractAtlasShellToolsCommand
     @Override
     public String getSimpleDescription()
     {
-        return "get the WKT bounds of given shard(s) or countries";
+        return "get the WKT bounds of given shards or countries";
     }
 
     @Override
@@ -139,7 +139,7 @@ public class CountryShardToBoundsCommand extends AbstractAtlasShellToolsCommand
 
         for (int i = 0; i < countryCodes.size(); i++)
         {
-            final String countryCode = countryCodes.get(i);
+            final String countryCode = countryCodes.get(i).toUpperCase();
             this.outputDelegate.printlnStdout(countryCode + " boundary:", TTYAttribute.BOLD);
             final List<CountryBoundary> boundaries = countryBoundaryMap
                     .countryBoundary(countryCode);

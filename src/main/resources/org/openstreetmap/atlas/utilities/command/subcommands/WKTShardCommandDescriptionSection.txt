@@ -1,12 +1,12 @@
-Perform various intersection lookups, specifically look for WKT or shard intersections with shards
-in a given sharding or countries in a given boundary map. Read on for more information on these use-cases.
+Look for WKT or shard intersections with a given sharding or a given country boundary
+map. Read on for more information on these use-cases.
 
-Given some supplied WKT or sharding strings and a sharding tree, spit out the shards that intersect
+1) Given some supplied WKT or sharding strings and a sharding tree, spit out the shards that intersect
 each geometry string. The '--tree', '--slippy', and '--geohash' options allow the user to select between
 a dynamic sharding tree, a static slippy tile tree based on a single zoom, or a geohash tree with
 a given precision.
 
-Given a country boundary map and some WKT or shard strings, spit out the countries that intersect
+2) Given a country boundary map and some WKT or shard strings, spit out the countries that intersect
 the given geometry strings. The '--country-boundary' option should point to a valid
 country boundary file as expected by the CountryBoundaryMap class.
 
