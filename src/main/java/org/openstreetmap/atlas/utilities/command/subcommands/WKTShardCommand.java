@@ -343,6 +343,15 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
 
         if (countryBoundaryMap != null)
         {
+            /*
+             * This is handled a little differently here than in the other printXOutput methods.
+             * This is because the CountryBoundaryMap#boundaries method does not handle certain
+             * cases the way we want it to, e.g. like when a shard boundary or other large polygon
+             * completely encloses a country boundary (think large ocean shard totally containing a
+             * small island country). We still want to report those enclosed boundaries in this
+             * case. In the future, we may want to fix CountryBoundaryMap to handle this case in
+             * some way.
+             */
             final List<org.locationtech.jts.geom.Polygon> polygons = countryBoundaryMap
                     .query(geometry.getEnvelopeInternal()).stream().distinct()
                     .collect(Collectors.toList());
