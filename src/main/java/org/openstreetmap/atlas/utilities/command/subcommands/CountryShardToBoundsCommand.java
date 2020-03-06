@@ -205,7 +205,7 @@ public class CountryShardToBoundsCommand extends AbstractAtlasShellToolsCommand
 
     private void parseShardAndPrintOutput(final String shardName)
     {
-        this.outputDelegate.printlnStdout(shardName + " bounds: ", TTYAttribute.BOLD);
+        this.outputDelegate.printlnStdout(shardName + " bounds:", TTYAttribute.BOLD);
         final Shard shard;
         try
         {
