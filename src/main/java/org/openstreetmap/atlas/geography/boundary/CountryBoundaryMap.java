@@ -521,7 +521,7 @@ public class CountryBoundaryMap implements Serializable, GeoJson
                 () -> this.query(polyLine.bounds().expand(extension).asEnvelope()), boundary ->
                 {
                     final LineString lineString = JTS_POLYLINE_CONVERTER.convert(polyLine);
-                    return boundary.intersects(lineString) || boundary.coveredBy(lineString);
+                    return boundary.intersects(lineString);
                 });
     }
 
