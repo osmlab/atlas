@@ -30,7 +30,6 @@ import org.geotools.measure.Longitude;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryCollection;
-import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.index.strtree.AbstractNode;
 import org.locationtech.jts.index.strtree.GeometryItemDistance;
@@ -498,11 +497,8 @@ public class CountryBoundaryMap implements Serializable, GeoJson
      */
     public List<CountryBoundary> boundaries(final PolyLine polyLine)
     {
-        return this.boundariesHelper(() -> this.query(polyLine.bounds().asEnvelope()), boundary ->
-        {
-            final LineString lineString = JTS_POLYLINE_CONVERTER.convert(polyLine);
-            return boundary.intersects(lineString);
-        });
+        return this.boundariesHelper(() -> this.query(polyLine.bounds().asEnvelope()),
+                boundary -> boundary.intersects(JTS_POLYLINE_CONVERTER.convert(polyLine)));
     }
 
     /**
@@ -518,11 +514,8 @@ public class CountryBoundaryMap implements Serializable, GeoJson
     public List<CountryBoundary> boundaries(final PolyLine polyLine, final Distance extension)
     {
         return this.boundariesHelper(
-                () -> this.query(polyLine.bounds().expand(extension).asEnvelope()), boundary ->
-                {
-                    final LineString lineString = JTS_POLYLINE_CONVERTER.convert(polyLine);
-                    return boundary.intersects(lineString);
-                });
+                () -> this.query(polyLine.bounds().expand(extension).asEnvelope()),
+                boundary -> boundary.intersects(JTS_POLYLINE_CONVERTER.convert(polyLine)));
     }
 
     /**
