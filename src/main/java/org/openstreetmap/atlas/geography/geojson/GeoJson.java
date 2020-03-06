@@ -29,17 +29,5 @@ public interface GeoJson
 {
     JsonObject asGeoJson();
 
-    /**
-     * Return a {@link JsonObject} representation that uses linestrings instead of polygons where
-     * applicable. This may be useful for certain object types, since many visualization softwares
-     * have an easier time showing linestrings.
-     *
-     * @return the {@link JsonObject} with any polygons represented instead as linestrings
-     */
-    default JsonObject asGeoJsonLineString()
-    {
-        throw new UnsupportedOperationException();
-    }
-
     GeoJsonType getGeoJsonType();
 }
