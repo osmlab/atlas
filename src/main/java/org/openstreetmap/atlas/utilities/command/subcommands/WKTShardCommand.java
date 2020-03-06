@@ -222,14 +222,15 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
     private void parseWktOrShardAndPrintOutput(final String wktOrShard, final Sharding sharding,
             final CountryBoundaryMap countryBoundaryMap)
     {
-        final Geometry geometry = parseWktOrShardString(wktOrShard);
+        final Optional<Geometry> geometryOptional = parseWktOrShardString(wktOrShard);
 
-        if (geometry == null)
+        if (geometryOptional.isEmpty())
         {
             this.outputDelegate.printlnErrorMessage(
                     "unable to parse " + wktOrShard + " as WKT or shard string");
             return;
         }
+        final Geometry geometry = geometryOptional.get();
 
         if (geometry instanceof Point)
         {
@@ -252,13 +253,12 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         }
     }
 
-    private Geometry parseWktOrShardString(final String wktOrShard)
+    private Optional<Geometry> parseWktOrShardString(final String wktOrShard)
     {
         final WKTReader reader = new WKTReader();
-        Geometry geometry = null;
         try
         {
-            geometry = reader.read(wktOrShard);
+            return Optional.of(reader.read(wktOrShard));
         }
         catch (final ParseException exception)
         {
@@ -268,14 +268,14 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
             {
                 final StringToShardConverter converter = new StringToShardConverter();
                 final Shard shard = converter.convert(wktOrShard);
-                geometry = new WKTReader().read(shard.toWkt());
+                return Optional.of(new WKTReader().read(shard.toWkt()));
             }
             catch (final Exception exception2)
             {
                 logger.warn("unable to parse {} as shard", wktOrShard, exception2);
             }
         }
-        return geometry;
+        return Optional.empty();
     }
 
     private void printLineStringOutput(final String wktOrShard, final Geometry geometry,
@@ -383,7 +383,7 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
                     inputPath.toAbsolutePath().toString() + " is not a readable file");
             return new ArrayList<>();
         }
-        final List<String> wktList = new ArrayList<>();
+        final List<String> wktOrShardList = new ArrayList<>();
         final StringResource resource = new StringResource();
         resource.copyFrom(new File(inputPath.toAbsolutePath().toString()));
         final String rawText = resource.all();
@@ -393,10 +393,10 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         {
             if (!line.isEmpty())
             {
-                wktList.add(line);
+                wktOrShardList.add(line);
             }
         }
 
-        return wktList;
+        return wktOrShardList;
     }
 }
