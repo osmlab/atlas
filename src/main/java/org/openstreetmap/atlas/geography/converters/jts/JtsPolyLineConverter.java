@@ -2,7 +2,9 @@ package org.openstreetmap.atlas.geography.converters.jts;
 
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.LinearRing;
 import org.openstreetmap.atlas.geography.PolyLine;
+import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
 
 /**
@@ -25,6 +27,18 @@ public class JtsPolyLineConverter implements TwoWayConverter<PolyLine, LineStrin
     @Override
     public LineString convert(final PolyLine polyLine)
     {
+        /*
+         * Occasionally this method may be called with a PolyLine that is actually a Polygon. In
+         * those cases, we want to properly return a LinearRing so as not to break downstream code
+         * that expects Polygon-like closed-ness.
+         */
+        if (polyLine instanceof Polygon)
+        {
+            final Polygon polygon = (Polygon) polyLine;
+            return new LinearRing(
+                    COORDINATE_ARRAY_CONVERTER.convert(new PolyLine(polygon.closedLoop())),
+                    FACTORY);
+        }
         return new LineString(COORDINATE_ARRAY_CONVERTER.convert(polyLine), FACTORY);
     }
 }

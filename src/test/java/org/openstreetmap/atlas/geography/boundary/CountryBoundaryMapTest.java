@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.Assert;
@@ -41,6 +42,7 @@ import org.openstreetmap.atlas.test.TestUtility;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.configuration.StandardConfiguration;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
+import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.openstreetmap.atlas.utilities.threads.Pool;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
@@ -199,6 +201,24 @@ public class CountryBoundaryMapTest
         // Initialize grid index
         boundaryMap.initializeGridIndex(countries);
         Assert.assertTrue(boundaryMap.hasGridIndex());
+    }
+
+    @Test
+    public void testExtensionBoundariesFilter()
+    {
+        final CountryBoundaryMap map = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> CountryBoundaryMapTest.class
+                        .getResourceAsStream("MAF_AIA_osm_boundaries_with_grid_index.txt.gz"))
+                                .withDecompressor(Decompressor.GZIP));
+
+        final PolyLine line = PolyLine.wkt(
+                "LINESTRING(-63.069960775034794 18.20724437315409,-63.056442441599735 18.203616100626693,-63.058416547434696 18.211076399156397)");
+
+        final List<CountryBoundary> boundaries = map.boundaries(line, Distance.ONE_METER);
+        Assert.assertEquals(1, boundaries.size());
+        Assert.assertEquals("AIA", boundaries.get(0).getCountryName());
+        Assert.assertEquals("POLYGON ((-62.76312 18.1617887",
+                boundaries.get(0).getBoundary().toWkt().substring(0, 30));
     }
 
     @Test

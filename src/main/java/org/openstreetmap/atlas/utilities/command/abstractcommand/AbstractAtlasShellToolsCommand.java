@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.utilities.command.abstractcommand;
 
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -98,6 +99,17 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     private String version = "default_version_value";
     private boolean ignoreUnknownOptions = false;
 
+    /*
+     * Why are we using PrintStreams instead of a logger? Well, we aren't totally. We still
+     * encourage the use of a logger with various levels for diagnostic messages (see the many
+     * examples of this in subclass implementations). However, for simplicity's sake we use
+     * System.out/err for direct messages intended for the user to read on the command line. This
+     * makes it easier for users to adjust their log configuration to show the desired level of
+     * diagnostics without affecting the actual command outputs.
+     */
+    private PrintStream outStream = System.out; // NOSONAR
+    private PrintStream errStream = System.err; // NOSONAR
+
     /**
      * Execute the command logic. Subclasses of {@link AbstractAtlasShellToolsCommand} must
      * implement this method, but in general it should not be called directly. See
@@ -187,7 +199,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
             printStderr("\' option (e.g. ");
             printStderr("atlas " + this.getCommandName() + " --help", TTYAttribute.BOLD);
             printlnStderr(") for more info");
-            System.exit(1);
+            return 1;
         }
         catch (final Exception exception)
         {
@@ -238,6 +250,31 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     public void runSubcommandAndExit(final String... args)
     {
         System.exit(this.runSubcommand(args));
+    }
+
+    /**
+     * Set a new {@link PrintStream} for the stderr writer methods. This may be useful for various
+     * unit tests which want to intercept command error output to check it against some expected
+     * result.
+     *
+     * @param newErrStream
+     *            the new err {@link PrintStream}
+     */
+    public void setNewErrStream(final PrintStream newErrStream)
+    {
+        this.errStream = newErrStream;
+    }
+
+    /**
+     * Set a new {@link PrintStream} for the stdout writer methods. This may be useful for various
+     * unit tests which want to intercept command output to check it against some expected result.
+     *
+     * @param newOutStream
+     *            the new out {@link PrintStream}
+     */
+    public void setNewOutStream(final PrintStream newOutStream)
+    {
+        this.outStream = newOutStream;
     }
 
     /**
@@ -674,14 +711,14 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     {
         final TTYStringBuilder builder = this.getTTYStringBuilderForStderr();
         builder.append(string, attributes);
-        System.err.print(builder.toString()); // NOSONAR
+        this.errStream.print(builder.toString()); // NOSONAR
     }
 
     void printStdout(final String string, final TTYAttribute... attributes)
     {
         final TTYStringBuilder builder = this.getTTYStringBuilderForStdout();
         builder.append(string, attributes);
-        System.out.print(builder.toString()); // NOSONAR
+        this.outStream.print(builder.toString()); // NOSONAR
     }
 
     void printlnCommandMessage(final String message)
@@ -701,14 +738,14 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     {
         final TTYStringBuilder builder = this.getTTYStringBuilderForStderr();
         builder.append(string, attributes);
-        System.err.println(builder.toString()); // NOSONAR
+        this.errStream.println(builder.toString()); // NOSONAR
     }
 
     void printlnStdout(final String string, final TTYAttribute... attributes)
     {
         final TTYStringBuilder builder = this.getTTYStringBuilderForStdout();
         builder.append(string, attributes);
-        System.out.println(builder.toString()); // NOSONAR
+        this.outStream.println(builder.toString()); // NOSONAR
     }
 
     void printlnWarnMessage(final String message)

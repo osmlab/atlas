@@ -3,7 +3,7 @@ package org.openstreetmap.atlas.geography.geojson;
 import com.google.gson.JsonObject;
 
 /**
- * For all classed with a GeoJson representation. From the spec
+ * For all classes with a GeoJson representation. From the spec
  * https://tools.ietf.org/html/rfc7946#section-3
  * 
  * <pre>

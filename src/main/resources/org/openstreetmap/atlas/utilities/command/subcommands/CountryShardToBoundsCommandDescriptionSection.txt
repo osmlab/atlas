@@ -6,3 +6,7 @@ This command also supports a reverse match for SlippyTile and GeoHashTile shards
 '--reverse' option. The reverse match expects WKT polygon(s) as input, and will spit out any shards
 whose bounds exactly match a given WKT. If no matches are found, the command will print nothing and
 exit.
+
+Use the '--country-boundary' option to instead show the WKT boundary for given country code(s). The
+code(s) should be provided in ISO3 format. If you are unsure of the ISO code for your desired
+country, try using the 'iso-country-code' command.

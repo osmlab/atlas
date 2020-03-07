@@ -74,26 +74,26 @@ public class IsoCountryCodeCommand extends AbstractAtlasShellToolsCommand
                     && IsoCountry.forCountryCode(query.toUpperCase()).isPresent())
             {
                 this.outputDelegate.printlnWarnMessage(
-                        "did you mean case-sensitive ISO code \'" + query.toUpperCase() + "\'?");
+                        "did you mean case-sensitive ISO code '" + query.toUpperCase() + "'?");
             }
 
             // check for exact country code first
             if (forIsoCode.isPresent())
             {
-                this.outputDelegate.printlnStdout("ISO code \'" + query + "\' matched: ",
+                this.outputDelegate.printlnStdout("ISO code '" + query + "' matched: ",
                         TTYAttribute.BOLD);
                 printCountry(forIsoCode.get());
             }
             else if (forDisplayNameExact.isPresent())
             {
-                this.outputDelegate.printlnStdout(
-                        "Display country name \'" + query + "\' matched: ", TTYAttribute.BOLD);
+                this.outputDelegate.printlnStdout("Display country name '" + query + "' matched: ",
+                        TTYAttribute.BOLD);
                 printCountry(forDisplayNameExact.get());
             }
             else if (!forDisplayNameTopMatches.isEmpty())
             {
                 this.outputDelegate.printlnStdout(
-                        "Display country name \'" + query + "\' had no exact matches. "
+                        "Display country name '" + query + "' had no exact matches. "
                                 + forDisplayNameTopMatches.size() + " closest matches are:",
                         TTYAttribute.BOLD);
                 for (final IsoCountry country : forDisplayNameTopMatches)
