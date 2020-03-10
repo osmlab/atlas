@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.atlas.dynamic;
 
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -24,6 +25,8 @@ import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is not thread safe!
@@ -36,6 +39,8 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
 // NOSONAR here as the parent equals is enough
 public class DynamicAtlas extends BareAtlas // NOSONAR
 {
+    private static final Logger logger = LoggerFactory.getLogger(DynamicAtlas.class);
+
     private static final long serialVersionUID = -2858997785405677961L;
 
     // The current Atlas that will be swapped during expansion.
@@ -163,6 +168,15 @@ public class DynamicAtlas extends BareAtlas // NOSONAR
     {
         return this.expander.expand(() -> this.current.edgesWithin(surface),
                 this.expander::lineItemCovered, this::newEdge);
+    }
+
+    /**
+     * @return All the {@link Atlas}es explored by that {@link DynamicAtlas}
+     */
+    public Set<Atlas> getAtlasesLoaded()
+    {
+        return this.expander.getLoadedShards().values().stream().filter(Objects::nonNull)
+                .collect(Collectors.toSet());
     }
 
     /**

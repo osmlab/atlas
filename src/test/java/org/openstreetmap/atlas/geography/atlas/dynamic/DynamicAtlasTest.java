@@ -32,12 +32,16 @@ import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
 import org.openstreetmap.atlas.geography.sharding.SlippyTileSharding;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author matthieun
  */
 public class DynamicAtlasTest
 {
+    private static final Logger logger = LoggerFactory.getLogger(DynamicAtlasTest.class);
+
     @Rule
     public DynamicAtlasTestRule rule = new DynamicAtlasTestRule();
 
@@ -70,6 +74,38 @@ public class DynamicAtlasTest
         this.store.put(new SlippyTile(1349, 1869, 12), this.rule.getAtlasz12x1349y1869());
         this.store.put(new SlippyTile(1349, 1870, 12), this.rule.getAtlasz12x1349y1870());
         this.dynamicAtlas = new DynamicAtlas(policy);
+    }
+
+    @Test
+    public void testGetLoadedAtlases()
+    {
+        final Map<Shard, Atlas> store2 = new HashMap<>();
+        store2.put(new SlippyTile(1350, 1870, 12), this.rule.getAtlasz12x1350y1870());
+        store2.put(new SlippyTile(1350, 1869, 12), this.rule.getAtlasz12x1350y1869());
+        store2.put(new SlippyTile(1349, 1869, 12), this.rule.getAtlasz12x1349y1869());
+        store2.put(new SlippyTile(1349, 1870, 12), this.rule.getAtlasz12x1349y1870());
+        final DynamicAtlas dynamicAtlas2 = new DynamicAtlas(new DynamicAtlasPolicy(shard ->
+        {
+            if (this.store.containsKey(shard))
+            {
+                logger.info("Found shard: {}", shard);
+                return Optional.of(store2.get(shard));
+            }
+            else
+            {
+                logger.info("Empty shard: {}", shard);
+                return Optional.empty();
+            }
+        }, new SlippyTileSharding(12), new SlippyTile(1350, 1870, 12), Rectangle.MAXIMUM));
+        logger.info("About to load atlases");
+        final Set<Atlas> atlases1 = dynamicAtlas2.getAtlasesLoaded();
+        logger.info("atlases1 size: {}", atlases1.size());
+        final Node node1 = dynamicAtlas2.node(3L);
+        final Node node2 = dynamicAtlas2.node(5L);
+        final Node node3 = dynamicAtlas2.node(8L);
+        final Set<Atlas> atlases2 = dynamicAtlas2.getAtlasesLoaded();
+        logger.info("atlases2 size: {}", atlases2.size());
+        Assert.assertEquals(4, atlases2.size());
     }
 
     @Test
