@@ -60,8 +60,8 @@ import com.google.gson.JsonObject;
  */
 public abstract class BareAtlas implements Atlas
 {
-    private static final long serialVersionUID = 4733707438968864018L;
     public static final int MAXIMUM_RELATION_DEPTH = 500;
+    private static final long serialVersionUID = 4733707438968864018L;
     private static final NumberFormat NUMBER_FORMAT = NumberFormat.getInstance();
 
     static
@@ -659,6 +659,12 @@ public abstract class BareAtlas implements Atlas
 
     @Override
     public String toString()
+    {
+        return summary();
+    }
+
+    @Override
+    public String toStringDetailed()
     {
         final String newLineAfterFeature = ",\n\t\t";
         final StringBuilder builder = new StringBuilder();

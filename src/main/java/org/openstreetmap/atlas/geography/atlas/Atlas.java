@@ -955,7 +955,18 @@ public interface Atlas
     Optional<Atlas> subAtlas(Predicate<AtlasEntity> matcher, AtlasCutType cutType);
 
     /**
-     * @return A summary of this {@link Atlas}
+     * Get a summary of this {@link Atlas}. This string should be relatively compact, for e.g. just
+     * the entity counts.
+     * 
+     * @return A summary of this {@link Atlas}.
      */
     String summary();
+
+    /**
+     * Get a complete string representation of this {@link Atlas}. This string may include details
+     * on all contained entities.
+     * 
+     * @return a complete string representation of this {@link Atlas}
+     */
+    String toStringDetailed();
 }
