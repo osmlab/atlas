@@ -654,4 +654,10 @@ public class EmptyAtlas implements Atlas
     {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    public String toStringDetailed()
+    {
+        throw new UnsupportedOperationException();
+    }
 }
