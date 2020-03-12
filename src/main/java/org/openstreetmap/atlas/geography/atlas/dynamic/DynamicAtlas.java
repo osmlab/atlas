@@ -25,8 +25,6 @@ import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This is not thread safe!
@@ -39,8 +37,6 @@ import org.slf4j.LoggerFactory;
 // NOSONAR here as the parent equals is enough
 public class DynamicAtlas extends BareAtlas // NOSONAR
 {
-    private static final Logger logger = LoggerFactory.getLogger(DynamicAtlas.class);
-
     private static final long serialVersionUID = -2858997785405677961L;
 
     // The current Atlas that will be swapped during expansion.
