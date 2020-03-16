@@ -27,8 +27,8 @@ import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
  */
 public class LineAndPointSlicingTest
 {
-    private static RawAtlasCountrySlicer rawAtlasSlicer;
-    private static AtlasLoadingOption loadingOption;
+    private static final RawAtlasCountrySlicer rawAtlasSlicer;
+    private static final AtlasLoadingOption loadingOption;
 
     static
     {
@@ -449,5 +449,13 @@ public class LineAndPointSlicingTest
                     "Expect a nearest neighbor country code tag to be present for all points",
                     point.getTag(SyntheticNearestNeighborCountryCodeTag.KEY).isPresent());
         });
+    }
+
+    @Test
+    public void testSingleNodeLine()
+    {
+        final Atlas rawAtlas = this.setup.getSingleNodeLine();
+        final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
+        Assert.assertEquals(1, slicedAtlas.numberOfLines());
     }
 }
