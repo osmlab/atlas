@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.atlas.dynamic;
 
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -163,6 +164,15 @@ public class DynamicAtlas extends BareAtlas // NOSONAR
     {
         return this.expander.expand(() -> this.current.edgesWithin(surface),
                 this.expander::lineItemCovered, this::newEdge);
+    }
+
+    /**
+     * @return All the {@link Atlas}es explored by that {@link DynamicAtlas}
+     */
+    public Set<Atlas> getAtlasesLoaded()
+    {
+        return this.expander.getLoadedShards().values().stream().filter(Objects::nonNull)
+                .collect(Collectors.toSet());
     }
 
     /**

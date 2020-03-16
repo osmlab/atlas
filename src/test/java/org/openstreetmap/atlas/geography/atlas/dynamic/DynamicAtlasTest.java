@@ -73,6 +73,15 @@ public class DynamicAtlasTest
     }
 
     @Test
+    public void testGetLoadedAtlases()
+    {
+        prepare(this.policySupplier.get().withDeferredLoading(true));
+        this.dynamicAtlas.preemptiveLoad();
+        final Set<Atlas> atlases = this.dynamicAtlas.getAtlasesLoaded();
+        Assert.assertEquals(4, atlases.size());
+    }
+
+    @Test
     public void testGetPolicy()
     {
         Assert.assertEquals(this.policySupplier.get().getInitialShards(),
