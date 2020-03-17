@@ -12,8 +12,8 @@ import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.complex.Finder;
-import org.openstreetmap.atlas.geography.atlas.items.complex.waters.ComplexWaterEntity;
-import org.openstreetmap.atlas.geography.atlas.items.complex.waters.ComplexWaterEntityFinder;
+import org.openstreetmap.atlas.geography.atlas.items.complex.water.ComplexWaterEntity;
+import org.openstreetmap.atlas.geography.atlas.items.complex.water.finder.ComplexWaterEntityFinder;
 import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
@@ -38,6 +38,8 @@ public class RelationSlicingTest
     private static RawAtlasCountrySlicer rawAtlasSlicer;
 
     private static AtlasLoadingOption loadingOption;
+
+    private static ComplexWaterEntityFinder complexWaterEntityFinder = new ComplexWaterEntityFinder();
 
     static
     {
@@ -98,7 +100,7 @@ public class RelationSlicingTest
 
         // check that these relations close
         Assert.assertEquals(2,
-                Iterables.size(new ComplexWaterEntityFinder().find(slicedAtlas, Finder::ignore)));
+                Iterables.size(this.complexWaterEntityFinder.find(slicedAtlas, Finder::ignore)));
 
         Assert.assertEquals("CIV",
                 slicedAtlas.relation(214805001000L).getTag(ISOCountryTag.KEY).get());
@@ -178,7 +180,7 @@ public class RelationSlicingTest
 
         // check that these relations close
         Assert.assertEquals(1,
-                Iterables.size(new ComplexWaterEntityFinder().find(slicedAtlas, Finder::ignore)));
+                Iterables.size(this.complexWaterEntityFinder.find(slicedAtlas, Finder::ignore)));
 
         Assert.assertEquals("LBR",
                 slicedAtlas.relation(214805002000L).getTag(ISOCountryTag.KEY).get());
@@ -229,7 +231,7 @@ public class RelationSlicingTest
 
         // Just for fun (and to validate the sliced multi-polygon validity) - create Complex
         // Entities and make sure they are valid.
-        final Iterable<ComplexWaterEntity> waterEntities = new ComplexWaterEntityFinder()
+        final Iterable<ComplexWaterEntity> waterEntities = this.complexWaterEntityFinder
                 .find(slicedAtlas, Finder::ignore);
         Assert.assertEquals(2, Iterables.size(waterEntities));
     }
@@ -253,7 +255,7 @@ public class RelationSlicingTest
 
         // Just for fun (and to validate the sliced multi-polygon validity) - create Complex
         // Entities and make sure they are valid.
-        final Iterable<ComplexWaterEntity> waterEntities = new ComplexWaterEntityFinder()
+        final Iterable<ComplexWaterEntity> waterEntities = this.complexWaterEntityFinder
                 .find(slicedAtlas, Finder::ignore);
         Assert.assertEquals(2, Iterables.size(waterEntities));
     }

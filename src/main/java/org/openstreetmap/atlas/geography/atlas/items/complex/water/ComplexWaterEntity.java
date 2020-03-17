@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.items.complex.waters;
+package org.openstreetmap.atlas.geography.atlas.items.complex.water;
 
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.complex.ComplexEntity;
@@ -11,9 +11,9 @@ public abstract class ComplexWaterEntity extends ComplexEntity
 {
     private static final long serialVersionUID = 7835788819725148174L;
 
-    private final String waterType;
+    private final WaterType waterType;
 
-    public ComplexWaterEntity(final AtlasEntity source, final String waterType)
+    public ComplexWaterEntity(final AtlasEntity source, final WaterType waterType)
     {
         super(source);
         this.waterType = waterType;
@@ -28,7 +28,7 @@ public abstract class ComplexWaterEntity extends ComplexEntity
         }
     }
 
-    public String getWaterType()
+    public WaterType getWaterType()
     {
         return this.waterType;
     }

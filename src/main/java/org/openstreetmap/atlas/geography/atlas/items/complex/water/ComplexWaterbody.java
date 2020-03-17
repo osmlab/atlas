@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.items.complex.waters;
+package org.openstreetmap.atlas.geography.atlas.items.complex.water;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.MultiPolygon;
@@ -26,7 +26,7 @@ public class ComplexWaterbody extends ComplexWaterEntity
 
     private MultiPolygon geometry;
 
-    public ComplexWaterbody(final AtlasEntity source, final String type)
+    public ComplexWaterbody(final AtlasEntity source, final WaterType type)
     {
         super(source, type);
     }

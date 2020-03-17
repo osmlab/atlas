@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.atlas.items.complex.waters;
+package org.openstreetmap.atlas.geography.atlas.items.complex.water;
 
 import java.util.HashMap;
 import java.util.Map;

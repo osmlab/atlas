@@ -5,7 +5,7 @@ import static org.openstreetmap.atlas.geography.atlas.items.ItemType.LINE;
 import static org.openstreetmap.atlas.geography.atlas.items.ItemType.RELATION;
 
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -14,8 +14,7 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.complex.Finder;
-import org.openstreetmap.atlas.geography.atlas.items.complex.waters.ComplexWaterEntity;
-import org.openstreetmap.atlas.geography.atlas.items.complex.waters.ComplexWaterEntityFinder;
+import org.openstreetmap.atlas.geography.atlas.items.complex.water.finder.ComplexWaterEntityFinder;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,8 +39,8 @@ public class ComplexWaterEntityTest extends AbstractWaterIslandTest
     @Test
     public void testComplexWaterEntities()
     {
-        final Map<String, Integer> waterTypeCount = new HashMap<>();
-        final Map<ItemType, Integer> itemTypeCount = new HashMap<>();
+        final Map<WaterType, Integer> waterTypeCount = new EnumMap<>(WaterType.class);
+        final Map<ItemType, Integer> itemTypeCount = new EnumMap<>(ItemType.class);
 
         final Iterable<ComplexWaterEntity> waterEntities = new ComplexWaterEntityFinder()
                 .find(this.atlas, Finder::ignore);
@@ -54,17 +53,17 @@ public class ComplexWaterEntityTest extends AbstractWaterIslandTest
         logger.info("ItemType Count : {}", itemTypeCount);
 
         // Validation
-        Assert.assertEquals("Mismatch in total number of waterEntities", 9,
+        Assert.assertEquals("Mismatch in total number of waterEntities", 8,
                 Iterables.size(waterEntities));
 
-        final Map<String, Integer> expectedWaterTypeCount = new HashMap<>();
-        expectedWaterTypeCount.put("lake", 1);
-        expectedWaterTypeCount.put("sea", 1);
-        expectedWaterTypeCount.put("reservoir", 1);
-        expectedWaterTypeCount.put("river", 2);
-        expectedWaterTypeCount.put("canal", 1);
-        expectedWaterTypeCount.put("ditch", 2);
-        expectedWaterTypeCount.put("pool", 1);
+        final Map<WaterType, Integer> expectedWaterTypeCount = new EnumMap<>(WaterType.class);
+
+        expectedWaterTypeCount.put(WaterType.LAKE, 1);
+        expectedWaterTypeCount.put(WaterType.RESERVOIR, 1);
+        expectedWaterTypeCount.put(WaterType.RIVER, 2);
+        expectedWaterTypeCount.put(WaterType.CANAL, 1);
+        expectedWaterTypeCount.put(WaterType.DITCH, 2);
+        expectedWaterTypeCount.put(WaterType.POOL, 1);
 
         expectedWaterTypeCount.keySet().forEach(type ->
         {
@@ -72,8 +71,8 @@ public class ComplexWaterEntityTest extends AbstractWaterIslandTest
                     waterTypeCount.get(type));
         });
 
-        final Map<ItemType, Integer> expectedItemTypeCount = new HashMap<>();
-        expectedItemTypeCount.put(RELATION, 3);
+        final Map<ItemType, Integer> expectedItemTypeCount = new EnumMap<>(ItemType.class);
+        expectedItemTypeCount.put(RELATION, 2);
         expectedItemTypeCount.put(AREA, 3);
         expectedItemTypeCount.put(LINE, 3);
 
