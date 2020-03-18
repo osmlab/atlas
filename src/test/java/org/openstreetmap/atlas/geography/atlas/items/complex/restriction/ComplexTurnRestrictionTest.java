@@ -192,6 +192,23 @@ public class ComplexTurnRestrictionTest
     }
 
     @Test
+    public void testTurnRestrictionTags()
+    {
+        final Atlas testAtlas = this.rule.getAtlasNoUTurn();
+
+        final Optional<TurnRestriction> possibleTurnRestriction = TurnRestriction
+                .from(testAtlas.relation(1L));
+
+        Assert.assertTrue(possibleTurnRestriction.isPresent());
+
+        final TurnRestriction turnRestriction = possibleTurnRestriction.get();
+
+        // Make sure both tags exist
+        Assert.assertEquals(2, turnRestriction.getTags().size());
+        Assert.assertEquals("no_left_turn", turnRestriction.getTag("restriction").get());
+    }
+
+    @Test
     public void testTurnRestrictionWithTwoViaNodesInRelation()
     {
         final Atlas testAtlas = this.rule.getRelationWithTwoViaNodes();
