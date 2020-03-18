@@ -22,6 +22,7 @@ import org.openstreetmap.atlas.geography.atlas.items.complex.bignode.BigNodeFind
 import org.openstreetmap.atlas.geography.atlas.items.complex.bignode.RestrictedPath;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
+import org.openstreetmap.atlas.tags.TurnRestrictionTag;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -194,7 +195,7 @@ public class ComplexTurnRestrictionTest
     @Test
     public void testTurnRestrictionTags()
     {
-        final Atlas testAtlas = this.rule.getAtlasNoUTurn();
+        final Atlas testAtlas = this.rule.getAtlasNo();
 
         final Optional<TurnRestriction> possibleTurnRestriction = TurnRestriction
                 .from(testAtlas.relation(1L));
@@ -205,7 +206,13 @@ public class ComplexTurnRestrictionTest
 
         // Make sure both tags exist
         Assert.assertEquals(2, turnRestriction.getTags().size());
-        Assert.assertEquals("no_left_turn", turnRestriction.getTag("restriction").get());
+
+        final Optional<String> turnRestrictionTagValue = turnRestriction
+                .getTag(TurnRestrictionTag.KEY);
+        Assert.assertTrue(turnRestrictionTagValue.isPresent());
+        // The tags defined in the test atlas (and typically in osm) are lower case
+        Assert.assertEquals(TurnRestrictionTag.NO_LEFT_TURN.toString().toLowerCase(),
+                turnRestrictionTagValue.get());
     }
 
     @Test
