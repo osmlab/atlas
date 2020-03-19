@@ -308,10 +308,17 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
                         ISOCountryTag.KEY);
                 CountryBoundaryMap.setGeometryProperty(clipped, ISOCountryTag.KEY, countryCode);
                 addResult(clipped, results);
-
-                // Update target to be what's left after clipping
-                currentTarget = currentTarget.difference(candidate);
-
+                try
+                {
+                    currentTarget = currentTarget.difference(candidate);
+                }
+                catch (final IllegalArgumentException exception)
+                {
+                    logger.warn(
+                            "Aborting slicing for way {} because the remainder was a heterogeneous GeometryCollection",
+                            identifier);
+                    return currentTarget;
+                }
                 // If the remaining piece is very small and we ignore it. This helps avoid
                 // cutting features just a little over boundary lines and generating too many
                 // new nodes, which is both unnecessary and exhausts node identifier resources.

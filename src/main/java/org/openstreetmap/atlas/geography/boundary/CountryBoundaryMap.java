@@ -436,6 +436,8 @@ public class CountryBoundaryMap implements Serializable, GeoJson
 
         if (this.envelope.intersects(polygon.getEnvelopeInternal()))
         {
+            setGeometryProperty(polygon, ISOCountryTag.KEY, country);
+            setGeometryProperty(polygon, POLYGON_ID_KEY, "0");
             this.rawIndex.insert(polygon.getEnvelopeInternal(), polygon);
         }
     }
