@@ -76,7 +76,6 @@ public class ComplexWaterEntityFinder implements Finder<ComplexWaterEntity>
     @Override
     public Iterable<ComplexWaterEntity> find(final Atlas atlas)
     {
-
         final Stream<Line> lineStream = StreamSupport.stream(atlas.lines().spliterator(), false);
         final Stream<Area> areaStream = StreamSupport.stream(atlas.areas().spliterator(), false);
         final Stream<Relation> relationStream = StreamSupport

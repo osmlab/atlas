@@ -1,8 +1,5 @@
 {
   "global": {
-    "scanUrls": [
-      "org.openstreetmap.atlas"
-    ],
     "filters": {
       "default": {
         "predicate": {
