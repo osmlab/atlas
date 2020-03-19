@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.atlas.items;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
+import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.tags.TurnRestrictionTag;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.StringList;
@@ -28,7 +30,7 @@ import org.slf4j.LoggerFactory;
  * @author matthieun
  * @author sbhalekar
  */
-public final class TurnRestriction implements Located, Serializable
+public final class TurnRestriction implements Located, Serializable, Taggable
 {
     /**
      * The type of a {@link TurnRestriction}
@@ -39,7 +41,7 @@ public final class TurnRestriction implements Located, Serializable
     {
         NO,
         ONLY,
-        OTHER;
+        OTHER
     }
 
     private static final Logger logger = LoggerFactory.getLogger(TurnRestriction.class);
@@ -50,7 +52,7 @@ public final class TurnRestriction implements Located, Serializable
     private final Relation relation;
     private Route route;
     private Route too;
-    private TurnRestrictionType type;
+    private final TurnRestrictionType type;
     private Route via;
 
     /**
@@ -217,7 +219,7 @@ public final class TurnRestriction implements Located, Serializable
     /**
      * @param turnRestriction
      *            The {@link TurnRestriction} to use for comparison
-     * @param path
+     * @param route
      *            The target {@link Route} to examine
      * @return {@code true} if the given {@link Route} contains all parts - via/from/to edges
      */
@@ -373,6 +375,18 @@ public final class TurnRestriction implements Located, Serializable
     public Route getFrom()
     {
         return this.from;
+    }
+
+    @Override
+    public Optional<String> getTag(final String key)
+    {
+        return this.relation.getTag(key);
+    }
+
+    @Override
+    public Map<String, String> getTags()
+    {
+        return new HashMap<>(this.relation.getTags());
     }
 
     /**
