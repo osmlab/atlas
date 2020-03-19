@@ -13,9 +13,9 @@ import org.openstreetmap.atlas.utilities.conversion.Converter;
  * api to use that configuration and generate a {@link ComplexEntity} from {@link AtlasEntity}.
  * Currently this is used to generate {@link ComplexWaterEntity} or {@link ComplexIsland}
  *
- * @author sbhalekar
  * @param <T>
  *            Type of objects which will map {@link AtlasEntity} to any {@link ComplexEntity}
+ * @author sbhalekar
  */
 public abstract class WaterIslandConfigurationReader<T>
         implements Converter<AtlasEntity, Optional<? extends ComplexEntity>>
@@ -41,6 +41,7 @@ public abstract class WaterIslandConfigurationReader<T>
      *            {@link AtlasEntity} which needs to be converted
      * @return An optional {@link ComplexEntity}
      */
+    @SuppressWarnings("squid:S1452")
     protected abstract Optional<? extends ComplexEntity> createComplexEntity(
             AtlasEntity atlasEntity);
 

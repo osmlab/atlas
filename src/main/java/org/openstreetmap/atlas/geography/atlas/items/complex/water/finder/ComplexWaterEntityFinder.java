@@ -121,9 +121,12 @@ public class ComplexWaterEntityFinder implements Finder<ComplexWaterEntity>
             // Each AtlasEntity should pass only one WaterType configuration. If is passes more than
             // one means the taggable filters specified in the configurations has an overlap. Due to
             // ambiguous taggable filters specified this method would return empty optional
+            final String matchedWaterBodies = complexWaterEntities.stream()
+                    .map(ComplexWaterEntity::getWaterType).map(WaterType::toString)
+                    .collect(Collectors.joining(","));
+
             logger.error("Skipping AtlasEnity : {} as it got mapped to {}", atlasEntity,
-                    complexWaterEntities.stream().map(ComplexWaterEntity::getWaterType)
-                            .map(WaterType::toString).collect(Collectors.joining(",")));
+                    matchedWaterBodies);
             return Optional.empty();
         }
 
