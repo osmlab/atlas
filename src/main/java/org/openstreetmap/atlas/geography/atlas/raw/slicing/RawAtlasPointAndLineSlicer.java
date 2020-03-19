@@ -203,7 +203,7 @@ public class RawAtlasPointAndLineSlicer extends RawAtlasSlicer
         if (result.isEmpty())
         {
             final String countryName = CountryBoundaryMap.getGeometryProperty(geometry,
-                     ISOCountryTag.KEY);
+                    ISOCountryTag.KEY);
             if (countryName == null || countryName.isEmpty())
             {
                 logger.error("Invalid Geometry for line {} for Atlas {}", lineIdentifier,
