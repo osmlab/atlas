@@ -310,7 +310,7 @@ public class CountryBoundaryMapTest
         countries.add("HTI");
         countries.add("DOM");
         map.initializeGridIndex(countries);
-        // Crosses HTI only and falls in the international waters on both sides
+        // Crosses HTI only and falls in the international water on both sides
         final PolyLine lineString = PolyLine.wkt(
                 "LINESTRING(-72.62310537054378 16.33562831580734,-73.54595693304378 18.890373956748753)");
 

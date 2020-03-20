@@ -1,5 +1,7 @@
-package org.openstreetmap.atlas.geography.atlas.items.complex.waters;
+package org.openstreetmap.atlas.geography.atlas.items.complex.water;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
@@ -22,14 +24,34 @@ public class ComplexWaterway extends ComplexWaterEntity
 
     private PolyLine geometry;
 
-    public ComplexWaterway(final AtlasEntity source, final String type)
+    public ComplexWaterway(final AtlasEntity source, final WaterType type)
     {
         super(source, type);
+    }
+
+    @Override
+    public boolean equals(final Object other)
+    {
+        if (other instanceof ComplexWaterbody)
+        {
+            final ComplexWaterbody that = (ComplexWaterbody) other;
+            return new EqualsBuilder().append(this.getWaterType(), that.getWaterType())
+                    .append(this.getSource(), that.getSource())
+                    .append(this.getGeometry().toWkt(), that.getGeometry().toWkt()).build();
+        }
+        return false;
     }
 
     public PolyLine getGeometry()
     {
         return this.geometry;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return new HashCodeBuilder().append(this.getSource()).append(this.getWaterType())
+                .append(this.getGeometry().toWkb()).build();
     }
 
     @Override
@@ -42,8 +64,9 @@ public class ComplexWaterway extends ComplexWaterEntity
     protected void populateGeometry()
     {
         final AtlasEntity source = getSource();
+
         /*
-         * TODO We currently don't process waterway relations. So if it is a way and it is part of
+         * We currently don't process waterway relations. So if it is a way and it is part of
          * relation where it is a side stream, main stream or tributary, we process them.
          */
         if (source instanceof Line)

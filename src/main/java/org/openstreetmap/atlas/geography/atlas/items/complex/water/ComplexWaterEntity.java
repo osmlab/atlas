@@ -1,5 +1,7 @@
-package org.openstreetmap.atlas.geography.atlas.items.complex.waters;
+package org.openstreetmap.atlas.geography.atlas.items.complex.water;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.complex.ComplexEntity;
 import org.slf4j.Logger;
@@ -11,9 +13,9 @@ public abstract class ComplexWaterEntity extends ComplexEntity
 {
     private static final long serialVersionUID = 7835788819725148174L;
 
-    private final String waterType;
+    private final WaterType waterType;
 
-    public ComplexWaterEntity(final AtlasEntity source, final String waterType)
+    public ComplexWaterEntity(final AtlasEntity source, final WaterType waterType)
     {
         super(source);
         this.waterType = waterType;
@@ -28,9 +30,27 @@ public abstract class ComplexWaterEntity extends ComplexEntity
         }
     }
 
-    public String getWaterType()
+    @Override
+    public boolean equals(final Object other)
+    {
+        if (other instanceof ComplexWaterEntity)
+        {
+            final ComplexWaterEntity that = (ComplexWaterEntity) other;
+            return new EqualsBuilder().append(this.waterType, that.waterType)
+                    .append(this.getSource(), that.getSource()).build();
+        }
+        return false;
+    }
+
+    public WaterType getWaterType()
     {
         return this.waterType;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return new HashCodeBuilder().append(this.getSource()).append(this.waterType).build();
     }
 
     @Override

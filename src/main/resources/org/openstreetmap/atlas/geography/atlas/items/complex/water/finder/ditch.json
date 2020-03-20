@@ -1,0 +1,15 @@
+{
+  "global": {
+    "filters": {
+      "default": {
+        "predicate": {
+          "imports": [
+            "org.openstreetmap.atlas.geography.atlas.items"
+          ],
+          "command": "e instanceof Line || e instanceof Area"
+        },
+        "taggableFilter": "waterway->ditch,drain"
+      }
+    }
+  }
+}

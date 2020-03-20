@@ -1,5 +1,7 @@
-package org.openstreetmap.atlas.geography.atlas.items.complex.waters;
+package org.openstreetmap.atlas.geography.atlas.items.complex.water;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
@@ -26,14 +28,34 @@ public class ComplexWaterbody extends ComplexWaterEntity
 
     private MultiPolygon geometry;
 
-    public ComplexWaterbody(final AtlasEntity source, final String type)
+    public ComplexWaterbody(final AtlasEntity source, final WaterType type)
     {
         super(source, type);
+    }
+
+    @Override
+    public boolean equals(final Object other)
+    {
+        if (other instanceof ComplexWaterbody)
+        {
+            final ComplexWaterbody that = (ComplexWaterbody) other;
+            return new EqualsBuilder().append(this.getWaterType(), that.getWaterType())
+                    .append(this.getSource(), that.getSource())
+                    .append(this.getGeometry().toWkt(), that.getGeometry().toWkt()).build();
+        }
+        return false;
     }
 
     public MultiPolygon getGeometry()
     {
         return this.geometry;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return new HashCodeBuilder().append(this.getSource()).append(this.getWaterType())
+                .append(this.getGeometry().toWkb()).build();
     }
 
     @Override

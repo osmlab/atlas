@@ -6,8 +6,7 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.complex.Finder;
-import org.openstreetmap.atlas.geography.atlas.items.complex.waters.ComplexWaterEntity;
-import org.openstreetmap.atlas.geography.atlas.items.complex.waters.ComplexWaterEntityFinder;
+import org.openstreetmap.atlas.geography.atlas.items.complex.water.finder.ComplexWaterEntityFinder;
 
 import com.google.common.collect.Iterables;
 
@@ -26,12 +25,14 @@ public class ComplexWaterWayTest
     @Rule
     public final ComplexWaterWayTestRule rule = new ComplexWaterWayTestRule();
 
+    private final ComplexWaterEntityFinder complexWaterEntityFinder = new ComplexWaterEntityFinder();
+
     @Test
     public void testWaterWayAsRelationOfWaterWays()
     {
         final Atlas canalAsRelationOfCanalEntities = this.rule
                 .getCanalAsRelationOfCanalEntitiesAtlas();
-        final Iterable<ComplexWaterEntity> waterEntities = new ComplexWaterEntityFinder()
+        final Iterable<ComplexWaterEntity> waterEntities = this.complexWaterEntityFinder
                 .find(canalAsRelationOfCanalEntities, Finder::ignore);
 
         Assert.assertEquals(
@@ -45,7 +46,7 @@ public class ComplexWaterWayTest
     {
         final Atlas canalAsRelationOfNonCanalEntities = this.rule
                 .getCanalAsRelatonOfNonCanalEntitiesAtlas();
-        final Iterable<ComplexWaterEntity> waterEntities = new ComplexWaterEntityFinder()
+        final Iterable<ComplexWaterEntity> waterEntities = this.complexWaterEntityFinder
                 .find(canalAsRelationOfNonCanalEntities, Finder::ignore);
 
         Assert.assertEquals(

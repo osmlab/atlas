@@ -1,16 +1,13 @@
 package org.openstreetmap.atlas.geography.atlas.items.complex.islands;
 
-import java.util.ArrayList;
-
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.MultiPolygon;
-import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.complex.ComplexEntity;
 import org.openstreetmap.atlas.geography.atlas.items.complex.RelationOrAreaToMultiPolygonConverter;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
-import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,17 +62,14 @@ public class ComplexIsland extends ComplexEntity
             final String type = relation.tag(RelationTypeTag.KEY);
             if (RelationTypeTag.MULTIPOLYGON_TYPE.equals(type))
             {
-                final MultiPolygon multiPolygon = RELATION_OR_AREA_TO_MULTI_POLYGON_CONVERTER
-                        .convert(relation);
-                // All the inland islands are inner polygons within the outer water boundaries
-                final MultiMap<Polygon, Polygon> outerToInners = new MultiMap<>();
-                for (final Polygon inner : multiPolygon.inners())
-                {
-                    outerToInners.put(inner, new ArrayList<Polygon>());
-                }
-                this.multiPolygon = new MultiPolygon(outerToInners);
+                this.multiPolygon = RELATION_OR_AREA_TO_MULTI_POLYGON_CONVERTER.convert(relation);
                 return;
             }
+        }
+        else if (source instanceof Area)
+        {
+            this.multiPolygon = RELATION_OR_AREA_TO_MULTI_POLYGON_CONVERTER.convert(source);
+            return;
         }
         throw new CoreException("Geometry is not set for {}", source);
     }
