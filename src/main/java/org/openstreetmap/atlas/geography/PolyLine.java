@@ -17,15 +17,21 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Snapper.SnappedLocation;
 import org.openstreetmap.atlas.geography.clipping.Clip;
 import org.openstreetmap.atlas.geography.clipping.Clip.ClipType;
+import org.openstreetmap.atlas.geography.converters.WkbLocationConverter;
+import org.openstreetmap.atlas.geography.converters.WkbPolyLineConverter;
 import org.openstreetmap.atlas.geography.converters.WktLocationConverter;
 import org.openstreetmap.atlas.geography.converters.WktPolyLineConverter;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonGeometry;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.geography.matching.PolyLineMatch;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.streaming.writers.JsonWriter;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.scalars.Angle;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
@@ -34,6 +40,8 @@ import org.openstreetmap.atlas.utilities.tuples.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.JsonObject;
+
 /**
  * A PolyLine is a set of {@link Location}s in a specific order
  *
@@ -41,17 +49,24 @@ import org.slf4j.LoggerFactory;
  * @author mgostintsev
  * @author Sid
  */
-public class PolyLine implements Collection<Location>, Located, Serializable
+public class PolyLine
+        implements Collection<Location>, Located, Serializable, GeometryPrintable, GeoJsonGeometry
 {
-    private static final long serialVersionUID = -3291779878869865427L;
-    protected static final int SIMPLE_STRING_LENGTH = 200;
-    private static final Logger logger = LoggerFactory.getLogger(PolyLine.class);
-
     public static final PolyLine TEST_POLYLINE = new PolyLine(Location.TEST_3, Location.TEST_7,
             Location.TEST_4, Location.TEST_1, Location.TEST_5);
+    public static final PolyLine TEST_POLYLINE_2 = new PolyLine(Location.TEST_1, Location.TEST_5,
+            Location.TEST_4, Location.TEST_3, Location.TEST_7);
+    public static final PolyLine CENTER = new PolyLine(Location.CENTER);
+    public static final PolyLine SIMPLE_POLYLINE = new PolyLine(Location.forString("1,1"),
+            Location.forString("2,2"));
 
     public static final String SEPARATOR = ":";
 
+    protected static final int SIMPLE_STRING_LENGTH = 200;
+
+    private static final long serialVersionUID = -3291779878869865427L;
+    private static final Logger logger = LoggerFactory.getLogger(PolyLine.class);
+    private static final String IMMUTABLE_POLYLINE = "A polyline is immutable";
     private final List<Location> points;
 
     public static GeoJsonObject asGeoJson(final Iterable<? extends Iterable<Location>> geometries)
@@ -79,9 +94,22 @@ public class PolyLine implements Collection<Location>, Located, Serializable
     public static void saveAsGeoJson(final Iterable<? extends Iterable<Location>> geometries,
             final WritableResource resource)
     {
-        final JsonWriter writer = new JsonWriter(resource);
-        writer.write(asGeoJson(geometries).jsonObject());
-        writer.close();
+        try (JsonWriter writer = new JsonWriter(resource))
+        {
+            writer.write(asGeoJson(geometries).jsonObject());
+        }
+    }
+
+    /**
+     * Create a {@link PolyLine} from Well Known Binary
+     *
+     * @param wkb
+     *            The Well Known Binary
+     * @return The {@link PolyLine}
+     */
+    public static PolyLine wkb(final byte[] wkb)
+    {
+        return new WkbPolyLineConverter().backwardConvert(wkb);
     }
 
     /**
@@ -204,11 +232,32 @@ public class PolyLine implements Collection<Location>, Located, Serializable
         return result;
     }
 
-    public GeoJsonObject asGeoJson()
+    /**
+     * Append the given {@link PolyLine} to this one, if possible.
+     *
+     * @param other
+     *            The {@link PolyLine} to append
+     * @return the new, combined {@link PolyLine}
+     */
+    public PolyLine append(final PolyLine other)
     {
-        final List<Iterable<Location>> geometries = new ArrayList<>();
-        geometries.add(this);
-        return asGeoJson(geometries);
+        if (this.last().equals(other.first()))
+        {
+            return new PolyLine(new MultiIterable<>(this, other.truncate(1, 0)));
+        }
+        else
+        {
+            throw new CoreException(
+                    "Cannot append {} to {} - the end and start points do not match.",
+                    other.toWkt(), this.toWkt());
+        }
+    }
+
+    @Override
+    public JsonObject asGeoJsonGeometry()
+    {
+        return GeoJsonUtils.geometry(GeoJsonType.LINESTRING,
+                GeoJsonUtils.locationsToCoordinates(this.points));
     }
 
     /**
@@ -306,7 +355,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
     @Override
     public void clear()
     {
-        throw new IllegalAccessError("A polyline is immutable");
+        throw new IllegalAccessError(IMMUTABLE_POLYLINE);
     }
 
     /**
@@ -465,6 +514,12 @@ public class PolyLine implements Collection<Location>, Located, Serializable
     }
 
     @Override
+    public GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.LINESTRING;
+    }
+
+    @Override
     public int hashCode()
     {
         int result = 0;
@@ -523,7 +578,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable
      */
     public Iterable<Location> innerLocations()
     {
-        return Iterables.stream(this).truncate(1, 1);
+        return this.truncate(1, 1);
     }
 
     public Set<Location> intersections(final PolyLine candidate)
@@ -788,8 +843,16 @@ public class PolyLine implements Collection<Location>, Located, Serializable
     {
         if (this.isPoint())
         {
-            logger.warn("Cannot compute a segment's heading when the polyline has zero length : {}",
-                    this);
+            logger.warn("Cannot compute a PolyLine's heading when it has zero length : {}", this);
+            return Optional.empty();
+        }
+        if (this.first().equals(this.last()))
+        {
+            if (logger.isWarnEnabled())
+            {
+                logger.warn("Cannot compute overall heading when the polyline has "
+                        + "same start and end locations : {}", this.first().toWkt());
+            }
             return Optional.empty();
         }
         return Optional.ofNullable(this.first().headingTo(this.last()));
@@ -826,22 +889,43 @@ public class PolyLine implements Collection<Location>, Located, Serializable
         return true;
     }
 
+    /**
+     * Prepends the given {@link PolyLine} to this one, if possible.
+     *
+     * @param other
+     *            The {@link PolyLine} to prepend
+     * @return the new, combined {@link PolyLine}
+     */
+    public PolyLine prepend(final PolyLine other)
+    {
+        if (this.first().equals(other.last()))
+        {
+            return new PolyLine(new MultiIterable<>(other, this.truncate(1, 0)));
+        }
+        else
+        {
+            throw new CoreException(
+                    "Cannot prepend {} to {} - the end and start points do not match.",
+                    other.toWkt(), this.toWkt());
+        }
+    }
+
     @Override
     public boolean remove(final Object object)
     {
-        throw new IllegalAccessError("A polyline is immutable");
+        throw new IllegalAccessError(IMMUTABLE_POLYLINE);
     }
 
     @Override
     public boolean removeAll(final Collection<?> collection)
     {
-        throw new IllegalAccessError("A polyline is immutable");
+        throw new IllegalAccessError(IMMUTABLE_POLYLINE);
     }
 
     @Override
     public boolean retainAll(final Collection<?> collection)
     {
-        throw new IllegalAccessError("A polyline is immutable");
+        throw new IllegalAccessError(IMMUTABLE_POLYLINE);
     }
 
     public PolyLine reversed()
@@ -970,6 +1054,20 @@ public class PolyLine implements Collection<Location>, Located, Serializable
         return false;
     }
 
+    public PolyLine shiftFirstAlongGreatCircle(final Heading initialHeading,
+            final Distance distance)
+    {
+        return new PolyLine(new MultiIterable<>(
+                Iterables.from(this.first().shiftAlongGreatCircle(initialHeading, distance)),
+                this.truncate(1, 0)));
+    }
+
+    public PolyLine shiftLastAlongGreatCircle(final Heading initialHeading, final Distance distance)
+    {
+        return new PolyLine(new MultiIterable<>(this.truncate(0, 1),
+                Iterables.from(this.last().shiftAlongGreatCircle(initialHeading, distance))));
+    }
+
     /**
      * Return the smaller one between the shortest distance from this {@link PolyLine}'s shape
      * points to the other shape, and the other shape's shape points to this polyline.
@@ -1062,8 +1160,23 @@ public class PolyLine implements Collection<Location>, Located, Serializable
     }
 
     /**
+     * @return This {@link PolyLine} as Well Known Binary
+     */
+    @Override
+    public byte[] toWkb()
+    {
+        if (this.size() == 1)
+        {
+            // Handle a single location polyLine
+            return new WkbLocationConverter().convert(this.first());
+        }
+        return new WkbPolyLineConverter().convert(this);
+    }
+
+    /**
      * @return This {@link PolyLine} as Well Known Text
      */
+    @Override
     public String toWkt()
     {
         if (this.size() == 1)
@@ -1072,6 +1185,35 @@ public class PolyLine implements Collection<Location>, Located, Serializable
             return new WktLocationConverter().convert(this.first());
         }
         return new WktPolyLineConverter().convert(this);
+    }
+
+    /**
+     * Truncates this {@link PolyLine} at the given start and end index. If the provided indices are
+     * invalid, an empty Iterable will be returned.
+     *
+     * @param indexFromStart
+     *            The index before which to truncate from the start
+     * @param indexFromEnd
+     *            The index after which to truncate from the end
+     * @return all the locations in this {@link PolyLine} after truncation.
+     */
+    public Iterable<Location> truncate(final int indexFromStart, final int indexFromEnd)
+    {
+        if (indexFromStart < 0 || indexFromEnd < 0 || indexFromStart >= this.size()
+                || indexFromEnd >= this.size() || indexFromStart + indexFromEnd >= this.size())
+        {
+            logger.debug("Invalid start index {} or end index {} supplied.", indexFromStart,
+                    indexFromEnd);
+            return Collections.emptyList();
+        }
+
+        return Iterables.stream(this).truncate(indexFromStart, indexFromEnd);
+    }
+
+    @Override
+    public boolean within(final GeometricSurface surface)
+    {
+        return surface.fullyGeometricallyEncloses(this);
     }
 
     /**

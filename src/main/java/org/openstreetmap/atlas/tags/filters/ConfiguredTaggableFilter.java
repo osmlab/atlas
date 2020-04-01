@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.tags.filters;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -13,8 +14,9 @@ import org.openstreetmap.atlas.utilities.configuration.Configuration;
  *
  * @author matthieun
  */
-public class ConfiguredTaggableFilter implements Predicate<Taggable>
+public class ConfiguredTaggableFilter implements Predicate<Taggable>, Serializable
 {
+    private static final long serialVersionUID = -3849791821180104953L;
     public static final String FILTERS_CONFIGURATION_NAME = "filters";
 
     private final List<TaggableFilter> filters;
@@ -24,7 +26,7 @@ public class ConfiguredTaggableFilter implements Predicate<Taggable>
     {
         this.filters = ((List<String>) configuration.get(FILTERS_CONFIGURATION_NAME).valueOption()
                 .orElseThrow(() -> new CoreException("No filters defined in configuration {}",
-                        configuration))).stream().map(TaggableFilter::new)
+                        configuration))).stream().map(TaggableFilter::forDefinition)
                                 .collect(Collectors.toList());
     }
 

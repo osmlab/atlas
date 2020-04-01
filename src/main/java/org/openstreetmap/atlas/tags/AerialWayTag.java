@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.tags;
 
 import org.openstreetmap.atlas.tags.annotations.Tag;
+import org.openstreetmap.atlas.tags.annotations.TagKey;
 
 /**
  * OSM aerialway tag
@@ -22,5 +23,8 @@ public enum AerialWayTag
     MAGIC_CARPET,
     ZIP_LINE,
     PYLON,
-    STATION
+    STATION;
+
+    @TagKey
+    public static final String KEY = "aerialway";
 }

@@ -1,21 +1,31 @@
 package org.openstreetmap.atlas.geography.atlas;
 
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
+import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
-import org.openstreetmap.atlas.geography.atlas.pbf.OsmPbfLoader;
+import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasCountrySlicer;
+import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.index.PackedSpatialIndex;
 import org.openstreetmap.atlas.geography.index.RTree;
 import org.openstreetmap.atlas.geography.index.SpatialIndex;
@@ -23,6 +33,7 @@ import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Abstract implementation of {@link Atlas} that covers common methods.
@@ -33,10 +44,11 @@ import org.slf4j.Logger;
  */
 public abstract class AbstractAtlas extends BareAtlas
 {
-    private static final long serialVersionUID = -1408393006815178776L;
-
     protected static final long DEFAULT_NUMBER_OF_ITEMS = 1024;
     protected static final int HASH_MODULO_RATIO = 10;
+
+    private static final long serialVersionUID = -1408393006815178776L;
+    private static final Logger logger = LoggerFactory.getLogger(AbstractAtlas.class);
 
     // Spatial index lock objects for thread protection. Even though it looks not necessary, those
     // locks are static to avoid issues when deserializing Atlas files. If non static, they might
@@ -49,15 +61,20 @@ public abstract class AbstractAtlas extends BareAtlas
     private static final Object RELATION_LOCK = new Object();
 
     // Spatial indices
-    private transient SpatialIndex<Node> nodeSpatialIndex;
-    private transient SpatialIndex<Edge> edgeSpatialIndex;
-    private transient SpatialIndex<Area> areaSpatialIndex;
-    private transient SpatialIndex<Line> lineSpatialIndex;
-    private transient SpatialIndex<Point> pointSpatialIndex;
-    private transient SpatialIndex<Relation> relationSpatialIndex;
+    // Transient: Those are not serialized, and re-generated on the fly
+    // Volatile: This is to allow double checked locking to be safe in the
+    // this.buildXXXXXSpatialIndexIfNecessary() methods.
+    // http://www.cs.umd.edu/~pugh/java/memoryModel/DoubleCheckedLocking.html
+    // See: "Fixing Double-Checked Locking using Volatile"
+    private transient volatile SpatialIndex<Node> nodeSpatialIndex;
+    private transient volatile SpatialIndex<Edge> edgeSpatialIndex;
+    private transient volatile SpatialIndex<Area> areaSpatialIndex;
+    private transient volatile SpatialIndex<Line> lineSpatialIndex;
+    private transient volatile SpatialIndex<Point> pointSpatialIndex;
+    private transient volatile SpatialIndex<Relation> relationSpatialIndex;
 
     /**
-     * Create an {@link Atlas} from an OSM protobuf and save it to a resource.
+     * Create an {@link Atlas} from an OSM protobuf and save it to a resource. Skip slicing.
      *
      * @param osmPbf
      *            The OSM protobuf
@@ -68,9 +85,11 @@ public abstract class AbstractAtlas extends BareAtlas
     public static Atlas createAndSaveOsmPbf(final Resource osmPbf,
             final WritableResource atlasResource)
     {
-        final OsmPbfLoader loader = new OsmPbfLoader(osmPbf);
-        loader.saveAtlas(atlasResource);
-        return loader.read();
+        Atlas atlas = new RawAtlasGenerator(osmPbf).build();
+        atlas = new WaySectionProcessor(atlas, AtlasLoadingOption.createOptionWithNoSlicing())
+                .run();
+        atlas.save(atlasResource);
+        return atlas;
     }
 
     /**
@@ -81,19 +100,26 @@ public abstract class AbstractAtlas extends BareAtlas
      *            The OSM protobuf
      * @param atlasResource
      *            The {@link WritableResource} to save the {@link Atlas} to
+     * @param boundaryMap
+     *            The {@link CountryBoundaryMap} to use for country-slicing
      * @return The created {@link Atlas}
      */
     public static Atlas createAndSaveOsmPbfWithSlicing(final Resource osmPbf,
-            final WritableResource atlasResource)
+            final WritableResource atlasResource, final CountryBoundaryMap boundaryMap)
     {
-        final OsmPbfLoader loader = new OsmPbfLoader(osmPbf,
-                AtlasLoadingOption.createOptionWithAllEnabled(null));
-        loader.saveAtlas(atlasResource);
-        return loader.read();
+        Atlas atlas = new RawAtlasGenerator(osmPbf).build();
+        final AtlasLoadingOption loadingOption = AtlasLoadingOption
+                .createOptionWithAllEnabled(boundaryMap);
+        loadingOption.setAdditionalCountryCodes(boundaryMap.getLoadedCountries());
+        atlas = new RawAtlasCountrySlicer(loadingOption).slice(atlas);
+        atlas = new WaySectionProcessor(atlas,
+                AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap)).run();
+        atlas.save(atlasResource);
+        return atlas;
     }
 
     /**
-     * Create from an OSM protobuf resource
+     * Create from an OSM protobuf resource. Skip slicing.
      *
      * @param resource
      *            The OSM protobuf resource
@@ -101,71 +127,96 @@ public abstract class AbstractAtlas extends BareAtlas
      */
     public static Atlas forOsmPbf(final Resource resource)
     {
-        final OsmPbfLoader loader = new OsmPbfLoader(resource);
-        return loader.read();
+        Atlas atlas = new RawAtlasGenerator(resource).build();
+        atlas = new WaySectionProcessor(atlas, AtlasLoadingOption.createOptionWithNoSlicing())
+                .run();
+        return atlas;
     }
 
     @Override
     public Iterable<Area> areasCovering(final Location location)
     {
-        return this.getAreaSpatialIndex().get(location.bounds());
+        return Iterables.stream(this.getAreaSpatialIndex().get(location.bounds())).filter(area ->
+        {
+            final Polygon areaPolygon = area.asPolygon();
+            return areaPolygon.fullyGeometricallyEncloses(location);
+        });
     }
 
     @Override
     public Iterable<Area> areasCovering(final Location location, final Predicate<Area> matcher)
     {
-        return Iterables.filter(this.getAreaSpatialIndex().get(location.bounds()), matcher);
+        return Iterables.filter(areasCovering(location), matcher);
     }
 
     @Override
-    public Iterable<Area> areasIntersecting(final Polygon polygon)
+    public Iterable<Area> areasIntersecting(final GeometricSurface surface)
     {
-        final Iterable<Area> areas = this.getAreaSpatialIndex().get(polygon.bounds());
-        return Iterables.filter(areas, area ->
+        return Iterables.stream(this.getAreaSpatialIndex().get(surface.bounds())).filter(area ->
         {
             final Polygon areaPolygon = area.asPolygon();
-            return polygon.overlaps(areaPolygon);
+            return surface.overlaps(areaPolygon);
         });
     }
 
     @Override
-    public Iterable<Area> areasIntersecting(final Polygon polygon, final Predicate<Area> matcher)
+    public Iterable<Area> areasIntersecting(final GeometricSurface surface,
+            final Predicate<Area> matcher)
     {
-        return Iterables.filterTranslate(areasIntersecting(polygon), item -> item, matcher);
+        return Iterables.filterTranslate(areasIntersecting(surface), item -> item, matcher);
+    }
+
+    @Override
+    public Iterable<Area> areasWithin(final GeometricSurface surface)
+    {
+        return Iterables.stream(this.getAreaSpatialIndex().get(surface.bounds())).filter(area ->
+        {
+            final Polygon areaPolygon = area.asPolygon();
+            return surface.fullyGeometricallyEncloses(areaPolygon);
+        });
     }
 
     @Override
     public Iterable<Edge> edgesContaining(final Location location)
     {
-        final Iterable<Edge> edges = this.getEdgeSpatialIndex().get(location.bounds());
-        return Iterables.filter(edges, edge ->
+        return Iterables.stream(this.getEdgeSpatialIndex().get(location.bounds())).filter(edge ->
         {
             final PolyLine polyline = edge.asPolyLine();
-            return location.bounds().overlaps(polyline);
+            return polyline.contains(location);
         });
     }
 
     @Override
     public Iterable<Edge> edgesContaining(final Location location, final Predicate<Edge> matcher)
     {
-        return Iterables.filter(this.getEdgeSpatialIndex().get(location.bounds()), matcher);
+        return Iterables.filter(edgesContaining(location), matcher);
     }
 
     @Override
-    public Iterable<Edge> edgesIntersecting(final Polygon polygon)
+    public Iterable<Edge> edgesIntersecting(final GeometricSurface surface)
     {
-        final Iterable<Edge> edges = this.getEdgeSpatialIndex().get(polygon.bounds());
-        return Iterables.filter(edges, edge ->
+        return Iterables.stream(this.getEdgeSpatialIndex().get(surface.bounds())).filter(edge ->
         {
             final PolyLine polyline = edge.asPolyLine();
-            return polygon.overlaps(polyline);
+            return surface.overlaps(polyline);
         });
     }
 
     @Override
-    public Iterable<Edge> edgesIntersecting(final Polygon polygon, final Predicate<Edge> matcher)
+    public Iterable<Edge> edgesIntersecting(final GeometricSurface surface,
+            final Predicate<Edge> matcher)
     {
-        return Iterables.filter(edgesIntersecting(polygon), matcher);
+        return Iterables.filter(edgesIntersecting(surface), matcher);
+    }
+
+    @Override
+    public Iterable<Edge> edgesWithin(final GeometricSurface surface)
+    {
+        return Iterables.stream(this.getEdgeSpatialIndex().get(surface.bounds())).filter(edge ->
+        {
+            final PolyLine polyline = edge.asPolyLine();
+            return surface.fullyGeometricallyEncloses(polyline);
+        });
     }
 
     public SpatialIndex<Area> getAreaSpatialIndex()
@@ -207,35 +258,44 @@ public abstract class AbstractAtlas extends BareAtlas
     @Override
     public Iterable<Line> linesContaining(final Location location)
     {
-        final Iterable<Line> lines = this.getLineSpatialIndex().get(location.bounds());
-        return Iterables.filter(lines, line ->
+        return Iterables.stream(this.getLineSpatialIndex().get(location.bounds())).filter(line ->
         {
             final PolyLine polyline = line.asPolyLine();
-            return location.bounds().overlaps(polyline);
+            return polyline.contains(location);
         });
     }
 
     @Override
     public Iterable<Line> linesContaining(final Location location, final Predicate<Line> matcher)
     {
-        return Iterables.filter(this.getLineSpatialIndex().get(location.bounds()), matcher);
+        return Iterables.filter(linesContaining(location), matcher);
     }
 
     @Override
-    public Iterable<Line> linesIntersecting(final Polygon polygon)
+    public Iterable<Line> linesIntersecting(final GeometricSurface surface)
     {
-        final Iterable<Line> lines = this.getLineSpatialIndex().get(polygon.bounds());
-        return Iterables.filter(lines, line ->
+        return Iterables.stream(this.getLineSpatialIndex().get(surface.bounds())).filter(line ->
         {
             final PolyLine polyline = line.asPolyLine();
-            return polygon.overlaps(polyline);
+            return surface.overlaps(polyline);
         });
     }
 
     @Override
-    public Iterable<Line> linesIntersecting(final Polygon polygon, final Predicate<Line> matcher)
+    public Iterable<Line> linesIntersecting(final GeometricSurface surface,
+            final Predicate<Line> matcher)
     {
-        return Iterables.filter(linesIntersecting(polygon), matcher);
+        return Iterables.filter(linesIntersecting(surface), matcher);
+    }
+
+    @Override
+    public Iterable<Line> linesWithin(final GeometricSurface surface)
+    {
+        return Iterables.stream(this.getLineSpatialIndex().get(surface.bounds())).filter(line ->
+        {
+            final PolyLine polyline = line.asPolyLine();
+            return surface.fullyGeometricallyEncloses(polyline);
+        });
     }
 
     @Override
@@ -245,21 +305,21 @@ public abstract class AbstractAtlas extends BareAtlas
     }
 
     @Override
-    public Iterable<Node> nodesWithin(final Polygon polygon)
+    public Iterable<Node> nodesWithin(final GeometricSurface surface)
     {
-        final Iterable<Node> nodes = this.getNodeSpatialIndex().get(polygon.bounds());
-        if (polygon instanceof Rectangle)
+        final Iterable<Node> nodes = this.getNodeSpatialIndex().get(surface.bounds());
+        if (surface instanceof Rectangle)
         {
             return nodes;
         }
         return Iterables.filter(nodes,
-                node -> polygon.fullyGeometricallyEncloses(node.getLocation()));
+                node -> surface.fullyGeometricallyEncloses(node.getLocation()));
     }
 
     @Override
-    public Iterable<Node> nodesWithin(final Polygon polygon, final Predicate<Node> matcher)
+    public Iterable<Node> nodesWithin(final GeometricSurface surface, final Predicate<Node> matcher)
     {
-        return Iterables.filter(nodesWithin(polygon), matcher);
+        return Iterables.filter(nodesWithin(surface), matcher);
     }
 
     @Override
@@ -269,45 +329,52 @@ public abstract class AbstractAtlas extends BareAtlas
     }
 
     @Override
-    public Iterable<Point> pointsWithin(final Polygon polygon)
+    public Iterable<Point> pointsWithin(final GeometricSurface surface)
     {
-        final Iterable<Point> points = this.getPointSpatialIndex().get(polygon.bounds());
-        if (polygon instanceof Rectangle)
+        final Iterable<Point> points = this.getPointSpatialIndex().get(surface.bounds());
+        if (surface instanceof Rectangle)
         {
             return points;
         }
         return Iterables.filter(points,
-                point -> polygon.fullyGeometricallyEncloses(point.getLocation()));
+                point -> surface.fullyGeometricallyEncloses(point.getLocation()));
     }
 
     @Override
-    public Iterable<Point> pointsWithin(final Polygon polygon, final Predicate<Point> matcher)
+    public Iterable<Point> pointsWithin(final GeometricSurface surface,
+            final Predicate<Point> matcher)
     {
-        return Iterables.filterTranslate(pointsWithin(polygon), item -> item, matcher);
+        return Iterables.filterTranslate(pointsWithin(surface), item -> item, matcher);
     }
 
     @Override
-    public Iterable<Relation> relationsWithEntitiesIntersecting(final Polygon polygon)
+    public Iterable<Relation> relationsWithEntitiesIntersecting(final GeometricSurface surface)
     {
-        final Iterable<Relation> relations = this.getRelationSpatialIndex().get(polygon.bounds());
-        return Iterables.filter(relations, relation ->
-        {
-            return relation.intersects(polygon);
-        });
+        final Iterable<Relation> relations = this.getRelationSpatialIndex().get(surface.bounds());
+        return Iterables.filter(relations, relation -> relation.intersects(surface));
     }
 
     @Override
-    public Iterable<Relation> relationsWithEntitiesIntersecting(final Polygon polygon,
+    public Iterable<Relation> relationsWithEntitiesIntersecting(final GeometricSurface surface,
             final Predicate<Relation> matcher)
     {
-        return Iterables.filter(relationsWithEntitiesIntersecting(polygon), matcher);
+        return Iterables.filter(relationsWithEntitiesIntersecting(surface), matcher);
+    }
+
+    @Override
+    public Iterable<Relation> relationsWithEntitiesWithin(final GeometricSurface surface)
+    {
+        final Iterable<Relation> relations = this.getRelationSpatialIndex().get(surface.bounds());
+        return Iterables.filter(relations, relation -> relation.within(surface));
     }
 
     @Override
     public void save(final WritableResource writableResource)
     {
-        throw new CoreException("{} does not support saving. Consider using {} instead.",
-                this.getClass().getName(), PackedAtlas.class.getName());
+        throw new CoreException(
+                "{} does not support saving. Consider using {} instead. A {} can be had using Atlas.cloneToPackedAtlas()",
+                this.getClass().getName(), PackedAtlas.class.getName(),
+                PackedAtlas.class.getName());
     }
 
     /**
@@ -316,20 +383,9 @@ public abstract class AbstractAtlas extends BareAtlas
      */
     protected void buildAreaSpatialIndexIfNecessary()
     {
-        if (this.areaSpatialIndex == null)
-        {
-            synchronized (AREA_LOCK)
-            {
-                if (this.areaSpatialIndex == null)
-                {
-                    getLogger().info("Re-Building Area Spatial Index...");
-                    // Use a temporary index so the check above cannot be compromised.
-                    final SpatialIndex<Area> temporaryIndex = newAreaSpatialIndex();
-                    areas().forEach(area -> temporaryIndex.add(area));
-                    this.areaSpatialIndex = temporaryIndex;
-                }
-            }
-        }
+        buildSpatialIndexIfNecessary(AREA_LOCK, ItemType.AREA, this::newAreaSpatialIndex,
+                () -> this.areaSpatialIndex,
+                newSpatialIndex -> this.areaSpatialIndex = newSpatialIndex);
     }
 
     /**
@@ -338,20 +394,9 @@ public abstract class AbstractAtlas extends BareAtlas
      */
     protected void buildEdgeSpatialIndexIfNecessary()
     {
-        if (this.edgeSpatialIndex == null)
-        {
-            synchronized (EDGE_LOCK)
-            {
-                if (this.edgeSpatialIndex == null)
-                {
-                    getLogger().info("Re-Building Edge Spatial Index...");
-                    // Use a temporary index so the check above cannot be compromised.
-                    final SpatialIndex<Edge> temporaryIndex = newEdgeSpatialIndex();
-                    edges().forEach(edge -> temporaryIndex.add(edge));
-                    this.edgeSpatialIndex = temporaryIndex;
-                }
-            }
-        }
+        buildSpatialIndexIfNecessary(EDGE_LOCK, ItemType.EDGE, this::newEdgeSpatialIndex,
+                () -> this.edgeSpatialIndex,
+                newSpatialIndex -> this.edgeSpatialIndex = newSpatialIndex);
     }
 
     /**
@@ -360,20 +405,9 @@ public abstract class AbstractAtlas extends BareAtlas
      */
     protected void buildLineSpatialIndexIfNecessary()
     {
-        if (this.lineSpatialIndex == null)
-        {
-            synchronized (LINE_LOCK)
-            {
-                if (this.lineSpatialIndex == null)
-                {
-                    getLogger().info("Re-Building Line Spatial Index...");
-                    // Use a temporary index so the check above cannot be compromised.
-                    final SpatialIndex<Line> temporaryIndex = newLineSpatialIndex();
-                    lines().forEach(line -> temporaryIndex.add(line));
-                    this.lineSpatialIndex = temporaryIndex;
-                }
-            }
-        }
+        buildSpatialIndexIfNecessary(LINE_LOCK, ItemType.LINE, this::newLineSpatialIndex,
+                () -> this.lineSpatialIndex,
+                newSpatialIndex -> this.lineSpatialIndex = newSpatialIndex);
     }
 
     /**
@@ -382,20 +416,9 @@ public abstract class AbstractAtlas extends BareAtlas
      */
     protected void buildNodeSpatialIndexIfNecessary()
     {
-        if (this.nodeSpatialIndex == null)
-        {
-            synchronized (NODE_LOCK)
-            {
-                if (this.nodeSpatialIndex == null)
-                {
-                    getLogger().info("Re-Building Node Spatial Index...");
-                    // Use a temporary index so the check above cannot be compromised.
-                    final SpatialIndex<Node> temporaryIndex = newNodeSpatialIndex();
-                    nodes().forEach(node -> temporaryIndex.add(node));
-                    this.nodeSpatialIndex = temporaryIndex;
-                }
-            }
-        }
+        buildSpatialIndexIfNecessary(NODE_LOCK, ItemType.NODE, this::newNodeSpatialIndex,
+                () -> this.nodeSpatialIndex,
+                newSpatialIndex -> this.nodeSpatialIndex = newSpatialIndex);
     }
 
     /**
@@ -404,20 +427,9 @@ public abstract class AbstractAtlas extends BareAtlas
      */
     protected void buildPointSpatialIndexIfNecessary()
     {
-        if (this.pointSpatialIndex == null)
-        {
-            synchronized (POINT_LOCK)
-            {
-                if (this.pointSpatialIndex == null)
-                {
-                    getLogger().info("Re-Building Point Spatial Index...");
-                    // Use a temporary index so the check above cannot be compromised.
-                    final SpatialIndex<Point> temporaryIndex = newPointSpatialIndex();
-                    points().forEach(point -> temporaryIndex.add(point));
-                    this.pointSpatialIndex = temporaryIndex;
-                }
-            }
-        }
+        buildSpatialIndexIfNecessary(POINT_LOCK, ItemType.POINT, this::newPointSpatialIndex,
+                () -> this.pointSpatialIndex,
+                newSpatialIndex -> this.pointSpatialIndex = newSpatialIndex);
     }
 
     /**
@@ -426,20 +438,9 @@ public abstract class AbstractAtlas extends BareAtlas
      */
     protected void buildRelationSpatialIndexIfNecessary()
     {
-        if (this.relationSpatialIndex == null)
-        {
-            synchronized (RELATION_LOCK)
-            {
-                if (this.relationSpatialIndex == null)
-                {
-                    getLogger().info("Re-Building Relation Spatial Index...");
-                    // Use a temporary index so the check above cannot be compromised.
-                    final SpatialIndex<Relation> temporaryIndex = newRelationSpatialIndex();
-                    relations().forEach(relation -> temporaryIndex.add(relation));
-                    this.relationSpatialIndex = temporaryIndex;
-                }
-            }
-        }
+        buildSpatialIndexIfNecessary(RELATION_LOCK, ItemType.RELATION,
+                this::newRelationSpatialIndex, () -> this.relationSpatialIndex,
+                newSpatialIndex -> this.relationSpatialIndex = newSpatialIndex);
     }
 
     /**
@@ -526,7 +527,46 @@ public abstract class AbstractAtlas extends BareAtlas
         return this.relationSpatialIndex;
     }
 
-    protected abstract Logger getLogger();
+    /**
+     * Implementation of double-checked locking with volatile global variable as suggested by sonar
+     *
+     * @see "https://rules.sonarsource.com/java/tag/multi-threading/RSPEC-2168"
+     * @param lock
+     *            An object to lock on. Needs to be a global static variable.
+     * @param type
+     *            The type of the Spatial Index object to create
+     * @param newIndexSupplier
+     *            A function that returns a new built-out index
+     * @param globalIndexSupplier
+     *            A function that returns the existing global index
+     * @param globalIndexConsumer
+     *            A function that resets the existing global index
+     */
+    @SuppressWarnings("unchecked")
+    private <M extends AtlasEntity> void buildSpatialIndexIfNecessary(final Object lock,
+            final ItemType type, final Supplier<SpatialIndex<M>> newIndexSupplier,
+            final Supplier<SpatialIndex<M>> globalIndexSupplier,
+            final Consumer<SpatialIndex<M>> globalIndexConsumer)
+    {
+        SpatialIndex<M> localIndex = globalIndexSupplier.get();
+        if (localIndex == null)
+        {
+            // Here lock is a global static variable. Sonar cannot see it here, hence the trailing
+            // comment.
+            synchronized (lock) // NOSONAR
+            {
+                localIndex = globalIndexSupplier.get();
+                if (localIndex == null)
+                {
+                    logger.info("Re-Building {} Spatial Index...", type);
+                    final SpatialIndex<M> temporaryIndex = newIndexSupplier.get();
+                    Iterables.stream(this.entities(type, type.getMemberClass()))
+                            .map(entity -> (M) entity).forEach(temporaryIndex::add);
+                    globalIndexConsumer.accept(temporaryIndex);
+                }
+            }
+        }
+    }
 
     /**
      * Create a new spatial index
@@ -535,28 +575,7 @@ public abstract class AbstractAtlas extends BareAtlas
      */
     private SpatialIndex<Area> newAreaSpatialIndex()
     {
-        return new PackedSpatialIndex<Area, Long>(new RTree<>())
-        {
-            private static final long serialVersionUID = 6569644967280192054L;
-
-            @Override
-            protected Long compress(final Area item)
-            {
-                return item.getIdentifier();
-            }
-
-            @Override
-            protected boolean isValid(final Area item, final Rectangle bounds)
-            {
-                return bounds.overlaps(item.asPolygon());
-            }
-
-            @Override
-            protected Area restore(final Long packed)
-            {
-                return area(packed);
-            }
-        };
+        return newSpatialIndex((item, bounds) -> bounds.overlaps(item.asPolygon()), this::area);
     }
 
     /**
@@ -566,28 +585,7 @@ public abstract class AbstractAtlas extends BareAtlas
      */
     private SpatialIndex<Edge> newEdgeSpatialIndex()
     {
-        return new PackedSpatialIndex<Edge, Long>(new RTree<>())
-        {
-            private static final long serialVersionUID = -7338204023386941100L;
-
-            @Override
-            protected Long compress(final Edge item)
-            {
-                return item.getIdentifier();
-            }
-
-            @Override
-            protected boolean isValid(final Edge item, final Rectangle bounds)
-            {
-                return bounds.overlaps(item.asPolyLine());
-            }
-
-            @Override
-            protected Edge restore(final Long packed)
-            {
-                return edge(packed);
-            }
-        };
+        return newSpatialIndex((item, bounds) -> bounds.overlaps(item.asPolyLine()), this::edge);
     }
 
     /**
@@ -597,28 +595,7 @@ public abstract class AbstractAtlas extends BareAtlas
      */
     private SpatialIndex<Line> newLineSpatialIndex()
     {
-        return new PackedSpatialIndex<Line, Long>(new RTree<>())
-        {
-            private static final long serialVersionUID = -2370005868531024004L;
-
-            @Override
-            protected Long compress(final Line item)
-            {
-                return item.getIdentifier();
-            }
-
-            @Override
-            protected boolean isValid(final Line item, final Rectangle bounds)
-            {
-                return bounds.overlaps(item.asPolyLine());
-            }
-
-            @Override
-            protected Line restore(final Long packed)
-            {
-                return line(packed);
-            }
-        };
+        return newSpatialIndex((item, bounds) -> bounds.overlaps(item.asPolyLine()), this::line);
     }
 
     /**
@@ -628,28 +605,8 @@ public abstract class AbstractAtlas extends BareAtlas
      */
     private SpatialIndex<Node> newNodeSpatialIndex()
     {
-        return new PackedSpatialIndex<Node, Long>(new RTree<>())
-        {
-            private static final long serialVersionUID = -3524737478519081893L;
-
-            @Override
-            protected Long compress(final Node item)
-            {
-                return item.getIdentifier();
-            }
-
-            @Override
-            protected boolean isValid(final Node item, final Rectangle bounds)
-            {
-                return bounds.fullyGeometricallyEncloses(item);
-            }
-
-            @Override
-            protected Node restore(final Long packed)
-            {
-                return node(packed);
-            }
-        };
+        return newSpatialIndex((item, bounds) -> bounds.fullyGeometricallyEncloses(item),
+                this::node);
     }
 
     /**
@@ -659,28 +616,8 @@ public abstract class AbstractAtlas extends BareAtlas
      */
     private SpatialIndex<Point> newPointSpatialIndex()
     {
-        return new PackedSpatialIndex<Point, Long>(new RTree<>())
-        {
-            private static final long serialVersionUID = -9098544142517525524L;
-
-            @Override
-            protected Long compress(final Point item)
-            {
-                return item.getIdentifier();
-            }
-
-            @Override
-            protected boolean isValid(final Point item, final Rectangle bounds)
-            {
-                return bounds.fullyGeometricallyEncloses(item);
-            }
-
-            @Override
-            protected Point restore(final Long packed)
-            {
-                return point(packed);
-            }
-        };
+        return newSpatialIndex((item, bounds) -> bounds.fullyGeometricallyEncloses(item),
+                this::point);
     }
 
     /**
@@ -690,26 +627,40 @@ public abstract class AbstractAtlas extends BareAtlas
      */
     private SpatialIndex<Relation> newRelationSpatialIndex()
     {
-        return new PackedSpatialIndex<Relation, Long>(new RTree<>())
+        return newSpatialIndex((item, bounds) -> item.intersects(bounds), this::relation);
+    }
+
+    /**
+     * @param memberValidForBounds
+     *            A function that decides if a member is included in bounds or not.
+     * @param memberFromIdentifier
+     *            A function that re-builds a member from its identifier.
+     * @return A {@link SpatialIndex} tailored to the specified type
+     */
+    private <M extends AtlasEntity> SpatialIndex<M> newSpatialIndex(
+            final BiFunction<M, Rectangle, Boolean> memberValidForBounds,
+            final Function<Long, M> memberFromIdentifier)
+    {
+        return new PackedSpatialIndex<M, Long>(new RTree<>())
         {
             private static final long serialVersionUID = 6569644967280192054L;
 
             @Override
-            protected Long compress(final Relation item)
+            protected Long compress(final M item)
             {
                 return item.getIdentifier();
             }
 
             @Override
-            protected boolean isValid(final Relation item, final Rectangle bounds)
+            protected boolean isValid(final M item, final Rectangle bounds)
             {
-                return item.intersects(bounds);
+                return memberValidForBounds.apply(item, bounds);
             }
 
             @Override
-            protected Relation restore(final Long packed)
+            protected M restore(final Long packed)
             {
-                return relation(packed);
+                return memberFromIdentifier.apply(packed);
             }
         };
     }

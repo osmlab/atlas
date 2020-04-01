@@ -1,7 +1,9 @@
 package org.openstreetmap.atlas.geography.atlas.items;
 
 import java.util.Map;
+import java.util.Optional;
 
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
@@ -10,6 +12,8 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
 import org.openstreetmap.atlas.utilities.collections.StringList;
+
+import com.google.gson.JsonObject;
 
 /**
  * Area from an {@link Atlas}
@@ -23,6 +27,12 @@ public abstract class Area extends AtlasItem
     protected Area(final Atlas atlas)
     {
         super(atlas);
+    }
+
+    @Override
+    public JsonObject asGeoJsonGeometry()
+    {
+        return asPolygon().asGeoJsonGeometry();
     }
 
     /**
@@ -62,9 +72,18 @@ public abstract class Area extends AtlasItem
     }
 
     @Override
-    public boolean intersects(final Polygon polygon)
+    public boolean intersects(final GeometricSurface surface)
     {
-        return polygon.overlaps(asPolygon());
+        return surface.overlaps(asPolygon());
+    }
+
+    @Override
+    public String toDiffViewFriendlyString()
+    {
+        final String relationsString = this.parentRelationsAsDiffViewFriendlyString();
+
+        return "[Area: id=" + this.getIdentifier() + ", polygon=" + this.asPolygon()
+                + ", relations=(" + relationsString + "), " + tagString() + "]";
     }
 
     @Override
@@ -74,6 +93,9 @@ public abstract class Area extends AtlasItem
         tags.put("identifier", String.valueOf(getIdentifier()));
         tags.put("osmIdentifier", String.valueOf(getOsmIdentifier()));
         tags.put("itemType", String.valueOf(getType()));
+
+        final Optional<String> shardName = getAtlas().metaData().getShardName();
+        shardName.ifPresent(shard -> tags.put("shard", shard));
 
         final StringList parentRelations = new StringList();
         this.relations().forEach(relation ->
@@ -95,5 +117,23 @@ public abstract class Area extends AtlasItem
     {
         return "[Area: id=" + this.getIdentifier() + ", polygon=" + this.asPolygon() + ", "
                 + tagString() + "]";
+    }
+
+    @Override
+    public byte[] toWkb()
+    {
+        return this.asPolygon().toWkb();
+    }
+
+    @Override
+    public String toWkt()
+    {
+        return this.asPolygon().toWkt();
+    }
+
+    @Override
+    public boolean within(final GeometricSurface surface)
+    {
+        return this.asPolygon().within(surface);
     }
 }

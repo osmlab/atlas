@@ -4,9 +4,13 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.proto.ProtoSerializable;
+import org.openstreetmap.atlas.proto.adapters.ProtoAdapter;
+import org.openstreetmap.atlas.proto.adapters.ProtoPackedTagStoreAdapter;
 import org.openstreetmap.atlas.utilities.arrays.Arrays;
 import org.openstreetmap.atlas.utilities.arrays.IntegerArrayOfArrays;
 import org.openstreetmap.atlas.utilities.compression.IntegerDictionary;
@@ -17,19 +21,30 @@ import org.openstreetmap.atlas.utilities.compression.IntegerDictionary;
  * assumes each item will have a reasonably small number of key-value pairs.
  *
  * @author matthieun
+ * @author lcram
  */
-public class PackedTagStore implements Serializable
+public class PackedTagStore implements Serializable, ProtoSerializable
 {
+    // Keep track of the field names for reflection code in the ProtoAdapter
+    public static final String FIELD_KEYS = "keys";
+    public static final String FIELD_VALUES = "values";
+    public static final String FIELD_INDEX = "index";
     private static final long serialVersionUID = -5240324410665237846L;
-
     private final IntegerArrayOfArrays keys;
     private final IntegerArrayOfArrays values;
     private transient IntegerDictionary<String> dictionary;
 
     private long index = 0L;
 
-    protected PackedTagStore(final long maximumSize, final int memoryBlockSize,
-            final int subArraySize, final IntegerDictionary<String> dictionary)
+    public PackedTagStore()
+    {
+        this.keys = null;
+        this.values = null;
+        this.dictionary = null;
+    }
+
+    public PackedTagStore(final long maximumSize, final int memoryBlockSize, final int subArraySize,
+            final IntegerDictionary<String> dictionary)
     {
         this.keys = new IntegerArrayOfArrays(maximumSize, memoryBlockSize, subArraySize);
         this.values = new IntegerArrayOfArrays(maximumSize, memoryBlockSize, subArraySize);
@@ -48,10 +63,10 @@ public class PackedTagStore implements Serializable
      */
     public void add(final long index, final String key, final String value)
     {
-        if (index > this.index)
+        if (index > size())
         {
-            throw new CoreException(
-                    "Cannot add. Invalid index " + index + " is bigger than the size " + size());
+            throw new CoreException("Cannot add. Invalid index {} is bigger than the size {}",
+                    index, size());
         }
         final int keyIndex = keysDictionary().add(key);
         final int valueIndex = valuesDictionary().add(value);
@@ -115,6 +130,37 @@ public class PackedTagStore implements Serializable
         return false;
     }
 
+    @Override
+    public boolean equals(final Object other)
+    {
+        if (other instanceof PackedTagStore)
+        {
+            if (this == other)
+            {
+                return true;
+            }
+            final PackedTagStore that = (PackedTagStore) other;
+            if (!this.keys.equals(that.keys))
+            {
+                return false;
+            }
+            if (!this.values.equals(that.values))
+            {
+                return false;
+            }
+            if (!Objects.equals(this.keysDictionary(), that.keysDictionary()))
+            {
+                return false;
+            }
+            if (!Objects.equals(this.valuesDictionary(), that.valuesDictionary()))
+            {
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
     /**
      * @param index
      *            The index to check for
@@ -142,12 +188,30 @@ public class PackedTagStore implements Serializable
         return null;
     }
 
-    /**
-     * @return The dictionary for keys
-     */
-    public IntegerDictionary<String> keysDictionary()
+    @Override
+    public ProtoAdapter getProtoAdapter()
     {
-        return this.dictionary;
+        return new ProtoPackedTagStoreAdapter();
+    }
+
+    @Override
+    public int hashCode()
+    {
+        final int initialPrime = 31;
+        final int hashSeed = 37;
+
+        int hash = hashSeed * initialPrime + this.keys.hashCode();
+        hash = hashSeed * hash + this.values.hashCode();
+
+        final int keysDictionaryHash = this.keysDictionary() == null ? 0
+                : this.keysDictionary().hashCode();
+        final int valuesDictionaryHash = this.valuesDictionary() == null ? 0
+                : this.valuesDictionary().hashCode();
+
+        hash = hashSeed * hash + keysDictionaryHash;
+        hash = hashSeed * hash + valuesDictionaryHash;
+
+        return hash;
     }
 
     /**
@@ -191,6 +255,19 @@ public class PackedTagStore implements Serializable
     }
 
     /**
+     * @return The dictionary for keys
+     */
+    public IntegerDictionary<String> keysDictionary()
+    {
+        return this.dictionary;
+    }
+
+    public void setDictionary(final IntegerDictionary<String> dictionary)
+    {
+        this.dictionary = dictionary;
+    }
+
+    /**
      * @return The size of this tag store
      */
     public long size()
@@ -210,10 +287,5 @@ public class PackedTagStore implements Serializable
     public IntegerDictionary<String> valuesDictionary()
     {
         return this.dictionary;
-    }
-
-    protected void setDictionary(final IntegerDictionary<String> dictionary)
-    {
-        this.dictionary = dictionary;
     }
 }

@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.sharding;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Set;
 
@@ -11,9 +12,12 @@ import org.openstreetmap.atlas.geography.Latitude;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Longitude;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
 import org.openstreetmap.atlas.geography.sharding.converters.SlippyTileConverter;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
+
+import com.google.gson.JsonObject;
 
 /**
  * OSM Slippy tile
@@ -22,13 +26,13 @@ import org.openstreetmap.atlas.utilities.scalars.Distance;
  * @author matthieun
  * @author mgostintsev
  */
-public class SlippyTile implements Shard
+public class SlippyTile implements Shard, Comparable<SlippyTile>
 {
-    private static final long serialVersionUID = -3752920878013084039L;
-
     public static final SlippyTile ROOT = new SlippyTile(0, 0, 0);
     public static final int MAX_ZOOM = 30;
+    public static final String COORDINATE_SEPARATOR = "-";
 
+    private static final long serialVersionUID = -3752920878013084039L;
     private static final SlippyTileConverter CONVERTER = new SlippyTileConverter();
     private static final double CIRCULAR_MULTIPLIER = 2.0;
     private static final double ZOOM_LEVEL_POWER = 2.0;
@@ -70,13 +74,37 @@ public class SlippyTile implements Shard
         {
             throw new CoreException("Zoom too large.");
         }
+        final Iterable<SlippyTile> result = () -> allTilesIterator(zoom, bounds);
+        final List<SlippyTile> list = Iterables.asList(result);
+        if (list.isEmpty())
+        {
+            throw new CoreException("List cannot be empty");
+        }
+        return list;
+    }
+
+    /**
+     * Iterator for all tiles within some bounds
+     *
+     * @param zoom
+     *            The zoom to consider
+     * @param bounds
+     *            The bounds to consider
+     * @return Iterator for all tiles within some bounds
+     */
+    public static Iterator<SlippyTile> allTilesIterator(final int zoom, final Rectangle bounds)
+    {
+        if (zoom > MAX_ZOOM)
+        {
+            throw new CoreException("Zoom too large.");
+        }
         final SlippyTile lowerLeft = new SlippyTile(bounds.lowerLeft(), zoom);
         final SlippyTile upperRight = new SlippyTile(bounds.upperRight(), zoom);
         final int minX = lowerLeft.getX();
         final int maxX = upperRight.getX();
         final int minY = upperRight.getY();
         final int maxY = lowerLeft.getY();
-        final Iterable<SlippyTile> result = () -> new Iterator<SlippyTile>()
+        return new Iterator<SlippyTile>()
         {
             private int xAxis = minX;
             private int yAxis = minY;
@@ -90,9 +118,9 @@ public class SlippyTile implements Shard
             @Override
             public SlippyTile next()
             {
-                if (this.yAxis > maxY)
+                if (!hasNext())
                 {
-                    return null;
+                    throw new NoSuchElementException();
                 }
                 final SlippyTile result = new SlippyTile(this.xAxis, this.yAxis, zoom);
                 this.xAxis++;
@@ -104,12 +132,6 @@ public class SlippyTile implements Shard
                 return result;
             }
         };
-        final List<SlippyTile> list = Iterables.asList(result);
-        if (list.isEmpty())
-        {
-            throw new CoreException("List cannot be empty");
-        }
-        return list;
     }
 
     /**
@@ -173,6 +195,12 @@ public class SlippyTile implements Shard
     }
 
     @Override
+    public JsonObject asGeoJson()
+    {
+        return bounds().asGeoJsonGeometry();
+    }
+
+    @Override
     public Rectangle bounds()
     {
         if (this.bounds == null)
@@ -180,6 +208,49 @@ public class SlippyTile implements Shard
             this.bounds = tile2boundingBox(this.xAxis, this.yAxis, this.zoom);
         }
         return this.bounds;
+    }
+
+    @Override
+    public int compareTo(final SlippyTile other)
+    {
+        // Order by z-level, x-value and then y-value
+        final int zoomLevelDelta = this.getZoom() - other.getZoom();
+        if (zoomLevelDelta > 0)
+        {
+            return 1;
+        }
+        else if (zoomLevelDelta < 0)
+        {
+            return -1;
+        }
+        else
+        {
+            final int xDelta = this.getX() - other.getX();
+            if (xDelta > 0)
+            {
+                return 1;
+            }
+            else if (xDelta < 0)
+            {
+                return -1;
+            }
+            else
+            {
+                final int yDelta = this.getY() - other.getY();
+                if (yDelta > 0)
+                {
+                    return 1;
+                }
+                else if (yDelta < 0)
+                {
+                    return -1;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+        }
     }
 
     @Override
@@ -192,6 +263,12 @@ public class SlippyTile implements Shard
                     && this.getY() == that.getY();
         }
         return false;
+    }
+
+    @Override
+    public GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.POLYGON;
     }
 
     @Override
@@ -339,6 +416,18 @@ public class SlippyTile implements Shard
     {
         return "[SlippyTile: zoom = " + this.zoom + ", x = " + this.xAxis + ", y = " + this.yAxis
                 + "]";
+    }
+
+    @Override
+    public byte[] toWkb()
+    {
+        return bounds().toWkb();
+    }
+
+    @Override
+    public String toWkt()
+    {
+        return bounds().toWkt();
     }
 
     /**

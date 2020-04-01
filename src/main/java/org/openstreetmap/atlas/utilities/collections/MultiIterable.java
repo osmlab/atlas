@@ -38,7 +38,8 @@ public class MultiIterable<T> implements Iterable<T>
             private final Iterator<? extends Iterable<? extends T>> iterablesIterator = MultiIterable.this.iterables
                     .iterator();
             private Iterator<? extends T> currentIterator = this.iterablesIterator.hasNext()
-                    ? this.iterablesIterator.next().iterator() : null;
+                    ? this.iterablesIterator.next().iterator()
+                    : null;
 
             @Override
             public boolean hasNext()

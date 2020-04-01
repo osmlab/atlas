@@ -1,0 +1,85 @@
+.\"     Title: atlas-cookbook
+.\"    Author: Lucas Cram
+.\"    Source: atlas-shell-tools 0.0.1
+.\"  Language: English
+.\"
+.TH "ATLAS-GLOSSARY" "7" "1 December 2018" "atlas\-shell\-tools 0\&.0\&.1" "Atlas Shell Tools Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+
+.SH "NAME"
+.sp
+atlas\-cookbook \-\- Atlas Shell Tools command cookbook
+
+.SH "SYNOPSIS"
+*
+
+.SH "RECIPES"
+
+.sp
+See a list of all commands in the current module:
+.RS 4
+.sp
+$ atlas \-\-list
+.sp
+# You can also use the abbreviated -l flag
+.sp
+$ atlas \-l
+.RE
+
+.sp
+See a list of all installed modules and then change the current module:
+.RS 4
+.sp
+$ atlas\-config list
+.sp
+$ atlas\-config activate <MODULE>
+.RE
+
+.sp
+Add a new repo, check your registered repos, and then install a module from one:
+.sp
+.RS 4
+.sp
+$ atlas\-config repo add my\-new\-repo https://github.com/me/my\-repo.git
+.sp
+$ atlas\-config repo list
+.sp
+$ atlas\-config repo install <REPO>
+.RE
+
+.sp
+Build a fat JAR and then symlink install for local testing:
+.sp
+.RS 4
+.sp
+$ cd /path/to/my/project
+.sp
+$ ./gradlew clean fat -x check
+.sp
+$ atlas\-config install --symlink <path/to/wherever/gradle/puts/jar>
+.sp
+# Now you can make some changes in your code, then simply rebuild to test them!
+.sp
+$ vim src/MySourceFile.java
+.sp
+$ ./gradlew clean fat -x check
+.RE
+
+
+.SH "ATLAS SHELL TOOLS"
+.sp
+Part of the \fBatlas\-shell\-tools\fR(7) suite

@@ -5,15 +5,25 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.geography.GeometricSurface;
+import org.openstreetmap.atlas.geography.GeometryPrintable;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIdentifierFactory;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonFeature;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.tags.LastEditTimeTag;
 import org.openstreetmap.atlas.tags.LastEditUserIdentifierTag;
 import org.openstreetmap.atlas.tags.LastEditUserNameTag;
+import org.openstreetmap.atlas.tags.names.NameTag;
+import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.scalars.Duration;
 import org.openstreetmap.atlas.utilities.time.Time;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 /**
  * A located entity with tags
@@ -21,8 +31,10 @@ import org.openstreetmap.atlas.utilities.time.Time;
  * @author matthieun
  * @author mgostintsev
  * @author Sid
+ * @author hallahan
  */
-public abstract class AtlasEntity implements AtlasObject
+public abstract class AtlasEntity
+        implements AtlasObject, DiffViewFriendlyItem, GeometryPrintable, GeoJsonFeature
 {
     private static final long serialVersionUID = -6072525057489468736L;
 
@@ -105,6 +117,50 @@ public abstract class AtlasEntity implements AtlasObject
         return this.atlas;
     }
 
+    /**
+     * A method that creates properties for a GeoJSON Feature from the tags.
+     *
+     * @return A GeoJSON properties object that is to be put in a Feature.
+     */
+    @Override
+    public JsonObject getGeoJsonProperties()
+    {
+        final JsonObject properties = new JsonObject();
+        getTags().forEach(properties::addProperty);
+        properties.addProperty(GeoJsonUtils.IDENTIFIER, getIdentifier());
+        properties.addProperty(GeoJsonUtils.OSM_IDENTIFIER, getOsmIdentifier());
+        properties.addProperty(GeoJsonUtils.ITEM_TYPE, String.valueOf(getType()));
+
+        final Set<Relation> relations = relations();
+        if (!relations.isEmpty())
+        {
+            final JsonArray relationsArray = new JsonArray();
+            properties.add("relations", relationsArray);
+            for (final Relation relation : relations)
+            {
+                relationsArray.add(new JsonPrimitive(relation.getIdentifier()));
+            }
+        }
+
+        return properties;
+    }
+
+    @Override
+    public GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.FEATURE;
+    }
+
+    /**
+     * The value in the "name" attribute.
+     *
+     * @return an optional string representing the value of the name tag.
+     */
+    public Optional<String> getName()
+    {
+        return this.getTag(NameTag.KEY);
+    }
+
     @Override
     public long getOsmIdentifier()
     {
@@ -126,16 +182,16 @@ public abstract class AtlasEntity implements AtlasObject
     }
 
     /**
-     * Return true if the entity intersects the polygon. If it is a {@link LocationItem}, the
-     * polygon fully encloses it. For a {@link LineItem} the polygon overlaps it. For an
-     * {@link Area} the polygon overlaps it. For a relation, at least one member of the relation
-     * returns true to this method.
+     * Return true if the entity intersects the geometricSurface. If it is a {@link LocationItem},
+     * the polygon fully encloses it. For a {@link LineItem} the geometricSurface overlaps it. For
+     * an {@link Area} the geometricSurface overlaps it. For a relation, at least one member of the
+     * relation returns true to this method.
      *
-     * @param polygon
-     *            The polygon to test
+     * @param surface
+     *            The {@link GeometricSurface} to test
      * @return True if it intersects
      */
-    public abstract boolean intersects(Polygon polygon);
+    public abstract boolean intersects(GeometricSurface surface);
 
     /**
      * @return If available, the {@link Time} at which the entity was last edited.
@@ -181,6 +237,13 @@ public abstract class AtlasEntity implements AtlasObject
      */
     public abstract Set<Relation> relations();
 
+    @Override
+    public String toDiffViewFriendlyString()
+    {
+        throw new UnsupportedOperationException(
+                "This operation is not supported for type " + this.getClass().getName());
+    }
+
     /**
      * @return The {@link LocationIterableProperties} for this {@link AtlasEntity}
      */
@@ -192,22 +255,38 @@ public abstract class AtlasEntity implements AtlasObject
         final Map<String, String> tags = getTags();
         int index = 0;
         builder.append("[Tags: ");
-        for (final String key : tags.keySet())
+        if (tags != null)
         {
-            final String value = tags.get(key);
-            builder.append("[");
-            builder.append(key);
-            builder.append(" => ");
-            builder.append(value);
-            builder.append("]");
-            if (index < tags.size() - 1)
+            for (final String key : tags.keySet())
             {
-                builder.append(", ");
+                final String value = tags.get(key);
+                builder.append("[");
+                builder.append(key);
+                builder.append(" => ");
+                builder.append(value);
+                builder.append("]");
+                if (index < tags.size() - 1)
+                {
+                    builder.append(", ");
+                }
+                index++;
             }
-            index++;
         }
         builder.append("]");
         return builder.toString();
+    }
+
+    String parentRelationsAsDiffViewFriendlyString()
+    {
+        final StringList relationIds = new StringList();
+        if (this.relations() != null)
+        {
+            for (final Relation relation : this.relations())
+            {
+                relationIds.add(relation.getIdentifier());
+            }
+        }
+        return relationIds.join(",");
     }
 
 }

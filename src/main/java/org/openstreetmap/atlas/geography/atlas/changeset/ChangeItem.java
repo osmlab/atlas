@@ -13,7 +13,9 @@ import org.openstreetmap.atlas.tags.Taggable;
  * A change item represent a result generated from data enhancement process.
  *
  * @author Yiqing Jin
+ * @deprecated - see new API under org.openstreetmap.atlas.geography.atlas.change package.
  */
+@Deprecated
 public interface ChangeItem extends Taggable, Serializable
 {
     /**

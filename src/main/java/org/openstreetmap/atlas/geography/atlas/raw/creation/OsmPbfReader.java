@@ -23,7 +23,8 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.PaddingIdentifierFactory;
-import org.openstreetmap.atlas.geography.atlas.pbf.store.TagMap;
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.TagMap;
+import org.openstreetmap.atlas.tags.AtlasTag;
 import org.openstreetmap.atlas.tags.LastEditChangesetTag;
 import org.openstreetmap.atlas.tags.LastEditTimeTag;
 import org.openstreetmap.atlas.tags.LastEditUserIdentifierTag;
@@ -44,8 +45,6 @@ import org.openstreetmap.osmosis.core.task.v0_6.Sink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ImmutableList;
-
 /**
  * The {@link OsmPbfReader} is responsible for reading OSM PBF entities and converting them to Atlas
  * Entities. It will map a PBF {@link Node} to an Atlas {@link Point}, a PBF {@link Way} to an Atlas
@@ -61,15 +60,12 @@ import com.google.common.collect.ImmutableList;
 public class OsmPbfReader implements Sink
 {
     private static final Logger logger = LoggerFactory.getLogger(OsmPbfReader.class);
-    private static final String MISSING_MEMBER_MESSAGE = "Relation {} contains {} {} as a member, but this PBF shard does not contain it.";
-
-    public static final ImmutableList<String> MANDATORY_TAG_KEYS_FOR_ALL_ENTITIES = new ImmutableList.Builder<String>()
-            .add(LastEditTimeTag.KEY, LastEditUserIdentifierTag.KEY, LastEditUserNameTag.KEY,
-                    LastEditVersionTag.KEY, LastEditChangesetTag.KEY)
-            .build();
+    private static final String MISSING_MEMBER_MESSAGE = "Relation {} contains {} {} as a member, but it's either filtered out or this PBF shard does not contain it.";
 
     private final PackedAtlasBuilder builder;
     private final AtlasLoadingOption loadingOption;
+    private final Set<Long> nodeIdentifiersToInclude = new HashSet<>();
+    private final Set<Long> wayIdentifiersToInclude = new HashSet<>();
     private final Set<Long> pointIdentifiersFromFilteredLines = new HashSet<>();
     private final List<Relation> stagedRelations = new ArrayList<>();
     private final RawAtlasStatistic statistics = new RawAtlasStatistic(logger);
@@ -78,11 +74,6 @@ public class OsmPbfReader implements Sink
      * Determines if the given {@link Entity} should be brought into the {@link Atlas}. Ideally, all
      * features will be brought in. However, to make {@link Atlas} generation flexible and fit all
      * use cases, this is configurable.
-     * <p>
-     * TODO We still temporarily suppress administrative boundaries and coastlines - see
-     * configuration files in src/main/resources. Once parity is achieved with current PBF ingest
-     * process, these two (and potentially others) cases will be handled and ingested into the
-     * Atlas.
      *
      * @param loadingOption
      *            The {@link AtlasLoadingOption} to use for configuration lookup.
@@ -110,19 +101,6 @@ public class OsmPbfReader implements Sink
             // No Bound filtering
             return true;
         }
-    }
-
-    /**
-     * Pads the given OSM identifier, by appending 6 digits to it. The first 3 appended digits are
-     * the country code identifier and the last 3 digits are the way-section identifier.
-     *
-     * @param identifier
-     *            The original OSM identifier
-     * @return a padded identifier
-     */
-    private static long padIdentifier(final long identifier)
-    {
-        return PaddingIdentifierFactory.pad(identifier);
     }
 
     /**
@@ -158,11 +136,13 @@ public class OsmPbfReader implements Sink
 
         if (shouldProcessEntity(this.loadingOption, rawEntity))
         {
-            if (this.loadingOption.isLoadOsmNode() && rawEntity instanceof Node)
+            if (rawEntity instanceof Node
+                    && this.nodeIdentifiersToInclude.contains(rawEntity.getId()))
             {
                 processNode(rawEntity);
             }
-            else if (this.loadingOption.isLoadOsmWay() && rawEntity instanceof Way)
+            else if (rawEntity instanceof Way
+                    && this.wayIdentifiersToInclude.contains(rawEntity.getId()))
             {
                 processWay(rawEntity);
             }
@@ -179,7 +159,7 @@ public class OsmPbfReader implements Sink
         {
             recordNodeIdentifiersFromFilteredEntity(rawEntity);
             logFilteredStatistics(rawEntity);
-            logger.trace("Excluding OSM {} {} from Raw Atlas", rawEntity.getType(),
+            logger.trace("Filtering out OSM {} {} from Raw Atlas", rawEntity.getType(),
                     rawEntity.getId());
         }
     }
@@ -195,10 +175,32 @@ public class OsmPbfReader implements Sink
     }
 
     /**
+     * Sets all the Node identifiers marked for inclusion.
+     *
+     * @param nodesToInclude
+     *            The set of Node identifiers to include in the atlas
+     */
+    public void setIncludedNodes(final Set<Long> nodesToInclude)
+    {
+        this.nodeIdentifiersToInclude.addAll(nodesToInclude);
+    }
+
+    /**
+     * Sets all the Way identifiers marked for inclusion.
+     *
+     * @param waysToInclude
+     *            The set of Way identifiers to include in the atlas
+     */
+    public void setIncludedWays(final Set<Long> waysToInclude)
+    {
+        this.wayIdentifiersToInclude.addAll(waysToInclude);
+    }
+
+    /**
      * @return all the {@link Point} identifiers that make up {@link Line}s that were filtered. We
      *         process all PBF {@link Node}s first and add them as Atlas {@link Point}s. After this,
      *         we may filter out some PBF {@link Way}s. As a result, our Atlas file may contain
-     *         Points which aren't used by any Lines. We want to record these and see if we can
+     *         points which aren't used by any lines. We want to record these and see if we can
      *         filter them out downstream.
      */
     protected Set<Long> getPointIdentifiersFromFilteredLines()
@@ -227,7 +229,7 @@ public class OsmPbfReader implements Sink
         else
         {
             this.statistics.recordDroppedRelation();
-            logger.debug("Empty Relation {} cannot be added to the Atlas. We're either filtering"
+            logger.debug("Cannot add empty Relation {} to the Atlas. We're either filtering"
                     + " out the members that make up the Relation or none of the "
                     + "members are present in this PBF shard.", relation.getId());
         }
@@ -258,7 +260,7 @@ public class OsmPbfReader implements Sink
                 }
                 else
                 {
-                    logger.warn(MISSING_MEMBER_MESSAGE, relation.getId(), EntityType.Node,
+                    logger.trace(MISSING_MEMBER_MESSAGE, relation.getId(), EntityType.Node,
                             memberIdentifier);
                 }
             }
@@ -270,7 +272,7 @@ public class OsmPbfReader implements Sink
                 }
                 else
                 {
-                    logger.warn(MISSING_MEMBER_MESSAGE, relation.getId(), EntityType.Way,
+                    logger.trace(MISSING_MEMBER_MESSAGE, relation.getId(), EntityType.Way,
                             memberIdentifier);
                 }
             }
@@ -282,7 +284,7 @@ public class OsmPbfReader implements Sink
                 }
                 else
                 {
-                    logger.warn(MISSING_MEMBER_MESSAGE, relation.getId(), EntityType.Relation,
+                    logger.trace(MISSING_MEMBER_MESSAGE, relation.getId(), EntityType.Relation,
                             memberIdentifier);
                 }
             }
@@ -397,6 +399,34 @@ public class OsmPbfReader implements Sink
     }
 
     /**
+     * @return {@code true} if we need to pad identifiers when creating atlas entities.
+     */
+    private boolean needsPadding()
+    {
+        return this.loadingOption.isCountrySlicing() || this.loadingOption.isWaySectioning();
+    }
+
+    /**
+     * Pads the given OSM identifier, by appending 6 digits to it. The first 3 appended digits are
+     * the country code identifier and the last 3 digits are the way-section identifier.
+     *
+     * @param identifier
+     *            The original OSM identifier
+     * @return a padded identifier
+     */
+    private long padIdentifier(final long identifier)
+    {
+        if (needsPadding())
+        {
+            return PaddingIdentifierFactory.pad(identifier);
+        }
+        else
+        {
+            return identifier;
+        }
+    }
+
+    /**
      * First, creates an {@link Entity} {@link Tag} for specific OSM attributes we're interested in
      * propagating to the {@link AtlasEntity}. Secondly, converts the given {@link Entity}'s
      * collection of {@link Tag}s to a {@link Map} of key/value pairs used to build an
@@ -411,7 +441,6 @@ public class OsmPbfReader implements Sink
         // Update the entity's tags to contain specific OSM attributes we care about, so that these
         // get translated to Atlas Entity tags.
         storeOsmEntityAttributesAsTags(entity);
-
         return new TagMap(entity.getTags()).getTags();
     }
 
@@ -555,7 +584,7 @@ public class OsmPbfReader implements Sink
     private void storeOsmEntityAttributesAsTags(final Entity entity)
     {
         final Collection<Tag> tags = entity.getTags();
-        for (final String tag : MANDATORY_TAG_KEYS_FOR_ALL_ENTITIES)
+        for (final String tag : AtlasTag.TAGS_FROM_OSM)
         {
             if (tag.equals(LastEditTimeTag.KEY))
             {

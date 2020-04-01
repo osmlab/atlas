@@ -29,7 +29,7 @@ public enum TurnRestrictionTag
     public static final String KEY = "restriction";
 
     private static final EnumSet<TurnRestrictionTag> NO_PATH_RESTRICTIONS = EnumSet
-            .of(NO_RIGHT_TURN, NO_LEFT_TURN, NO_U_TURN, NO_STRAIGHT_ON);
+            .of(NO_RIGHT_TURN, NO_LEFT_TURN, NO_U_TURN, NO_STRAIGHT_ON, NO_ENTRY, NO_EXIT);
     private static final EnumSet<TurnRestrictionTag> ONLY_PATH_RESTRICTIONS = EnumSet
             .of(ONLY_RIGHT_TURN, ONLY_LEFT_TURN, ONLY_STRAIGHT_ON);
 

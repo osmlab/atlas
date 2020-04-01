@@ -1,0 +1,17 @@
+# Nodes
+# Edges
+# Areas
+# Lines
+488453376000000 && 22.539148,113.9448557:22.539148,113.9448557:22.5392348,113.9448542:22.539495,113.9448495:22.5395425,113.9448487:22.5395455,113.9451532:22.5395009,113.9451538:22.5392333,113.9451574:22.5391521,113.9451585:22.539148,113.9448557 && last_edit_user_name -> ulrichm || last_edit_changeset -> 58630764 || last_edit_time -> 1525301434000 || last_edit_user_id -> 3331814 || iso_country_code -> CHN || footway -> crossing || highway -> footway || last_edit_version -> 4 || crossing -> zebra
+386313688000000 && 22.5392333,113.9451574:22.5392462,113.9471391 && last_edit_user_name -> ulrichm || last_edit_changeset -> 58630764 || last_edit_time -> 1525301434000 || last_edit_user_id -> 3331814 || iso_country_code -> CHN || footway -> crossing || highway -> footway || last_edit_version -> 4
+# Points
+5178935335000000 && 22.539148,113.9448557 && last_edit_user_name -> Triomphe346 || last_edit_changeset -> 53112141 || synthetic_duplicate_osm_node -> YES || last_edit_time -> 1508533148000 || last_edit_user_id -> 4892967 || iso_country_code -> CHN || last_edit_version -> 1
+5178935343000000 && 22.5392348,113.9448542 && last_edit_user_name -> Triomphe346 || last_edit_changeset -> 53112141 || last_edit_time -> 1508533148000 || last_edit_user_id -> 4892967 || iso_country_code -> CHN || last_edit_version -> 1
+4807503663000000 && 22.539495,113.9448495 && last_edit_user_name -> Triomphe346 || last_edit_changeset -> 53112141 || last_edit_time -> 1508533153000 || last_edit_user_id -> 4892967 || iso_country_code -> CHN || last_edit_version -> 2
+5178935349000000 && 22.5395425,113.9448487 && last_edit_user_name -> Triomphe346 || last_edit_changeset -> 53112141 || last_edit_time -> 1508533148000 || last_edit_user_id -> 4892967 || iso_country_code -> CHN || last_edit_version -> 1
+5178935333000000 && 22.5395455,113.9451532 && last_edit_user_name -> Triomphe346 || last_edit_changeset -> 53112141 || last_edit_time -> 1508533148000 || last_edit_user_id -> 4892967 || iso_country_code -> CHN || last_edit_version -> 1
+4808413267000000 && 22.5395009,113.9451538 && last_edit_user_name -> Triomphe346 || last_edit_changeset -> 53112141 || last_edit_time -> 1508533154000 || last_edit_user_id -> 4892967 || iso_country_code -> CHN || last_edit_version -> 3
+5178935332000000 && 22.5392333,113.9451574 && last_edit_user_name -> Triomphe346 || last_edit_changeset -> 53112141 || last_edit_time -> 1508533148000 || last_edit_user_id -> 4892967 || iso_country_code -> CHN || last_edit_version -> 1
+4807503687000000 && 22.5391521,113.9451585 && last_edit_user_name -> Triomphe346 || last_edit_changeset -> 53112141 || last_edit_time -> 1508533153000 || last_edit_user_id -> 4892967 || iso_country_code -> CHN || last_edit_version -> 3
+3896278676000000 && 22.5392462,113.9471391 && last_edit_user_name -> Triomphe346 || last_edit_changeset -> 53112141 || last_edit_time -> 1508533156000 || last_edit_user_id -> 4892967 || iso_country_code -> CHN || last_edit_version -> 2
+# Relations

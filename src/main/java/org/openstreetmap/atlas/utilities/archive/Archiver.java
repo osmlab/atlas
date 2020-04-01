@@ -26,6 +26,27 @@ import org.openstreetmap.atlas.streaming.NotifyingIOUtils.IOProgressListener;
 public final class Archiver extends AbstractArchiverOrExtractor<Archiver>
 {
     /**
+     * Sets all files to the default mode of compression: no inspection of the type of file is done
+     *
+     * @author cstaylor
+     */
+    public class DefaultArchiveStorageProfileDelegate implements ArchiveStorageProfileDelegate
+    {
+        private final boolean defaultMode;
+
+        public DefaultArchiveStorageProfileDelegate(final boolean mode)
+        {
+            this.defaultMode = mode;
+        }
+
+        @Override
+        public boolean shouldCompress(final File item)
+        {
+            return this.defaultMode;
+        }
+    }
+
+    /**
      * Responsible for tracking the process of a file being archived
      *
      * @author cstaylor
@@ -65,27 +86,6 @@ public final class Archiver extends AbstractArchiverOrExtractor<Archiver>
         public void statusUpdate(final long count)
         {
             fireItemInProgress(this.file, count, this.length);
-        }
-    }
-
-    /**
-     * Sets all files to the default mode of compression: no inspection of the type of file is done
-     *
-     * @author cstaylor
-     */
-    public class DefaultArchiveStorageProfileDelegate implements ArchiveStorageProfileDelegate
-    {
-        private final boolean defaultMode;
-
-        public DefaultArchiveStorageProfileDelegate(final boolean mode)
-        {
-            this.defaultMode = mode;
-        }
-
-        @Override
-        public boolean shouldCompress(final File item)
-        {
-            return this.defaultMode;
         }
     }
 
@@ -132,7 +132,8 @@ public final class Archiver extends AbstractArchiverOrExtractor<Archiver>
                     if (Archiver.this.storageDelegate != null)
                     {
                         final int level = Archiver.this.storageDelegate.shouldCompress(file)
-                                ? ZipArchiveEntry.DEFLATED : ZipArchiveEntry.STORED;
+                                ? ZipArchiveEntry.DEFLATED
+                                : ZipArchiveEntry.STORED;
                         entry.setMethod(level);
                     }
                     Archiver.this.archiveOutputStream.putArchiveEntry(entry);

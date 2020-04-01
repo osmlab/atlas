@@ -2,14 +2,16 @@ package org.openstreetmap.atlas.geography.atlas.items;
 
 import java.util.Map;
 
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
-import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.Snapper.SnappedLocation;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
 import org.openstreetmap.atlas.utilities.collections.StringList;
+
+import com.google.gson.JsonObject;
 
 /**
  * An {@link AtlasItem} that is represented by one single location
@@ -23,6 +25,12 @@ public abstract class LocationItem extends AtlasItem
     protected LocationItem(final Atlas atlas)
     {
         super(atlas);
+    }
+
+    @Override
+    public JsonObject asGeoJsonGeometry()
+    {
+        return getLocation().asGeoJsonGeometry();
     }
 
     @Override
@@ -43,9 +51,9 @@ public abstract class LocationItem extends AtlasItem
     }
 
     @Override
-    public boolean intersects(final Polygon polygon)
+    public boolean intersects(final GeometricSurface surface)
     {
-        return polygon.fullyGeometricallyEncloses(getLocation());
+        return surface.fullyGeometricallyEncloses(getLocation());
     }
 
     public SnappedLocation snapTo(final Area other)
@@ -95,5 +103,23 @@ public abstract class LocationItem extends AtlasItem
         }
 
         return new GeoJsonBuilder.LocationIterableProperties(getRawGeometry(), tags);
+    }
+
+    @Override
+    public byte[] toWkb()
+    {
+        return this.getLocation().toWkb();
+    }
+
+    @Override
+    public String toWkt()
+    {
+        return this.getLocation().toWkt();
+    }
+
+    @Override
+    public boolean within(final GeometricSurface surface)
+    {
+        return this.getLocation().within(surface);
     }
 }

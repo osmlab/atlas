@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <node id='-177628' action='modify' visible='true' lat='38.82293376857' lon='4.21774333824' />
+  <node id='-177629' action='modify' visible='true' lat='38.82322294505' lon='4.21823823725' />
+  <node id='-177631' action='modify' visible='true' lat='38.82289990097' lon='4.2189103636' />
+  <node id='-177633' action='modify' visible='true' lat='38.82316563089' lon='4.2194855165' />
+  <node id='-177647' action='modify' visible='true' lat='38.82282174493' lon='4.21976974904' />
+  <node id='-177649' action='modify' visible='true' lat='38.82351472554' lon='4.21966608776' />
+  <way id='-177630' action='modify' visible='true'>
+    <nd ref='-177628' />
+    <nd ref='-177629' />
+    <nd ref='-177631' />
+    <nd ref='-177633' />
+    <tag k='highway' v='residential' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <way id='-177648' action='modify' visible='true'>
+    <nd ref='-177647' />
+    <nd ref='-177633' />
+    <nd ref='-177649' />
+    <tag k='highway' v='footway' />
+  </way>
+  <relation id='-250654' action='modify' visible='true'>
+    <member type='way' ref='-177648' role='one' />
+    <member type='way' ref='-177630' role='two' />
+    <tag k='type' v='test' />
+  </relation>
+</osm>

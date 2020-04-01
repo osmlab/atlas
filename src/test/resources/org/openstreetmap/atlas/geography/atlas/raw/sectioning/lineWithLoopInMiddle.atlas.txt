@@ -1,0 +1,16 @@
+# Nodes
+# Edges
+# Areas
+# Lines
+460419987000000 && 7.4132788,-7.5708163:7.4132419,-7.5711621:7.4132362,-7.5713217:7.4130964,-7.5713167:7.4131021,-7.571157:7.4132419,-7.5711621:7.4135471,-7.571173:7.413606,-7.5711972:7.4136352,-7.5712535:7.4137548,-7.5717122 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44503315 || access -> private || surface -> asphalt || last_edit_time -> 1482104309000 || last_edit_user_id -> 192829 || highway -> service || last_edit_version -> 2 || oneway -> no
+# Points
+4560902689000000 && 7.4132419,-7.5711621 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44503236 || last_edit_time -> 1482103959000 || last_edit_user_id -> 192829 || last_edit_version -> 1
+4560902695000000 && 7.4137548,-7.5717122 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44503236 || last_edit_time -> 1482103959000 || last_edit_user_id -> 192829 || last_edit_version -> 1
+4560902696000000 && 7.4136352,-7.5712535 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44503236 || last_edit_time -> 1482103959000 || last_edit_user_id -> 192829 || last_edit_version -> 1
+4560902694000000 && 7.413606,-7.5711972 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44503236 || last_edit_time -> 1482103959000 || last_edit_user_id -> 192829 || last_edit_version -> 1
+4560902692000000 && 7.4131021,-7.571157 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44503236 || last_edit_time -> 1482103959000 || last_edit_user_id -> 192829 || last_edit_version -> 1
+4560902691000000 && 7.4130964,-7.5713167 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44503236 || last_edit_time -> 1482103959000 || last_edit_user_id -> 192829 || last_edit_version -> 1
+4560902690000000 && 7.4132362,-7.5713217 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44503236 || last_edit_time -> 1482103959000 || last_edit_user_id -> 192829 || last_edit_version -> 1
+4560902612000000 && 7.4132788,-7.5708163 && last_edit_user_name -> ulrichm || last_edit_changeset -> 44503236 || last_edit_time -> 1482103959000 || last_edit_user_id -> 192829 || last_edit_version -> 1
+4560902693000000 && 7.4135471,-7.571173 && motorcycle -> yes || last_edit_user_name -> ulrichm || last_edit_changeset -> 44503236 || access -> private || barrier -> gate || bicycle -> yes || last_edit_time -> 1482103959000 || last_edit_user_id -> 192829 || motorcar -> yes || last_edit_version -> 1 || foot -> yes
+# Relations

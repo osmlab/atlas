@@ -1,12 +1,17 @@
 package org.openstreetmap.atlas.utilities.graphs;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.maps.LinkedMultiMap;
@@ -134,6 +139,52 @@ public class DirectedAcyclicGraph<V> implements Serializable
     public boolean isSource(final V vertex)
     {
         return this.inMap.get(vertex).isEmpty();
+    }
+
+    /**
+     * @return The ordered groups of vertices that all belong to the same priority level within the
+     *         DAG
+     */
+    // NOSONAR: Cognitive complexity 16 is ok.
+    public List<Set<V>> processGroups() // NOSONAR
+    {
+        final Deque<Set<V>> stack = new LinkedList<>();
+        stack.push(new HashSet<>(getSinks()));
+        final Set<V> added = new HashSet<>(getSinks());
+        final Set<V> sourcesNotAdded = getSources().stream().filter(value -> !added.contains(value))
+                .collect(Collectors.toSet());
+        while (!sourcesNotAdded.isEmpty())
+        {
+            final Set<V> potentialCandidates = new HashSet<>();
+            for (final V alreadyAdded : added)
+            {
+                for (final V parent : getParents(alreadyAdded))
+                {
+                    if (!added.contains(parent))
+                    {
+                        potentialCandidates.add(parent);
+                    }
+                }
+            }
+            final Set<V> candidates = new HashSet<>();
+            for (final V candidate : potentialCandidates)
+            {
+                if (added.containsAll(getChildren(candidate)))
+                {
+                    candidates.add(candidate);
+                    // Hit or miss, hit only at the end of the processing
+                    sourcesNotAdded.remove(candidate);
+                }
+            }
+            stack.push(candidates);
+            added.addAll(candidates);
+        }
+        final List<Set<V>> result = new ArrayList<>();
+        while (!stack.isEmpty())
+        {
+            result.add(stack.pop());
+        }
+        return result;
     }
 
     public void removeVertex(final V vertex)

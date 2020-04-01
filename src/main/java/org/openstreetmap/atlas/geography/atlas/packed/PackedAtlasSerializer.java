@@ -6,9 +6,14 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas.AtlasSerializationFormat;
+import org.openstreetmap.atlas.proto.ProtoSerializable;
+import org.openstreetmap.atlas.proto.adapters.ProtoAdapter;
 import org.openstreetmap.atlas.streaming.CounterOutputStream;
 import org.openstreetmap.atlas.streaming.Streams;
 import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
@@ -31,6 +36,7 @@ import org.slf4j.LoggerFactory;
  * Class that serializes and deserializes {@link PackedAtlas}s to a {@link ZipResource}
  *
  * @author matthieun
+ * @author lcram
  */
 public final class PackedAtlasSerializer
 {
@@ -60,12 +66,14 @@ public final class PackedAtlasSerializer
         }
     }
 
+    public static final String META_DATA_ERROR_MESSAGE = "MetaData not here!";
     private static final Logger logger = LoggerFactory.getLogger(PackedAtlasSerializer.class);
     // The fields not serialized.
-    private static final StringList EXCLUDED_FIELDS = new StringList("bounds", "serialVersionUID",
-            "logger", "$SWITCH_TABLE$", PackedAtlas.FIELD_SERIALIZER, "FIELD_");
-
-    public static final String META_DATA_ERROR_MESSAGE = "MetaData not here!";
+    private static final StringList EXCLUDED_FIELDS = new StringList(PackedAtlas.FIELD_BOUNDS,
+            PackedAtlas.FIELD_SERIAL_VERSION_UID, PackedAtlas.FIELD_LOGGER, "$SWITCH_TABLE$",
+            PackedAtlas.FIELD_SERIALIZER, PackedAtlas.FIELD_SAVE_SERIALIZATION_FORMAT,
+            PackedAtlas.FIELD_LOAD_SERIALIZATION_FORMAT, PackedAtlas.FIELD_PREFIX,
+            /* https://stackoverflow.com/a/39037512/1558687 */"$jacocoData");
     private final PackedAtlas atlas;
     private final ZipResource source;
 
@@ -74,7 +82,7 @@ public final class PackedAtlasSerializer
      *
      * @param resource
      *            The resource
-     * @return The {@link PackedAtlas}
+     * @return The deserialized {@link PackedAtlas}
      */
     protected static PackedAtlas load(final Resource resource)
     {
@@ -85,24 +93,48 @@ public final class PackedAtlasSerializer
         // Assign the serializer to the Atlas! Then the Atlas will load all the fields depending on
         // demand.
         serializer.assign();
-        // TODO This is for backwards compatibility and will slow Atlas loading
-        // Try loading the meta data to make sure the data format is appropriate.
-        try
-        {
-            atlas.metaData();
-        }
-        catch (final CoreException e)
-        {
-            throw new CoreException(META_DATA_ERROR_MESSAGE, e);
-        }
+
+        // This is for backwards compatibility and will slow Atlas loading
+        determineAtlasLoadFormat(atlas);
+
         return atlas;
-    };
+    }
+
+    /*
+     * Try loading the meta data to make sure the data format is appropriate. Keep trying formats
+     * until we find the right one
+     */
+    private static void determineAtlasLoadFormat(final PackedAtlas atlas)
+    {
+        final AtlasSerializationFormat[] possibleFormats = AtlasSerializationFormat.values();
+        for (final AtlasSerializationFormat candidateFormat : possibleFormats)
+        {
+            logger.trace("Trying load format {} for atlas {}", candidateFormat, atlas.getName());
+            atlas.setLoadSerializationFormat(candidateFormat);
+            try
+            {
+                atlas.metaData();
+            }
+            catch (final CoreException exception)
+            {
+                logger.debug("Load format {} invalid for atlas {}", candidateFormat,
+                        atlas.getName(), exception);
+                continue;
+            }
+            // If we make it here, then we found the appropriate format and we can bail out
+            logger.trace("Using load format {} for atlas {}", candidateFormat, atlas.getName());
+            return;
+        }
+
+        throw new CoreException("Could not determine a valid load format for atlas {}",
+                atlas.getName());
+    }
 
     /**
-     * Construct
+     * Construct a new {@link PackedAtlasSerializer}.
      *
      * @param atlas
-     *            The Atlas to be serialized / deserialized
+     *            The {@link Atlas} to be serialized / deserialized
      * @param resource
      *            The resource where to serialize / deserialize from.
      */
@@ -222,14 +254,15 @@ public final class PackedAtlasSerializer
             try
             {
                 final Field field = readField(name);
-                final Object value = deserializeResource(resource);
+                final Object value = deserializeResource(resource, name);
                 setField(field, value);
             }
             catch (final MissingFieldException e)
             {
                 // Skipping field, comes from a legacy serialized file. We however have to read it
-                // fully to move to the next one.
-                deserializeResource(resource);
+                // fully to move to the next one. Here we skip the selection logic of
+                // deserializeResource and just force Java deserialization
+                deserializeJavaResource(resource);
             }
         });
     }
@@ -242,7 +275,7 @@ public final class PackedAtlasSerializer
         fields().map(Field::getName).forEach(this::deserializeIfNeeded);
     }
 
-    private Object deserializeResource(final Resource resource)
+    private Object deserializeJavaResource(final Resource resource)
     {
         try (ObjectInputStream input = new ObjectInputStream(decompress(resource.read())))
         {
@@ -260,6 +293,77 @@ public final class PackedAtlasSerializer
         }
     }
 
+    private Object deserializeProtoResource(final Resource resource, final String fieldName)
+    {
+        final Field field = readField(fieldName);
+        final Class<?> fieldClass = field.getType();
+        Constructor<?> fieldClassConstructor = null;
+
+        // We need to obtain a dummy instance of the field we want to deserialize. We then use this
+        // dummy instance as a handle to get the correct {@link ProtoAdapter}.
+        try
+        {
+            fieldClassConstructor = fieldClass.getDeclaredConstructor();
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException("Class {} does not implement a nullary constructor",
+                    fieldClass.getName(), exception);
+        }
+        fieldClassConstructor.setAccessible(true);
+
+        Object handle = null;
+        try
+        {
+            handle = fieldClassConstructor.newInstance();
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException("Failed to create instance of {}", fieldClass.getName(),
+                    exception);
+        }
+
+        ProtoSerializable protoHandle = null;
+        try
+        {
+            protoHandle = (ProtoSerializable) handle;
+        }
+        catch (final ClassCastException exception)
+        {
+            throw new CoreException("{} is not ProtoSerializable", fieldClass.getName(), exception);
+        }
+
+        final ProtoAdapter adapter = protoHandle.getProtoAdapter();
+        final ProtoSerializable deserializedMember = adapter
+                .deserialize(resource.readBytesAndClose());
+
+        return deserializedMember;
+    }
+
+    private Object deserializeResource(final Resource resource, final String fieldName)
+    {
+        final AtlasSerializationFormat loadFormat = this.atlas.getLoadSerializationFormat();
+        Object result = null;
+        switch (loadFormat)
+        {
+            case JAVA:
+                result = deserializeJavaResource(resource);
+                break;
+            case PROTOBUF:
+                result = deserializeProtoResource(resource, fieldName);
+                break;
+            default:
+                throw new CoreException("Unsupported serialization format {}",
+                        loadFormat.toString());
+        }
+        if (result == null)
+        {
+            throw new CoreException("Unable to deserialize field {} from resource {} in {}.",
+                    fieldName, resource.getName(), this.atlas.getName());
+        }
+        return result;
+    }
+
     /**
      * Deserialize a specific field and assign it to the Atlas.
      *
@@ -272,20 +376,21 @@ public final class PackedAtlasSerializer
         if (canLoadWithRandomAccess())
         {
             final Resource resource = ((ZipFileWritableResource) this.source).entryForName(name);
-            result = deserializeResource(resource);
+            result = deserializeResource(resource, name);
         }
         else if (PackedAtlas.FIELD_META_DATA.equals(name))
         {
             // The metaData field is always the first.
             final Iterable<Resource> resources = this.source.entries();
-            final ZipIterator iterator = (ZipIterator) resources.iterator();
-            final Resource resource = iterator.next();
-            if (resource == null)
+            try (ZipIterator iterator = (ZipIterator) resources.iterator())
             {
-                throw new CoreException(META_DATA_ERROR_MESSAGE);
+                final Resource resource = iterator.next();
+                if (resource == null)
+                {
+                    throw new CoreException(META_DATA_ERROR_MESSAGE);
+                }
+                result = deserializeResource(resource, name);
             }
-            result = deserializeResource(resource);
-            iterator.close();
         }
         else
         {
@@ -293,15 +398,6 @@ public final class PackedAtlasSerializer
                     "Cannot deserialize a specific field without a ZipFileWritableResource");
         }
         setField(readField(name), result);
-    }
-
-    private StreamIterable<Field> fields()
-    {
-        return Iterables.stream(Iterables.from(PackedAtlas.class.getDeclaredFields())).map(field ->
-        {
-            field.setAccessible(true);
-            return field;
-        });
     }
 
     /**
@@ -313,9 +409,30 @@ public final class PackedAtlasSerializer
      */
     private Resource fieldTranslator(final Field field)
     {
-        final Object candidate = getField(field);
-        final Resource resource = makeResource(candidate, field.getName());
-        return resource;
+        final AtlasSerializationFormat saveFormat = this.atlas.getSaveSerializationFormat();
+
+        switch (saveFormat)
+        {
+            case JAVA:
+                final Object objectCandidate = getField(field);
+                return makeJavaResource(objectCandidate, field.getName());
+            case PROTOBUF:
+                final ProtoSerializable protoCandidate = (ProtoSerializable) getField(field);
+                return makeProtoResource(protoCandidate, field.getName());
+            default:
+                throw new CoreException("Unsupported serialization format {}",
+                        saveFormat.toString());
+        }
+    }
+
+    private StreamIterable<Field> fields()
+    {
+        return Iterables.stream(Iterables.from(PackedAtlas.class.getDeclaredFields()))
+                .filter(field -> !EXCLUDED_FIELDS.startsWithContains(field.getName())).map(field ->
+                {
+                    field.setAccessible(true);
+                    return field;
+                });
     }
 
     private Object getField(final Field field)
@@ -359,7 +476,7 @@ public final class PackedAtlasSerializer
      *            The name of the resource
      * @return The resource
      */
-    private Resource makeResource(final Object field, final String name)
+    private Resource makeJavaResource(final Object field, final String name)
     {
         // First pass read, to count the size
         final CounterOutputStream counterOutputStream = new CounterOutputStream();
@@ -387,6 +504,27 @@ public final class PackedAtlasSerializer
                 compress(new BufferedOutputStream(resource.write()))))
         {
             out.writeObject(field);
+        }
+        catch (final Exception e)
+        {
+            throw new CoreException("Could not convert {} to a readable resource.", field, e);
+        }
+        return resource;
+    }
+
+    private Resource makeProtoResource(final ProtoSerializable field, final String name)
+    {
+        // We automatically get the correct adapter for whatever type 'field' happens to be
+        final ProtoAdapter adapter = field.getProtoAdapter();
+        // The adapter handles all the actual serialization using the protobuf classes. Easy!
+        final byte[] byteContents = adapter.serialize(field);
+
+        final ByteArrayResource resource = new ByteArrayResource(byteContents.length)
+                .withName(name);
+
+        try (BufferedOutputStream out = new BufferedOutputStream(resource.write()))
+        {
+            out.write(byteContents);
         }
         catch (final Exception e)
         {

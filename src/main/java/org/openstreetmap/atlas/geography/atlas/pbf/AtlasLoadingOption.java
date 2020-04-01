@@ -23,6 +23,14 @@ public final class AtlasLoadingOption implements Serializable
     private static final ConfiguredTaggableFilter DEFAULT_EDGE_FILTER = new ConfiguredTaggableFilter(
             new StandardConfiguration(new InputStreamResource(
                     () -> AtlasLoadingOption.class.getResourceAsStream("atlas-edge.json"))));
+    private static final ConfiguredTaggableFilter DEFAULT_AREA_FILTER = new ConfiguredTaggableFilter(
+            new StandardConfiguration(new InputStreamResource(
+                    () -> AtlasLoadingOption.class.getResourceAsStream("atlas-area.json"))));
+
+    private static final ConfiguredTaggableFilter DEFAULT_RELATION_SLICING_FILTER = new ConfiguredTaggableFilter(
+            new StandardConfiguration(new InputStreamResource(() -> AtlasLoadingOption.class
+                    .getResourceAsStream("atlas-relation-slicing.json"))));
+
     private static final ConfiguredTaggableFilter DEFAULT_WAY_SECTION_FILTER = new ConfiguredTaggableFilter(
             new StandardConfiguration(new InputStreamResource(
                     () -> AtlasLoadingOption.class.getResourceAsStream("atlas-way-section.json"))));
@@ -42,10 +50,14 @@ public final class AtlasLoadingOption implements Serializable
     private boolean loadAtlasNode;
     private boolean loadAtlasEdge;
     private ConfiguredTaggableFilter edgeFilter = DEFAULT_EDGE_FILTER;
+    private ConfiguredTaggableFilter areaFilter = DEFAULT_AREA_FILTER;
     private ConfiguredTaggableFilter waySectionFilter = DEFAULT_WAY_SECTION_FILTER;
     private ConfiguredTaggableFilter osmPbfWayFilter = DEFAULT_OSM_PBF_WAY_FILTER;
     private ConfiguredTaggableFilter osmPbfNodeFilter = DEFAULT_OSM_PBF_NODE_FILTER;
     private ConfiguredTaggableFilter osmPbfRelationFilter = DEFAULT_OSM_PBF_RELATION_FILTER;
+    private ConfiguredTaggableFilter relationSlicingFilter = DEFAULT_RELATION_SLICING_FILTER;
+    private ConfiguredTaggableFilter forceSlicingFilter = null;
+
     private boolean loadAtlasRelation;
     private boolean loadOsmBound;
     private boolean countrySlicing;
@@ -94,6 +106,14 @@ public final class AtlasLoadingOption implements Serializable
         return option;
     }
 
+    public static AtlasLoadingOption createOptionWithOnlySectioning()
+    {
+        final AtlasLoadingOption option = new AtlasLoadingOption();
+        option.setCountrySlicing(false);
+        option.setWaySectioning(true);
+        return option;
+    }
+
     public static AtlasLoadingOption withNoFilter()
     {
         final StringResource pbfFilter = new StringResource("{\"filters\":[]}");
@@ -122,6 +142,11 @@ public final class AtlasLoadingOption implements Serializable
         this.countryBoundaryMap = null;
     }
 
+    public ConfiguredTaggableFilter getAreaFilter()
+    {
+        return this.areaFilter;
+    }
+
     public CountryBoundaryMap getCountryBoundaryMap()
     {
         return this.countryBoundaryMap;
@@ -137,6 +162,11 @@ public final class AtlasLoadingOption implements Serializable
         return this.edgeFilter;
     }
 
+    public ConfiguredTaggableFilter getForceSlicingFilter()
+    {
+        return this.forceSlicingFilter;
+    }
+
     public ConfiguredTaggableFilter getOsmPbfNodeFilter()
     {
         return this.osmPbfNodeFilter;
@@ -150,6 +180,11 @@ public final class AtlasLoadingOption implements Serializable
     public ConfiguredTaggableFilter getOsmPbfWayFilter()
     {
         return this.osmPbfWayFilter;
+    }
+
+    public ConfiguredTaggableFilter getRelationSlicingFilter()
+    {
+        return this.relationSlicingFilter;
     }
 
     public ConfiguredTaggableFilter getWaySectionFilter()
@@ -233,6 +268,11 @@ public final class AtlasLoadingOption implements Serializable
         return setAdditionalCountryCodes(Iterables.asSet(countryCodes));
     }
 
+    public void setAreaFilter(final ConfiguredTaggableFilter areaFilter)
+    {
+        this.areaFilter = areaFilter;
+    }
+
     public void setCountryBoundaryMap(final CountryBoundaryMap countryBoundaryMap)
     {
         this.countryBoundaryMap = countryBoundaryMap;
@@ -247,6 +287,11 @@ public final class AtlasLoadingOption implements Serializable
     public void setEdgeFilter(final ConfiguredTaggableFilter edgeFilter)
     {
         this.edgeFilter = edgeFilter;
+    }
+
+    public void setForceSlicingFilter(final ConfiguredTaggableFilter forceSlicingFilter)
+    {
+        this.forceSlicingFilter = forceSlicingFilter;
     }
 
     public AtlasLoadingOption setLoadAtlasArea(final boolean isLoadAtlasArea)
@@ -311,6 +356,11 @@ public final class AtlasLoadingOption implements Serializable
     public void setOsmPbfWayFilter(final ConfiguredTaggableFilter osmPbfWayFilter)
     {
         this.osmPbfWayFilter = osmPbfWayFilter;
+    }
+
+    public void setRelationSlicingFilter(final ConfiguredTaggableFilter relationSlicingFilter)
+    {
+        this.relationSlicingFilter = relationSlicingFilter;
     }
 
     public void setWaySectionFilter(final ConfiguredTaggableFilter waySectionFilter)

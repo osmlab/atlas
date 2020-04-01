@@ -1,0 +1,73 @@
+.\"     Title: atlas-config-list
+.\"    Author: Lucas Cram
+.\"    Source: atlas-shell-tools 0.0.1
+.\"  Language: English
+.\"
+.TH "ATLAS-CONFIG-LIST" "1" "1 December 2018" "atlas\-shell\-tools 0:\&.0\&.1" "Atlas Shell Tools Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+
+.SH "NAME"
+.sp
+atlas\-config\-list \-\- List installed Atlas Shell Tools modules and module statuses
+
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIatlas\-config\fR \fIlist\fR \-\-help
+\fIatlas\-config\fR \fIlist\fR [\-\-current] [\-\-one\-line]
+.fi
+
+.SH "DESCRIPTION"
+.sp
+List installed modules with additional contextual information. This listing
+is also known as the module workspace. The \fB\-\-current\fR option can be used to view
+only the current activated module, if there is one. The \fB\-\-one\-line\fR option can be used to
+suppress metadata output.
+
+A \fB*\fR next to a module denotes that the module is activated. Symlinked
+modules display their targets using the familiar arrow notation (\fB\->\fR). If a
+symlink is broken, the warning \fB(BROKEN SYMLINK)\fR is displayed next to the
+module name.
+
+.SH "OPTIONS"
+.sp
+
+.PP
+\fB\-\-current\fR, \fB-c\fR
+.RS 4
+Show only the currently activated module, if one is activated.
+.RE
+
+.PP
+\fB\-\-help\fR
+.RS 4
+Show this help menu.
+.RE
+
+.PP
+\fB\-\-one\-line\fR, \fB-1\fR
+.RS 4
+Suppress the module metadata output, instead displaying each module on a single line.
+.RE
+
+.SH "SEE ALSO"
+.sp
+\fBatlas\-config\fR(1)
+
+.SH "ATLAS SHELL TOOLS"
+.sp
+Part of the \fBatlas\-shell\-tools\fR(7) suite

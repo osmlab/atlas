@@ -1,8 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.items.complex.buildings;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.openstreetmap.atlas.geography.MultiPolygon;
@@ -42,24 +41,34 @@ public class BuildingPart extends ComplexEntity
         {
             logger.warn("Unable to create building part from {}", source, e);
             setInvalidReason("Unable to create building part", e);
-            return;
         }
     }
 
     @Override
-    public List<ComplexEntityError> getAllInvalidations()
+    public boolean equals(final Object other)
     {
-        final List<ComplexEntityError> returnValue = new ArrayList<>();
-        if (!isValid())
+        if (other instanceof BuildingPart)
         {
-            returnValue.add(getError().get());
+            return this.getGeometry().equals(((BuildingPart) other).getGeometry());
         }
-        return returnValue;
+        return false;
     }
 
     public MultiPolygon getGeometry()
     {
         return this.geometry;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(this.geometry);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "[BuildingPart: Geometry = " + this.geometry.toReadableString() + "]";
     }
 
     /**
@@ -83,11 +92,5 @@ public class BuildingPart extends ComplexEntity
                     getSource().getIdentifier());
         }
         return Optional.empty();
-    }
-
-    @Override
-    public String toString()
-    {
-        return "[BuildingPart: Geometry = " + this.geometry.toReadableString() + "]";
     }
 }

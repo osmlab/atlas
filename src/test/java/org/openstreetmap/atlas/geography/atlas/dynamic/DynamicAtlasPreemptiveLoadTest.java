@@ -25,8 +25,6 @@ public class DynamicAtlasPreemptiveLoadTest
     @Rule
     public DynamicAtlasPreemptiveLoadTestRule rule = new DynamicAtlasPreemptiveLoadTestRule();
 
-    private DynamicAtlas dynamicAtlas;
-
     private Map<Shard, Atlas> store;
     private final Supplier<DynamicAtlasPolicy> policySupplier = () -> new DynamicAtlasPolicy(
             shard ->
@@ -41,27 +39,48 @@ public class DynamicAtlasPreemptiveLoadTest
                 }
             }, new SlippyTileSharding(9), new SlippyTile(240, 246, 9), Rectangle.MAXIMUM)
                     .withDeferredLoading(true).withExtendIndefinitely(false);
+    private final Supplier<DynamicAtlasPolicy> allInitialShardsPolicySupplier = () -> new DynamicAtlasPolicy(
+            shard ->
+            {
+                if (this.store.containsKey(shard))
+                {
+                    return Optional.of(this.store.get(shard));
+                }
+                else
+                {
+                    return Optional.empty();
+                }
+            }, new SlippyTileSharding(9),
+            Rectangle.forLocated(new SlippyTile(240, 246, 9).bounds().center(),
+                    new SlippyTile(241, 246, 9).bounds().center()),
+            Rectangle.MAXIMUM).withDeferredLoading(true).withExtendIndefinitely(false);
 
     @Test
     public void loadPreemptivelyTest()
     {
-        this.dynamicAtlas.preemptiveLoad();
-        Assert.assertEquals(3, this.dynamicAtlas.numberOfEdges());
+        final DynamicAtlas dynamicAtlas = new DynamicAtlas(this.policySupplier.get());
+        dynamicAtlas.preemptiveLoad();
+        Assert.assertEquals(3, dynamicAtlas.numberOfEdges());
+        Assert.assertEquals(2, dynamicAtlas.getTimesMultiAtlasWasBuiltUnderneath());
+    }
+
+    @Test
+    public void loadPreemptivelyWithAllShardsAsInitialTest()
+    {
+        final DynamicAtlas dynamicAtlas = new DynamicAtlas(
+                this.allInitialShardsPolicySupplier.get());
+        dynamicAtlas.preemptiveLoad();
+        Assert.assertEquals(3, dynamicAtlas.numberOfEdges());
+        Assert.assertEquals(1, dynamicAtlas.getTimesMultiAtlasWasBuiltUnderneath());
     }
 
     @Before
     public void prepare()
-    {
-        prepare(this.policySupplier.get());
-    }
-
-    public void prepare(final DynamicAtlasPolicy policy)
     {
         this.store = new HashMap<>();
         this.store.put(new SlippyTile(240, 246, 9), this.rule.getAtlasZ9x240y246());
         this.store.put(new SlippyTile(240, 245, 9), this.rule.getAtlasZ9x240y245());
         this.store.put(new SlippyTile(241, 245, 9), this.rule.getAtlasZ9x241y245());
         this.store.put(new SlippyTile(241, 246, 9), this.rule.getAtlasZ9x241y246());
-        this.dynamicAtlas = new DynamicAtlas(policy);
     }
 }

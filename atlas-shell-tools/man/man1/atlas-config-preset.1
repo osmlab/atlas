@@ -1,0 +1,175 @@
+.\"     Title: atlas-config-preset
+.\"    Author: Lucas Cram
+.\"    Source: atlas-shell-tools 0.0.1
+.\"  Language: English
+.\"
+.TH "ATLAS-CONFIG-PRESET" "1" "1 December 2018" "atlas\-shell\-tools 0\&.0\&.1" "Atlas Shell Tools Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+
+.SH "NAME"
+.sp
+atlas\-config\-preset \-\- Create and manage Atlas Shell Tools command presets
+
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIatlas\-config\fR \fIpreset\fR \-\-help
+\fIatlas\-config\fR \fIpreset\fR \fIcopy\fR <command> <src> <dest>
+\fIatlas\-config\fR \fIpreset\fR \fIcopy\-global\fR <src> <dest>
+\fIatlas\-config\fR \fIpreset\fR \fIedit\fR <command> <preset>
+\fIatlas\-config\fR \fIpreset\fR \fIedit\-global\fR <preset>
+\fIatlas\-config\fR \fIpreset\fR \fIlist\fR [command [preset]]
+\fIatlas\-config\fR \fIpreset\fR \fIlist\-global\fR [preset]
+\fIatlas\-config\fR \fIpreset\fR \fInamespace\fR <subdirective> [namespace]
+\fIatlas\-config\fR \fIpreset\fR \fIremove\fR <command> [preset]
+\fIatlas\-config\fR \fIpreset\fR \fIremove\-global\fR [preset]
+\fIatlas\-config\fR \fIpreset\fR \fIsave\fR <command> <preset> <options...>
+\fIatlas\-config\fR \fIpreset\fR \fIsave\-global\fR <preset> <options...>
+.fi
+
+.SH "DESCRIPTION"
+.sp
+\fBatlas\-config\-preset\fR(1) provides a more granular preset management interface
+than the basic \fBatlas\fR(1) options (\fB\-\-preset\fR, \fB\-\-save\-preset\fR).
+It can handle more complex tasks like editing a preset in place, or managing the
+preset namespaces. For full details on the workings of \fBatlas\-config\-preset\fR(1),
+see the \fBTier 2\fR and \fBTier 3\fR sections in \fBatlas\-presets\fR(7).
+
+.SH "OPTIONS"
+.sp
+.PP
+\fB\-\-help\fR
+.RS 4
+Show this help menu.
+.RE
+
+.SH "DIRECTIVES"
+\fBatlas\-config\-preset\fR(1) exposes its interface through various directives,
+detailed below. Again, this information is presented in more detail in
+\fBatlas\-presets\fR(7).
+.sp
+
+.PP
+\fIcopy\fR
+.RS 4
+For <command>, copy preset <src> into new preset <dest>. <dest> must not already
+exist, else the copy will fail.
+.RE
+
+.PP
+\fIcopy\-global\fR
+.RS 4
+Copy global preset <src> into new global preset <dest>. <dest> must not already
+exist, else the copy will fail.
+.RE
+
+.PP
+\fIedit\fR
+.RS 4
+Edit preset <preset> for <command>. If <preset> does not exist, then it will be
+created when the edit is successfully saved. The default preset editor is \fBvim\fR,
+but this can be changed by setting the \fBATLAS_SHELL_TOOLS_EDITOR\fR environment variable.
+.RE
+
+.PP
+\fIedit\-global\fR
+.RS 4
+Edit global preset <preset>. If <preset> does not exist, then it will be
+created when the edit is successfully saved. The default preset editor is \fBvim\fR,
+but this can be changed by setting the \fBATLAS_SHELL_TOOLS_EDITOR\fR environment variable.
+.RE
+
+.PP
+\fIlist\fR
+.RS 4
+List all available presets (including globals), or list all presets for a given [command], or
+list contents of preset [preset] for [command].
+.RE
+
+.PP
+\fIlist\-global\fR
+.RS 4
+List all available global presets, or list contents of global preset [preset].
+.RE
+
+.PP
+\fInamespace\fR
+.RS 4
+Execute a <subdirective> on a given preset [namespace]. Available subdirectives
+are \fBcreate\fR, \fBlist\fR, \fBremove\fR, and \fBuse\fR. See \fBTier 3\fR in
+\fBatlas\-presets\fR(7) for more details.
+.RE
+
+.PP
+\fIremove\fR
+.RS 4
+Remove all presets for a given <command>, or remove the preset [name] for
+<command>.
+.RE
+
+.PP
+\fIremove\-global\fR
+.RS 4
+Remove all global presets, or remove the global preset [name].
+.RE
+
+.PP
+\fIsave\fR
+.RS 4
+Save a preset <preset> for <command> without actually running the command.
+<options...> is a sequence of options to be saved in the preset.
+Again, recall that you must use the long option '=' syntax for specifying option
+arguments when saving a preset (e.g. '--opt=arg' and \fInot\fR '--opt arg').
+.RE
+
+.PP
+\fIsave\-global\fR
+.RS 4
+Save a global preset <preset>. <options...> is a sequence of options to be saved in the preset.
+Again, recall that you must use the long option '=' syntax for specifying option
+arguments when saving a preset (e.g. '--opt=arg' and \fInot\fR '--opt arg').
+.RE
+
+.SH "EXAMPLES"
+.sp
+Edit preset "p1" for command "MyCommand":
+.sp
+.RS 4
+$ atlas\-config preset edit MyCommand p1
+.RE
+.sp
+Create a namespace called "namespace1":
+.sp
+.RS 4
+$ atlas\-config preset namespace create namespace1
+.RE
+.sp
+Save a global preset "p1":
+.sp
+.RS 4
+$ atlas\-config preset save\-global p1 --opt1 --opt2=opt2Arg
+.RE
+.sp
+For more examples, see \fBatlas\-presets\fR(7).
+
+.SH "SEE ALSO"
+.sp
+\fBatlas\-presets\fR(7)
+
+.SH "ATLAS SHELL TOOLS"
+.sp
+Part of the \fBatlas\-shell\-tools\fR(7) suite

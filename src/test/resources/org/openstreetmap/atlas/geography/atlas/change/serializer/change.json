@@ -1,0 +1,302 @@
+{
+  "type": "FeatureCollection",
+  "bbox": [
+    -122.052138,
+    37.317585,
+    12.49234,
+    41.890224
+  ],
+  "features": [
+    {
+      "type": "Feature",
+      "bbox": [
+        -122.0314121,
+        37.3901066,
+        -122.0306289,
+        37.3909505
+      ],
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -122.0310473,
+              37.3909505
+            ],
+            [
+              -122.0314121,
+              37.3903197
+            ],
+            [
+              -122.0311332,
+              37.3901066
+            ],
+            [
+              -122.0306289,
+              37.3908482
+            ],
+            [
+              -122.0310473,
+              37.3909505
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "featureChangeType": "ADD",
+        "metadata": {},
+        "entityType": "AREA",
+        "completeEntityClass": "org.openstreetmap.atlas.geography.atlas.complete.CompleteArea",
+        "identifier": 123,
+        "tags": {
+          "tagKey1": "tagValue1",
+          "tagKey2": "tagValue2"
+        },
+        "relations": [
+          444,
+          555
+        ],
+        "WKT": "POLYGON ((-122.0310473 37.3909505, -122.0314121 37.3903197, -122.0311332 37.3901066, -122.0306289 37.3908482, -122.0310473 37.3909505, -122.0310473 37.3909505))",
+        "bboxWKT": "POLYGON ((-122.0314121 37.3901066, -122.0314121 37.3909505, -122.0306289 37.3909505, -122.0306289 37.3901066, -122.0314121 37.3901066))"
+      }
+    },
+    {
+      "type": "Feature",
+      "bbox": [
+        -122.052138,
+        37.317585,
+        -122.009566,
+        37.390535
+      ],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -122.052138,
+            37.317585
+          ],
+          [
+            -122.0304871,
+            37.3314171
+          ],
+          [
+            -122.028932,
+            37.332451
+          ],
+          [
+            -122.009566,
+            37.33531
+          ],
+          [
+            -122.031007,
+            37.390535
+          ]
+        ]
+      },
+      "properties": {
+        "featureChangeType": "ADD",
+        "metadata": {},
+        "entityType": "EDGE",
+        "completeEntityClass": "org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge",
+        "identifier": 123,
+        "tags": {
+          "tagKey1": "tagValue1",
+          "tagKey2": "tagValue2"
+        },
+        "relations": [
+          444,
+          555
+        ],
+        "startNode": "456",
+        "endNode": "789",
+        "WKT": "LINESTRING (-122.052138 37.317585, -122.0304871 37.3314171, -122.028932 37.332451, -122.009566 37.33531, -122.031007 37.390535)",
+        "bboxWKT": "POLYGON ((-122.052138 37.317585, -122.052138 37.390535, -122.009566 37.390535, -122.009566 37.317585, -122.052138 37.317585))"
+      }
+    },
+    {
+      "type": "Feature",
+      "bbox": [
+        -122.052138,
+        37.317585,
+        -122.009566,
+        37.390535
+      ],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -122.052138,
+            37.317585
+          ],
+          [
+            -122.0304871,
+            37.3314171
+          ],
+          [
+            -122.028932,
+            37.332451
+          ],
+          [
+            -122.009566,
+            37.33531
+          ],
+          [
+            -122.031007,
+            37.390535
+          ]
+        ]
+      },
+      "properties": {
+        "featureChangeType": "ADD",
+        "metadata": {},
+        "entityType": "LINE",
+        "completeEntityClass": "org.openstreetmap.atlas.geography.atlas.complete.CompleteLine",
+        "identifier": 123,
+        "tags": {
+          "tagKey1": "tagValue1",
+          "tagKey2": "tagValue2"
+        },
+        "relations": [
+          444,
+          555
+        ],
+        "WKT": "LINESTRING (-122.052138 37.317585, -122.0304871 37.3314171, -122.028932 37.332451, -122.009566 37.33531, -122.031007 37.390535)",
+        "bboxWKT": "POLYGON ((-122.052138 37.317585, -122.052138 37.390535, -122.009566 37.390535, -122.009566 37.317585, -122.052138 37.317585))"
+      }
+    },
+    {
+      "type": "Feature",
+      "bbox": [
+        12.49234,
+        41.890224,
+        12.49234,
+        41.890224
+      ],
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.49234,
+          41.890224
+        ]
+      },
+      "properties": {
+        "featureChangeType": "ADD",
+        "metadata": {},
+        "entityType": "NODE",
+        "completeEntityClass": "org.openstreetmap.atlas.geography.atlas.complete.CompleteNode",
+        "identifier": 123,
+        "tags": {
+          "tagKey1": "tagValue1",
+          "tagKey2": "tagValue2"
+        },
+        "relations": [
+          444,
+          555
+        ],
+        "inEdges": [
+          456,
+          789
+        ],
+        "outEdges": [
+          456,
+          789
+        ],
+        "WKT": "POINT (12.49234 41.890224)",
+        "bboxWKT": "POLYGON ((12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224))"
+      }
+    },
+    {
+      "type": "Feature",
+      "bbox": [
+        12.49234,
+        41.890224,
+        12.49234,
+        41.890224
+      ],
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.49234,
+          41.890224
+        ]
+      },
+      "properties": {
+        "featureChangeType": "ADD",
+        "metadata": {},
+        "entityType": "POINT",
+        "completeEntityClass": "org.openstreetmap.atlas.geography.atlas.complete.CompletePoint",
+        "identifier": 123,
+        "tags": {
+          "tagKey1": "tagValue1",
+          "tagKey2": "tagValue2"
+        },
+        "relations": [
+          444,
+          555
+        ],
+        "WKT": "POINT (12.49234 41.890224)",
+        "bboxWKT": "POLYGON ((12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224))"
+      }
+    },
+    {
+      "type": "Feature",
+      "bbox": [
+        -122.031905,
+        37.328167,
+        -122.029051,
+        37.330394
+      ],
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -122.031905,
+              37.328167
+            ],
+            [
+              -122.031905,
+              37.330394
+            ],
+            [
+              -122.029051,
+              37.330394
+            ],
+            [
+              -122.029051,
+              37.328167
+            ],
+            [
+              -122.031905,
+              37.328167
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "featureChangeType": "ADD",
+        "metadata": {},
+        "entityType": "RELATION",
+        "completeEntityClass": "org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation",
+        "identifier": 123,
+        "tags": {
+          "tagKey1": "tagValue1",
+          "tagKey2": "tagValue2"
+        },
+        "relations": [
+          444,
+          555
+        ],
+        "members": [
+          "{Member: ID = 456, Type = EDGE, Role = role1}",
+          "{Member: ID = 789, Type = AREA, Role = role2}"
+        ],
+        "WKT": "POLYGON ((-122.031905 37.328167, -122.031905 37.330394, -122.029051 37.330394, -122.029051 37.328167, -122.031905 37.328167))",
+        "bboxWKT": "POLYGON ((-122.031905 37.328167, -122.031905 37.330394, -122.029051 37.330394, -122.029051 37.328167, -122.031905 37.328167))"
+      }
+    }
+  ],
+  "properties": {
+    "bboxWKT": "POLYGON ((-122.052138 37.317585, -122.052138 41.890224, 12.49234 41.890224, 12.49234 37.317585, -122.052138 37.317585))"
+  }
+}

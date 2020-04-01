@@ -16,7 +16,7 @@ public class GeoJsonAtlasBuilderTest
     public void testCreation()
     {
         final StringResource resource = new StringResource(new InputStreamResource(
-                GeoJsonAtlasBuilderTest.class.getResourceAsStream("overpass-turbo.geojson")));
+                () -> GeoJsonAtlasBuilderTest.class.getResourceAsStream("overpass-turbo.geojson")));
         final Atlas created = new GeoJsonAtlasBuilder().create(resource);
         System.out.println(created);
         Assert.assertEquals(50, Iterables.size(created.edges()));

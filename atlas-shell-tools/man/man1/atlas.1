@@ -1,0 +1,236 @@
+.\"     Title: atlas
+.\"    Author: Lucas Cram
+.\"    Source: atlas-shell-tools 0.0.1
+.\"  Language: English
+.\"
+.TH "ATLAS" "1" "1 December 2018" "atlas\-shell\-tools 0\&.0\&.1" "Atlas Shell Tools Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+
+.SH "NAME"
+.sp
+atlas \-\- Run an Atlas Shell Tools command
+
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIatlas\fR [\-\-no-pager] \-\-help[=<\fIcommand\fR>]
+\fIatlas\fR \-\-version
+\fIatlas\fR [\-\-no-pager] \-\-list
+\fIatlas\fR \-\-class\-of=<\fIcommand\fR>
+\fIatlas\fR [\-\-no\-pager] [\-\-debug] [\-\-memory=<amount>] [\-\-preset=<names>] 
+      [\-\-save\-preset=<new\-preset>] [\-\-save\-global\-preset=<new\-preset>] <\fIcommand\fR> [arg...]
+.fi
+
+.SH "DESCRIPTION"
+.sp
+\fBatlas\fR is an easy\-to\-use wrapper for launching Atlas Shell Tools commands.
+It provides a simple interface to find and run any commands defined in the currently
+activated Atlas Shell Tools module.
+Atlas Shell Tools also implements a robust preset management system, which can save
+you tons of typing for commands that require a lot of options. See \fBatlas-presets\fR(7)
+section for more on this topic.
+.sp
+For advanced module management capabilites and other installation configuration
+commands, see \fBatlas\-config\fR(1).
+.sp
+For a glossary of Atlas Shell Tools terms, see \fBatlas-glossary\fR(7).
+
+.SH "OPTIONS"
+
+.PP
+<\fIcommand\fR>
+.RS 4
+This indicates a command. A list of available commands can be
+seen with the \fB--list\fR option.
+.RE
+
+.PP
+\fB\-\-class\-of\fR=<\fIcommand\fR>
+.RS 4
+Show the full classname of a given command and then exit.
+.RE
+
+.PP
+\fB\-\-debug\fR
+.RS 4
+Run \fBatlas\fR in debug mode. While in debug mode, \fBatlas\fR will not actually
+run any commands. Instead, it will print debug information and exit. Use this
+option to see the full JVM launch command, preset debug diagnostics, and more.
+.RE
+
+.PP
+\fB\-\-help\fR[=<\fIcommand\fR>]\fR
+.RS 4
+Show the help menu for a given command. If no command is given, show
+a general help menu and then exit.
+.RE
+
+.PP
+\fB\-\-list\fR, \fB-l\fR
+.RS 4
+Display a list of all available commands and exit. Command name collision is
+resolved when the active module index is generated. The resolution exists at
+the index level only and is not reflected in the actual command
+class files.
+.RE
+
+.PP
+\fB\-\-memory\fR=<amount>, \fB\-m\fR<amount>
+.RS 4
+Set the maximum memory pool size for the JVM that runs your command.
+<amount> should be specified in bytes. \fB--memory\fR also understands
+shorthand for metric prefixes, e.g. 1024K, 512M, 4G, etc. If this option
+is not supplied, the memory pool defaults to 8G.
+.RE
+
+.PP
+\fB\-\-no\-pager\fR
+.RS 4
+Disable pagination for all documentation.
+.RE
+
+.PP
+\fB\-\-preset\fR=<names>, \fB\-p\fR<names>
+.RS 4
+Apply the given preset(s) before running <\fIcommand\fR>. A list of presets
+can be provided by separating preset names with either a colon or a comma.
+See \fBatlas-presets\fR(7) for more information.
+.RE
+
+.PP
+\fB\-\-quiet\fR, \fB\-q\fR
+.RS 4
+Suppress non-essential \fBatlas\fR output.
+.RE
+
+.PP
+\fB\-\-save\-preset\fR=<new\-preset>
+.RS 4
+Save the command ARGV to <new\-preset> before running <\fIcommand\fR>. If
+\fB\-\-preset\fR is also supplied, the save operation will occur after the
+argument to \fB\-\-preset\fR is applied. So <new\-preset> will include ARGV
+elements inserted by the \fB\-\-preset\fR application in addition to those
+directly supplied by the user. See \fBatlas-presets\fR(7) for more information.
+.RE
+
+.PP
+\fB\-\-save\-global\-preset\fR=<new\-preset>
+.RS 4
+This option is the same as \fB\-\-save\-preset\fR, except it will instead save
+<new\-preset> to the global presets instead of the command\-specific presets.
+Note that it can be used in conjuction with \fB\-\-save\-preset\fR to save both
+a global and command preset at the same time. Also like \fB\-\-save\-preset\fR,
+\fB\-\-save\-global\-preset\fR saves ARGV after the the application of
+\fB\-\-preset\fR if present. See \fBatlas-presets\fR(7) for more information.
+.RE
+
+.PP
+\fB\-\-version\fR, \fB-V\fR
+.RS 4
+Show the \fBatlas\fR version info and then exit.
+.RE
+.sp
+
+.SH "EXAMPLES"
+.sp
+Let's break down how to run a command called MyCommand with some args and options.
+Here, '--opt1' is an option that takes no arguments. '--opt2' is an option that takes
+an optional argument, so we use the '=' operator to disambiguate 'optarg2' from a regular
+argument. '--opt3' is an option that takes a required argument, so \- if desired \- we
+can omit the '=' when specifying 'optarg3'. Finally, 'arg1' and 'arg2' are regular
+program arguments:
+.sp
+.RS 4
+$ atlas MyCommand \-\-opt1 arg1 \-\-opt2=optarg2 arg2 --opt3 optarg3
+.RE
+.sp
+See the manual page for MyCommand:
+.sp
+.RS 4
+$ atlas \-\-help MyCommand
+.RE
+.sp
+See a list of all available commands:
+.sp
+.RS 4
+$ atlas \-\-list
+.RE
+.sp
+Save preset 'p1' for MyCommand and then run:
+.sp
+.RS 4
+$ atlas \-\-save\-preset p1 MyCommand arg1 \-\-opt1=opt1arg \-\-opt2=opt2arg
+.RE
+.sp
+Run MyCommand with preset 'p1':
+.sp
+.RS 4
+$ atlas \-\-preset p1 MyCommand arg1 \-\-opt2=overrideOpt2Arg
+.RE
+.sp
+Run MyCommand with preset 'p1', while also saving new preset 'p2':
+.sp
+.RS 4
+$ atlas \-\-preset p1 \-\-save\-preset p2 MyCommand arg1 \-\-opt2=overrideOpt2Arg
+.RE
+.sp
+
+.SH "TERMINAL AND ENVIRONMENT"
+.sp
+\fBatlas\fR pages the output of the various help messages using a combination of
+\fBless\fR and \fBman\fR. Subcommand help pages are piped through \fBless\fR
+by default, but this can be overridden with the \fBATLAS_SHELL_TOOLS_PAGER\fR environment variable.
+The actual \fBatlas\fR manual page (which you are currently reading) is displayed
+using \fBman\fR. To disable paged output for all documentation, try the
+\fB\-\-no\-pager\fR option.
+.sp
+\fBatlas\fR uses formatted output when appropriate. To change this behavior,
+\fBatlas\fR checks for existence of the following environment variables:
+.sp
+.RS 4
+\fBNO_COLOR\fR \-
+Disable all special formatted output. Other popular CLI tools also
+respect this variable. See <https://no\-color.org>.
+.sp
+\fBATLAS_SHELL_TOOLS_NO_COLOR\fR \-
+Disable special formatted output for \fBatlas\fR and \fBatlas-config\fR only.
+.sp
+\fBATLAS_SHELL_TOOLS_USE_COLOR\fR \-
+Enable special formatted output. Overrides the setting of \fBNO_COLOR\fR and \fBATLAS_SHELL_TOOLS_NO_COLOR\fR.
+.sp
+.RE
+\fBatlas\fR stores program data in compliance with the XDG Base Directory
+specification, i.e. at $HOME/.local/share/atlas-shell-tools. It also respects the
+\fBXDG_DATA_HOME\fR environment variable - if set, \fBatlas\fR will store program
+data at the base path specified by that variable. See \fBatlas\-plumbing\fR(5) for
+more information.
+
+.SH "SEE ALSO"
+.sp
+\fBatlas\-config\fR(1), \fBatlas\-presets\fR(7)
+
+.SH "AUTHOR"
+.sp
+This program was written by Lucas Cram <lucaspcram@gmail.com>.
+
+.SH "BUGS"
+.sp
+Please report any bugs you find to the \fBAUTHOR\fR.
+
+.SH "ATLAS SHELL TOOLS"
+.sp
+Part of the \fBatlas\-shell\-tools\fR(7) suite

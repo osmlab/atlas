@@ -1,0 +1,14 @@
+# Nodes
+# Edges
+# Areas
+# Lines
+100000000 && -2.5184858,32.4625827:-2.5184958,32.4625727:-2.5184978,32.4625686:-2.5185019,32.4625707:-2.5185019,32.4625707:-2.5185039,32.4625666:-2.5185039,32.4625666:-2.5184978,32.4625666:-2.5184978,32.4625666:-2.5185039,32.4625666:-2.5185039,32.4625666:-2.5185039,32.4625666:-2.5184998,32.4625666:-2.5184978,32.4625686:-2.5185039,32.4625666 && last_edit_user_name -> 1 || last_edit_changeset -> 0 || last_edit_time -> 1530212492000 || last_edit_user_id -> 1 || iso_country_code -> TZA || highway -> road || last_edit_version -> 1
+# Points
+1000000 && -2.5184858,32.4625827 && last_edit_user_name -> 1 || last_edit_changeset -> 0 || last_edit_time -> 1515321311000 || last_edit_user_id -> 1 || iso_country_code -> TZA || last_edit_version -> 1
+2000000 && -2.5184958,32.4625727 && last_edit_user_name -> 1 || last_edit_changeset -> 0 || last_edit_time -> 1515321311000 || last_edit_user_id -> 1 || iso_country_code -> TZA || last_edit_version -> 1
+3000000 && -2.5184978,32.4625686 && last_edit_user_name -> 1 || last_edit_changeset -> 0 || synthetic_duplicate_osm_node -> YES || last_edit_time -> 1515321311000 || last_edit_user_id -> 1 || iso_country_code -> TZA || last_edit_version -> 1
+4000000 && -2.5185019,32.4625707 && last_edit_user_name -> 1 || last_edit_changeset -> 0 || synthetic_duplicate_osm_node -> YES || last_edit_time -> 1515321311000 || last_edit_user_id -> 1 || iso_country_code -> TZA || last_edit_version -> 1
+6000000 && -2.5185039,32.4625666 && last_edit_user_name -> 1 || last_edit_changeset -> 0 || synthetic_duplicate_osm_node -> YES || last_edit_time -> 1515321311000 || last_edit_user_id -> 1 || iso_country_code -> TZA || last_edit_version -> 1
+8000000 && -2.5184978,32.4625666 && last_edit_user_name -> 1 || last_edit_changeset -> 0 || synthetic_duplicate_osm_node -> YES || last_edit_time -> 1515321311000 || last_edit_user_id -> 1 || iso_country_code -> TZA || last_edit_version -> 1
+13000000 && -2.5184998,32.4625666 && last_edit_user_name -> 1 || last_edit_changeset -> 0 || last_edit_time -> 1515321311000 || last_edit_user_id -> 1 || iso_country_code -> TZA || last_edit_version -> 1
+# Relations

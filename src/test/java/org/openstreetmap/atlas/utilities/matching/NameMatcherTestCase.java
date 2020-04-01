@@ -19,24 +19,25 @@ public class NameMatcherTestCase
     @Test
     public void testExactMatch()
     {
-        final String[] results = Stream.of(data).filter(new NameMatcher(source).matchExactly())
-                .toArray(String[]::new);
+        final String[] results = Stream.of(this.data)
+                .filter(new NameMatcher(this.source).matchExactly()).toArray(String[]::new);
         Assert.assertArrayEquals(new String[] { "Main Street" }, results);
     }
 
     @Test
     public void testExactMatchWithNulls()
     {
-        final String[] results = Stream.of(data)
-                .filter(new NameMatcher(source).matchExactly().matchNulls()).toArray(String[]::new);
+        final String[] results = Stream.of(this.data)
+                .filter(new NameMatcher(this.source).matchExactly().matchNulls())
+                .toArray(String[]::new);
         Assert.assertArrayEquals(new String[] { "Main Street", null }, results);
     }
 
     @Test
     public void testFuzzyMatch()
     {
-        final String[] results = Stream.of(data).filter(new NameMatcher(source).matchSimilar())
-                .toArray(String[]::new);
+        final String[] results = Stream.of(this.data)
+                .filter(new NameMatcher(this.source).matchSimilar()).toArray(String[]::new);
         Assert.assertArrayEquals(new String[] { "Main Street", "main street", "Rain Street" },
                 results);
     }
@@ -44,8 +45,9 @@ public class NameMatcherTestCase
     @Test
     public void testFuzzyMatchWithNulls()
     {
-        final String[] results = Stream.of(data)
-                .filter(new NameMatcher(source).matchSimilar().matchNulls()).toArray(String[]::new);
+        final String[] results = Stream.of(this.data)
+                .filter(new NameMatcher(this.source).matchSimilar().matchNulls())
+                .toArray(String[]::new);
         Assert.assertArrayEquals(new String[] { "Main Street", "main street", "Rain Street", null },
                 results);
     }
@@ -53,8 +55,8 @@ public class NameMatcherTestCase
     @Test
     public void testReallyFuzzyMatch()
     {
-        final String[] results = Stream.of(data).filter(new NameMatcher(source).matchSimilar(10))
-                .toArray(String[]::new);
+        final String[] results = Stream.of(this.data)
+                .filter(new NameMatcher(this.source).matchSimilar(10)).toArray(String[]::new);
         Assert.assertArrayEquals(
                 new String[] { "Main Street", "main street", "Rain Street", "Second Street" },
                 results);
@@ -63,7 +65,7 @@ public class NameMatcherTestCase
     @Test
     public void testUncasedMatch()
     {
-        final String[] results = Stream.of(data).filter(new NameMatcher(source))
+        final String[] results = Stream.of(this.data).filter(new NameMatcher(this.source))
                 .toArray(String[]::new);
         Assert.assertArrayEquals(new String[] { "Main Street", "main street" }, results);
     }
@@ -71,8 +73,8 @@ public class NameMatcherTestCase
     @Test
     public void testUncasedMatchWithNulls()
     {
-        final String[] results = Stream.of(data).filter(new NameMatcher(source).matchNulls())
-                .toArray(String[]::new);
+        final String[] results = Stream.of(this.data)
+                .filter(new NameMatcher(this.source).matchNulls()).toArray(String[]::new);
         Assert.assertArrayEquals(new String[] { "Main Street", "main street", null }, results);
     }
 }

@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.streaming.resource;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.function.Supplier;
 
 import org.openstreetmap.atlas.streaming.StringInputStream;
 import org.openstreetmap.atlas.streaming.StringOutputStream;
@@ -35,9 +36,9 @@ public class StringResource extends AbstractWritableResource
         this.source = builder.toString();
     }
 
-    public StringResource(final InputStream source)
+    public StringResource(final Supplier<InputStream> sourceSupplier)
     {
-        this(new InputStreamResource(source));
+        this(new InputStreamResource(sourceSupplier));
     }
 
     public StringResource(final String source)

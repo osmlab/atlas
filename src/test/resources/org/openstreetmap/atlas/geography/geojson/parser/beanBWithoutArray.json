@@ -1,0 +1,14 @@
+{
+  "name": "outer",
+  "beanA": {
+    "id": 10,
+    "name": "Hello",
+    "score": 10.5,
+    "ids": [1,2,3],
+    "names": ["hello", "hola", "bonjour"],
+    "scores": [1.414, 3.14159, 2.718],
+    "result": true,
+    "results": [true, false, true],
+    "tags": {"access": "private", "foot": "no"}
+  }
+}

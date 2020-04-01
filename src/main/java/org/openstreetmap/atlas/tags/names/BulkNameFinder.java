@@ -91,8 +91,9 @@ public class BulkNameFinder implements Serializable
         @Override
         public Optional<Map<Class<?>, String>> allValuesFor(final Optional<IsoLanguage> language)
         {
-            return Optional.ofNullable(language.isPresent()
-                    ? this.localizedResults.get(language.get()) : this.nonLocalizedResults);
+            return Optional
+                    .ofNullable(language.isPresent() ? this.localizedResults.get(language.get())
+                            : this.nonLocalizedResults);
         }
 
         @Override
@@ -112,7 +113,8 @@ public class BulkNameFinder implements Serializable
                 final Class<?> tagClass)
         {
             final Map<Class<?>, String> results = language.isPresent()
-                    ? this.localizedResults.get(language.get()) : this.nonLocalizedResults;
+                    ? this.localizedResults.get(language.get())
+                    : this.nonLocalizedResults;
 
             return Optional.ofNullable(results == null ? null : results.get(tagClass));
         }
@@ -261,9 +263,9 @@ public class BulkNameFinder implements Serializable
         final EnumSet<TagSearchOption> searchOptionSet = searchOptions.length > 0
                 ? EnumSet.copyOf(Arrays.asList(searchOptions))
                 : EnumSet.noneOf(TagSearchOption.class);
-        final TagSearchOption localizationOption = searchOptionSet
-                .contains(TagSearchOption.FORCE_ALL_LOCALIZED_ONLY)
-                        ? TagSearchOption.FORCE_ALL_LOCALIZED_ONLY : TagSearchOption.LOCALIZED_ONLY;
+        final TagSearchOption localizationOption = searchOptionSet.contains(
+                TagSearchOption.FORCE_ALL_LOCALIZED_ONLY) ? TagSearchOption.FORCE_ALL_LOCALIZED_ONLY
+                        : TagSearchOption.LOCALIZED_ONLY;
 
         /*
          * We don't want the name finder to outsmart us and pull out the non-localized value if the

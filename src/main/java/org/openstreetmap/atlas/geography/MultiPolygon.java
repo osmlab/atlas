@@ -2,20 +2,28 @@ package org.openstreetmap.atlas.geography;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.openstreetmap.atlas.geography.clipping.Clip;
 import org.openstreetmap.atlas.geography.clipping.Clip.ClipType;
 import org.openstreetmap.atlas.geography.converters.MultiPolygonStringConverter;
+import org.openstreetmap.atlas.geography.converters.WkbMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.WktMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonGeometry;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
+import org.openstreetmap.atlas.geography.index.RTree;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.streaming.writers.JsonWriter;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
@@ -23,19 +31,24 @@ import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.scalars.Surface;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.gson.JsonObject;
 
 /**
  * Multiple {@link Polygon}s some inner, some outer.
  *
  * @author matthieun
  */
-public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
+public class MultiPolygon
+        implements Iterable<Polygon>, GeometricSurface, Serializable, GeoJsonGeometry
 {
-    private static final long serialVersionUID = 4198234682870043547L;
-    private static final int SIMPLE_STRING_LENGTH = 200;
-
     public static final MultiPolygon MAXIMUM = forPolygon(Rectangle.MAXIMUM);
     public static final MultiPolygon TEST_MULTI_POLYGON;
+    private static final Logger logger = LoggerFactory.getLogger(MultiPolygon.class);
+    private static final long serialVersionUID = 4198234682870043547L;
+    private static final int SIMPLE_STRING_LENGTH = 200;
 
     static
     {
@@ -49,6 +62,24 @@ public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
 
     private final MultiMap<Polygon, Polygon> outerToInners;
     private Rectangle bounds;
+
+    /**
+     * @param polygons
+     *            The outers of the multipolygon
+     * @return A {@link MultiPolygon} with the provided {@link Polygon} as a single outer
+     *         {@link Polygon}, with no inner {@link Polygon}
+     */
+    public static MultiPolygon forOuters(final Iterable<Polygon> polygons)
+    {
+        final MultiMap<Polygon, Polygon> multiMap = new MultiMap<>();
+        polygons.forEach(polygon -> multiMap.put(polygon, Collections.emptyList()));
+        return new MultiPolygon(multiMap);
+    }
+
+    public static MultiPolygon forOuters(final Polygon... polygons)
+    {
+        return MultiPolygon.forOuters(Arrays.asList(polygons));
+    }
 
     /**
      * @param polygon
@@ -80,9 +111,25 @@ public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
         this.outerToInners = outerToInners;
     }
 
-    public GeoJsonObject asGeoJson()
+    public GeoJsonObject asGeoJsonFeatureCollection()
     {
-        return new GeoJsonBuilder().create(asLocationIterableProperties());
+        final GeoJsonBuilder builder = new GeoJsonBuilder();
+        return builder.createFeatureCollection(Iterables.translate(outers(),
+                outerPolygon -> builder.createOneOuterMultiPolygon(
+                        new MultiIterable<>(Collections.singleton(outerPolygon),
+                                this.outerToInners.get(outerPolygon)))));
+    }
+
+    /**
+     * Creates a JsonObject with GeoJSON geometry representing this multi-polygon.
+     *
+     * @return A JsonObject with GeoJSON geometry
+     */
+    @Override
+    public JsonObject asGeoJsonGeometry()
+    {
+        return GeoJsonUtils.geometry(GeoJsonType.MULTI_POLYGON,
+                GeoJsonUtils.multiPolygonToCoordinates(this));
     }
 
     public Iterable<LocationIterableProperties> asLocationIterableProperties()
@@ -91,24 +138,37 @@ public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
         {
             final Map<String, String> tags = new HashMap<>();
             tags.put("MultiPolygon", "outer");
-            return new LocationIterableProperties(polygon, new HashMap<>());
+            return new LocationIterableProperties(polygon, tags);
         });
         final Iterable<LocationIterableProperties> inners = Iterables.translate(inners(), polygon ->
         {
             final Map<String, String> tags = new HashMap<>();
             tags.put("MultiPolygon", "inner");
-            return new LocationIterableProperties(polygon, new HashMap<>());
+            return new LocationIterableProperties(polygon, tags);
         });
         return new MultiIterable<>(outers, inners);
+    }
+
+    /**
+     * @return Optional of {@link Polygon} representation if possible
+     */
+    public Optional<Polygon> asSimplePolygon()
+    {
+        if (this.isSimplePolygon())
+        {
+            return outers().stream().findFirst();
+        }
+        logger.warn("Trying to read complex MultiPolygon as simple Polygon");
+        return Optional.empty();
     }
 
     @Override
     public Rectangle bounds()
     {
-        if (this.bounds == null)
+        if (this.bounds == null && !this.isEmpty())
         {
             final Set<Location> locations = new HashSet<>();
-            forEach(polygon -> polygon.forEach(location -> locations.add(location)));
+            forEach(polygon -> polygon.forEach(locations::add));
             this.bounds = Rectangle.forLocations(locations);
         }
         return this.bounds;
@@ -184,23 +244,64 @@ public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
      * @return True if the {@link MultiPolygon} contains the provided item (i.e. it is within the
      *         outer polygons and not within the inner polygons)
      */
+    @Override
     public boolean fullyGeometricallyEncloses(final Location location)
     {
-        for (final Polygon inner : inners())
-        {
-            if (inner.fullyGeometricallyEncloses(location))
-            {
-                return false;
-            }
-        }
         for (final Polygon outer : outers())
         {
             if (outer.fullyGeometricallyEncloses(location))
             {
-                return true;
+                boolean result = true;
+                // Checking the inners only when a location is within the outer saves the expensive
+                // general inners() call.
+                for (final Polygon inner : innersOf(outer))
+                {
+                    if (inner.fullyGeometricallyEncloses(location))
+                    {
+                        // If the inner is overlapping the location, we skip that outer and continue
+                        result = false;
+                        break;
+                    }
+                }
+                if (result)
+                {
+                    return true;
+                }
             }
         }
         return false;
+    }
+
+    /**
+     * Tests to see if entire surface of the provided {@link MultiPolygon} lies within this
+     * {@link MultiPolygon}
+     *
+     * @param that
+     *            the provided {@link MultiPolygon} to test
+     * @return true if the conditions are met, false otherwise
+     */
+    @Override
+    public boolean fullyGeometricallyEncloses(final MultiPolygon that)
+    {
+        final RTree<Polygon> thisOuters = RTree.forLocated(this.outers());
+        // each outer of that must fit within one of this' outer/inner groups
+        for (final Polygon thatOuter : that.outers())
+        {
+            boolean enclosedWithoutInnerOverlap = false;
+            for (final Polygon thisOuter : thisOuters.get(thatOuter.bounds(), thatOuter::overlaps))
+            {
+                if (thisOuter.fullyGeometricallyEncloses(thatOuter))
+                {
+                    enclosedWithoutInnerOverlap = this.getOuterToInners().get(thisOuter).stream()
+                            .noneMatch(that::overlaps);
+                }
+            }
+            if (!enclosedWithoutInnerOverlap)
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -208,23 +309,29 @@ public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
      *            A {@link PolyLine} item
      * @return True if the {@link MultiPolygon} contains the provided {@link PolyLine}.
      */
+    @Override
     public boolean fullyGeometricallyEncloses(final PolyLine polyLine)
     {
-        for (final Polygon inner : inners())
-        {
-            if (inner.overlaps(polyLine))
-            {
-                return false;
-            }
-        }
         for (final Polygon outer : outers())
         {
             if (outer.fullyGeometricallyEncloses(polyLine))
             {
-                return true;
+                return this.getOuterToInners().get(outer).stream()
+                        .noneMatch(inner -> inner.overlaps(polyLine));
             }
         }
         return false;
+    }
+
+    @Override
+    public GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.MULTI_POLYGON;
+    }
+
+    public MultiMap<Polygon, Polygon> getOuterToInners()
+    {
+        return this.outerToInners;
     }
 
     @Override
@@ -271,6 +378,22 @@ public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
         return false;
     }
 
+    /**
+     * @return {@code true} if this {@link MultiPolygon} doesn't have any outer members
+     */
+    public boolean isEmpty()
+    {
+        return this.outerToInners.isEmpty();
+    }
+
+    /**
+     * @return whether this Multipolygon can be represented as a {@link Polygon}
+     */
+    public boolean isSimplePolygon()
+    {
+        return this.outers().size() == 1;
+    }
+
     @Override
     public Iterator<Polygon> iterator()
     {
@@ -298,6 +421,14 @@ public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
         return this.outerToInners.keySet();
     }
 
+    @Override
+    public boolean overlaps(final MultiPolygon otherMultiPolygon)
+    {
+        return this.outers().stream().anyMatch(otherMultiPolygon::overlaps)
+                && otherMultiPolygon.outers().stream().anyMatch(this::overlaps);
+    }
+
+    @Override
     public boolean overlaps(final PolyLine polyLine)
     {
         return overlapsInternal(polyLine, true);
@@ -306,10 +437,11 @@ public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
     public void saveAsGeoJson(final WritableResource resource)
     {
         final JsonWriter writer = new JsonWriter(resource);
-        writer.write(asGeoJson().jsonObject());
+        writer.write(asGeoJson());
         writer.close();
     }
 
+    @Override
     public Surface surface()
     {
         Surface result = Surface.MINIMUM;
@@ -320,6 +452,21 @@ public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
         for (final Polygon inner : this.inners())
         {
             result = result.subtract(inner.surface());
+        }
+        return result;
+    }
+
+    @Override
+    public Surface surfaceOnSphere()
+    {
+        Surface result = Surface.MINIMUM;
+        for (final Polygon outer : this.outers())
+        {
+            result = result.add(outer.surfaceOnSphere());
+        }
+        for (final Polygon inner : this.inners())
+        {
+            result = result.subtract(inner.surfaceOnSphere());
         }
         return result;
     }
@@ -364,14 +511,16 @@ public class MultiPolygon implements Iterable<Polygon>, Located, Serializable
         return toWkt();
     }
 
+    @Override
+    public byte[] toWkb()
+    {
+        return new WkbMultiPolygonConverter().convert(this);
+    }
+
+    @Override
     public String toWkt()
     {
         return new WktMultiPolygonConverter().convert(this);
-    }
-
-    protected MultiMap<Polygon, Polygon> getOuterToInners()
-    {
-        return this.outerToInners;
     }
 
     private boolean overlapsInternal(final PolyLine polyLine, final boolean runReverseCheck)

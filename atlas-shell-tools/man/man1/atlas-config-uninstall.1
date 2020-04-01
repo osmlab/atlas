@@ -1,0 +1,77 @@
+.\"     Title: atlas-config-uninstall
+.\"    Author: Lucas Cram
+.\"    Source: atlas-shell-tools 0.0.1
+.\"  Language: English
+.\"
+.TH "ATLAS-CONFIG-UNINSTALL" "1" "1 December 2018" "atlas\-shell\-tools 0\&.0\&.1" "Atlas Shell Tools Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+
+.SH "NAME"
+.sp
+atlas\-config\-uninstall \-\- Uninstall Atlas Shell Tools module(s)
+
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIatlas\-config\fR \fIuninstall\fR \-\-help
+\fIatlas\-config\fR \fIuninstall\fR \-\-all
+\fIatlas\-config\fR \fIuninstall\fR [\-\-force] <\fImodules...\fR>
+.fi
+
+.SH "DESCRIPTION"
+.sp
+Remove installed module(s). If the module is a symlink, this will only
+remove the link. It will \fBnot\fR delete the linked\-to file. By default, this
+command will not uninstall an activated module. This can be overridden with the
+\fB\-\-force\fR or \fB\-\-all\fR options.
+
+.SH "OPTIONS"
+.sp
+
+.PP
+<\fImodules...\fR>
+.RS 4
+This indicates one or more modules. The modules should be referred to using their names as
+reported by \fBatlas-config-list\fR(1).
+.RE
+
+.PP
+\fB\-\-all\fR, \fB\-a\fR
+.RS 4
+Uninstall all modules including the activated module, ignoring the supplied <\fImodule\fR>
+argument if present. This is equivalent to running \fBatlas\-config reset \-\-modules\fR.
+.RE
+
+.PP
+\fB\-\-force\fR
+.RS 4
+Force uninstall an activated module.
+.RE
+
+.PP
+\fB\-\-help\fR
+.RS 4
+Show this help menu.
+.RE
+
+.SH "SEE ALSO"
+.sp
+\fBatlas\-config\fR(1), \fBatlas\-config\-install\fR(1)
+
+.SH "ATLAS SHELL TOOLS"
+.sp
+Part of the \fBatlas\-shell\-tools\fR(7) suite

@@ -1,0 +1,112 @@
+jacoco
+{
+    toolVersion = versions.jacoco
+}
+
+checkstyle
+{
+    toolVersion = versions.checkstyle
+}
+
+sourceSets
+{
+    integrationTest
+    {
+        java
+        {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir file('src/integrationTest/java')
+        }
+        resources.srcDir file('src/integrationTest/resources')
+    }
+}
+
+test
+{
+    testLogging
+    {
+        events "failed"
+        exceptionFormat = 'full'
+    }
+    jacoco {
+        excludes += ['org.openstreetmap.atlas.proto/**']
+    }
+}
+
+task integrationTest(type: Test) {
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    testLogging
+    {
+        events "failed"
+    }
+}
+
+// Those 3 for atlas only here because ArrangementCheck is already in Atlas and
+// Gradle does not allow third party dependency of itself.
+checkstyleMain.dependsOn jar
+checkstyleTest.dependsOn jar
+checkstyleIntegrationTest.dependsOn jar
+
+check.dependsOn integrationTest
+integrationTest.mustRunAfter test
+
+check.dependsOn jacocoTestReport
+
+tasks.withType(Test) {
+    reports.html.destination = file("${reporting.baseDir}/${name}")
+}
+
+configurations
+{
+    integrationTestCompile.extendsFrom testCompile
+    integrationTestRuntime.extendsFrom testRuntime
+}
+
+dependencies
+{
+    testCompile packages.slf4j.log4j12
+    testCompile packages.log4j
+    testCompile packages.junit
+
+    integrationTestCompile packages.junit
+}
+
+spotless {
+    java {
+        target project.fileTree(project.rootDir) {
+            include 'src/**/*.java'
+            exclude 'src/generated/**/*.java'
+            exclude 'src/main/resources/**/*.java'
+            exclude 'src/test/resources/**/*.java'
+            exclude 'src/integrationTest/resources/**/*.java'
+        }
+        importOrder 'static java', 'static javax', 'static org', 'static com', 'static scala', 'java', 'javax', 'org', 'com', 'scala'
+        removeUnusedImports()
+        eclipse().configFile 'config/format/code_format.xml'
+    }
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        csv.enabled true
+        html.destination file("${buildDir}/reports/jacoco")
+    }
+    // Below, works with gradle 6
+    // See https://stackoverflow.com/a/54213986/1558687
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: 'org/openstreetmap/atlas/proto/**')
+        }))
+    }
+    sourceSets sourceSets.main
+    executionData fileTree(project.rootDir.absolutePath).include("**/jacoco/*.exec")
+}
+
+sonarqube {
+    properties {
+        property "sonar.exclusions", "src/generated/**/*.java"
+    }
+}

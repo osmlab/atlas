@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Longitude;
@@ -23,6 +25,7 @@ import org.slf4j.LoggerFactory;
  * Merge nodes that exactly overlap.
  *
  * @author matthieun
+ * @author samg
  */
 public class MultiAtlasOverlappingNodesFixer implements Serializable
 {
@@ -44,31 +47,46 @@ public class MultiAtlasOverlappingNodesFixer implements Serializable
     }
 
     /**
-     * This is to build maps of nodes that are at the same location, and to build their master to
-     * slave relationship. The master to slave relationship is purely arbitrary, the first node at a
-     * location to be found becoming the master.
+     * This is to build maps of nodes that are at the same location, and to pick the master node
+     * based on point identifier
      */
     protected void aggregateSameLocationNodes()
     {
         this.parent.getNodeIdentifierToAtlasIndices().forEach(identifier ->
         {
-            final Node master = this.parent.node(identifier);
-            final Set<Node> slaves = nodesOverlapping(master);
-            slaves.remove(master);
-            if (!slaves.isEmpty())
+            // if this identifier is in the map, then skip. otherwise, poll all
+            // overlapping nodes here, pick a master node based on identifier,
+            // and update the map
+            if (!this.overlappingNodeIdentifierToMasterNodeIdentifier.containsKey(identifier))
             {
-                if (!this.overlappingNodeIdentifierToMasterNodeIdentifier.containsKey(identifier))
+                final Node current = this.parent.node(identifier);
+                final SortedSet<Node> overlapping = new TreeSet<>((final Node a, final Node b) ->
                 {
-                    // if our master is not already a slave
-                    slaves.forEach(node ->
+                    if (a.getIdentifier() < b.getIdentifier())
                     {
-                        final long slaveIdentifier = node.getIdentifier();
-                        this.overlappingNodeIdentifierToMasterNodeIdentifier.put(slaveIdentifier,
-                                identifier);
-                        this.masterNodeIdentifierToOverlappingNodeIdentifier.add(identifier,
-                                slaveIdentifier);
+                        return -1;
+                    }
+                    else if (a.getIdentifier() > b.getIdentifier())
+                    {
+                        return 1;
+                    }
+                    return 0;
+                });
+                overlapping.addAll(nodesOverlapping(current));
+                if (overlapping.size() > 1)
+                {
+                    final Node master = overlapping.first();
+                    final long masterIdentifier = master.getIdentifier();
+                    overlapping.remove(master);
+                    overlapping.forEach(node ->
+                    {
+                        final long overlappingIdentifier = node.getIdentifier();
+                        this.overlappingNodeIdentifierToMasterNodeIdentifier
+                                .put(overlappingIdentifier, masterIdentifier);
+                        this.masterNodeIdentifierToOverlappingNodeIdentifier.add(masterIdentifier,
+                                overlappingIdentifier);
                     });
-                    warnIfNodesHaveDifferentTags(master, slaves);
+                    warnIfNodesHaveDifferentTags(master, overlapping);
                 }
             }
         });
@@ -117,7 +135,8 @@ public class MultiAtlasOverlappingNodesFixer implements Serializable
         // Make sure that the AntiMeridian case is taken care of
         final Location masterLocation = master.getLocation();
         // This will be true for both the minimum antimeridian and the maximum
-        if (Longitude.ANTIMERIDIAN_WEST.equals(masterLocation.getLongitude()))
+        if (Longitude.ANTIMERIDIAN_WEST.equals(masterLocation.getLongitude())
+                || Longitude.ANTIMERIDIAN_EAST.equals(masterLocation.getLongitude()))
         {
             final Location antimeridianMinimum = new Location(masterLocation.getLatitude(),
                     Longitude.ANTIMERIDIAN_WEST);
@@ -147,14 +166,14 @@ public class MultiAtlasOverlappingNodesFixer implements Serializable
      *
      * @param master
      *            The master node
-     * @param slaves
-     *            The slave nodes
+     * @param overlapping
+     *            The overlapping nodes
      */
-    private void warnIfNodesHaveDifferentTags(final Node master, final Set<Node> slaves)
+    private void warnIfNodesHaveDifferentTags(final Node master, final Set<Node> overlapping)
     {
         final Node origin = master;
         final Map<String, String> tags = master.getTags();
-        for (final Node node : slaves)
+        for (final Node node : overlapping)
         {
             if (!tags.equals(node.getTags()))
             {

@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.BiFunction;
 
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryCollection;
+import org.locationtech.jts.geom.LineString;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
@@ -13,19 +16,17 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonConverter
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryCollection;
-import com.vividsolutions.jts.geom.LineString;
-
 /**
  * Wrapper around the JTS library for {@link Polygon} and {@link PolyLine} clipping with
  * {@link Polygon}s and {@link MultiPolygon}s.
  *
  * @author matthieun
+ * @deprecated Use {@link GeometryOperation} instead.
  */
+@Deprecated
 public class MultiPolygonClipper
 {
-    private final Set<com.vividsolutions.jts.geom.Polygon> jtsClippings;
+    private final Set<org.locationtech.jts.geom.Polygon> jtsClippings;
 
     protected MultiPolygonClipper(final MultiPolygon clipping)
     {
@@ -105,10 +106,10 @@ public class MultiPolygonClipper
                 result = result.merge(processMultiPolygon(geometry));
             }
         }
-        else if (intersections instanceof com.vividsolutions.jts.geom.Polygon)
+        else if (intersections instanceof org.locationtech.jts.geom.Polygon)
         {
-            final Set<com.vividsolutions.jts.geom.Polygon> set = new HashSet<>();
-            set.add((com.vividsolutions.jts.geom.Polygon) intersections);
+            final Set<org.locationtech.jts.geom.Polygon> set = new HashSet<>();
+            set.add((org.locationtech.jts.geom.Polygon) intersections);
             result = result.merge(new JtsMultiPolygonConverter().backwardConvert(set));
         }
         return result;
@@ -138,11 +139,11 @@ public class MultiPolygonClipper
             final BiFunction<Geometry, Geometry, Geometry> application)
     {
         MultiPolygon result = new MultiPolygon(new MultiMap<>());
-        final Set<com.vividsolutions.jts.geom.Polygon> jtsSubjects = new JtsMultiPolygonConverter()
+        final Set<org.locationtech.jts.geom.Polygon> jtsSubjects = new JtsMultiPolygonConverter()
                 .convert(subject);
-        for (final com.vividsolutions.jts.geom.Polygon jtsClipping : this.jtsClippings)
+        for (final org.locationtech.jts.geom.Polygon jtsClipping : this.jtsClippings)
         {
-            for (final com.vividsolutions.jts.geom.Polygon jtsSubject : jtsSubjects)
+            for (final org.locationtech.jts.geom.Polygon jtsSubject : jtsSubjects)
             {
                 result = result
                         .merge(processMultiPolygon(application.apply(jtsSubject, jtsClipping)));
@@ -151,25 +152,25 @@ public class MultiPolygonClipper
         return result;
     }
 
-    private MultiPolygon runPolygonClipping(final Polygon subject,
+    private List<PolyLine> runPolyLineClipping(final PolyLine subject,
             final BiFunction<Geometry, Geometry, Geometry> application)
     {
-        MultiPolygon result = new MultiPolygon(new MultiMap<>());
-        for (final com.vividsolutions.jts.geom.Polygon jtsClipping : this.jtsClippings)
+        final List<PolyLine> result = new ArrayList<>();
+        for (final org.locationtech.jts.geom.Polygon jtsClipping : this.jtsClippings)
         {
-            result = result.merge(processMultiPolygon(
+            result.addAll(processPolyLine(
                     application.apply(PolygonClipper.getJts(subject), jtsClipping)));
         }
         return result;
     }
 
-    private List<PolyLine> runPolyLineClipping(final PolyLine subject,
+    private MultiPolygon runPolygonClipping(final Polygon subject,
             final BiFunction<Geometry, Geometry, Geometry> application)
     {
-        final List<PolyLine> result = new ArrayList<>();
-        for (final com.vividsolutions.jts.geom.Polygon jtsClipping : this.jtsClippings)
+        MultiPolygon result = new MultiPolygon(new MultiMap<>());
+        for (final org.locationtech.jts.geom.Polygon jtsClipping : this.jtsClippings)
         {
-            result.addAll(processPolyLine(
+            result = result.merge(processMultiPolygon(
                     application.apply(PolygonClipper.getJts(subject), jtsClipping)));
         }
         return result;

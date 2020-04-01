@@ -10,12 +10,10 @@ import java.io.Serializable;
  */
 public final class Speed implements Serializable
 {
+    public static final String MILES_PER_HOUR = "mph";
+    public static final String KILOMETERS_PER_HOUR = "kph";
+    public static final String NAUTICAL_MILES_PER_HOUR = "knots";
     private static final long serialVersionUID = 3268649594426387264L;
-
-    public static final String MPH = "mph";
-    public static final String KPH = "kph";
-    public static final String KNOTS = "knots";
-
     private final Distance distance;
     private final Duration duration;
 
@@ -55,6 +53,11 @@ public final class Speed implements Serializable
         return Speed.kilometersPerHour(this.asKilometersPerHour() + that.asKilometersPerHour());
     }
 
+    public Duration asDuration(final Distance distance)
+    {
+        return Duration.seconds(distance.asMeters() / this.asMetersPerSecond());
+    }
+
     public double asKilometersPerHour()
     {
         return this.distance.asKilometers() / this.duration.asHours();
@@ -79,11 +82,6 @@ public final class Speed implements Serializable
     {
         return Speed.kilometersPerHour(
                 Math.abs(this.asKilometersPerHour() - that.asKilometersPerHour()));
-    }
-
-    public Duration asDuration(final Distance distance)
-    {
-        return Duration.seconds(distance.asMeters() / this.asMetersPerSecond());
     }
 
     @Override

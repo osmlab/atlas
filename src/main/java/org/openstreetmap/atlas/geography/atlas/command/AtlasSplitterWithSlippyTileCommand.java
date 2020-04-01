@@ -10,6 +10,7 @@ import java.util.stream.StreamSupport;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
+import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
@@ -46,6 +47,14 @@ public class AtlasSplitterWithSlippyTileCommand extends AbstractAtlasSubCommand
     }
 
     @Override
+    public void usage(final PrintStream writer)
+    {
+        writer.printf(AtlasCommandConstants.INPUT_PARAMETER_DESCRIPTION);
+        writer.printf(AtlasCommandConstants.INPUT_ZOOM_LEVEL);
+        writer.printf(AtlasCommandConstants.OUTPUT_FOLDER_DESCRIPTION);
+    }
+
+    @Override
     protected void handle(final Atlas atlas, final CommandMap command)
     {
         final int zoomLevel = (int) command.get(ZOOM_LEVEL);
@@ -75,15 +84,7 @@ public class AtlasSplitterWithSlippyTileCommand extends AbstractAtlasSubCommand
 
     private PackedAtlas buildAtlasBasedOnTile(final SlippyTile tile, final Atlas atlas)
     {
-        return atlas.subAtlas(tile.bounds())
+        return atlas.subAtlas(tile.bounds(), AtlasCutType.SOFT_CUT)
                 .map(subAtlas -> new PackedAtlasCloner().cloneFrom(subAtlas)).orElse(null);
-    }
-
-    @Override
-    public void usage(final PrintStream writer)
-    {
-        writer.printf(AtlasCommandConstants.INPUT_PARAMETER_DESCRIPTION);
-        writer.printf(AtlasCommandConstants.INPUT_ZOOM_LEVEL);
-        writer.printf(AtlasCommandConstants.OUTPUT_FOLDER_DESCRIPTION);
     }
 }

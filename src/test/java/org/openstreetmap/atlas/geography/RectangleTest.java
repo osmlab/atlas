@@ -1,8 +1,15 @@
 package org.openstreetmap.atlas.geography;
 
+import java.util.Arrays;
+
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.openstreetmap.atlas.utilities.scalars.Surface;
+
+import com.google.gson.JsonArray;
 
 /**
  * @author matthieun
@@ -20,12 +27,109 @@ public class RectangleTest
     private final Rectangle rectangle4 = Rectangle.forLocations(this.location2, this.location4);
 
     @Test
+    public void testAntiMeridianEastRectangle()
+    {
+        final Location antiMeridian = new Location(Latitude.ZERO, Longitude.degrees(180));
+        final Location lowerLeftAntiMeridianRectangle = new Location(Latitude.degrees(-10),
+                Longitude.degrees(170));
+        final Location lowerLeftTestRectangle = new Location(Latitude.degrees(-10),
+                Longitude.degrees(150));
+        final Location upperRightTestRectangle1 = new Location(Latitude.ZERO,
+                Longitude.degrees(160));
+        final Location upperRightTestRectangle2 = new Location(Latitude.ZERO,
+                Longitude.degrees(175));
+
+        // List construction
+        final Rectangle antiMeridianRectangle1 = Rectangle
+                .forLocations(Arrays.asList(antiMeridian, lowerLeftAntiMeridianRectangle));
+        final Rectangle testRectangle1 = Rectangle
+                .forLocations(Arrays.asList(upperRightTestRectangle1, lowerLeftTestRectangle));
+        Assert.assertFalse(testRectangle1.overlaps(antiMeridianRectangle1));
+        Assert.assertFalse(antiMeridianRectangle1.overlaps(testRectangle1));
+
+        // Corners construction
+        final Rectangle antiMeridianRectangle2 = Rectangle
+                .forCorners(lowerLeftAntiMeridianRectangle, antiMeridian);
+        final Rectangle testRectangle2 = Rectangle.forCorners(lowerLeftTestRectangle,
+                upperRightTestRectangle2);
+        Assert.assertTrue(testRectangle2.overlaps(antiMeridianRectangle2));
+        Assert.assertTrue(antiMeridianRectangle2.overlaps(testRectangle2));
+    }
+
+    @Test
+    public void testAsGeoJsonBbox()
+    {
+        final Rectangle rectangle = Rectangle.TEST_RECTANGLE;
+        final JsonArray array = rectangle.asGeoJsonBbox();
+        Assert.assertEquals("[-122.031905,37.328167,-122.029051,37.330394]", array.toString());
+    }
+
+    @Test(expected = CoreException.class)
+    public void testConstructInvalidRectangle()
+    {
+        // The lower left is actually the lower right and the upper right is actually the upper
+        // left, making this an invalid specification.
+        @SuppressWarnings("unused")
+        final Rectangle invalidRectangle = Rectangle.forCorners(
+                Location.forWkt("POINT (-122.288925 47.618916)"),
+                Location.forWkt("POINT (-122.288935 47.618946)"));
+    }
+
+    @Test
+    public void testContract()
+    {
+        // Test over contract
+        final Distance rectangle1CornerToCorner = this.rectangle1.lowerLeft()
+                .distanceTo(this.rectangle1.upperRight());
+        final Rectangle collapsedRectangle1 = this.rectangle1.contract(rectangle1CornerToCorner);
+        Assert.assertEquals(collapsedRectangle1.center().bounds(), collapsedRectangle1);
+        Assert.assertEquals(Surface.forDm7Squared(0), collapsedRectangle1.surface());
+
+        // test compatibility with expand
+        final Rectangle expanded = this.rectangle1.expand(Distance.ONE_METER);
+        Assert.assertEquals(this.rectangle1, expanded.contract(Distance.ONE_METER));
+
+        // test collapse horizontally
+        final Location rectangle1UpperLeft = Iterables.asList(this.rectangle1).get(1);
+        final Distance contractRectangle1Distance = rectangle1UpperLeft
+                .distanceTo(this.rectangle1.upperRight()).scaleBy(.51);
+        final Rectangle collapsedHorizontally = this.rectangle1
+                .contract(contractRectangle1Distance);
+        Assert.assertEquals(Surface.forDm7Squared(0), collapsedHorizontally.surface());
+        Assert.assertEquals(collapsedHorizontally.surface(),
+                this.rectangle1.contract(contractRectangle1Distance.scaleBy(10)).surface());
+        Assert.assertEquals(Math.round(contractRectangle1Distance.asMeters()),
+                Math.round(new Location(this.rectangle1.lowerLeft().getLatitude(),
+                        collapsedHorizontally.middle().getLongitude())
+                                .distanceTo(collapsedHorizontally.lowerLeft()).asMeters()));
+
+        // test collapse vertically
+        final Location rectangle2UpperLeft = Iterables.asList(this.rectangle2).get(1);
+        final Distance contractRectangle2Distance = rectangle2UpperLeft
+                .distanceTo(this.rectangle2.lowerLeft()).scaleBy(.51);
+        final Rectangle collapsedVertically = this.rectangle2.contract(contractRectangle2Distance);
+        Assert.assertEquals(Surface.forDm7Squared(0), collapsedVertically.surface());
+        Assert.assertEquals(collapsedVertically.surface(),
+                this.rectangle2.contract(contractRectangle2Distance.scaleBy(10)).surface());
+        Assert.assertEquals(Math.round(contractRectangle2Distance.asMeters()),
+                Math.round(new Location(collapsedVertically.middle().getLatitude(),
+                        this.rectangle2.lowerLeft().getLongitude())
+                                .distanceTo(collapsedVertically.lowerLeft()).asMeters()));
+
+        // Test fully collapse Collapsed
+        Assert.assertEquals(this.rectangle1.center().bounds(),
+                collapsedHorizontally.contract(Distance.TEN_MILES));
+        Assert.assertEquals(this.rectangle2.center().bounds(),
+                collapsedVertically.contract(Distance.TEN_MILES));
+    }
+
+    @Test
     public void testCoversAndCoversPartially()
     {
         Assert.assertTrue("Rectangle 3 fully contains rectangle 2",
                 this.rectangle3.fullyGeometricallyEncloses(this.rectangle2));
         Assert.assertTrue("That means, it should also cover it partially",
-                this.rectangle3.overlaps(this.rectangle4));
+                this.rectangle3.overlaps(this.rectangle2));
 
         Assert.assertTrue("Rectangle 3 only partially covers rectangle 4",
                 this.rectangle3.overlaps(this.rectangle4));
@@ -74,5 +178,14 @@ public class RectangleTest
         Assert.assertTrue(surface.isLessThan(this.rectangle3.surface()));
         Assert.assertTrue(this.rectangle1.surface().add(this.rectangle2.surface())
                 .isLessThan(this.rectangle3.surface()));
+
+        Assert.assertEquals(6479999998200000000L, Rectangle.MAXIMUM.surface().asDm7Squared());
+    }
+
+    @Test
+    public void testWidth()
+    {
+        Assert.assertEquals(50160, this.rectangle1.width().asDm7());
+        Assert.assertEquals(-1, Rectangle.MAXIMUM.width().asDm7());
     }
 }

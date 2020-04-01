@@ -1,0 +1,1 @@
+{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"LineString","coordinates":[[-72,-38],[-73,-39]]},"properties":{"prop1":"bar","prop2":2.99,"prop3":[2,3,4]}}]}

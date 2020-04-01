@@ -1,0 +1,2 @@
+Convert a folder from geohash precision 4 to slippy tile zoom 7
+#$ shardingConverter --input=/path/to/in --output=/path/to/out --inputSharding=geohash@4 --outputSharding=slippy@7

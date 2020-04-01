@@ -1,0 +1,11 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_outer_classname = "ProtoByteArrayWrapper";
+
+package org.openstreetmap.atlas.proto;
+
+message ProtoByteArray {
+    optional string name = 1;
+    optional bytes elements = 2;
+}

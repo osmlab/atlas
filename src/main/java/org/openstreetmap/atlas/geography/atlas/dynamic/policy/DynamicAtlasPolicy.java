@@ -37,12 +37,17 @@ public class DynamicAtlasPolicy
     };
     private Predicate<AtlasEntity> atlasEntitiesToConsiderForExpansion = entity -> true;
     private boolean aggressivelyExploreRelations = false;
+    // In case the initial shards were found using a Polygon or a MultiPolygon, remember it to
+    // provide the initial shards shape. This will be useful to not over-extend when using
+    // extendIndefinitely=false
+    private Optional<MultiPolygon> shapeCoveringInitialShards = Optional.empty();
 
     public DynamicAtlasPolicy(final Function<Shard, Optional<Atlas>> atlasFetcher,
             final Sharding sharding, final MultiPolygon shapeCoveringInitialShards,
             final Polygon maximumBounds)
     {
         this.initialShards = new HashSet<>();
+        this.shapeCoveringInitialShards = Optional.of(shapeCoveringInitialShards);
         sharding.shards(shapeCoveringInitialShards).forEach(this.initialShards::add);
         this.atlasFetcher = atlasFetcher;
         this.maximumBounds = maximumBounds;
@@ -54,6 +59,8 @@ public class DynamicAtlasPolicy
             final Polygon maximumBounds)
     {
         this.initialShards = new HashSet<>();
+        this.shapeCoveringInitialShards = Optional
+                .of(MultiPolygon.forPolygon(shapeCoveringInitialShards));
         sharding.shards(shapeCoveringInitialShards).forEach(this.initialShards::add);
         this.atlasFetcher = atlasFetcher;
         this.maximumBounds = maximumBounds;
@@ -91,15 +98,7 @@ public class DynamicAtlasPolicy
         {
             if (this.maximumBounds.overlaps(shard.bounds()))
             {
-                try
-                {
-                    return this.atlasFetcher.apply(shard);
-                }
-                catch (final Throwable error)
-                {
-                    logger.error("Could not load shard {}, skipping.", shard.getName(), error);
-
-                }
+                return this.atlasFetcher.apply(shard);
             }
             else
             {
@@ -119,9 +118,14 @@ public class DynamicAtlasPolicy
 
     public MultiPolygon getInitialShardsBounds()
     {
+        if (this.shapeCoveringInitialShards.isPresent())
+        {
+            return this.shapeCoveringInitialShards.get();
+        }
         final MultiMap<Polygon, Polygon> outerToInners = new MultiMap<>();
         this.initialShards.forEach(shard -> outerToInners.put(shard.bounds(), new ArrayList<>()));
-        return new MultiPolygon(outerToInners);
+        this.shapeCoveringInitialShards = Optional.of(new MultiPolygon(outerToInners));
+        return this.shapeCoveringInitialShards.get();
     }
 
     public Polygon getMaximumBounds()
@@ -129,14 +133,14 @@ public class DynamicAtlasPolicy
         return this.maximumBounds;
     }
 
-    public Sharding getSharding()
-    {
-        return this.sharding;
-    }
-
     public Consumer<Set<Shard>> getShardSetChecker()
     {
         return this.shardSetChecker;
+    }
+
+    public Sharding getSharding()
+    {
+        return this.sharding;
     }
 
     public boolean isAggressivelyExploreRelations()

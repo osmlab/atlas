@@ -1,8 +1,5 @@
 package org.openstreetmap.atlas.tags.filters;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,27 +54,10 @@ public class ConfiguredTaggableFilterTest
     }
 
     @Test
-    public void testDefaultOsmosisRelationConfiguration()
-    {
-        final Resource relationResource = new InputStreamResource(
-                getClass().getClassLoader().getResourceAsStream(
-                        "org/openstreetmap/atlas/geography/atlas/pbf/osm-pbf-relation.json"));
-        final Configuration relationConfiguration = new StandardConfiguration(relationResource);
-        final ConfiguredTaggableFilter relationFilter = new ConfiguredTaggableFilter(
-                relationConfiguration);
-
-        final Taggable nonBoundaryRelationTags = Taggable.with("type", "restriction");
-        final Taggable boundaryRelationTags = Taggable.with("boundary", "administrative");
-
-        Assert.assertTrue(relationFilter.test(nonBoundaryRelationTags));
-        Assert.assertFalse(relationFilter.test(boundaryRelationTags));
-    }
-
-    @Test
     public void testDefaultOsmosisWayConfiguration()
     {
         final Resource wayResource = new InputStreamResource(
-                getClass().getClassLoader().getResourceAsStream(
+                () -> getClass().getClassLoader().getResourceAsStream(
                         "org/openstreetmap/atlas/geography/atlas/pbf/osm-pbf-way.json"));
         final Configuration wayConfiguration = new StandardConfiguration(wayResource);
         final ConfiguredTaggableFilter wayFilter = new ConfiguredTaggableFilter(wayConfiguration);
@@ -94,17 +74,5 @@ public class ConfiguredTaggableFilterTest
         Assert.assertTrue(wayFilter.test(railwayBoundary));
         Assert.assertTrue(wayFilter.test(waterwayBoundary));
         Assert.assertFalse(wayFilter.test(boundary));
-    }
-
-    @Test
-    public void testTagValidation()
-    {
-        final List<String> failedValidation = new ArrayList<>();
-        this.filter.getFilters().forEach(taggableFilter ->
-        {
-            failedValidation.addAll(taggableFilter.checkAllowedTags());
-        });
-        Assert.assertEquals(1, failedValidation.size());
-        Assert.assertEquals("reversed", failedValidation.get(0));
     }
 }

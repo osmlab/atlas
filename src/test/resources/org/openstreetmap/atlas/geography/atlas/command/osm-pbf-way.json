@@ -1,0 +1,6 @@
+{
+    "filters": [
+    	"boundary->!|highway->*|railway->*|waterway->*",
+    	"hires->!yes"
+    ]
+}

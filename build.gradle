@@ -1,27 +1,27 @@
-buildscript {
-    dependencies {
-        classpath 'com.diffplug.spotless:spotless-plugin-gradle:3.4.0'
-    }
-}
-
-// Used to promote a staging release build
-// https://github.com/Codearte/gradle-nexus-staging-plugin
-// gradle closeAndReleaseRepository
-plugins
-{
-    id "io.codearte.nexus-staging" version "0.8.0"
+plugins {
+	id 'java'
+	id 'groovy'
+	id 'maven'
+	id 'maven-publish'
+	id 'idea'
+	id 'signing'
+	id 'checkstyle'
+	id 'jacoco'
+	id "com.diffplug.gradle.spotless" version "3.27.0"
+	id 'org.sonarqube' version '2.8'
+	id 'com.google.protobuf' version '0.8.8'
 }
 
 apply from: 'dependencies.gradle'
-apply plugin: 'java'
-apply plugin: 'checkstyle'
-apply plugin: 'maven'
-apply plugin: 'signing'
-apply plugin: "com.diffplug.gradle.spotless"
-apply plugin: 'idea'
+apply from: 'gradle/quality.gradle'
+apply from: 'gradle/protobuf.gradle'
+apply from: 'gradle/pyatlas.gradle'
+apply from: 'gradle/deployment.gradle'
 
-sourceCompatibility=1.8
-targetCompatibility=1.8
+description = "Atlas Library"
+
+sourceCompatibility=11
+targetCompatibility=11
 
 repositories
 {
@@ -30,78 +30,22 @@ repositories
     mavenCentral()
 }
 
-idea {
-    project {
-        languageLevel = '1.8'
-    }
-}
-
-spotless {
-   java {
-      importOrder(['static java', 'static javax', 'static org', 'static com', 'static scala', 'java', 'javax', 'org', 'com', 'scala'])
-      removeUnusedImports()
-      eclipse().configFile 'config/format/code_format.xml'
-   }
-}
-
-// corresponds to POM description
-description = "Atlas Library"
-
-// This is to skip the tasks for which there is a skip<TaskName>=true environment variable
-def skippedTaskNames = System.getenv().findAll { key, value ->
-    key.startsWith("skip") && value.equalsIgnoreCase("true")
-}.keySet().collect { it.substring(4) }
-
-gradle.startParameter.excludedTaskNames += skippedTaskNames
-
-checkstyle
-{
-    toolVersion = versions.checkstyle
-}
-
-sourceSets
-{
-    integrationTest
-    {
-        java
-        {
-            compileClasspath += main.output + test.output
-            runtimeClasspath += main.output + test.output
-            srcDir file('src/integrationTest/java')
-        }
-        resources.srcDir file('src/integrationTest/resources')
-    }
-}
-
-test
-{
-    testLogging
-    {
-        events "passed", "skipped", "failed"
-    }
-}
-
 configurations
 {
     shaded
-    integrationTestCompile.extendsFrom testCompile
-    integrationTestRuntime.extendsFrom testRuntime
 }
 
 dependencies
 {
     compile packages.slf4j.api
     compile packages.junit
-    testCompile packages.slf4j.log4j12
-    testCompile packages.log4j
-    testCompile packages.junit
-    integrationTestCompile packages.junit
-
     compile packages.opencsv
     compile packages.gson
     compile packages.math
     compile packages.http
     compile packages.jts
+    compile packages.jtslab
+    compile packages.spatial4j
     compile packages.geotools
     compile packages.osmosis.core
     compile packages.osmosis.pbf
@@ -111,12 +55,25 @@ dependencies
     compile packages.commons.cli
     compile packages.commons.csv
     compile packages.commons.lang
-    compile packages.fastclasspath
+    compile packages.classgraph
     compile packages.guava
     compile packages.jsonassert
     compile packages.jackson.core
     compile packages.jackson.databind
-    
+    compile packages.jackson.dataformat
+    compile packages.protobuf_java
+    compile packages.protoc
+    compile packages.artifact
+    compile packages.groovy
+    compile packages.checkstyle
+    compile packages.diff_utils
+    compile packages.groovy_json
+
+    testCompile packages.checkstyle_tests
+
+    checkstyle packages.checkstyle
+    checkstyle packages.atlas_checkstyle
+
     shaded project.configurations.getByName('compile')
     shaded packages.slf4j.log4j12
     shaded packages.log4j
@@ -124,6 +81,7 @@ dependencies
 
 task shaded(type: Jar){
     baseName = project.name
+    classifier = 'shaded'
     from
     {
         configurations.shaded.collect
@@ -138,22 +96,6 @@ task shaded(type: Jar){
     }
     with jar
     zip64 = true
-}
-
-task integrationTest(type: Test) {
-    testClassesDir = sourceSets.integrationTest.output.classesDir
-    classpath = sourceSets.integrationTest.runtimeClasspath
-    testLogging
-    {
-        events "passed", "skipped", "failed"
-    }
-}
-
-check.dependsOn integrationTest
-integrationTest.mustRunAfter test
-
-tasks.withType(Test) {
-    reports.html.destination = file("${reporting.baseDir}/${name}")
 }
 
 /**
@@ -174,78 +116,17 @@ artifacts
     archives javadocJar, sourcesJar
 }
 
-/**
- * Deployment related items
+/*
+ * This is to skip the tasks for which there is a skip<TaskName>=true
+ * environment variable
  */
-import org.gradle.plugins.signing.Sign
+def skippedTaskNames = System.getenv().findAll { key, value ->
+    key.startsWith("skip") && value.equalsIgnoreCase("true")
+}.keySet().collect { it.substring(4) }
+gradle.startParameter.excludedTaskNames += skippedTaskNames
 
-gradle.taskGraph.whenReady { taskGraph ->
-    if (taskGraph.allTasks.any { it instanceof Sign }) {
-        allprojects { ext."signing.keyId" = System.getenv('GPG_KEY_ID') }
-        allprojects { ext."signing.secretKeyRingFile" = System.getenv('GPG_KEY_LOCATION') }
-        allprojects { ext."signing.password" = System.getenv('GPG_PASSPHRASE') }
-    }
-    // Do not sign archives by default (a local build without gpg keyring should succeed)
-    if (taskGraph.allTasks.any { it.name == 'build' || it.name == 'assemble' }) {
-        tasks.findAll { it.name == 'signArchives' || it.name == 'signDocsJar' || it.name == 'signTestJar' }.each { task ->
-            task.enabled = false
-        }
-    }
-}
-
-signing
-{
-    sign configurations.archives
-}
-build.dependsOn.remove(signArchives)
-
-uploadArchives
-{
-    repositories
-    {
-        mavenDeployer
-        {
-            beforeDeployment
-            {
-                MavenDeployment deployment -> signing.signPom(deployment)
-            }
-
-            repository(url: maven2_url) {
-                authentication(userName: System.getenv('SONATYPE_USERNAME'), password: System.getenv('SONATYPE_PASSWORD'))
-            }
-
-            snapshotRepository(url: snapshot_url) {
-                authentication(userName: System.getenv('SONATYPE_USERNAME'), password: System.getenv('SONATYPE_PASSWORD'))
-            }
-
-            pom.project
-            {
-                name project_name
-                packaging 'jar'
-                // optionally artifactId can be defined here
-                description project_description
-                url project_url
-
-                scm {
-                    connection project_scm
-                    developerConnection project_scm
-                    url project_url
-                }
-
-                licenses {
-                    license {
-                        name project_license_slug
-                        url project_license_url
-                    }
-                }
-
-                developers {
-                    developer {
-                        id project_developer
-                        name project_developer
-                    }
-                }
-            }
-        }
+idea {
+    project {
+        languageLevel = '1.8'
     }
 }

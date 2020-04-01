@@ -1,0 +1,68 @@
+{
+  "type": "Feature",
+  "bbox": [
+    -61.2794632,
+    15.5327818,
+    -61.2781381,
+    15.5336917
+  ],
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          -61.2794632,
+          15.5327818
+        ],
+        [
+          -61.2794632,
+          15.5336917
+        ],
+        [
+          -61.2781381,
+          15.5336917
+        ],
+        [
+          -61.2781381,
+          15.5327818
+        ],
+        [
+          -61.2794632,
+          15.5327818
+        ]
+      ]
+    ]
+  },
+  "properties": {
+    "featureChangeType": "ADD",
+    "meta-data": {
+      "mutator": "LegacyFixmeCorrection|9-168-233"
+    },
+    "description": {
+      "type": "UPDATE",
+      "descriptors": [
+        {
+          "name": "TAG",
+          "type": "REMOVE",
+          "key": "fixme",
+          "value": "inaccurate"
+        }
+      ]
+    },
+    "entityType": "LINE",
+    "completeEntityClass": "org.openstreetmap.atlas.geography.atlas.complete.CompleteLine",
+    "identifier": 548018879000000,
+    "tags": {
+      "last_edit_user_name": "happy-camper",
+      "last_edit_changeset": "54773103",
+      "last_edit_time": "1513723955000",
+      "last_edit_user_id": "6346054",
+      "iso_country_code": "DMA",
+      "waterway": "stream",
+      "last_edit_version": "1"
+    },
+    "relations": null,
+    "WKT": "POLYGON ((-61.2794632 15.5327818, -61.2794632 15.5336917, -61.2781381 15.5336917, -61.2781381 15.5327818, -61.2794632 15.5327818))",
+    "bboxWKT": "POLYGON ((-61.2794632 15.5327818, -61.2794632 15.5336917, -61.2781381 15.5336917, -61.2781381 15.5327818, -61.2794632 15.5327818))"
+  }
+}

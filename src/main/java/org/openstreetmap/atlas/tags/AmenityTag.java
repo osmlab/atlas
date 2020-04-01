@@ -12,6 +12,8 @@ import org.openstreetmap.atlas.tags.annotations.TagKey;
 public enum AmenityTag
 {
     PARKING,
+    PARKING_ENTRANCE,
+    MOTORCYCLE_PARKING,
     PLACE_OF_WORSHIP,
     SCHOOL,
     BENCH,
@@ -52,7 +54,12 @@ public enum AmenityTag
     BICYCLE_RENTAL,
     EMERGENCY_PHONE,
     WASTE_DISPOSAL,
-    FESTIVAL_GROUNDS;
+    FESTIVAL_GROUNDS,
+    COLLEGE,
+    COMMUNITY_CENTRE,
+    COMMUNITY_CENTER,
+    MARKETPLACE,
+    FERRY_TERMINAL;
 
     @TagKey
     public static final String KEY = "amenity";

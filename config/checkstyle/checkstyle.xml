@@ -55,7 +55,7 @@
 		<module name="UnusedImports">
 			<property name="processJavadoc" value="true" />
 		</module>
-		
+
 		<!-- Checks for metrics -->
 
 		<!-- Checks for Size Violations. -->
@@ -111,6 +111,7 @@
 		<module name="ParameterAssignment"/>
 		<module name="RequireThis">
     		<property name="checkMethods" value="false"/>
+			<property name="validateOnlyOverlapping" value="false"/>
 		</module>
 		<module name="SimplifyBooleanExpression" />
 		<module name="SimplifyBooleanReturn" />
@@ -128,7 +129,9 @@
 
 		<!-- Miscellaneous other checks. -->
 		<module name="ArrayTypeStyle" />
-		<module name="AvoidEscapedUnicodeCharacters"/>
+		<module name="AvoidEscapedUnicodeCharacters">
+			<property name="allowEscapesForControlCharacters" value="true"/>
+		</module>
 		<module name="CommentsIndentation"/>
 		<module name="FinalParameters" />
 		<!-- Skipping indentation until https://github.com/checkstyle/checkstyle/issues/3342 is resolved
@@ -137,12 +140,17 @@
 			<property name="forceStrictCondition" value="false"/>
 		</module> -->
 		<module name="OuterTypeFilename"/>
-		<module name="TrailingComment"/>
+		<module name="TrailingComment">
+			<property name="legalComment" value="NOSONAR"/>
+ 		</module>
 		<module name="TodoComment" />
 		<module name="UpperEll" />
+		<module name="org.openstreetmap.atlas.utilities.checkstyle.ArrangementCheck">
+			<property name="arrangementDefinition" value="${config_loc}/arrangement.txt" />
+		</module>
 	</module>
 
 	<module name="SuppressionFilter">
-		<property name="file" value="config/checkstyle/suppressions.xml" />
+		<property name="file" value="${config_loc}/suppressions.xml" />
 	</module>
 </module>

@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author matthieun
  * @author mgostintsev
+ * @author Yazad Khambata
  */
 public class EdgeTest
 {
@@ -18,6 +19,19 @@ public class EdgeTest
 
     @Rule
     public final EdgeTestRule rule = new EdgeTestRule();
+
+    @Test
+    public void testConnectedNodes()
+    {
+        final Atlas atlas = this.rule.getAtlas();
+        final Edge edge6 = atlas.edge(6L).directionalized();
+        Assert.assertNotNull(edge6);
+        Assert.assertNotNull(edge6.start());
+        Assert.assertNotNull(edge6.end());
+        Assert.assertNotEquals(edge6.start(), edge6.end());
+        Assert.assertEquals(edge6.start(), edge6.connectedNode(ConnectedNodeType.START));
+        Assert.assertEquals(edge6.end(), edge6.connectedNode(ConnectedNodeType.END));
+    }
 
     @Test
     public void testDirectionalizedTags()
@@ -83,6 +97,14 @@ public class EdgeTest
 
         final Edge reverseWaySectioned = atlas.edge(-293669785000001L);
         Assert.assertTrue(reverseWaySectioned.isWaySectioned());
+    }
+
+    @Test
+    public void testSize()
+    {
+        final Atlas atlas = this.rule.getAtlas();
+        final Edge edge = atlas.edge(293669785000000L);
+        Assert.assertTrue(edge.numberOfShapePoints() == 2);
     }
 
 }

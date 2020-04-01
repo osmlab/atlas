@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.items.complex.restriction;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -13,6 +14,7 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.text.TextAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.items.Route;
+import org.openstreetmap.atlas.geography.atlas.items.TurnRestriction;
 import org.openstreetmap.atlas.geography.atlas.items.TurnRestriction.TurnRestrictionType;
 import org.openstreetmap.atlas.geography.atlas.items.complex.Finder;
 import org.openstreetmap.atlas.geography.atlas.items.complex.bignode.BigNode;
@@ -20,6 +22,7 @@ import org.openstreetmap.atlas.geography.atlas.items.complex.bignode.BigNodeFind
 import org.openstreetmap.atlas.geography.atlas.items.complex.bignode.RestrictedPath;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
+import org.openstreetmap.atlas.tags.TurnRestrictionTag;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +56,16 @@ public class ComplexTurnRestrictionTest
 
         Assert.assertTrue(!bigNode.allPaths().isEmpty());
         Assert.assertTrue(bigNode.turnRestrictions().isEmpty());
+    }
+
+    @Test
+    public void testBrokenRoute()
+    {
+        final List<Integer> counter = new ArrayList<>();
+        counter.add(0);
+        new ComplexTurnRestrictionFinder(null).find(this.rule.getAtlasBrokenTurnRestrictionRoute(),
+                broken -> counter.set(0, counter.get(0) + 1)).forEach(System.out::println);
+        Assert.assertEquals(new Integer(1), counter.get(0));
     }
 
     @Test
@@ -167,6 +180,51 @@ public class ComplexTurnRestrictionTest
                 Assert.assertEquals(restrictedRoute, path3);
             }
         }
+    }
+
+    @Test
+    public void testTurnRestrictionNoUTurn()
+    {
+        // Test edge as via member
+        final Atlas testAtlas = this.rule.getAtlasNoUTurn();
+        final Optional<TurnRestriction> possibleTurnRestriction = TurnRestriction
+                .from(testAtlas.relation(1L));
+        Assert.assertTrue(possibleTurnRestriction.isPresent());
+    }
+
+    @Test
+    public void testTurnRestrictionTags()
+    {
+        final Atlas testAtlas = this.rule.getAtlasNo();
+
+        final Optional<TurnRestriction> possibleTurnRestriction = TurnRestriction
+                .from(testAtlas.relation(1L));
+
+        Assert.assertTrue(possibleTurnRestriction.isPresent());
+
+        final TurnRestriction turnRestriction = possibleTurnRestriction.get();
+
+        // Make sure both tags exist
+        Assert.assertEquals(2, turnRestriction.getTags().size());
+
+        final Optional<String> turnRestrictionTagValue = turnRestriction
+                .getTag(TurnRestrictionTag.KEY);
+        Assert.assertTrue(turnRestrictionTagValue.isPresent());
+        // The tags defined in the test atlas (and typically in osm) are lower case
+        Assert.assertEquals(TurnRestrictionTag.NO_LEFT_TURN.toString().toLowerCase(),
+                turnRestrictionTagValue.get());
+    }
+
+    @Test
+    public void testTurnRestrictionWithTwoViaNodesInRelation()
+    {
+        final Atlas testAtlas = this.rule.getRelationWithTwoViaNodes();
+        logger.trace("Atlas relation with 2 via nodes: {}", testAtlas);
+        // For more than 1 via nodes in relation for restriction, TurnRestriction will always
+        // return an empty optional
+        final Optional<TurnRestriction> possibleTurnRestriction = TurnRestriction
+                .from(testAtlas.relation(1L));
+        Assert.assertEquals(Optional.empty(), possibleTurnRestriction);
     }
 
     @Test

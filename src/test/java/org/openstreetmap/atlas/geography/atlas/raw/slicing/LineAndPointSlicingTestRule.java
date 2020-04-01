@@ -63,10 +63,23 @@ public class LineAndPointSlicingTestRule extends CoreTestRule
                     @Point(id = "4", coordinates = @Loc(value = AREA_LBR_SIDE_4)) },
 
             lines = { @Line(id = "1", coordinates = { @Loc(value = AREA_CIV_SIDE_1),
-                    @Loc(value = AREA_CIV_SIDE_2), @Loc(value = AREA_LBR_SIDE_3),
-                    @Loc(value = AREA_LBR_SIDE_4),
+                    @Loc(value = AREA_LBR_SIDE_4), @Loc(value = AREA_LBR_SIDE_3),
+                    @Loc(value = AREA_CIV_SIDE_2),
                     @Loc(value = AREA_CIV_SIDE_1) }, tags = { "building=yes" }) })
     private Atlas closedLineSpanningTwoCountries;
+
+    @TestAtlas(
+
+            points = { @Point(id = "1", coordinates = @Loc(value = AREA_CIV_SIDE_1)),
+                    @Point(id = "2", coordinates = @Loc(value = AREA_CIV_SIDE_2)),
+                    @Point(id = "3", coordinates = @Loc(value = AREA_LBR_SIDE_3)),
+                    @Point(id = "4", coordinates = @Loc(value = AREA_LBR_SIDE_4)) },
+
+            lines = { @Line(id = "1", coordinates = { @Loc(value = AREA_CIV_SIDE_1),
+                    @Loc(value = AREA_CIV_SIDE_2), @Loc(value = AREA_LBR_SIDE_3),
+                    @Loc(value = AREA_LBR_SIDE_4),
+                    @Loc(value = AREA_CIV_SIDE_1) }, tags = { "highway=primary" }) })
+    private Atlas closedEdgeSpanningTwoCountries;
 
     @TestAtlas(
 
@@ -106,7 +119,7 @@ public class LineAndPointSlicingTestRule extends CoreTestRule
             points = { @Point(id = "1", coordinates = @Loc(value = LIBERIA_END)),
                     @Point(id = "2", coordinates = @Loc(value = IVORY_COAST_END)) },
 
-            lines = { @Line(id = "1", coordinates = { @Loc(value = LIBERIA_END),
+            lines = { @Line(id = "1000", coordinates = { @Loc(value = LIBERIA_END),
                     @Loc(value = IVORY_COAST_END) }, tags = { "highway=primary" }) })
     private Atlas roadAcrossTwoCountries;
 
@@ -129,6 +142,22 @@ public class LineAndPointSlicingTestRule extends CoreTestRule
                     @Loc(value = ON_LIBERIA_AND_IVORY_COAST_BORDER),
                     @Loc(value = IVORY_COAST_END) }, tags = { "highway=primary" }) })
     private Atlas roadAcrossTwoCountriesWithPointOnBorder;
+
+    @TestAtlas(
+
+            lines = {
+
+                    @Line(id = "1", coordinates = { @Loc(LIBERIA_1), @Loc(LIBERIA_1) })
+
+            }
+
+    )
+    private Atlas singleNodeLine;
+
+    public Atlas getClosedEdgeSpanningTwoCountriesAtlas()
+    {
+        return this.closedEdgeSpanningTwoCountries;
+    }
 
     public Atlas getClosedLineFullyInOneCountryAtlas()
     {
@@ -168,5 +197,10 @@ public class LineAndPointSlicingTestRule extends CoreTestRule
     public Atlas getRoadWeavingAlongBoundaryAtlas()
     {
         return this.roadWeavingAcrossBoundary;
+    }
+
+    public Atlas getSingleNodeLine()
+    {
+        return this.singleNodeLine;
     }
 }

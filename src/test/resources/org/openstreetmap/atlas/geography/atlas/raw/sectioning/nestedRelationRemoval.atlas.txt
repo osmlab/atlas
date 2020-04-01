@@ -1,0 +1,16 @@
+# Nodes
+# Edges
+# Areas
+# Lines
+450151832000000 && -23.567877,-46.692725:-23.5677831,-46.6928133 && last_edit_changeset -> 52667882 || surface -> asphalt || iso_country_code -> BRA || maxspeed -> 50 || oneway -> yes || last_edit_user_name -> O Fim || last_edit_time -> 1507241402000 || last_edit_user_id -> 1842197 || lit -> yes || busway:right -> lane || lanes -> 4 || name -> Avenida Brigadeiro Faria Lima || highway -> trunk || last_edit_version -> 2 || foot -> yes
+183853720000000 && -23.5701751,-46.6454978:-23.5703835,-46.6452311:-23.57036,-46.6452093:-23.5701516,-46.645476:-23.5701751,-46.6454978 && last_edit_user_name -> MCPicoli || last_edit_changeset -> 13334949 || last_edit_time -> 1349184985000 || last_edit_user_id -> 713822 || iso_country_code -> BRA || public_transport -> platform || highway -> bus_stop || last_edit_version -> 1
+# Points
+1942703708000000 && -23.5701751,-46.6454978 && last_edit_user_name -> cxs || last_edit_changeset -> 18755211 || last_edit_time -> 1383774093000 || last_edit_user_id -> 251808 || iso_country_code -> BRA || last_edit_version -> 2
+1942703894000000 && -23.5703835,-46.6452311 && last_edit_user_name -> cxs || last_edit_changeset -> 18755211 || last_edit_time -> 1383774093000 || last_edit_user_id -> 251808 || iso_country_code -> BRA || last_edit_version -> 2
+1942703699000000 && -23.57036,-46.6452093 && last_edit_user_name -> cxs || last_edit_changeset -> 18755211 || last_edit_time -> 1383774093000 || last_edit_user_id -> 251808 || iso_country_code -> BRA || last_edit_version -> 2
+1942703683000000 && -23.5701516,-46.645476 && last_edit_user_name -> cxs || last_edit_changeset -> 18755211 || last_edit_time -> 1383774092000 || last_edit_user_id -> 251808 || iso_country_code -> BRA || last_edit_version -> 2
+173361748000000 && -23.5677831,-46.6928133 && last_edit_user_name -> Bonix-Mapper || last_edit_changeset -> 43434223 || last_edit_time -> 1478403510000 || last_edit_user_id -> 2030995 || iso_country_code -> BRA || highway -> traffic_signals || last_edit_version -> 19
+2448588901000000 && -23.567877,-46.692725 && last_edit_user_name -> O Fim || last_edit_changeset -> 52667882 || last_edit_time -> 1507241397000 || last_edit_user_id -> 1842197 || iso_country_code -> BRA || last_edit_version -> 3
+# Relations
+2448165000000 && 183853720000000 -> platform -> L && last_edit_user_name -> doenza || last_edit_changeset -> 13419147 || last_edit_time -> 1349730880000 || last_edit_user_id -> 615332 || iso_country_code -> BRA || public_transport -> stop_area || type -> public_transport || last_edit_version -> 2
+2446626000000 && 450151832000000 ->  -> L || 2448165000000 ->  -> R && last_edit_changeset -> 61598424 || iso_country_code -> BRA || type -> route || operator -> Via Sul || network -> SPTrans || last_edit_user_name -> carlosassuncao92 || ref -> 477A-10 || route -> bus || public_transport:version -> 2 || last_edit_time -> 1534103404000 || last_edit_user_id -> 6251065 || name -> 477A-10 Pinheiros || from -> Sacomã || to -> Pinheiros || last_edit_version -> 62

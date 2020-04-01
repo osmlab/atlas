@@ -20,7 +20,23 @@ public class LongitudeTest
         final Longitude minusOneEighty = Longitude.degrees(-180);
         Assert.assertEquals(-1_800_000_000, minusOneEighty.asDm7());
 
-        Assert.assertTrue(oneEighty.equals(minusOneEighty));
+        Assert.assertFalse(oneEighty.equals(minusOneEighty));
+    }
+
+    @Test
+    public void testAssertCompareAntiMeridian()
+    {
+        final Longitude oneEighty = Longitude.degrees(180);
+        final Longitude minusOneEighty = Longitude.degrees(-180);
+        final Longitude ninety = Longitude.degrees(90);
+
+        Assert.assertTrue(oneEighty.isGreaterThan(minusOneEighty));
+        Assert.assertTrue(minusOneEighty.isLessThan(oneEighty));
+        Assert.assertFalse(minusOneEighty.isGreaterThanOrEqualTo(oneEighty));
+        Assert.assertTrue(oneEighty.isGreaterThanOrEqualTo(oneEighty));
+        Assert.assertTrue(oneEighty.isLessThanOrEqualTo(oneEighty));
+        Assert.assertTrue(oneEighty.isGreaterThan(ninety));
+        Assert.assertTrue(ninety.isLessThanOrEqualTo(oneEighty));
     }
 
     @Test

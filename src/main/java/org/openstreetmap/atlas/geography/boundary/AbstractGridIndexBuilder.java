@@ -2,17 +2,13 @@ package org.openstreetmap.atlas.geography.boundary;
 
 import java.util.List;
 
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.LinearRing;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.geom.impl.CoordinateArraySequence;
+import org.locationtech.jts.index.strtree.STRtree;
 import org.openstreetmap.atlas.geography.converters.jts.JtsUtility;
-import org.openstreetmap.atlas.utilities.maps.MultiMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.LinearRing;
-import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
-import com.vividsolutions.jts.index.strtree.STRtree;
 
 /**
  * This builder builds a spatial index using R-tree based on JTS.
@@ -21,10 +17,6 @@ import com.vividsolutions.jts.index.strtree.STRtree;
  */
 public abstract class AbstractGridIndexBuilder
 {
-    protected static final Logger logger = LoggerFactory.getLogger(AbstractGridIndexBuilder.class);
-
-    private boolean saveGridIndexCells = false;
-
     /**
      * Constructs a JTS {@link Polygon} representation of a box given x and y coordinates.
      *
@@ -57,17 +49,4 @@ public abstract class AbstractGridIndexBuilder
     public abstract Envelope getEnvelope();
 
     public abstract STRtree getIndex();
-
-    public abstract MultiMap<String, Envelope> getSpatialIndexCells();
-
-    public void saveGridIndexCells(final boolean toSave)
-    {
-        this.saveGridIndexCells = toSave;
-    }
-
-    public boolean savingGridIndexCells()
-    {
-        return this.saveGridIndexCells;
-    }
-
 }

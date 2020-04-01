@@ -23,7 +23,7 @@ public class RunScriptTest
             @Override
             protected Optional<String> parseResult(final String line)
             {
-                if (line.startsWith("java version"))
+                if (line.contains(" version"))
                 {
                     final StringList spaceSplit = StringList.split(line, " ");
                     for (final String item : spaceSplit)
@@ -39,22 +39,11 @@ public class RunScriptTest
         };
     };
 
-    public static void main(final String[] args)
-    {
-        new RunScriptTest().loadTest();
-    }
-
-    public void loadTest()
-    {
-        final SingleLineMonitor javaVersionMonitor = JAVA_VERSION_MONITOR_CREATOR.get();
-        RunScript.run("/Users/matthieun/forLoop.sh", Iterables.toList(javaVersionMonitor));
-    }
-
     @Test
     public void testRunScript()
     {
         final SingleLineMonitor javaVersionMonitor = JAVA_VERSION_MONITOR_CREATOR.get();
-        RunScript.run("java -version", Iterables.toList(javaVersionMonitor));
+        RunScript.run(new String[] { "java", "-version" }, Iterables.toList(javaVersionMonitor));
         // RunScript.run("java -version");
         logger.info("Parsed Java Version: {}", javaVersionMonitor.getResult());
         Assert.assertTrue(javaVersionMonitor.getResult().isPresent());

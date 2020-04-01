@@ -124,7 +124,8 @@ public class AtlasPrimitiveRouteIdentifier
         Iterator<AtlasPrimitiveEdgeIdentifier> subRouteIdentifierIterator = subRouteIdentifier
                 .iterator();
         AtlasPrimitiveEdgeIdentifier subRouteEdgeIdentifier = subRouteIdentifierIterator.hasNext()
-                ? subRouteIdentifierIterator.next() : null;
+                ? subRouteIdentifierIterator.next()
+                : null;
         for (final AtlasPrimitiveEdgeIdentifier edge : this.primitiveRouteIdentifier)
         {
             if (subRouteEdgeIdentifier == null)
@@ -145,11 +146,13 @@ public class AtlasPrimitiveRouteIdentifier
                 if (edge.equals(subRouteIdentifier.start()))
                 {
                     subRouteEdgeIdentifier = subRouteIdentifierIterator.hasNext()
-                            ? subRouteIdentifierIterator.next() : null;
+                            ? subRouteIdentifierIterator.next()
+                            : null;
                 }
             }
             subRouteEdgeIdentifier = subRouteIdentifierIterator.hasNext()
-                    ? subRouteIdentifierIterator.next() : null;
+                    ? subRouteIdentifierIterator.next()
+                    : null;
         }
         return overlapCount;
     }

@@ -1,16 +1,9 @@
 package org.openstreetmap.atlas.tags.filters;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 import org.junit.Assert;
 import org.junit.Test;
-import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
-import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.tags.Taggable;
-import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.openstreetmap.atlas.utilities.testing.FreezeDryFunction;
 
 /**
  * @author matthieun
@@ -18,12 +11,76 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
 public class TaggableFilterTest
 {
     @Test
+    public void testAllValidComplex()
+    {
+        // In this case the OR(|) is ignored here.
+        final String definition = "bus->*|";
+        final TaggableFilter filter = TaggableFilter.forDefinition(definition);
+
+        Assert.assertFalse(filter.test(Taggable.with()));
+        Assert.assertFalse(filter.test(Taggable.with("highway", "primary")));
+        Assert.assertTrue(filter.test(Taggable.with("bus", "lane")));
+    }
+
+    @Test
+    public void testAllValidSimple()
+    {
+        final String definition = "";
+        final TaggableFilter filter = TaggableFilter.forDefinition(definition);
+
+        Assert.assertTrue(filter.test(Taggable.with()));
+        Assert.assertTrue(filter.test(Taggable.with("highway", "primary")));
+        Assert.assertTrue(filter.test(Taggable.with("bus", "lane")));
+    }
+
+    @Test
+    public void testBackwardsCompatibility()
+    {
+        final String definition = "bus->*|water->*&bus->*^water->!canal";
+        final TaggableFilter filter = TaggableFilter.forDefinition(definition);
+
+        Assert.assertTrue(filter.test(Taggable.with("water", "pond")));
+        Assert.assertFalse(filter.test(Taggable.with("water", "canal")));
+        Assert.assertTrue(filter.test(Taggable.with("water", "canal", "bus", "stop")));
+
+        Assert.assertEquals(definition.replace("^", "||"), filter.toString());
+    }
+
+    @Test
+    public void testDepth()
+    {
+        final String definition = "bus->*|water->*&bus->*||water->!canal&&bus->!|||water->pond,canal&&&bus->*";
+        final TaggableFilter filter = TaggableFilter.forDefinition(definition);
+
+        Assert.assertTrue(filter.test(Taggable.with("water", "pond")));
+        Assert.assertFalse(filter.test(Taggable.with("water", "canal")));
+        Assert.assertTrue(filter.test(Taggable.with("water", "canal", "bus", "stop")));
+
+        Assert.assertEquals(definition, filter.toString());
+    }
+
+    @Test
+    public void testDoubleNegative()
+    {
+        final String definition = "water->!pond,!lake";
+        final TaggableFilter filter = TaggableFilter.forDefinition(definition);
+
+        Assert.assertTrue(filter.test(Taggable.with()));
+        // Pond, but not lake -> true
+        Assert.assertTrue(filter.test(Taggable.with("water", "pond")));
+        // Lake, but not pond -> true
+        Assert.assertTrue(filter.test(Taggable.with("water", "lake")));
+        // Not ponf, not lake. -> true
+        Assert.assertTrue(filter.test(Taggable.with("water", "sea")));
+    }
+
+    @Test
     public void testParsing()
     {
         // amenity=bus_station OR highway=bus_stop OR ( (bus=* OR trolleybus=*) AND
         // public_transport=[stop_position OR platform OR station] )
-        final String definition = "amenity->bus_station|highway->BUS_STOP|bus->*^trolleybus->*&public_transport->stop_position,platform,station";
-        final TaggableFilter filter = new TaggableFilter(definition);
+        final String definition = "amenity->bus_station|highway->BUS_STOP|bus->*||trolleybus->*&public_transport->stop_position,platform,station";
+        final TaggableFilter filter = TaggableFilter.forDefinition(definition);
 
         final Taggable valid1 = Taggable.with("amenity", "bus_station");
         final Taggable valid2 = Taggable.with("highway", "bus_stop");
@@ -55,30 +112,18 @@ public class TaggableFilterTest
     }
 
     @Test
-    public void testSerialization() throws ClassNotFoundException
+    public void testSerialization()
     {
-        final String definition = "amenity->bus_station|highway->BUS_STOP|bus->*^trolleybus->*&public_transport->stop_position,platform,station";
-        final TaggableFilter filter = new TaggableFilter(definition);
+        final String definition1 = "amenity->bus_station|highway->BUS_STOP|bus->*||trolleybus->*&public_transport->stop_position,platform,station";
+        final TaggableFilter filter1 = TaggableFilter.forDefinition(definition1);
 
-        final WritableResource out = new ByteArrayResource();
-        try (ObjectOutputStream outStream = new ObjectOutputStream(out.write()))
-        {
-            outStream.writeObject(filter);
-        }
-        catch (final IOException e)
-        {
-            throw new CoreException("Unable to write to {}", out, e);
-        }
+        final String definition2 = "";
+        final TaggableFilter filter2 = TaggableFilter.forDefinition(definition2);
 
-        try (ObjectInputStream inStream = new ObjectInputStream(out.read()))
-        {
-            final TaggableFilter result = (TaggableFilter) inStream.readObject();
-            Assert.assertEquals(Iterables.asSortedSet(filter.checkAllowedTags()),
-                    Iterables.asSortedSet(result.checkAllowedTags()));
-        }
-        catch (final IOException e)
-        {
-            throw new CoreException("Unable to read from {}", out, e);
-        }
+        final TaggableFilter filter12 = (TaggableFilter) new FreezeDryFunction<>().apply(filter1);
+        Assert.assertEquals(filter1.getDefinition(), filter12.getDefinition());
+
+        final TaggableFilter filter22 = (TaggableFilter) new FreezeDryFunction<>().apply(filter2);
+        Assert.assertEquals(filter2.getDefinition(), filter22.getDefinition());
     }
 }

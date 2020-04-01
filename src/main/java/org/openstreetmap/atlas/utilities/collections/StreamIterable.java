@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.utilities.collections;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.function.Function;
@@ -15,7 +16,7 @@ import java.util.stream.StreamSupport;
  * <p>
  * <code>
  * Iterables.stream(someIterable).map(...).filter(...).collect();
- * </code>
+ * </code> Note: StreamIterable is not thread safe with parallelization usage.
  *
  * @author matthieun
  * @param <T>
@@ -24,10 +25,49 @@ import java.util.stream.StreamSupport;
 public class StreamIterable<T> implements Iterable<T>
 {
     private final Iterable<T> source;
+    private boolean parallel = false;
 
     protected StreamIterable(final Iterable<T> source)
     {
         this.source = source;
+    }
+
+    /**
+     * Construct a new StreamIterable.
+     *
+     * @param source
+     *            The source iterable to construct the StreamIterable from
+     * @param parallel
+     *            Controls whether to use parallelization or not when streaming
+     */
+    protected StreamIterable(final Iterable<T> source, final boolean parallel)
+    {
+        this.source = source;
+        this.parallel = parallel;
+    }
+
+    /**
+     * Test whether all elements from iterable match the given predicate.
+     *
+     * @param predicate
+     *            Predicate to test
+     * @return {@code true} when given predicate is true for all entities in iterable, else false
+     */
+    public boolean allMatch(final Predicate<T> predicate)
+    {
+        return StreamSupport.stream(this.source.spliterator(), this.parallel).allMatch(predicate);
+    }
+
+    /**
+     * Test whether any of the elements from iterable matches the given predicate
+     *
+     * @param predicate
+     *            Predicate to test
+     * @return {@code true} when given predicate is true for any one entity in iterable, else false
+     */
+    public boolean anyMatch(final Predicate<T> predicate)
+    {
+        return StreamSupport.stream(this.source.spliterator(), this.parallel).anyMatch(predicate);
     }
 
     /**
@@ -66,6 +106,28 @@ public class StreamIterable<T> implements Iterable<T>
     }
 
     /**
+     * Disable parallelization in streams from this StreamIterator
+     *
+     * @return The StreamIterator with parallelization disabled
+     */
+    public StreamIterable<T> disableParallelization()
+    {
+        this.parallel = false;
+        return this;
+    }
+
+    /**
+     * Enable parallelization in streams from this StreamIterator
+     *
+     * @return The StreamIterator with parallelization enabled
+     */
+    public StreamIterable<T> enableParallelization()
+    {
+        this.parallel = true;
+        return this;
+    }
+
+    /**
      * Filter an {@link Iterable}
      *
      * @param filter
@@ -74,7 +136,30 @@ public class StreamIterable<T> implements Iterable<T>
      */
     public StreamIterable<T> filter(final Predicate<T> filter)
     {
-        return new StreamIterable<>(Iterables.filter(this.source, filter));
+        return new StreamIterable<>(Iterables.filter(this.source, filter), this.parallel);
+    }
+
+    /**
+     * Filter an {@link Iterable} using a set of known elements to filter and an idenfitier function
+     *
+     * @param filterSet
+     *            The set of IdentifierTypes to filter
+     * @param identifier
+     *            The function mapping an element of type T to its identifier of type IdentifierType
+     * @param <IdentifierType>
+     *            The type for the object identifier for elements of the {@link Iterable}
+     * @return The filtered {@link Iterable} as a {@link StreamIterable}
+     */
+    public <IdentifierType> StreamIterable<T> filter(final Set<IdentifierType> filterSet,
+            final Function<T, IdentifierType> identifier)
+    {
+        return new StreamIterable<>(new FilteredIterable<>(this.source, filterSet, identifier),
+                this.parallel);
+    }
+
+    public Optional<T> firstMatching(final Predicate<T> filter)
+    {
+        return Iterables.firstMatching(this.source, filter);
     }
 
     /**
@@ -88,13 +173,18 @@ public class StreamIterable<T> implements Iterable<T>
      */
     public <V> StreamIterable<V> flatMap(final Function<T, Iterable<? extends V>> flatMap)
     {
-        return new StreamIterable<>(Iterables.translateMulti(this.source, flatMap));
+        return new StreamIterable<>(Iterables.translateMulti(this.source, flatMap), this.parallel);
     }
 
     @Override
     public Iterator<T> iterator()
     {
         return this.source.iterator();
+    }
+
+    public Optional<T> lastMatching(final Predicate<T> filter)
+    {
+        return Iterables.lastMatching(this.source, filter);
     }
 
     /**
@@ -108,7 +198,7 @@ public class StreamIterable<T> implements Iterable<T>
      */
     public <V> StreamIterable<V> map(final Function<T, V> map)
     {
-        return new StreamIterable<>(Iterables.translate(this.source, map));
+        return new StreamIterable<>(Iterables.translate(this.source, map), this.parallel);
     }
 
     /**
@@ -122,18 +212,7 @@ public class StreamIterable<T> implements Iterable<T>
      */
     public StreamIterable<T> truncate(final int startIndex, final int indexFromEnd)
     {
-        return new StreamIterable<>(Iterables.truncate(this.source, startIndex, indexFromEnd));
-    }
-
-    /**
-     * Test whether all elements from iterable matches given predicate or not
-     *
-     * @param predicate
-     *            Predicate to test
-     * @return True when given predicate is true for all entities in iterable, else false
-     */
-    public boolean allMatch(final Predicate<T> predicate)
-    {
-        return StreamSupport.stream(source.spliterator(), false).allMatch(predicate);
+        return new StreamIterable<>(Iterables.truncate(this.source, startIndex, indexFromEnd),
+                this.parallel);
     }
 }

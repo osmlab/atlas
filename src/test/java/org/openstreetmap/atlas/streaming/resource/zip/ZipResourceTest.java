@@ -1,8 +1,11 @@
 package org.openstreetmap.atlas.streaming.resource.zip;
 
+import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Iterator;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -49,12 +52,11 @@ public class ZipResourceTest
         }
     }
 
-    private static final Logger logger = LoggerFactory.getLogger(ZipResourceTest.class);
-
     public static final String NAME_1 = "entry1.txt";
     public static final String CONTENTS_1 = "I am entry 1.";
     public static final String NAME_2 = "entry2.txt";
     public static final String CONTENTS_2 = "I am entry 2.";
+    private static final Logger logger = LoggerFactory.getLogger(ZipResourceTest.class);
 
     public static void main(final String[] args)
     {
@@ -70,6 +72,63 @@ public class ZipResourceTest
         // final ZipWritableResource writable = new ZipWritableResource(new File(args[0]));
         // writable.writeAndClose(new StringResource(CONTENTS_1).withName(NAME_1),
         // new StringResource(CONTENTS_2).withName(NAME_2));
+    }
+
+    @Test
+    public void testHighCompressionLevel() throws IOException
+    {
+        final File source = File.temporary();
+        logger.info("testCompressionLevel using {}", source);
+        try
+        {
+            final ZipFileWritableResource zipFile = new ZipFileWritableResource(source);
+            zipFile.writeAndClose(
+                    new StringResource("HereIsSomeTextThatRepeatsHereIsSomeTextThatRepeats")
+                            .withName(NAME_1),
+                    new StringResource("HereIsSomeTextThatDoesn'tRepeat").withName(NAME_2));
+            final ZipFile file = new ZipFile(source.getFile());
+            final ZipEntry name1 = file.getEntry(NAME_1);
+            Assert.assertNotEquals(-1, name1.getCompressedSize());
+            Assert.assertTrue(name1.getCompressedSize() < name1.getSize());
+            final ZipEntry name2 = file.getEntry(NAME_2);
+            Assert.assertNotEquals(-1, name2.getCompressedSize());
+            Assert.assertTrue(name2.getCompressedSize() >= name2.getSize());
+            file.close();
+        }
+        finally
+        {
+            source.delete();
+            logger.info("testZipFile deleted {}", source);
+        }
+    }
+
+    @Test
+    public void testNoCompressionLevel() throws IOException
+    {
+        final File source = File.temporary();
+        logger.info("testCompressionLevel using {}", source);
+        try
+        {
+            final ZipFileWritableResource zipFile = new ZipFileWritableResource(source);
+            zipFile.setWriteCompression(false);
+            zipFile.writeAndClose(
+                    new StringResource("HereIsSomeTextThatRepeatsHereIsSomeTextThatRepeats")
+                            .withName(NAME_1),
+                    new StringResource("HereIsSomeTextThatDoesn'tRepeat").withName(NAME_2));
+            final ZipFile file = new ZipFile(source.getFile());
+            final ZipEntry name1 = file.getEntry(NAME_1);
+            Assert.assertNotEquals(-1, name1.getCompressedSize());
+            Assert.assertTrue(name1.getCompressedSize() >= name1.getSize());
+            final ZipEntry name2 = file.getEntry(NAME_2);
+            Assert.assertNotEquals(-1, name2.getCompressedSize());
+            Assert.assertTrue(name2.getCompressedSize() >= name2.getSize());
+            file.close();
+        }
+        finally
+        {
+            source.delete();
+            logger.info("testZipFile deleted {}", source);
+        }
     }
 
     public void testSizes() throws Exception
@@ -163,8 +222,8 @@ public class ZipResourceTest
     @Test
     public void testZipResource()
     {
-        final ZipResource resource = new ZipResource(
-                new InputStreamResource(ZipResourceTest.class.getResourceAsStream("test.zip")));
+        final ZipResource resource = new ZipResource(new InputStreamResource(
+                () -> ZipResourceTest.class.getResourceAsStream("test.zip")));
         int counter = 0;
         for (final Resource entry : resource.entries())
         {
@@ -188,8 +247,8 @@ public class ZipResourceTest
     @Test
     public void testZipResourceStopBefore()
     {
-        final ZipResource resource = new ZipResource(
-                new InputStreamResource(ZipResourceTest.class.getResourceAsStream("test.zip")));
+        final ZipResource resource = new ZipResource(new InputStreamResource(
+                () -> ZipResourceTest.class.getResourceAsStream("test.zip")));
         final Iterator<Resource> entryIterator = resource.entries().iterator();
         entryIterator.next();
         final String failMessage = "Should not have been able to print the contents of "

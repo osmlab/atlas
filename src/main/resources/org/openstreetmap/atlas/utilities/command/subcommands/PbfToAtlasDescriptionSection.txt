@@ -1,0 +1,5 @@
+Convert PBF file(s) into sectioned Atlas file(s). The default behavior
+will output the files to the same directory, but a custom output directory can be supplied. 
+By default, the created Atlas files will be written to the current working directory. The 
+names of the new Atlas files will prepend the country name, use the same name as the PBF file,
+and use the filetype ".atlas".

@@ -549,6 +549,12 @@ public class BigNodeFinderTestCaseRule extends CoreTestRule
     @TestAtlas(loadFromTextResource = "expand.atlas.txt.gz")
     private Atlas expandAtlas;
 
+    /*
+     * Intersections that test over merging of big nodes for residential roads
+     */
+    @TestAtlas(loadFromTextResource = "overmerge.atlas.txt.gz")
+    private Atlas overMergeAtlas;
+
     public Atlas getAtlas()
     {
         return this.atlas;
@@ -562,6 +568,11 @@ public class BigNodeFinderTestCaseRule extends CoreTestRule
     public Atlas getExpandBigNodeAtlas()
     {
         return this.expandAtlas;
+    }
+
+    public Atlas getOverMergeAtlas()
+    {
+        return this.overMergeAtlas;
     }
 
     public Atlas getOverlapAtlas()

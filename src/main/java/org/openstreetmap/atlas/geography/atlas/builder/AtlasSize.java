@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.atlas.builder;
 
 import java.io.Serializable;
 import java.util.Iterator;
+import java.util.Objects;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
@@ -12,16 +13,93 @@ import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonProperties;
+
+import com.google.gson.JsonObject;
 
 /**
  * Size estimates for an {@link AtlasBuilder}
  *
  * @author matthieun
  */
-public class AtlasSize implements Serializable
+public class AtlasSize implements Serializable, GeoJsonProperties
 {
+    /**
+     * A simple builder class for creating {@link AtlasSize} objects with custom sizes.
+     *
+     * @author lcram
+     */
+    public static class AtlasSizeBuilder
+    {
+        private long edgeEstimate;
+        private long nodeEstimate;
+        private long areaEstimate;
+        private long lineEstimate;
+        private long pointEstimate;
+        private long relationEstimate;
+
+        public AtlasSizeBuilder()
+        {
+            this.edgeEstimate = DEFAULT_ESTIMATE;
+            this.nodeEstimate = DEFAULT_ESTIMATE;
+            this.areaEstimate = DEFAULT_ESTIMATE;
+            this.lineEstimate = DEFAULT_ESTIMATE;
+            this.pointEstimate = DEFAULT_ESTIMATE;
+            this.relationEstimate = DEFAULT_ESTIMATE;
+        }
+
+        /**
+         * Builds an {@link AtlasSize}. By default it uses {@link AtlasSize#DEFAULT_ESTIMATE} for
+         * the size estimates.
+         *
+         * @return A new {@link AtlasSize}
+         */
+        public AtlasSize build()
+        {
+            return new AtlasSize(this.edgeEstimate, this.nodeEstimate, this.areaEstimate,
+                    this.lineEstimate, this.pointEstimate, this.relationEstimate);
+        }
+
+        public AtlasSizeBuilder withAreaEstimate(final long areaNumber)
+        {
+            this.areaEstimate = areaNumber;
+            return this;
+        }
+
+        public AtlasSizeBuilder withEdgeEstimate(final long edgeNumber)
+        {
+            this.edgeEstimate = edgeNumber;
+            return this;
+        }
+
+        public AtlasSizeBuilder withLineEstimate(final long lineNumber)
+        {
+            this.lineEstimate = lineNumber;
+            return this;
+        }
+
+        public AtlasSizeBuilder withNodeEstimate(final long nodeNumber)
+        {
+            this.nodeEstimate = nodeNumber;
+            return this;
+        }
+
+        public AtlasSizeBuilder withPointEstimate(final long pointNumber)
+        {
+            this.pointEstimate = pointNumber;
+            return this;
+        }
+
+        public AtlasSizeBuilder withRelationEstimate(final long relationNumber)
+        {
+            this.relationEstimate = relationNumber;
+            return this;
+        }
+    }
+
     private static final long serialVersionUID = -4365680097735345765L;
     private static final long DEFAULT_ESTIMATE = 1024L;
+
     public static final AtlasSize DEFAULT = new AtlasSize(DEFAULT_ESTIMATE, DEFAULT_ESTIMATE,
             DEFAULT_ESTIMATE, DEFAULT_ESTIMATE, DEFAULT_ESTIMATE, DEFAULT_ESTIMATE);
 
@@ -112,6 +190,45 @@ public class AtlasSize implements Serializable
         this.relationNumber = relationNumber;
     }
 
+    @Override
+    public boolean equals(final Object other)
+    {
+        if (other instanceof AtlasSize)
+        {
+            if (this == other)
+            {
+                return true;
+            }
+            final AtlasSize that = (AtlasSize) other;
+            if (this.getEdgeNumber() != that.getEdgeNumber())
+            {
+                return false;
+            }
+            if (this.getNodeNumber() != that.getNodeNumber())
+            {
+                return false;
+            }
+            if (this.getAreaNumber() != that.getAreaNumber())
+            {
+                return false;
+            }
+            if (this.getLineNumber() != that.getLineNumber())
+            {
+                return false;
+            }
+            if (this.getPointNumber() != that.getPointNumber())
+            {
+                return false;
+            }
+            if (this.getRelationNumber() != that.getRelationNumber())
+            {
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
     public long getAreaNumber()
     {
         return this.areaNumber;
@@ -120,6 +237,25 @@ public class AtlasSize implements Serializable
     public long getEdgeNumber()
     {
         return this.edgeNumber;
+    }
+
+    public long getEntityNumber()
+    {
+        return this.nodeNumber + this.edgeNumber + this.pointNumber + this.lineNumber
+                + this.areaNumber + this.relationNumber;
+    }
+
+    @Override
+    public JsonObject getGeoJsonProperties()
+    {
+        final JsonObject properties = new JsonObject();
+        properties.addProperty("Number of Edges", this.getEdgeNumber());
+        properties.addProperty("Number of Nodes", this.getNodeNumber());
+        properties.addProperty("Number of Areas", this.getAreaNumber());
+        properties.addProperty("Number of Lines", this.getLineNumber());
+        properties.addProperty("Number of Points", this.getPointNumber());
+        properties.addProperty("Number of Relations", this.getRelationNumber());
+        return properties;
     }
 
     public long getLineNumber()
@@ -132,6 +268,12 @@ public class AtlasSize implements Serializable
         return this.nodeNumber;
     }
 
+    public long getNonRelationEntityNumber()
+    {
+        return this.nodeNumber + this.edgeNumber + this.pointNumber + this.lineNumber
+                + this.areaNumber;
+    }
+
     public long getPointNumber()
     {
         return this.pointNumber;
@@ -140,6 +282,14 @@ public class AtlasSize implements Serializable
     public long getRelationNumber()
     {
         return this.relationNumber;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(Long.valueOf(this.edgeNumber), Long.valueOf(this.nodeNumber),
+                Long.valueOf(this.areaNumber), Long.valueOf(this.lineNumber),
+                Long.valueOf(this.pointNumber), Long.valueOf(this.relationNumber));
     }
 
     @Override

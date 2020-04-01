@@ -2,8 +2,8 @@ package org.openstreetmap.atlas.utilities.threads;
 
 import java.io.Closeable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Vector;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -58,7 +58,7 @@ public class Pool implements Closeable
     private final String name;
     private final int numberOfThreads;
     private final Duration endTimeout;
-    private final Vector<Throwable> errors;
+    private final List<Throwable> errors;
 
     public Pool(final int numberOfThreads, final String name)
     {
@@ -70,7 +70,7 @@ public class Pool implements Closeable
         this.numberOfThreads = numberOfThreads;
         this.name = name;
         this.endTimeout = endTimeout;
-        this.errors = new Vector<>();
+        this.errors = Collections.synchronizedList(new ArrayList<>());
         this.pool = new FixedThreadPoolExecutor();
     }
 
@@ -96,8 +96,7 @@ public class Pool implements Closeable
         }
         if (!this.errors.isEmpty())
         {
-            this.errors
-                    .forEach((error) -> logger.error("Unhandled error in {}!", this.name, error));
+            this.errors.forEach(error -> logger.error("Unhandled error in {}!", this.name, error));
             throw new CoreException("{} tasks in {} had uncaught errors!", this.errors.size(),
                     this.name);
         }
@@ -126,9 +125,43 @@ public class Pool implements Closeable
         return doWithTheOutput.apply(item);
     }
 
+    public <T> Result<T> queue(final Callable<T> task, final Ticker ticker)
+    {
+        final Callable<T> taskWrapper = () ->
+        {
+            try
+            {
+                return task.call();
+            }
+            finally
+            {
+                ticker.close();
+            }
+        };
+        this.queue(ticker);
+        return new Result<>(this.pool.submit(taskWrapper), this, ticker);
+    }
+
     public void queue(final Runnable command)
     {
         this.pool.execute(command);
+    }
+
+    public void queue(final Runnable command, final Ticker ticker)
+    {
+        final Runnable commandWrapper = () ->
+        {
+            try
+            {
+                command.run();
+            }
+            finally
+            {
+                ticker.close();
+            }
+        };
+        this.pool.execute(ticker);
+        this.pool.execute(commandWrapper);
     }
 
     public <T> List<Result<T>> queueAll(final Iterable<Callable<T>> tasks)
@@ -139,7 +172,7 @@ public class Pool implements Closeable
             return results.stream().flatMap(future -> Stream.of(new Result<>(future, this)))
                     .collect(Collectors.toList());
         }
-        catch (final InterruptedException e)
+        catch (final Exception e)
         {
             throw new CoreException("Could not submit multiple Callables to {}", e, this.name);
         }
@@ -168,7 +201,7 @@ public class Pool implements Closeable
 
     public void queueCommands(final Iterable<Runnable> commands)
     {
-        commands.forEach(command -> queue(command));
+        commands.forEach(this::queue);
     }
 
     public boolean stop(final Duration waitBeforeKill)
@@ -179,7 +212,7 @@ public class Pool implements Closeable
             return this.pool.awaitTermination(waitBeforeKill.asMilliseconds(),
                     TimeUnit.MILLISECONDS);
         }
-        catch (final InterruptedException e)
+        catch (final Exception e)
         {
             logger.warn("Was interrupted. Could not stop {} within {}.", this.name, waitBeforeKill,
                     e);

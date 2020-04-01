@@ -68,6 +68,15 @@ public class MultiPolygonCoordinateConverter implements Converter<MultiPolygon, 
                             final JsonArray points = (JsonArray) coordinate;
                             locations.add(this.coordinateConverter.revert().convert(points));
                         });
+                        if (locations.isEmpty()
+                                || !locations.get(0).equals(locations.get(locations.size() - 1)))
+                        {
+                            throw new CoreException(
+                                    "Invalidly formatted Geojson Polygon within Multipolygon");
+                        }
+                        // in valid geojson the first point is repeated at the end and does not need
+                        // to be for our polygons
+                        locations.remove(locations.size() - 1);
                         polygons.add(new Polygon(locations));
                     }
                     if (polygons.isEmpty())

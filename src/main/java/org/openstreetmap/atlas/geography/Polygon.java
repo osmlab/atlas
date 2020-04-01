@@ -4,24 +4,33 @@ import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
 
+import org.locationtech.jts.geom.GeometryCollection;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.triangulate.ConformingDelaunayTriangulationBuilder;
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.converters.WkbPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.WktPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.GeometryStreamer;
 import org.openstreetmap.atlas.geography.converters.jts.JtsLocationConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPrecisionManager;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.scalars.Angle;
 import org.openstreetmap.atlas.utilities.scalars.Surface;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
-import com.vividsolutions.jts.geom.GeometryCollection;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.triangulate.ConformingDelaunayTriangulationBuilder;
+import com.google.gson.JsonObject;
 
 /**
  * A {@link Polygon} is a {@link PolyLine} with an extra {@link Segment} between the last
@@ -29,7 +38,7 @@ import com.vividsolutions.jts.triangulate.ConformingDelaunayTriangulationBuilder
  *
  * @author matthieun
  */
-public class Polygon extends PolyLine
+public class Polygon extends PolyLine implements GeometricSurface
 {
     public static final Polygon SILICON_VALLEY = new Polygon(Location.TEST_3, Location.TEST_7,
             Location.TEST_4, Location.TEST_1, Location.TEST_5);
@@ -47,11 +56,18 @@ public class Polygon extends PolyLine
             Location.forString("37.39018121506223,-122.03110367059708"),
             Location.forString("37.39021104996917,-122.0310714840889"),
             Location.forString("37.390234491673446,-122.03111171722412"));
+    public static final Polygon CENTER = new Polygon(Location.CENTER);
 
     private static final JtsPolygonConverter JTS_POLYGON_CONVERTER = new JtsPolygonConverter();
+
+    private static final Logger logger = LoggerFactory.getLogger(Polygon.class);
     private static final long serialVersionUID = 2877026648358594354L;
-    private Area awtArea;
+
+    // Calculate sides starting from triangles
+    private static final int MINIMUM_N_FOR_SIDE_CALCULATION = 3;
+    private transient Area awtArea;
     private java.awt.Polygon awtPolygon;
+    private transient Boolean awtOverflows;
 
     /**
      * Generate a random polygon within bounds.
@@ -94,6 +110,12 @@ public class Polygon extends PolyLine
     public Polygon(final Location... points)
     {
         this(Iterables.iterable(points));
+    }
+
+    @Override
+    public JsonObject asGeoJsonGeometry()
+    {
+        return GeoJsonUtils.geometry(GeoJsonType.POLYGON, GeoJsonUtils.polygonToCoordinates(this));
     }
 
     /**
@@ -142,7 +164,11 @@ public class Polygon extends PolyLine
      */
     public Iterable<Location> closedLoop()
     {
-        return new MultiIterable<>(this, Iterables.from(this.first()));
+        if (!this.first().equals(this.last()))
+        {
+            return new MultiIterable<>(this, Iterables.from(this.first()));
+        }
+        return this;
     }
 
     /**
@@ -155,14 +181,35 @@ public class Polygon extends PolyLine
      * immediately adjacent to the point in the increasing X direction is entirely inside the
      * boundary or it lies exactly on a horizontal boundary segment and the space immediately
      * adjacent to the point in the increasing Y direction is inside the boundary.
+     * <p>
+     * In the case of a massive polygon (larger than 75% of the earth's width) the JTS definition of
+     * covers is used instead, which will return true if the location lies within the polygon or
+     * anywhere on the boundary.
+     * <p>
      *
      * @param location
      *            The {@link Location} to test
      * @return True if the {@link Polygon} contains the {@link Location}
      */
+    @Override
     public boolean fullyGeometricallyEncloses(final Location location)
     {
-        return awtPolygon().contains(location.asAwtPoint());
+        // if this value overflows, use JTS to correctly calculate covers
+        if (awtOverflows())
+        {
+            return fullyGeometricallyEnclosesJTS(location);
+        }
+        // for most cases use the faster awt covers
+        else
+        {
+            return awtPolygon().contains(location.asAwtPoint());
+        }
+    }
+
+    @Override
+    public boolean fullyGeometricallyEncloses(final MultiPolygon multiPolygon)
+    {
+        return multiPolygon.outers().stream().allMatch(this::fullyGeometricallyEncloses);
     }
 
     /**
@@ -175,6 +222,7 @@ public class Polygon extends PolyLine
      * @return True if this {@link Polygon} wraps (geometrically contains) the provided
      *         {@link PolyLine}
      */
+    @Override
     public boolean fullyGeometricallyEncloses(final PolyLine polyLine)
     {
         final List<Segment> segments = polyLine.segments();
@@ -207,7 +255,17 @@ public class Polygon extends PolyLine
             return false;
         }
         // The item is within the bounds of this Polygon
-        return awtArea().contains(rectangle.asAwtRectangle());
+        // if this value overflows, use JTS to correctly calculate covers
+        if (awtOverflows())
+        {
+            final org.locationtech.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
+            return polygon.covers(JTS_POLYGON_CONVERTER.convert(rectangle));
+        }
+        // for most cases use the faster awt covers
+        else
+        {
+            return awtArea().contains(rectangle.asAwtRectangle());
+        }
     }
 
     /**
@@ -233,12 +291,33 @@ public class Polygon extends PolyLine
     }
 
     /**
+     * Tests if this {@link Polygon} fully encloses (geometrically contains) a {@link Location}
+     * according to the JTS definition, which includes points touching all boundaries of the
+     * polygon.
+     * 
+     * @param location
+     *            The location to test
+     * @return True if the {@link Polygon} fully encloses (geometrically contains) the
+     *         {@link Location}
+     */
+    public boolean fullyGeometricallyEnclosesJTS(final Location location)
+    {
+        final org.locationtech.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
+        final Point point = new JtsPointConverter().convert(location);
+        return polygon.covers(point);
+    }
+
+    @Override
+    public GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.POLYGON;
+    }
+
+    /**
      * Returns a location that is the closest point within the polygon to the centroid. The function
      * delegates to the Geometry class which delegates to the InteriorPointPoint class. You can see
      * the javadocs in the link below. <a href=
-     * "http://www.vividsolutions.com/jts/javadoc/com/vividsolutions/jts/algorithm/InteriorPointPoint">
-     * http://www.vividsolutions.com/jts/javadoc/com/vividsolutions/jts/algorithm/InteriorPointPoint
-     * </a> .html
+     * "https://locationtech.github.io/jts/javadoc/org/locationtech/jts/algorithm/InteriorPointPoint.html"></a>
      *
      * @return location that is the closest point within the polygon to the centroid
      */
@@ -249,25 +328,121 @@ public class Polygon extends PolyLine
     }
 
     /**
+     * @param expectedNumberOfSides
+     *            Expected number of sides
+     * @param threshold
+     *            {@link Angle} threshold that decides whether a {@link Heading} difference between
+     *            segments should be counted towards heading change count or not
+     * @return true if this {@link Polygon} has approximately n sides while ignoring {@link Heading}
+     *         differences between inner segments that are below given threshold.
+     */
+    public boolean isApproximatelyNSided(final int expectedNumberOfSides, final Angle threshold)
+    {
+        // Ignore if polygon doesn't have enough inner shape points
+        if (expectedNumberOfSides < MINIMUM_N_FOR_SIDE_CALCULATION
+                || this.size() < expectedNumberOfSides)
+        {
+            return false;
+        }
+
+        // An N sided shape should have (n-1) heading changes
+        final int expectedHeadingChangeCount = expectedNumberOfSides - 1;
+
+        // Fetch segments and count them
+        final List<Segment> segments = this.segments();
+        final int segmentSize = segments.size();
+
+        // Index to keep track of segment to work on
+        int segmentIndex = 0;
+
+        // Keep track of heading changes
+        int headingChangeCount = 0;
+
+        // Find initial heading
+        Optional<Heading> previousHeading = Optional.empty();
+        while (segmentIndex < segmentSize)
+        {
+            // Make sure we start with some heading. Edges with single points do not have heading.
+            previousHeading = segments.get(segmentIndex++).heading();
+            if (previousHeading.isPresent())
+            {
+                break;
+            }
+        }
+
+        // Make sure we start with some heading
+        if (!previousHeading.isPresent())
+        {
+            logger.trace("{} doesn't have a heading to calculate number of sides.", this);
+            return false;
+        }
+
+        // Go over rest of the segments and count heading changes
+        while (segmentIndex < segmentSize && headingChangeCount <= expectedHeadingChangeCount)
+        {
+            final Optional<Heading> nextHeading = segments.get(segmentIndex++).heading();
+
+            // If heading difference is greater than threshold, then increment heading
+            // change counter and update previous heading, which is used as reference
+            if (nextHeading.isPresent()
+                    && previousHeading.get().difference(nextHeading.get()).isGreaterThan(threshold))
+            {
+                headingChangeCount++;
+                previousHeading = nextHeading;
+            }
+        }
+
+        return headingChangeCount == expectedHeadingChangeCount;
+    }
+
+    /**
      * @return True if this {@link Polygon} is arranged clockwise, false otherwise.
-     * @see <a href="http://stackoverflow.com/questions/1165647"></a>
+     * @see <a href=
+     *      "http://www.gutenberg.org/files/19770/19770-pdf.pdf?session_id=374cbf5aca81b1a742aac0879dbea5eb35f914ea"></a>
+     * @see <a href="http://mathforum.org/library/drmath/view/51879.html"></a>
+     * @see <a href="http://mathforum.org/library/drmath/view/65316.html"></a>
      */
     public boolean isClockwise()
     {
-        long sum = 0;
-        long lastLatitude = Long.MIN_VALUE;
-        long lastLongitude = Long.MIN_VALUE;
-        for (final Location point : this)
+        // Formula to calculate the area of triangle on a sphere is (A + B + C - Pi) * radius *
+        // radius.
+        // Equation (A + B + C - Pi) is called the spherical excess. We are going to divide our
+        // polygon in triangles and then calculate the signed area of each triangle. Sum of the
+        // areas of these triangles will be the area of this polygon
+        double sphericalExcess = 0;
+        Location previousLocation = null;
+
+        for (final Location point : this.closedLoop())
         {
-            if (lastLongitude != Long.MIN_VALUE)
+            final Location currentLocation = point;
+
+            if (previousLocation != null)
             {
-                sum += (point.getLongitude().asDm7() - lastLongitude)
-                        * (point.getLatitude().asDm7() + lastLatitude);
+                // for the sake of simplicity we are using two vertices from the polygon and the
+                // third vertex would be North Pole.
+                // Please refer "Spherical Trigonometry by I.Todhunter".
+                // Section starting on page 7 and 17 for triangle identities and trigonometric
+                // functions.
+                // Also look on page 71 for getting the area of triangle
+                final double latitudeOne = previousLocation.getLatitude().asRadians();
+                final double latitudeTwo = currentLocation.getLatitude().asRadians();
+                final double deltaLongitude = currentLocation.getLongitude().asRadians()
+                        - previousLocation.getLongitude().asRadians();
+
+                final double alpha = Math
+                        .sqrt((1 - Math.sin(latitudeOne)) / (1 + Math.sin(latitudeOne)))
+                        * Math.sqrt((1 - Math.sin(latitudeTwo)) / (1 + Math.sin(latitudeTwo)));
+
+                // You can derive this from the formula on Page 74, point 102 of the book
+                sphericalExcess += 2 * Math.atan2(alpha * Math.sin(deltaLongitude),
+                        1 + alpha * Math.cos(deltaLongitude));
             }
-            lastLongitude = point.getLongitude().asDm7();
-            lastLatitude = point.getLatitude().asDm7();
+            previousLocation = currentLocation;
         }
-        return sum >= 0;
+
+        // Instead of area of polygon this method returns the spherical access as multiplying with
+        // Earth (radius) ^ 2 is not going to change the sign of the area
+        return sphericalExcess <= 0;
     }
 
     public int nextSegmentIndex(final int currentVertexIndex)
@@ -289,6 +464,7 @@ public class Polygon extends PolyLine
         }
     }
 
+    @Override
     public boolean overlaps(final MultiPolygon multiPolygon)
     {
         for (final Polygon outer : multiPolygon.outers())
@@ -324,6 +500,7 @@ public class Polygon extends PolyLine
      *            The {@link PolyLine} to test
      * @return True if this {@link Polygon} intersects/overlaps the given {@link PolyLine}.
      */
+    @Override
     public boolean overlaps(final PolyLine polyline)
     {
         return overlapsInternal(polyline, true);
@@ -377,6 +554,7 @@ public class Polygon extends PolyLine
      *         overlaps itself
      * @see "http://www.mathopenref.com/coordpolygonarea2.html"
      */
+    @Override
     public Surface surface()
     {
         long dm7Squared = 0L;
@@ -403,6 +581,7 @@ public class Polygon extends PolyLine
      *         for Polygons on a Sphere" paper as reference.
      * @see "https://trs.jpl.nasa.gov/bitstream/handle/2014/41271/07-0286.pdf"
      */
+    @Override
     public Surface surfaceOnSphere()
     {
         double dm7 = 0L;
@@ -428,6 +607,15 @@ public class Polygon extends PolyLine
     }
 
     /**
+     * @return This {@link Polygon} as Well Known Binary
+     */
+    @Override
+    public byte[] toWkb()
+    {
+        return new WkbPolygonConverter().convert(this);
+    }
+
+    /**
      * @return This {@link Polygon} as Well Known Text
      */
     @Override
@@ -445,7 +633,6 @@ public class Polygon extends PolyLine
     {
         final ConformingDelaunayTriangulationBuilder trianguler = new ConformingDelaunayTriangulationBuilder();
         // Populate the delaunay triangulation builder
-        // trianguler.setSites(Iterables.asList(JTS_POLYGON_CONVERTER.convert(this).getCoordinates()));
         trianguler.setSites(JTS_POLYGON_CONVERTER.convert(this));
         final GeometryCollection triangleCollection = (GeometryCollection) trianguler
                 .getTriangles(JtsPrecisionManager.getGeometryFactory());
@@ -504,6 +691,16 @@ public class Polygon extends PolyLine
         return this.awtArea;
     }
 
+    private boolean awtOverflows()
+    {
+        if (this.awtOverflows == null)
+        {
+            final Rectangle bounds = bounds();
+            this.awtOverflows = bounds.width().asDm7() <= 0 || bounds.height().asDm7() <= 0;
+        }
+        return this.awtOverflows;
+    }
+
     private java.awt.Polygon awtPolygon()
     {
         if (this.awtPolygon == null)
@@ -538,12 +735,15 @@ public class Polygon extends PolyLine
             @Override
             public Location next()
             {
-                if (!this.read)
+                if (hasNext())
                 {
                     this.read = true;
                     return first();
                 }
-                return null;
+                else
+                {
+                    throw new NoSuchElementException();
+                }
             }
         });
     }
@@ -557,12 +757,10 @@ public class Polygon extends PolyLine
                 return true;
             }
         }
-        if (runReverseCheck && polyline instanceof Polygon)
+        if (runReverseCheck && polyline instanceof Polygon
+                && ((Polygon) polyline).overlapsInternal(this, false))
         {
-            if (((Polygon) polyline).overlapsInternal(this, false))
-            {
-                return true;
-            }
+            return true;
         }
         return this.intersects(polyline);
     }

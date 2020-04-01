@@ -1,0 +1,38 @@
+{
+  "name": "outer",
+  "beanA": {
+    "id": 10,
+    "name": "Hello",
+    "score": 10.5,
+    "ids": [1,2,3],
+    "names": ["hello", "hola", "bonjour"],
+    "scores": [1.414, 3.14159, 2.718],
+    "result": true,
+    "results": [true, false, true],
+    "tags": {"access": "private", "foot": "no"}
+  },
+  "beanAs": [
+    {
+      "id": 11,
+      "name": "Hello1",
+      "score": 10.51,
+      "ids": [11,21,31],
+      "names": ["hello1", "hola1", "bonjour1"],
+      "scores": [1.414, 3.14159, 2.718],
+      "result": true,
+      "results": [true, false, true],
+      "tags": {"access1": "private", "foot1": "no"}
+    },
+    {
+      "id": 12,
+      "name": "Hello2",
+      "score": 10.52,
+      "ids": [12,22,32],
+      "names": ["hello", "hola", "bonjour"],
+      "scores": [1.414, 3.14159, 2.718],
+      "result": true,
+      "results": [true, false, true],
+      "tags": {"access2": "private", "foot2": "no"}
+    }
+  ]
+}

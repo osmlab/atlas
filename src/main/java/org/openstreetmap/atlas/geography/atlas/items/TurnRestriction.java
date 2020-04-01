@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.atlas.items;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,8 @@ import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
+import org.openstreetmap.atlas.tags.RelationTypeTag;
+import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.tags.TurnRestrictionTag;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.StringList;
@@ -25,8 +28,9 @@ import org.slf4j.LoggerFactory;
  * OSM Turn restriction, modeled from an {@link Atlas}.
  *
  * @author matthieun
+ * @author sbhalekar
  */
-public final class TurnRestriction implements Located, Serializable
+public final class TurnRestriction implements Located, Serializable, Taggable
 {
     /**
      * The type of a {@link TurnRestriction}
@@ -37,19 +41,19 @@ public final class TurnRestriction implements Located, Serializable
     {
         NO,
         ONLY,
-        OTHER;
+        OTHER
     }
-
-    private static final long serialVersionUID = 7043701090121113526L;
 
     private static final Logger logger = LoggerFactory.getLogger(TurnRestriction.class);
 
-    private final Route from;
-    private final Route via;
-    private final Route too;
-    private final TurnRestrictionType type;
-    private Route route;
+    private static final long serialVersionUID = 7043701090121113526L;
+
+    private Route from;
     private final Relation relation;
+    private Route route;
+    private Route too;
+    private final TurnRestrictionType type;
+    private Route via;
 
     /**
      * Create a {@link TurnRestriction} from a {@link Relation}
@@ -69,6 +73,22 @@ public final class TurnRestriction implements Located, Serializable
         else
         {
             return Optional.empty();
+        }
+    }
+
+    public static TurnRestrictionType getTurnRestrictionType(final Relation relation)
+    {
+        if (TurnRestrictionTag.isNoPathRestriction(relation))
+        {
+            return TurnRestrictionType.NO;
+        }
+        else if (TurnRestrictionTag.isOnlyPathRestriction(relation))
+        {
+            return TurnRestrictionType.ONLY;
+        }
+        else
+        {
+            return TurnRestrictionType.OTHER;
         }
     }
 
@@ -199,7 +219,7 @@ public final class TurnRestriction implements Located, Serializable
     /**
      * @param turnRestriction
      *            The {@link TurnRestriction} to use for comparison
-     * @param path
+     * @param route
      *            The target {@link Route} to examine
      * @return {@code true} if the given {@link Route} contains all parts - via/from/to edges
      */
@@ -207,22 +227,22 @@ public final class TurnRestriction implements Located, Serializable
             final TurnRestriction turnRestriction, final Route route)
     {
         final Optional<Route> possibleVia = turnRestriction.getVia();
-        final boolean viaMatches = possibleVia.isPresent() ? route.isSubRoute(possibleVia.get())
-                : true;
+        boolean viaMatches = true;
+        if (possibleVia.isPresent())
+        {
+            viaMatches = route.isSubRoute(possibleVia.get());
+        }
         return viaMatches && route.isSubRoute(turnRestriction.getTo())
                 && route.isSubRoute(turnRestriction.getFrom());
     }
 
     private TurnRestriction(final Relation relation)
     {
-        // to -> too for checkstyle.
-        Route from = null;
-        Route via = null;
-        Route too = null;
+        Route fromMember = null;
+        Route viaMember = null;
+        Route toMember = null;
         this.relation = relation;
-        this.type = TurnRestrictionTag.isNoPathRestriction(relation) ? TurnRestrictionType.NO
-                : TurnRestrictionTag.isOnlyPathRestriction(relation) ? TurnRestrictionType.ONLY
-                        : TurnRestrictionType.OTHER;
+        this.type = getTurnRestrictionType(relation);
         if (this.type == TurnRestrictionType.OTHER)
         {
             this.from = null;
@@ -236,17 +256,29 @@ public final class TurnRestriction implements Located, Serializable
             {
                 throw new CoreException("Relation {} is not a restriction.", relation);
             }
-            // Try to re-build the route, based on the "from", "via" and "to" members of the
-            // relation
+            // Try to re-build the route, based on the "from", "via" and "to" members
 
             // Build the via members
-            final Set<AtlasItem> viaMembers = new HashSet<>();
-            relation.members().stream().filter(member -> "via".equals(member.getRole())
-                    && (member.getEntity() instanceof Node || member.getEntity() instanceof Edge))
-                    .forEach(member ->
-                    {
-                        viaMembers.add((AtlasItem) member.getEntity());
-                    });
+            final Set<AtlasItem> viaMembers = relation.members().stream()
+                    .filter(member -> member.getRole().equals(RelationTypeTag.RESTRICTION_ROLE_VIA))
+                    .filter(member -> member.getEntity() instanceof Node
+                            || member.getEntity() instanceof Edge)
+                    .map(RelationMember::getEntity).map(entity -> (AtlasItem) entity)
+                    .collect(Collectors.toSet());
+
+            // According to OSM Wiki a restriction relation member can not have more than 1 via node
+            // https://wiki.openstreetmap.org/wiki/Relation:restriction#Members
+            // If the relation has more than 1 via node then discard the restriction as it is
+            // incorrectly modeled.
+            // To bring back the turn restriction OSM data needs to be modeled correctly
+            final long viaNodeCount = viaMembers.stream()
+                    .filter(atlasItem -> atlasItem instanceof Node).count();
+            if (viaNodeCount > 1)
+            {
+                throw new CoreException(
+                        "Restriction relation should not have more than 1 via node. But, {} has {} via nodes",
+                        relation.getOsmIdentifier(), viaNodeCount);
+            }
 
             // If there are no via members, create a temporary unfiltered set of "to" items, to help
             // with future filtering of "from" items by connectivity.
@@ -256,36 +288,37 @@ public final class TurnRestriction implements Located, Serializable
                 if (isSameRoadViaAndTo(relation))
                 {
                     throw new CoreException(
-                            "This relation has same members in from and to, but has no via members to disambiguate.");
+                            "Relation {} has same members in from and to, but has no via members to disambiguate.",
+                            relation.getIdentifier());
                 }
-                relation.members().stream().filter(member -> "to".equals(member.getRole()))
+                relation.members().stream().filter(
+                        member -> member.getRole().equals(RelationTypeTag.RESTRICTION_ROLE_TO))
                         .forEach(member -> temporaryToMembers.add((AtlasItem) member.getEntity()));
             }
 
             // Filter the members to extract only the "from" members that are connected at the end
             // to via members if any, or to the start of "to" members.
             final Set<Edge> fromMembers = new TreeSet<>();
-            relation.members().stream().filter(member ->
-            {
-                return "from".equals(member.getRole()) && member.getEntity() instanceof Edge
-                        && (!viaMembers.isEmpty()
-                                && ((Edge) member.getEntity()).isConnectedAtEndTo(viaMembers)
-                                || ((Edge) member.getEntity())
-                                        .isConnectedAtEndTo(temporaryToMembers));
-            }).forEach(member -> fromMembers.add((Edge) member.getEntity()));
-            from = Route.fromNonArrangedEdgeSet(fromMembers, false);
+            relation.members().stream().filter(member -> member.getRole()
+                    .equals(RelationTypeTag.RESTRICTION_ROLE_FROM)
+                    && member.getEntity() instanceof Edge
+                    && (!viaMembers.isEmpty()
+                            && ((Edge) member.getEntity()).isConnectedAtEndTo(viaMembers)
+                            || ((Edge) member.getEntity()).isConnectedAtEndTo(temporaryToMembers)))
+                    .forEach(member -> fromMembers.add((Edge) member.getEntity()));
+            fromMember = Route.fromNonArrangedEdgeSet(fromMembers, false);
 
             // Filter the members to extract only the "to" members that are connected at the
             // beginning to via members if any, or to the end of "from" members.
             final Set<Edge> toMembers = new TreeSet<>();
-            relation.members().stream().filter(member ->
-            {
-                return "to".equals(member.getRole()) && member.getEntity() instanceof Edge
-                        && (!viaMembers.isEmpty()
-                                && ((Edge) member.getEntity()).isConnectedAtStartTo(viaMembers)
-                                || ((Edge) member.getEntity()).isConnectedAtStartTo(fromMembers));
-            }).forEach(member -> toMembers.add((Edge) member.getEntity()));
-            too = Route.fromNonArrangedEdgeSet(toMembers, false);
+            relation.members().stream().filter(member -> member.getRole()
+                    .equals(RelationTypeTag.RESTRICTION_ROLE_TO)
+                    && member.getEntity() instanceof Edge
+                    && (!viaMembers.isEmpty()
+                            && ((Edge) member.getEntity()).isConnectedAtStartTo(viaMembers)
+                            || ((Edge) member.getEntity()).isConnectedAtStartTo(fromMembers)))
+                    .forEach(member -> toMembers.add((Edge) member.getEntity()));
+            toMember = Route.fromNonArrangedEdgeSet(toMembers, false);
 
             // Take only the via members that are edges. Build this last to guarantee a route from
             // from to too.
@@ -297,22 +330,25 @@ public final class TurnRestriction implements Located, Serializable
                 // It's possible that the via edge is bi-directional. To prevent both edges from
                 // being put into the route, build a route using all unique edges once. This method
                 // attempts to build a route from from the end of from to start of too.
-                via = Route.buildFullRouteIgnoringReverseEdges(viaEdges, from.end().end(),
-                        too.start().start());
+                viaMember = Route.buildFullRouteIgnoringReverseEdges(viaEdges,
+                        fromMember.end().end(), toMember.start().start());
             }
+            this.from = fromMember;
+            this.via = viaMember;
+            this.too = toMember;
+            // Make sure that the route can be built
+            route();
         }
         catch (final CoreException e)
         {
             logger.trace("Could not build TurnRestriction from relation {}", relation, e);
-            from = null;
-            via = null;
-            too = null;
+            this.from = null;
+            this.via = null;
+            this.too = null;
         }
-        this.from = from;
-        this.via = via;
-        this.too = too;
     }
 
+    @SuppressWarnings("deprecation")
     public LocationIterableProperties asGeoJson()
     {
         final Map<String, String> tagsNo = Maps.hashMap("highway", "primary", "oneway", "yes",
@@ -339,6 +375,18 @@ public final class TurnRestriction implements Located, Serializable
     public Route getFrom()
     {
         return this.from;
+    }
+
+    @Override
+    public Optional<String> getTag(final String key)
+    {
+        return this.relation.getTag(key);
+    }
+
+    @Override
+    public Map<String, String> getTags()
+    {
+        return new HashMap<>(this.relation.getTags());
     }
 
     /**
@@ -385,7 +433,7 @@ public final class TurnRestriction implements Located, Serializable
             }
             catch (final Exception e)
             {
-                logger.trace("Can't build route from {}", this.relation, e);
+                throw new CoreException("Can't build route from {}", this.relation, e);
             }
         }
         return this.route;
@@ -453,7 +501,6 @@ public final class TurnRestriction implements Located, Serializable
 
     private boolean isValid()
     {
-        final boolean valid = this.from != null && this.too != null && route() != null;
-        return valid;
+        return this.from != null && this.too != null && route() != null;
     }
 }

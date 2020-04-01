@@ -103,7 +103,19 @@ public class RoutingTestRule extends CoreTestRule
                     @Node(id = "5", coordinates = @Loc(value = FIVE)),
                     @Node(id = "6", coordinates = @Loc(value = SIX))
 
-            }, edges = { @Edge(id = "314932590", coordinates = { @Loc(value = SIX), @Loc(value = ONE), }, tags = { "highway=primary" }), @Edge(id = "315932590", coordinates = { @Loc(value = ONE), @Loc(value = TWO) }, tags = { "highway=primary" }), @Edge(id = "316932590", coordinates = { @Loc(value = TWO), @Loc(value = THREE), }, tags = { "highway=primary" }), @Edge(id = "317932590", coordinates = { @Loc(value = ONE), @Loc(value = FOUR), }, tags = { "highway=primary" }), @Edge(id = "318932590", coordinates = { @Loc(value = FOUR), @Loc(value = THREE), }, tags = { "highway=primary" }), @Edge(id = "319932590", coordinates = { @Loc(value = THREE), @Loc(value = FIVE), }, tags = { "highway=primary" }) })
+            }, edges = {
+                    @Edge(id = "314932590", coordinates = { @Loc(value = SIX),
+                            @Loc(value = ONE), }, tags = { "highway=primary" }),
+                    @Edge(id = "315932590", coordinates = { @Loc(value = ONE),
+                            @Loc(value = TWO) }, tags = { "highway=primary" }),
+                    @Edge(id = "316932590", coordinates = { @Loc(value = TWO),
+                            @Loc(value = THREE), }, tags = { "highway=primary" }),
+                    @Edge(id = "317932590", coordinates = { @Loc(value = ONE),
+                            @Loc(value = FOUR), }, tags = { "highway=primary" }),
+                    @Edge(id = "318932590", coordinates = { @Loc(value = FOUR),
+                            @Loc(value = THREE), }, tags = { "highway=primary" }),
+                    @Edge(id = "319932590", coordinates = { @Loc(value = THREE),
+                            @Loc(value = FIVE), }, tags = { "highway=primary" }) })
     private Atlas multipleRoutesAtlas;
 
     @TestAtlas(

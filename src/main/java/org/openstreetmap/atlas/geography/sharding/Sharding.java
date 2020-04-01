@@ -1,26 +1,26 @@
 package org.openstreetmap.atlas.geography.sharding;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
-import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.PolyLine;
-import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.geojson.GeoJson;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
 import org.openstreetmap.atlas.streaming.resource.File;
-import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.StringList;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 /**
  * Sharding strategy
  *
  * @author matthieun
  */
-public interface Sharding extends Serializable
+public interface Sharding extends Serializable, GeoJson
 {
     int SHARDING_STRING_SPLIT = 2;
     int SLIPPY_ZOOM_MAXIMUM = 18;
@@ -38,7 +38,9 @@ public interface Sharding extends Serializable
         split = StringList.split(sharding, "@");
         if (split.size() != SHARDING_STRING_SPLIT)
         {
-            throw new CoreException("Invalid sharding string: {}", sharding);
+            throw new CoreException(
+                    "Invalid sharding string: {} (correct e.g. dynamic@/path/to/tree, slippy@9, etc.)",
+                    sharding);
         }
         if ("slippy".equals(split.get(0)))
         {
@@ -51,12 +53,45 @@ public interface Sharding extends Serializable
             }
             return new SlippyTileSharding(zoom);
         }
+        if ("geohash".equals(split.get(0)))
+        {
+            final int precision;
+            precision = Integer.valueOf(split.get(1));
+            return new GeoHashSharding(precision);
+        }
         if ("dynamic".equals(split.get(0)))
         {
             final String definition = split.get(1);
             return new DynamicTileSharding(new File(definition));
         }
         throw new CoreException("Sharding type {} is not recognized.", split.get(0));
+    }
+
+    @Override
+    default JsonObject asGeoJson()
+    {
+        final JsonObject featureCollectionObject = new JsonObject();
+        featureCollectionObject.addProperty("type", "FeatureCollection");
+        final JsonArray features = new JsonArray();
+        for (final Shard shard : this.shards(Rectangle.MAXIMUM))
+        {
+            final JsonObject featureObject = new JsonObject();
+            featureObject.addProperty("type", "Feature");
+            featureObject.add("geometry",
+                    new PolyLine(shard.bounds().closedLoop()).asGeoJsonGeometry());
+            final JsonObject propertiesObject = new JsonObject();
+            propertiesObject.addProperty("shard", shard.getName());
+            featureObject.add("properties", propertiesObject);
+            features.add(featureObject);
+        }
+        featureCollectionObject.add("features", features);
+        return featureCollectionObject;
+    }
+
+    @Override
+    default GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.FEATURE_COLLECTION;
     }
 
     /**
@@ -66,14 +101,23 @@ public interface Sharding extends Serializable
      *            The shard for which to get neighbors
      * @return The shards {@link Iterable}, neighboring the supplied shard
      */
-    Iterable<? extends Shard> neighbors(Shard shard);
+    Iterable<Shard> neighbors(Shard shard);
+
+    /**
+     * Get a shard given its name
+     * 
+     * @param name
+     *            The name of the shard
+     * @return The corresponding shard
+     */
+    Shard shardForName(String name);
 
     /**
      * Generate shards for the whole planet. This needs to be deterministic!
      *
      * @return The shards {@link Iterable}, covering the whole planet.
      */
-    default Iterable<? extends Shard> shards()
+    default Iterable<Shard> shards()
     {
         return shards(Rectangle.MAXIMUM);
     }
@@ -81,39 +125,11 @@ public interface Sharding extends Serializable
     /**
      * Generate shards. This needs to be deterministic!
      *
-     * @param multiPolygon
+     * @param surface
      *            The bounds to limit the shards.
      * @return The shards {@link Iterable}.
      */
-    default Iterable<? extends Shard> shards(final MultiPolygon multiPolygon)
-    {
-        final Set<Shard> result = new HashSet<>();
-        for (final Polygon polygon : multiPolygon.outers())
-        {
-            final List<Polygon> inners = multiPolygon.innersOf(polygon);
-            Iterables.stream(this.shards(polygon)).filter(shard ->
-            {
-                for (final Polygon inner : inners)
-                {
-                    if (inner.fullyGeometricallyEncloses(shard.bounds()))
-                    {
-                        return false;
-                    }
-                }
-                return true;
-            }).forEach(result::add);
-        }
-        return result;
-    }
-
-    /**
-     * Generate shards. This needs to be deterministic!
-     *
-     * @param polygon
-     *            The bounds to limit the shards.
-     * @return The shards {@link Iterable}.
-     */
-    Iterable<? extends Shard> shards(Polygon polygon);
+    Iterable<Shard> shards(GeometricSurface surface);
 
     /**
      * Generate shards. This needs to be deterministic!
@@ -123,7 +139,7 @@ public interface Sharding extends Serializable
      * @return The shards {@link Iterable} (In case the location falls right at the boundary between
      *         shards)
      */
-    Iterable<? extends Shard> shardsCovering(Location location);
+    Iterable<Shard> shardsCovering(Location location);
 
     /**
      * Generate shards. This needs to be deterministic!
@@ -132,5 +148,5 @@ public interface Sharding extends Serializable
      *            The line intersecting the shards
      * @return The shards {@link Iterable}.
      */
-    Iterable<? extends Shard> shardsIntersecting(PolyLine polyLine);
+    Iterable<Shard> shardsIntersecting(PolyLine polyLine);
 }

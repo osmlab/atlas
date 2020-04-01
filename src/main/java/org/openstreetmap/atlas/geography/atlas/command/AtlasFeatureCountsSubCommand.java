@@ -11,7 +11,7 @@ import org.openstreetmap.atlas.geography.atlas.items.complex.bignode.BigNodeFind
 import org.openstreetmap.atlas.geography.atlas.items.complex.buildings.ComplexBuildingFinder;
 import org.openstreetmap.atlas.geography.atlas.items.complex.islands.ComplexIslandFinder;
 import org.openstreetmap.atlas.geography.atlas.items.complex.restriction.ComplexTurnRestrictionFinder;
-import org.openstreetmap.atlas.geography.atlas.items.complex.waters.ComplexWaterEntityFinder;
+import org.openstreetmap.atlas.geography.atlas.items.complex.water.finder.ComplexWaterEntityFinder;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.runtime.Command.Optionality;
@@ -85,7 +85,8 @@ public class AtlasFeatureCountsSubCommand extends AbstractAtlasSubCommand
                 {
                     out.println(String.format("%s-%s: %d", country, type,
                             this.featureCounts.contains(country, type)
-                                    ? this.featureCounts.get(country, type) : 0));
+                                    ? this.featureCounts.get(country, type)
+                                    : 0));
                 }
 
                 out.println();

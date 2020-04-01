@@ -1,18 +1,27 @@
 package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.geom.PrecisionModel;
+import org.locationtech.jts.precision.PrecisionReducerCoordinateOperation;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
+import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
-import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.AbstractIdentifierFactory;
-import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.CountrySlicingIdentifierFactory;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.temporary.TemporaryPoint;
+import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
+import org.openstreetmap.atlas.geography.atlas.raw.temporary.TemporaryPoint;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.converters.MultiplePolyLineToPolygonsConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsLinearRingConverter;
@@ -23,11 +32,13 @@ import org.openstreetmap.atlas.locale.IsoCountry;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
+import org.openstreetmap.atlas.tags.Taggable;
+import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Sets;
 
 /**
  * The abstract class that contains all common raw Atlas slicing functionality.
@@ -36,23 +47,25 @@ import com.vividsolutions.jts.geom.Geometry;
  */
 public abstract class RawAtlasSlicer
 {
-    private static final Logger logger = LoggerFactory.getLogger(RawAtlasSlicer.class);
-
-    // Constants
-    private static final double SEVEN_DIGIT_PRECISION_SCALE = 10_000_000;
-
     // JTS converters
     protected static final JtsPolygonConverter JTS_POLYGON_CONVERTER = new JtsPolygonConverter();
     protected static final JtsPolyLineConverter JTS_POLYLINE_CONVERTER = new JtsPolyLineConverter();
     protected static final JtsLocationConverter JTS_LOCATION_CONVERTER = new JtsLocationConverter();
     protected static final JtsLinearRingConverter JTS_LINEAR_RING_CONVERTER = new JtsLinearRingConverter();
     protected static final MultiplePolyLineToPolygonsConverter MULTIPLE_POLY_LINE_TO_POLYGON_CONVERTER = new MultiplePolyLineToPolygonsConverter();
+    private static final Logger logger = LoggerFactory.getLogger(RawAtlasSlicer.class);
+    // JTS precision handling
+    private static final Integer SEVEN_DIGIT_PRECISION_SCALE = 10_000_000;
+    private static final PrecisionModel PRECISION_MODEL = new PrecisionModel(
+            SEVEN_DIGIT_PRECISION_SCALE);
+    protected static final PrecisionReducerCoordinateOperation PRECISION_REDUCER = new PrecisionReducerCoordinateOperation(
+            PRECISION_MODEL, true);
 
-    // The countries we're interested in slicing against
-    private final Set<IsoCountry> countries;
+    // The snap distance here is set to 2 feet as that seems to cover most cases without
+    // allowing for distances that are overly concerning
+    protected static final Distance SNAP_DISTANCE = Distance.inches(24);
 
-    // Contains boundary MultiPolygons
-    private final CountryBoundaryMap countryBoundaryMap;
+    private final AtlasLoadingOption loadingOption;
 
     // Tracks all changes during the slicing process
     private final RawAtlasSlicingStatistic statistics = new RawAtlasSlicingStatistic(logger);
@@ -61,6 +74,10 @@ public abstract class RawAtlasSlicer
     // duplicate points at the same locations and to allow fast lookup to construct new lines
     // requiring the temporary point as a Line shape point
     private final CoordinateToNewPointMapping newPointCoordinates;
+
+    private final String shardOrAtlasName;
+
+    private final Atlas startingAtlas;
 
     /**
      * Assigns {@link ISOCountryTag} and {@link SyntheticNearestNeighborCountryCodeTag} values for a
@@ -95,30 +112,20 @@ public abstract class RawAtlasSlicer
      *
      * @param coordinate
      *            The {@link Coordinate} of the new point
-     * @param pointIdentifierFactory
-     *            The {@link CountrySlicingIdentifierFactory} to calculate new point identifier
+     * @param pointIdentifier
+     *            The identifier to give the new point
      * @param pointTags
      *            The tags for this new point
      * @return the {@link TemporaryPoint}
      */
     protected static TemporaryPoint createNewPoint(final Coordinate coordinate,
-            final CountrySlicingIdentifierFactory pointIdentifierFactory,
-            final Map<String, String> pointTags)
+            final long pointIdentifier, final Map<String, String> pointTags)
     {
-        if (!pointIdentifierFactory.hasMore())
-        {
-            throw new CoreException(
-                    "Country Slicing exceeded maximum number {} of supported new points at Coordinate {}",
-                    AbstractIdentifierFactory.IDENTIFIER_SCALE, coordinate);
-        }
-        else
-        {
-            // Add the synthetic boundary node tags
-            pointTags.put(SyntheticBoundaryNodeTag.KEY, SyntheticBoundaryNodeTag.YES.toString());
+        // Add the synthetic boundary node tags
+        pointTags.put(SyntheticBoundaryNodeTag.KEY, SyntheticBoundaryNodeTag.YES.toString());
 
-            return new TemporaryPoint(pointIdentifierFactory.nextIdentifier(),
-                    JTS_LOCATION_CONVERTER.backwardConvert(coordinate), pointTags);
-        }
+        return new TemporaryPoint(pointIdentifier,
+                JTS_LOCATION_CONVERTER.backwardConvert(coordinate), pointTags);
     }
 
     /**
@@ -132,41 +139,43 @@ public abstract class RawAtlasSlicer
      */
     protected static boolean fromSameCountry(final Line one, final Line two)
     {
-        final Optional<IsoCountry> countryOne = ISOCountryTag.first(one);
-        final Optional<IsoCountry> countryTwo = ISOCountryTag.first(two);
-        if (countryOne.isPresent() && countryTwo.isPresent())
+        final Optional<String> firstTagValue = one.getTag(ISOCountryTag.KEY);
+        final Optional<String> secondTagValue = two.getTag(ISOCountryTag.KEY);
+        if (firstTagValue.isPresent() && secondTagValue.isPresent())
         {
-            return countryOne.get().equals(countryTwo.get());
-        }
+            final Set<String> firstCountries = new HashSet<>(
+                    Arrays.asList(firstTagValue.get().split(ISOCountryTag.COUNTRY_DELIMITER)));
+            final Set<String> secondCountries = new HashSet<>(
+                    Arrays.asList(secondTagValue.get().split(ISOCountryTag.COUNTRY_DELIMITER)));
 
+            firstCountries.retainAll(new HashSet<>(secondCountries));
+            return !firstCountries.isEmpty();
+        }
         throw new CoreException(
                 "All raw Atlas lines must have a country code by the time Relation slicing is done. One of the two Lines {} or {} does not!",
                 one.getIdentifier(), two.getIdentifier());
     }
 
-    /**
-     * JTS has trouble dealing with high-precision double values. For this reason, we round all
-     * coordinates to 7 degrees of precision. See {@link Coordinate} java doc for more detailed
-     * explanation of scaling.
-     *
-     * @param coordinate
-     *            The {@link Coordinate} to round
-     */
-    protected static void roundCoordinate(final Coordinate coordinate)
+    public RawAtlasSlicer(final AtlasLoadingOption loadingOption,
+            final CoordinateToNewPointMapping newPointCoordinates, final Atlas startingAtlas)
     {
-        coordinate.x = Math.round(coordinate.x * SEVEN_DIGIT_PRECISION_SCALE)
-                / SEVEN_DIGIT_PRECISION_SCALE;
-        coordinate.y = Math.round(coordinate.y * SEVEN_DIGIT_PRECISION_SCALE)
-                / SEVEN_DIGIT_PRECISION_SCALE;
+        this.loadingOption = loadingOption;
+        this.newPointCoordinates = newPointCoordinates;
+        this.startingAtlas = startingAtlas;
+        this.shardOrAtlasName = getShardOrAtlasName(startingAtlas);
     }
 
-    public RawAtlasSlicer(final Set<IsoCountry> countries,
-            final CountryBoundaryMap countryBoundaryMap,
-            final CoordinateToNewPointMapping newPointCoordinates)
+    public String getShardOrAtlasName()
     {
-        this.countries = countries;
-        this.countryBoundaryMap = countryBoundaryMap;
-        this.newPointCoordinates = newPointCoordinates;
+        return this.shardOrAtlasName;
+    }
+
+    /**
+     * @return the {@link Atlas} to be sliced
+     */
+    public Atlas getStartingAtlas()
+    {
+        return this.startingAtlas;
     }
 
     /**
@@ -204,8 +213,16 @@ public abstract class RawAtlasSlicer
         final CountryCodeProperties countryDetails = getCountryBoundaryMap()
                 .getCountryCodeISO3(location);
 
-        // Store the country code
-        tags.put(ISOCountryTag.KEY, countryDetails.getIso3CountryCode());
+        // Store the country code, enforce alphabetical order if there are multiple
+        if (countryDetails.inMultipleCountries())
+        {
+            tags.put(ISOCountryTag.KEY, Joiner.on(",").join(Sets.newTreeSet(Arrays.asList(
+                    countryDetails.getIso3CountryCode().split(ISOCountryTag.COUNTRY_DELIMITER)))));
+        }
+        else
+        {
+            tags.put(ISOCountryTag.KEY, countryDetails.getIso3CountryCode());
+        }
 
         // If we used nearest neighbor logic to determine the country code, add a tag
         // to indicate this
@@ -213,6 +230,7 @@ public abstract class RawAtlasSlicer
         {
             tags.put(SyntheticNearestNeighborCountryCodeTag.KEY,
                     SyntheticNearestNeighborCountryCodeTag.YES.toString());
+            tags.put(SyntheticBoundaryNodeTag.KEY, SyntheticBoundaryNodeTag.EXISTING.toString());
         }
 
         // For any border nodes, add the existing tag
@@ -234,18 +252,112 @@ public abstract class RawAtlasSlicer
         return this.newPointCoordinates;
     }
 
-    protected Set<IsoCountry> getCountries()
+    protected Set<String> getCountries()
     {
-        return this.countries;
+        if (this.loadingOption.getCountryCodes().isEmpty())
+        {
+            final HashSet<String> allCountryCodes = new HashSet<>();
+            allCountryCodes.addAll(this.loadingOption.getCountryBoundaryMap().allCountryNames());
+            this.loadingOption.setAdditionalCountryCodes(allCountryCodes);
+        }
+        return this.loadingOption.getCountryCodes();
     }
 
     protected CountryBoundaryMap getCountryBoundaryMap()
     {
-        return this.countryBoundaryMap;
+        return this.loadingOption.getCountryBoundaryMap();
+    }
+
+    protected Set<IsoCountry> getIsoCountries()
+    {
+        final Set<IsoCountry> isoCountries = new HashSet<>();
+        if (this.loadingOption.getCountryCodes().isEmpty())
+        {
+            this.loadingOption.setAdditionalCountryCodes(
+                    this.loadingOption.getCountryBoundaryMap().allCountryNames());
+        }
+        this.loadingOption.getCountryCodes().forEach(
+                countryCode -> isoCountries.add(IsoCountry.forCountryCode(countryCode).get()));
+        return isoCountries;
     }
 
     protected RawAtlasSlicingStatistic getStatistics()
     {
         return this.statistics;
+    }
+
+    /**
+     * Determines if the given raw atlas {@link Line} qualifies to be an {@link Edge} in the final
+     * atlas. Relies on the underlying {@link AtlasLoadingOption} configuration to make the
+     * decision.
+     *
+     * @param line
+     *            The {@link Line} to check
+     * @return {@code true} if the given raw atlas {@link Line} qualifies to be an {@link Edge} in
+     *         the final atlas.
+     */
+    protected boolean isAtlasEdge(final Line line)
+    {
+        return this.loadingOption.getEdgeFilter().test(line);
+    }
+
+    protected boolean isInsideWorkingBound(final AtlasEntity entity)
+    {
+        final Optional<String> countryCodes = entity.getTag(ISOCountryTag.KEY);
+        if (countryCodes.isPresent() && this.getCountries() != null
+                && !this.getCountries().isEmpty())
+        {
+            for (final String countryCode : countryCodes.get()
+                    .split(ISOCountryTag.COUNTRY_DELIMITER))
+            {
+                if (this.getCountries().contains(countryCode))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Check if the {@link Geometry} should be filtered out based on the provided bound.
+     *
+     * @param geometry
+     *            The {@link Geometry} to check.
+     * @return {@code true} if the given geometry should be filtered out.
+     */
+    protected boolean isOutsideWorkingBound(final Geometry geometry)
+    {
+        final String countryCode = CountryBoundaryMap.getGeometryProperty(geometry,
+                ISOCountryTag.KEY);
+
+        if (countryCode != null)
+        {
+            return this.getCountries() != null && !this.getCountries().isEmpty()
+                    && !this.getCountries().contains(countryCode);
+        }
+
+        // Assume it's inside the bound
+        return false;
+    }
+
+    protected boolean shouldForceSlicing(final Taggable... source)
+    {
+        if (this.loadingOption.getForceSlicingFilter() == null)
+        {
+            return false;
+        }
+        return source != null && source.length > 0
+                && this.loadingOption.getForceSlicingFilter().test(source[0]);
+    }
+
+    protected boolean shouldSkipSlicing(final List<Polygon> candidates, final Taggable... source)
+    {
+        return CountryBoundaryMap.isSameCountry(candidates) && !shouldForceSlicing(source);
+    }
+
+    private String getShardOrAtlasName(final Atlas atlas)
+    {
+        return atlas.metaData().getShardName().orElse(atlas.getName());
     }
 }

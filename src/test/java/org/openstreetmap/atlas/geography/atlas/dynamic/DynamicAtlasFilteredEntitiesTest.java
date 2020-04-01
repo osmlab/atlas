@@ -174,8 +174,10 @@ public class DynamicAtlasFilteredEntitiesTest
         Assert.assertNotNull(dynamicAtlas.edge(8000000));
         Assert.assertEquals(4, dynamicAtlas.numberOfEdges());
 
-        // Prompts load of 12-1350-1869
+        // Does not prompt load of 12-1350-1869
+        // Aggressive loading of relations works only in preemptive load.
         Assert.assertNotNull(dynamicAtlas.relation(1));
-        Assert.assertEquals(6, dynamicAtlas.numberOfEdges());
+        System.out.println(dynamicAtlas.relation(1));
+        Assert.assertEquals(4, dynamicAtlas.numberOfEdges());
     }
 }

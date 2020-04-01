@@ -4,6 +4,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.locationtech.jts.geom.Envelope;
 import org.opengis.geometry.BoundingBox;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
@@ -12,7 +13,8 @@ import org.openstreetmap.atlas.utilities.scalars.Angle;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.openstreetmap.atlas.utilities.scalars.Surface;
 
-import com.vividsolutions.jts.geom.Envelope;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonPrimitive;
 
 /**
  * A rectangle on the surface of earth. It cannot span the date change line (longitude -180)
@@ -59,6 +61,15 @@ public final class Rectangle extends Polygon
         if (lowerLeft == null || upperRight == null)
         {
             throw new CoreException("Cannot build a Rectangle with one of the corners being null.");
+        }
+        // Sanity check to avoid invalid Rectangles
+        else if (lowerLeft.isNorthOf(upperRight))
+        {
+            throw new CoreException("Lower left cannot be higher than upper right.");
+        }
+        else if (lowerLeft.isEastOf(upperRight))
+        {
+            throw new CoreException("Lower left cannot be to the right of the upper right.");
         }
         return new Rectangle(lowerLeft, upperRight);
     }
@@ -215,6 +226,16 @@ public final class Rectangle extends Polygon
                 this.upperRight.getLatitude().asDegrees());
     }
 
+    public JsonArray asGeoJsonBbox()
+    {
+        final JsonArray array = new JsonArray();
+        array.add(new JsonPrimitive(this.lowerLeft.getLongitude().asDegrees()));
+        array.add(new JsonPrimitive(this.lowerLeft.getLatitude().asDegrees()));
+        array.add(new JsonPrimitive(this.upperRight.getLongitude().asDegrees()));
+        array.add(new JsonPrimitive(this.upperRight.getLatitude().asDegrees()));
+        return array;
+    }
+
     @Override
     public Rectangle bounds()
     {
@@ -237,6 +258,55 @@ public final class Rectangle extends Polygon
     {
         return Rectangle.forLocations(this.lowerLeft, this.upperRight, that.lowerLeft,
                 that.upperRight);
+    }
+
+    /**
+     * Contract the rectangle in 4 directions as far as possible. If the distance to move the
+     * corners would invert the rectangle then the side(s) will collapse into length 0. The most
+     * that it can contract is to a single point in the middle.
+     *
+     * @param distance
+     *            to contract the four corners
+     * @return new rectangle with contracted dimensions
+     */
+    public Rectangle contract(final Distance distance)
+    {
+        final Location newLowerLeft = this.lowerLeft.shiftAlongGreatCircle(Heading.NORTH, distance)
+                .shiftAlongGreatCircle(Heading.EAST, distance);
+        final Location newUpperRight = this.upperRight
+                .shiftAlongGreatCircle(Heading.SOUTH, distance)
+                .shiftAlongGreatCircle(Heading.WEST, distance);
+        final boolean tooShortHeight = newLowerLeft.getLatitude()
+                .isGreaterThan(newUpperRight.getLatitude());
+        final boolean tooShortWidth = newLowerLeft.getLongitude()
+                .isGreaterThan(newUpperRight.getLongitude());
+        if (tooShortHeight && tooShortWidth)
+        {
+            return this.center().bounds();
+        }
+        else
+        {
+            final Location lowerRight = new Location(this.lowerLeft().getLatitude(),
+                    this.upperRight().getLongitude());
+            if (tooShortHeight)
+            {
+                final Latitude sharedLatitude = lowerRight.midPoint(this.upperRight())
+                        .getLatitude();
+                return forCorners(new Location(sharedLatitude, newLowerLeft.getLongitude()),
+                        new Location(sharedLatitude, newUpperRight.getLongitude()));
+            }
+            else if (tooShortWidth)
+            {
+                final Longitude sharedLongitude = lowerRight.midPoint(this.lowerLeft())
+                        .getLongitude();
+                return forCorners(new Location(newLowerLeft.getLatitude(), sharedLongitude),
+                        new Location(newUpperRight.getLatitude(), sharedLongitude));
+            }
+            else
+            {
+                return forCorners(newLowerLeft, newUpperRight);
+            }
+        }
     }
 
     /**
@@ -491,8 +561,13 @@ public final class Rectangle extends Polygon
      */
     public Angle width()
     {
-        return Angle.dm7(
-                this.upperRight.getLongitude().asDm7() - this.lowerLeft.getLongitude().asDm7());
+        long dm7Difference = this.upperRight.getLongitude().asDm7()
+                - this.lowerLeft.getLongitude().asDm7();
+        if (dm7Difference >= Angle.REVOLUTION_DM7)
+        {
+            dm7Difference = Angle.REVOLUTION_DM7 - 1;
+        }
+        return Angle.dm7(dm7Difference);
     }
 
     protected Rectangle2D asAwtRectangle()

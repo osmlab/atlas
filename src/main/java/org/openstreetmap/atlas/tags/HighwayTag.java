@@ -63,7 +63,9 @@ public enum HighwayTag
     PLATFORM,
     MILESTONE,
     TURNING_LOOP,
-    NO;
+    CORRIDOR,
+    NO,
+    TOLL_GANTRY;
 
     @TagKey
     public static final String KEY = "highway";
@@ -83,7 +85,7 @@ public enum HighwayTag
             TRUNK_LINK, PRIMARY_LINK, SECONDARY_LINK, TERTIARY_LINK, LIVING_STREET, TRACK, ROAD);
 
     private static final EnumSet<HighwayTag> PEDESTRIAN_NAVIGABLE_HIGHWAYS = EnumSet.of(PEDESTRIAN,
-            FOOTWAY, STEPS, PATH, CROSSING, PLATFORM, ELEVATOR);
+            FOOTWAY, STEPS, PATH, CROSSING, PLATFORM, ELEVATOR, CORRIDOR);
 
     private static final EnumBiMap<HighwayTag, HighwayTag> HIGHWAY_LINKS = EnumBiMap
             .create(HighwayTag.class, HighwayTag.class);

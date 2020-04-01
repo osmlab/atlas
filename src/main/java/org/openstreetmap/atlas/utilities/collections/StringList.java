@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.utilities.collections;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -14,8 +15,9 @@ import org.openstreetmap.atlas.exception.CoreException;
  *
  * @author matthieun
  */
-public class StringList implements Iterable<String>
+public class StringList implements Iterable<String>, Serializable
 {
+    private static final long serialVersionUID = -7923796535827613632L;
     private final List<String> list;
 
     public static StringList split(final String item, final String separator)
@@ -171,6 +173,11 @@ public class StringList implements Iterable<String>
         return Optional.of(this.get(size() - 1));
     }
 
+    public void remove(final int index)
+    {
+        this.list.remove(index);
+    }
+
     public int size()
     {
         return this.list.size();
@@ -196,6 +203,16 @@ public class StringList implements Iterable<String>
     public Stream<String> stream()
     {
         return this.list.stream();
+    }
+
+    public String[] toArray()
+    {
+        final String[] result = new String[this.size()];
+        for (int index = 0; index < this.size(); index++)
+        {
+            result[index] = this.get(index);
+        }
+        return result;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.utilities.configuration;
 
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -9,6 +10,22 @@ import java.util.function.Function;
  */
 public interface Configuration
 {
+    /**
+     * Returns a set view of all the top level keys in this {@link Configuration}.
+     *
+     * @return the set of top level keys
+     */
+    Set<String> configurationDataKeySet();
+
+    /**
+     * Returns a returns a copy Configuration specific to a keyword with overwritten values
+     *
+     * @param keyword
+     *            keyword string
+     * @return Configuration
+     */
+    Configuration configurationForKeyword(String keyword);
+
     /**
      * Returns a {@link Configurable} wrapper around the configured property.
      *
@@ -25,13 +42,13 @@ public interface Configuration
      *            property key
      * @param transform
      *            applied to the configured property
-     * @param <Raw>
+     * @param <R>
      *            configured type
-     * @param <Transformed>
+     * @param <T>
      *            transformed type
      * @return a {@link Configurable} wrapper
      */
-    <Raw, Transformed> Configurable get(String key, Function<Raw, Transformed> transform);
+    <R, T> Configurable get(String key, Function<R, T> transform);
 
     /**
      * Returns a {@link Configurable} wrapper around the configured property.
@@ -42,14 +59,13 @@ public interface Configuration
      *            value returned if not found in the configuration
      * @param transform
      *            applied to the configured property
-     * @param <Raw>
+     * @param <R>
      *            configured type
-     * @param <Transformed>
+     * @param <T>
      *            transformed type
      * @return a {@link Configurable} wrapper
      */
-    <Raw, Transformed> Configurable get(String key, Raw defaultValue,
-            Function<Raw, Transformed> transform);
+    <R, T> Configurable get(String key, R defaultValue, Function<R, T> transform);
 
     /**
      * Returns a {@link Configurable} wrapper around the configured property.
@@ -58,9 +74,9 @@ public interface Configuration
      *            property key
      * @param defaultValue
      *            value returned if not found in the configuration
-     * @param <Type>
+     * @param <T>
      *            configured type
      * @return a {@link Configurable} wrapper
      */
-    <Type> Configurable get(String key, Type defaultValue);
+    <T> Configurable get(String key, T defaultValue);
 }

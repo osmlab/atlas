@@ -1,0 +1,16 @@
+Look for WKT or shard intersections with a given sharding or a given country boundary
+map. Read on for more information on these use-cases.
+
+1) Given some supplied WKT or sharding strings and a sharding tree, spit out the shards that intersect
+each geometry string. The '--tree', '--slippy', and '--geohash' options allow the user to select between
+a dynamic sharding tree, a static slippy tile tree based on a single zoom, or a geohash tree with
+a given precision.
+
+2) Given a country boundary map and some WKT or shard strings, spit out the countries that intersect
+the given geometry strings. The '--country-boundary' option should point to a valid
+country boundary file as expected by the CountryBoundaryMap class.
+
+Use the '--input' option to specify a file from which to read WKT or shard strings,
+line-by-line. This will supplement any input provided on the
+command line. Each line in the input file will be interpreted as
+a single WKT entity or shard string.
