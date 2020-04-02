@@ -65,11 +65,9 @@ public class BigNode extends ComplexEntity
         DUAL_CARRIAGEWAY
     }
 
-    private static final long serialVersionUID = 4102278807908010498L;
-
     // Maximum allowed nodes for a BigNode
     public static final int MAXIMUM_NODES = 20;
-
+    private static final long serialVersionUID = 4102278807908010498L;
     // BigNode type
     private Type type;
 
@@ -144,6 +142,18 @@ public class BigNode extends ComplexEntity
      */
     public Set<Route> allPaths()
     {
+        return allPaths(AllPathsRouter.MAXIMUM_ALLOWED_PATHS);
+    }
+
+    /**
+     * @param maximumPathCount
+     *            The maximum path count of each in out edge pair
+     * @return The set of all possible {@link Route}s in and out of this {@link BigNode}.
+     *         {@link BigNode#shortestPaths} are a subset of this set. Note: this will NOT be cached
+     *         by the {@link BigNode}, so be judicious in how many times this is called.
+     */
+    public Set<Route> allPaths(final int maximumPathCount)
+    {
         final Atlas atlas = nodes().iterator().next().getAtlas();
         final Atlas bigNodeAtlas = buildBigNodeAtlas();
 
@@ -156,7 +166,8 @@ public class BigNode extends ComplexEntity
                 // Translate edges to bigNodeAtlas edges to get all routes
                 final Set<Route> bigNodeRoutes = AllPathsRouter.allRoutes(
                         bigNodeAtlas.edge(inEdge.getIdentifier()),
-                        bigNodeAtlas.edge(outEdge.getIdentifier()), this.isJunctionEdge);
+                        bigNodeAtlas.edge(outEdge.getIdentifier()), this.isJunctionEdge,
+                        maximumPathCount);
 
                 if (bigNodeRoutes.isEmpty())
                 {

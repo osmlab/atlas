@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.routing;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Predicate;
@@ -102,6 +103,21 @@ public class AllPathsRouterTest
         Assert.assertEquals(
                 "Expect a single distinct route between start and end, since we've filtered out all routes that have a non-master edge",
                 1, routes.size());
+        Assert.assertEquals("Expect deterministic results from the router", expectedRoutes, routes);
+    }
+
+    @Test
+    public void testRoutingWithFilterAndMaximumAllowedPath()
+    {
+        final Atlas atlas = this.rule.getMultipleRoutesAtlas();
+        final Set<Route> routes = AllPathsRouter.allRoutes(atlas.edge(314932590),
+                atlas.edge(319932590), x -> true, 1);
+
+        final Set<Route> expectedRoutes = new HashSet<>();
+        expectedRoutes.add(Route.forEdges(atlas.edge(314932590), atlas.edge(315932590),
+                atlas.edge(316932590), atlas.edge(319932590)));
+
+        Assert.assertEquals("Expect two distinct routes between start and end", 1, routes.size());
         Assert.assertEquals("Expect deterministic results from the router", expectedRoutes, routes);
     }
 
