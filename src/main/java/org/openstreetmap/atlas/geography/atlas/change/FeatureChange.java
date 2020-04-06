@@ -37,6 +37,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
+import org.openstreetmap.atlas.tags.Taggable;
 
 /**
  * Single feature change, does not include any consistency checks.
@@ -59,7 +60,7 @@ import org.openstreetmap.atlas.streaming.resource.WritableResource;
  * @author lcram
  * @author Yazad Khambata
  */
-public class FeatureChange implements Located, Serializable
+public class FeatureChange implements Located, Taggable, Serializable
 {
     private static final long serialVersionUID = 9172045162819925515L;
 
@@ -382,6 +383,7 @@ public class FeatureChange implements Located, Serializable
      *            - The tag key to look for.
      * @return - the changed value of the tag, if available.
      */
+    @Override
     public Optional<String> getTag(final String key)
     {
         return this.getAfterView().getTag(key);
@@ -392,6 +394,7 @@ public class FeatureChange implements Located, Serializable
      *
      * @return Map - the changed tags.
      */
+    @Override
     public Map<String, String> getTags()
     {
         return this.getAfterView().getTags();
