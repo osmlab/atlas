@@ -25,8 +25,8 @@ import org.openstreetmap.atlas.utilities.collections.StringList;
  */
 public class EntityIdentifierGenerator
 {
-    private static final long HIGHEST_ATLAS_ID = 900000000999999L;
-    private static final long LOWEST_ATLAS_ID = -900000000999999L;
+    private static final long HIGHEST_ATLAS_ID = 9999999999999999L;
+    private static final long LOWEST_ATLAS_ID = -9999999999999999L;
 
     /**
      * Generate a 64 bit hash for a given non-{@link Edge} {@link CompleteEntity}. The entity must
@@ -201,6 +201,6 @@ public class EntityIdentifierGenerator
      */
     private boolean isHashSafeToUse(final long hash)
     {
-        return !(hash < HIGHEST_ATLAS_ID && hash >= LOWEST_ATLAS_ID);
+        return hash > HIGHEST_ATLAS_ID || hash < LOWEST_ATLAS_ID;
     }
 }
