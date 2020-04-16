@@ -19,7 +19,6 @@ import org.openstreetmap.atlas.geography.sharding.SlippyTile;
 import org.openstreetmap.atlas.streaming.compression.Compressor;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.Resource;
-import org.openstreetmap.atlas.streaming.resource.TemporaryFile;
 import org.openstreetmap.atlas.utilities.runtime.Command;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
 import org.openstreetmap.atlas.utilities.time.Time;
@@ -33,8 +32,6 @@ import org.slf4j.LoggerFactory;
  */
 public class CountryBoundaryMapArchiver extends Command
 {
-    private static final Logger logger = LoggerFactory.getLogger(CountryBoundaryMapArchiver.class);
-
     // Inputs
     protected static final Switch<File> SHAPE_FILE = new Switch<>("shp", "path to the shape file",
             File::new, Optionality.OPTIONAL);
@@ -43,11 +40,9 @@ public class CountryBoundaryMapArchiver extends Command
             path -> PackedAtlas.load(new File(path)), Optionality.OPTIONAL);
     protected static final Switch<File> BOUNDARY_FILE = new Switch<>("boundaries",
             "path to the pre-existing boundary file", File::new, Optionality.OPTIONAL);
-
     // Outputs
     protected static final Switch<File> OUTPUT = new Switch<>("out", "The output file format",
             File::new, Optionality.REQUIRED);
-
     // Options
     protected static final Switch<Rectangle> BOUNDS = new Switch<>("bounds", "The bounds",
             Rectangle::forString, Optionality.OPTIONAL, Rectangle.MAXIMUM.toCompactString());
@@ -61,7 +56,7 @@ public class CountryBoundaryMapArchiver extends Command
     protected static final Switch<Boolean> SAVE_GEOJSON_WKT = new Switch<>("saveGeojsonWkt",
             "Save the country boundaries to Geojson and WKT", Boolean::parseBoolean,
             Optionality.OPTIONAL, Boolean.FALSE.toString());
-
+    private static final Logger logger = LoggerFactory.getLogger(CountryBoundaryMapArchiver.class);
     // Internal
     private static final double JTS_SNAP_PRECISION = .000000000000001;
 
@@ -193,17 +188,6 @@ public class CountryBoundaryMapArchiver extends Command
         {
             final Iterable<SlippyTile> allTiles = SlippyTile.allTiles(oceanBoundaryZoomLevel);
             map = generateOceanBoundaryMap(map, allTiles);
-            try (TemporaryFile temporary = File.temporary())
-            {
-                // Save and reload to clear it for grid index
-                map.writeToFile(temporary);
-                map = new CountryBoundaryMap(bounds);
-                map.readFromPlainText(temporary);
-            }
-            catch (final IOException e)
-            {
-                throw new CoreException("Could not write CountryBoundaryMap.", e);
-            }
         }
 
         // Create index
