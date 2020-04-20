@@ -2,9 +2,7 @@ package org.openstreetmap.atlas.streaming.resource;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -22,6 +20,8 @@ import org.openstreetmap.atlas.streaming.compression.Compressor;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.utilities.runtime.Retry;
 import org.openstreetmap.atlas.utilities.scalars.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * File from a local file system as a {@link AbstractWritableResource}.
@@ -30,9 +30,10 @@ import org.openstreetmap.atlas.utilities.scalars.Duration;
  */
 public class File extends AbstractWritableResource implements Comparable<File>
 {
+    private static final Logger logger = LoggerFactory.getLogger(File.class);
     private static final Random RANDOM = new Random();
 
-    private final java.io.File javaFile;
+    private final Path path;
     private String name = null;
 
     public static TemporaryFile temporary()
@@ -82,18 +83,36 @@ public class File extends AbstractWritableResource implements Comparable<File>
         this(file, true);
     }
 
-    public File(final java.io.File file, final boolean createParentDirectories)
+    public File(final Path path)
     {
-        this.javaFile = file;
-        if (file.getAbsolutePath().endsWith(FileSuffix.GZIP.toString()))
+        this(path, true);
+    }
+
+    public File(final Path path, final boolean createParentDirectories)
+    {
+        this.path = path;
+        if (path.toAbsolutePath().endsWith(FileSuffix.GZIP.toString()))
         {
             this.setCompressor(Compressor.GZIP);
             this.setDecompressor(Decompressor.GZIP);
         }
-        if (this.javaFile.getParentFile() != null && createParentDirectories)
+        if (this.path.getParent() != null && createParentDirectories)
         {
-            this.javaFile.getParentFile().mkdirs();
+            try
+            {
+                Files.createDirectories(this.path.getParent());
+            }
+            catch (final IOException exception)
+            {
+                throw new CoreException("Could not create directories for path {}", this.path,
+                        exception);
+            }
         }
+    }
+
+    public File(final java.io.File file, final boolean createParentDirectories)
+    {
+        this(file.toPath(), createParentDirectories);
     }
 
     /**
@@ -109,35 +128,44 @@ public class File extends AbstractWritableResource implements Comparable<File>
      */
     public File(final String path)
     {
-        this(new java.io.File(path), true);
+        this(Path.of(path), true);
     }
 
     public File(final String path, final boolean createParentDirectories)
     {
-        this(new java.io.File(path), createParentDirectories);
+        this(Path.of(path), createParentDirectories);
     }
 
     public File child(final String name)
     {
-        if (!this.javaFile.isDirectory())
+        if (!Files.isDirectory(this.path))
         {
-            throw new CoreException("Cannot create the child of a file. It has to be a folder.");
+            throw new CoreException("Cannot create the child of file {}. It has to be a folder.",
+                    this.path);
         }
-        this.javaFile.mkdirs();
-        return new File(getAbsolutePath() + "/" + name);
+        try
+        {
+            Files.createDirectories(this.path);
+        }
+        catch (final IOException exception)
+        {
+            throw new CoreException("Could not create directories for path {}", this.path,
+                    exception);
+        }
+        return new File(this.path.resolve(name));
     }
 
     @Override
     public int compareTo(final File other)
     {
-        return this.getFile().compareTo(other.getFile());
+        return this.path.compareTo(other.toPath());
     }
 
     public void delete()
     {
         try
         {
-            Files.delete(getFile().toPath());
+            Files.delete(this.path);
         }
         catch (final IOException e)
         {
@@ -147,10 +175,9 @@ public class File extends AbstractWritableResource implements Comparable<File>
 
     public void deleteRecursively()
     {
-        final Path folder = getFile().toPath();
         try
         {
-            Files.walkFileTree(folder, new SimpleFileVisitor<Path>()
+            Files.walkFileTree(this.path, new SimpleFileVisitor<Path>()
             {
                 @Override
                 public FileVisitResult postVisitDirectory(final Path dir, final IOException exc)
@@ -169,9 +196,9 @@ public class File extends AbstractWritableResource implements Comparable<File>
                 }
             });
         }
-        catch (final IOException e)
+        catch (final IOException exception)
         {
-            throw new CoreException("Cannot delete folder recursively", e);
+            throw new CoreException("Cannot delete folder {} recursively", this.path, exception);
         }
     }
 
@@ -180,7 +207,7 @@ public class File extends AbstractWritableResource implements Comparable<File>
     {
         if (other instanceof File)
         {
-            return this.getFile().equals(((File) other).getFile());
+            return this.path.equals(((File) other).toPath());
         }
         return false;
     }
@@ -192,12 +219,20 @@ public class File extends AbstractWritableResource implements Comparable<File>
 
     public String getAbsolutePath()
     {
-        return this.javaFile.getAbsolutePath();
+        return this.path.toAbsolutePath().toString();
     }
 
+    /**
+     * Get a {@link java.io.File} version of this {@link File} resource. Note that this will force
+     * the file to be resolved against the default filesystem. Please avoid using this method, it is
+     * here for backwards-compatibility purposes.
+     *
+     * @return a {@link java.io.File} version of this {@link File} resource
+     */
+    @Deprecated
     public java.io.File getFile()
     {
-        return this.javaFile;
+        return new java.io.File(this.path.toAbsolutePath().toString());
     }
 
     @Override
@@ -207,34 +242,41 @@ public class File extends AbstractWritableResource implements Comparable<File>
         {
             return this.name;
         }
-        return this.javaFile.getName();
+        return this.path.getFileName().toString();
     }
 
     public String getParent()
     {
-        return this.javaFile.getParent();
+        return this.path.getParent().toString();
     }
 
     public String getPath()
     {
-        return this.javaFile.getPath();
+        return this.path.toString();
     }
 
     @Override
     public int hashCode()
     {
-        return this.getFile().hashCode();
+        return this.path.hashCode();
     }
 
     public boolean isDirectory()
     {
-        return this.javaFile.isDirectory();
+        return Files.isDirectory(this.path);
     }
 
     @Override
     public long length()
     {
-        return this.javaFile.length();
+        try
+        {
+            return Files.size(this.path);
+        }
+        catch (final IOException exception)
+        {
+            throw new CoreException("Could not get length of file {}", this.path, exception);
+        }
     }
 
     /**
@@ -269,7 +311,16 @@ public class File extends AbstractWritableResource implements Comparable<File>
 
     public boolean mkdirs()
     {
-        return this.javaFile.mkdirs();
+        try
+        {
+            Files.createDirectories(this.path);
+            return true;
+        }
+        catch (final IOException exception)
+        {
+            logger.error("Could not create directories for path {}", this.path, exception);
+            return false;
+        }
     }
 
     /**
@@ -277,14 +328,19 @@ public class File extends AbstractWritableResource implements Comparable<File>
      */
     public File parent()
     {
-        return new File(this.javaFile.getParent());
+        return new File(this.path.getParent());
 
+    }
+
+    public Path toPath()
+    {
+        return this.path;
     }
 
     @Override
     public String toString()
     {
-        return this.javaFile.getAbsolutePath();
+        return this.path.toAbsolutePath().toString();
     }
 
     public File withCompressor(final Compressor compressor)
@@ -310,11 +366,15 @@ public class File extends AbstractWritableResource implements Comparable<File>
     {
         try
         {
-            return new BufferedInputStream(new FileInputStream(this.javaFile));
+            return new BufferedInputStream(Files.newInputStream(this.path));
         }
-        catch (final FileNotFoundException e)
+        catch (final FileNotFoundException exception)
         {
-            throw new CoreException("Cannot read file " + this.javaFile.getPath(), e);
+            throw new CoreException("Cannot find file {}", this.path, exception);
+        }
+        catch (final IOException exception)
+        {
+            throw new CoreException("Cannot read file {}", this.path, exception);
         }
     }
 
@@ -323,11 +383,15 @@ public class File extends AbstractWritableResource implements Comparable<File>
     {
         try
         {
-            return new BufferedOutputStream(new FileOutputStream(this.javaFile));
+            return new BufferedOutputStream(Files.newOutputStream(this.path));
         }
-        catch (final FileNotFoundException e)
+        catch (final FileNotFoundException exception)
         {
-            throw new CoreException("Cannot write to file " + this.javaFile.getPath(), e);
+            throw new CoreException("Cannot find file {}", this.path, exception);
+        }
+        catch (final IOException exception)
+        {
+            throw new CoreException("Cannot write to file {}", this.path, exception);
         }
     }
 }
