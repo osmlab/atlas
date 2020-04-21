@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,10 +33,14 @@ public class File extends AbstractWritableResource implements Comparable<File>
 {
     private static final Logger logger = LoggerFactory.getLogger(File.class);
     private static final Random RANDOM = new Random();
+    private static final String COULD_NOT_CREATE_DIRECTORIES_FOR_PATH = "Could not create directories for path {}";
 
     private final Path path;
     private String name = null;
 
+    /*
+     * TODO change these temporary methods to use Files#createTempDirectory?
+     */
     public static TemporaryFile temporary()
     {
         return new Retry(1, Duration.ZERO).run(() ->
@@ -98,13 +103,33 @@ public class File extends AbstractWritableResource implements Comparable<File>
         }
         if (this.path.getParent() != null && createParentDirectories)
         {
+            /*
+             * We must check if the direct parent is a symbolic link. If so, directory creation will
+             * fail because Files#createDirectories will throw a FileAlreadyExistsException.
+             */
+            // if (Files.isSymbolicLink(this.path.getParent()))
+            // {
+            // try
+            // {
+            // Files.createDirectory(this.path.getParent());
+            // }
+            // catch (final IOException exception)
+            // {
+            // throw new CoreException(COULD_NOT_CREATE_DIRECTORIES_FOR_PATH + " FOOBAR",
+            // this.path, exception);
+            // }
+            // }
             try
             {
                 Files.createDirectories(this.path.getParent());
             }
+            catch (final FileAlreadyExistsException exception)
+            {
+                logger.debug("{} already existed and was a symbolic link", this.path.getParent());
+            }
             catch (final IOException exception)
             {
-                throw new CoreException("Could not create directories for path {}", this.path,
+                throw new CoreException(COULD_NOT_CREATE_DIRECTORIES_FOR_PATH, this.path,
                         exception);
             }
         }
@@ -149,8 +174,7 @@ public class File extends AbstractWritableResource implements Comparable<File>
         }
         catch (final IOException exception)
         {
-            throw new CoreException("Could not create directories for path {}", this.path,
-                    exception);
+            throw new CoreException(COULD_NOT_CREATE_DIRECTORIES_FOR_PATH, this.path, exception);
         }
         return new File(this.path.resolve(name));
     }
@@ -318,7 +342,7 @@ public class File extends AbstractWritableResource implements Comparable<File>
         }
         catch (final IOException exception)
         {
-            logger.error("Could not create directories for path {}", this.path, exception);
+            logger.error(COULD_NOT_CREATE_DIRECTORIES_FOR_PATH, this.path, exception);
             return false;
         }
     }
