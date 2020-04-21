@@ -96,33 +96,25 @@ public class File extends AbstractWritableResource implements Comparable<File>
     public File(final Path path, final boolean createParentDirectories)
     {
         this.path = path;
-        if (path.toAbsolutePath().endsWith(FileSuffix.GZIP.toString()))
+        if (path.toAbsolutePath().toString().endsWith(FileSuffix.GZIP.toString()))
         {
             this.setCompressor(Compressor.GZIP);
             this.setDecompressor(Decompressor.GZIP);
         }
         if (this.path.getParent() != null && createParentDirectories)
         {
-            /*
-             * We must check if the direct parent is a symbolic link. If so, directory creation will
-             * fail because Files#createDirectories will throw a FileAlreadyExistsException.
-             */
-            // if (Files.isSymbolicLink(this.path.getParent()))
-            // {
-            // try
-            // {
-            // Files.createDirectory(this.path.getParent());
-            // }
-            // catch (final IOException exception)
-            // {
-            // throw new CoreException(COULD_NOT_CREATE_DIRECTORIES_FOR_PATH + " FOOBAR",
-            // this.path, exception);
-            // }
-            // }
             try
             {
                 Files.createDirectories(this.path.getParent());
             }
+            /*
+             * We must explicitly catch the case where the direct parent is a symbolic link. This is
+             * due to the fact that Files#createDirectories does not treat symlinks to directories
+             * as directories themselves. Attempting to create parent directories for the path
+             * "foo/bar/baz/bat" where baz is a symlink results in a FileAlreadyExistsException on
+             * baz, even if baz points to a directory such that "foo/bar/baz/bat" is still a valid
+             * path.
+             */
             catch (final FileAlreadyExistsException exception)
             {
                 logger.debug("{} already existed and was a symbolic link", this.path.getParent());
