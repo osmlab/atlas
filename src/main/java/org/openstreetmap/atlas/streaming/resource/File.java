@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
  * File from a local file system as a {@link AbstractWritableResource}.
  *
  * @author matthieun
+ * @author lcram
  */
 public class File extends AbstractWritableResource implements Comparable<File>
 {
