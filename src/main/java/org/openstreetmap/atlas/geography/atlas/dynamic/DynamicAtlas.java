@@ -192,11 +192,13 @@ public class DynamicAtlas extends BareAtlas // NOSONAR
 
     /**
      * @return A copy of the {@link Shard} to {@link Atlas} {@link Map} populated by the underlying
-     *         {@link DynamicAtlasExpander}
+     *         {@link DynamicAtlasExpander}, with any null Atlases filtered out
      */
     public Map<Shard, Atlas> getShardToAtlasMap()
     {
-        return new HashMap<>(this.expander.getLoadedShards());
+        return new HashMap<>(this.expander.getLoadedShards().entrySet().stream()
+                .filter(entry -> entry.getValue() != null)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
     }
 
     /**
