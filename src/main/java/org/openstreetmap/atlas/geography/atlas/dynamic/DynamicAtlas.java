@@ -1,6 +1,8 @@
 package org.openstreetmap.atlas.geography.atlas.dynamic;
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
@@ -186,6 +188,15 @@ public class DynamicAtlas extends BareAtlas // NOSONAR
     public DynamicAtlasPolicy getPolicy()
     {
         return this.expander.getPolicy();
+    }
+
+    /**
+     * @return A copy of the {@link Shard} to {@link Atlas} {@link Map} populated by the underlying
+     *         {@link DynamicAtlasExpander}
+     */
+    public Map<Shard, Atlas> getShardToAtlasMap()
+    {
+        return new HashMap<>(this.expander.getLoadedShards());
     }
 
     /**
