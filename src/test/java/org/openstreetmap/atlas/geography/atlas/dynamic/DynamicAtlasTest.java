@@ -79,6 +79,13 @@ public class DynamicAtlasTest
         this.dynamicAtlas.preemptiveLoad();
         final Set<Atlas> atlases = this.dynamicAtlas.getAtlasesLoaded();
         Assert.assertEquals(4, atlases.size());
+
+        final Map<Shard, Atlas> atlasMap = this.dynamicAtlas.getShardToAtlasMap();
+        Assert.assertEquals(4, atlasMap.size());
+        Assert.assertTrue(atlasMap.containsKey(new SlippyTile(1350, 1870, 12)));
+        Assert.assertTrue(atlasMap.containsKey(new SlippyTile(1350, 1869, 12)));
+        Assert.assertTrue(atlasMap.containsKey(new SlippyTile(1349, 1870, 12)));
+        Assert.assertTrue(atlasMap.containsKey(new SlippyTile(1349, 1869, 12)));
     }
 
     @Test
