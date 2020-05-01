@@ -38,10 +38,15 @@ public class InvalidRelationSlicingTestRule extends CoreTestRule
 
     @TestAtlas(
 
-            points = { @Point(id = "108752000000", coordinates = @Loc(value = LOCATION_1)),
-                    @Point(id = "108754000000", coordinates = @Loc(value = LOCATION_2)),
-                    @Point(id = "108756000000", coordinates = @Loc(value = LOCATION_3)),
-                    @Point(id = "108758000000", coordinates = @Loc(value = LOCATION_4)) },
+            points = {
+                    @Point(id = "108752000000", coordinates = @Loc(value = LOCATION_1), tags = {
+                            "building=yes" }),
+                    @Point(id = "108754000000", coordinates = @Loc(value = LOCATION_2), tags = {
+                            "building=yes" }),
+                    @Point(id = "108756000000", coordinates = @Loc(value = LOCATION_3), tags = {
+                            "building=yes" }),
+                    @Point(id = "108758000000", coordinates = @Loc(value = LOCATION_4), tags = {
+                            "building=yes" }) },
 
             lines = { @Line(id = "108768000000", coordinates = { @Loc(value = LOCATION_1),
                     @Loc(value = LOCATION_2), @Loc(value = LOCATION_3), @Loc(value = LOCATION_4),
@@ -57,10 +62,15 @@ public class InvalidRelationSlicingTestRule extends CoreTestRule
 
     @TestAtlas(
 
-            points = { @Point(id = "108752000000", coordinates = @Loc(value = LOCATION_1)),
-                    @Point(id = "108754000000", coordinates = @Loc(value = LOCATION_5)),
-                    @Point(id = "108756000000", coordinates = @Loc(value = LOCATION_6)),
-                    @Point(id = "108758000000", coordinates = @Loc(value = LOCATION_2)) },
+            points = {
+                    @Point(id = "108752000000", coordinates = @Loc(value = LOCATION_1), tags = {
+                            "building=yes" }),
+                    @Point(id = "108754000000", coordinates = @Loc(value = LOCATION_5), tags = {
+                            "building=yes" }),
+                    @Point(id = "108756000000", coordinates = @Loc(value = LOCATION_6), tags = {
+                            "building=yes" }),
+                    @Point(id = "108758000000", coordinates = @Loc(value = LOCATION_2), tags = {
+                            "building=yes" }) },
 
             lines = { @Line(id = "108768000000", coordinates = { @Loc(value = LOCATION_1),
                     @Loc(value = LOCATION_5), @Loc(value = LOCATION_6), @Loc(value = LOCATION_2),
@@ -76,10 +86,15 @@ public class InvalidRelationSlicingTestRule extends CoreTestRule
 
     @TestAtlas(
 
-            points = { @Point(id = "108752000000", coordinates = @Loc(value = LOCATION_1)),
-                    @Point(id = "108754000000", coordinates = @Loc(value = LOCATION_5)),
-                    @Point(id = "108756000000", coordinates = @Loc(value = LOCATION_6)),
-                    @Point(id = "108758000000", coordinates = @Loc(value = LOCATION_2)) },
+            points = {
+                    @Point(id = "108752000000", coordinates = @Loc(value = LOCATION_1), tags = {
+                            "building=yes" }),
+                    @Point(id = "108754000000", coordinates = @Loc(value = LOCATION_5), tags = {
+                            "building=yes" }),
+                    @Point(id = "108756000000", coordinates = @Loc(value = LOCATION_6), tags = {
+                            "building=yes" }),
+                    @Point(id = "108758000000", coordinates = @Loc(value = LOCATION_2), tags = {
+                            "building=yes" }) },
 
             lines = { @Line(id = "108768000000", coordinates = { @Loc(value = LOCATION_1),
                     @Loc(value = LOCATION_5), @Loc(value = LOCATION_6),
@@ -95,10 +110,15 @@ public class InvalidRelationSlicingTestRule extends CoreTestRule
 
     @TestAtlas(
 
-            points = { @Point(id = "108752000000", coordinates = @Loc(value = LOCATION_1)),
-                    @Point(id = "108754000000", coordinates = @Loc(value = LOCATION_2)),
-                    @Point(id = "108756000000", coordinates = @Loc(value = LOCATION_3)),
-                    @Point(id = "108758000000", coordinates = @Loc(value = LOCATION_4)) },
+            points = {
+                    @Point(id = "108752000000", coordinates = @Loc(value = LOCATION_1), tags = {
+                            "building=yes" }),
+                    @Point(id = "108754000000", coordinates = @Loc(value = LOCATION_2), tags = {
+                            "building=yes" }),
+                    @Point(id = "108756000000", coordinates = @Loc(value = LOCATION_3), tags = {
+                            "building=yes" }),
+                    @Point(id = "108758000000", coordinates = @Loc(value = LOCATION_4), tags = {
+                            "building=yes" }) },
 
             lines = { @Line(id = "108768000000", coordinates = { @Loc(value = LOCATION_1),
                     @Loc(value = LOCATION_2), @Loc(value = LOCATION_3),
@@ -114,14 +134,23 @@ public class InvalidRelationSlicingTestRule extends CoreTestRule
 
     @TestAtlas(
 
-            points = { @Point(id = "108752000000", coordinates = @Loc(value = LOCATION_1)),
-                    @Point(id = "108754000000", coordinates = @Loc(value = LOCATION_5)),
-                    @Point(id = "108756000000", coordinates = @Loc(value = LOCATION_6)),
-                    @Point(id = "108758000000", coordinates = @Loc(value = LOCATION_2)),
-                    @Point(id = "108759000000", coordinates = @Loc(value = LOCATION_4)),
-                    @Point(id = "108751000000", coordinates = @Loc(value = LOCATION_3)),
-                    @Point(id = "108753000000", coordinates = @Loc(value = LOCATION_7)),
-                    @Point(id = "108755000000", coordinates = @Loc(value = LOCATION_8)) },
+            points = {
+                    @Point(id = "108752000000", coordinates = @Loc(value = LOCATION_1), tags = {
+                            "building=yes" }),
+                    @Point(id = "108754000000", coordinates = @Loc(value = LOCATION_5), tags = {
+                            "building=yes" }),
+                    @Point(id = "108756000000", coordinates = @Loc(value = LOCATION_6), tags = {
+                            "building=yes" }),
+                    @Point(id = "108758000000", coordinates = @Loc(value = LOCATION_2), tags = {
+                            "building=yes" }),
+                    @Point(id = "108759000000", coordinates = @Loc(value = LOCATION_4), tags = {
+                            "building=yes" }),
+                    @Point(id = "108751000000", coordinates = @Loc(value = LOCATION_3), tags = {
+                            "building=yes" }),
+                    @Point(id = "108753000000", coordinates = @Loc(value = LOCATION_7), tags = {
+                            "building=yes" }),
+                    @Point(id = "108755000000", coordinates = @Loc(value = LOCATION_8), tags = {
+                            "building=yes" }) },
 
             lines = { @Line(id = "108768000000", coordinates = { @Loc(value = LOCATION_1),
                     @Loc(value = LOCATION_5), @Loc(value = LOCATION_6), @Loc(value = LOCATION_2),
@@ -141,14 +170,23 @@ public class InvalidRelationSlicingTestRule extends CoreTestRule
 
     @TestAtlas(
 
-            points = { @Point(id = "108752000000", coordinates = @Loc(value = LOCATION_1)),
-                    @Point(id = "108754000000", coordinates = @Loc(value = LOCATION_5)),
-                    @Point(id = "108756000000", coordinates = @Loc(value = LOCATION_6)),
-                    @Point(id = "108758000000", coordinates = @Loc(value = LOCATION_2)),
-                    @Point(id = "108751000000", coordinates = @Loc(value = LOCATION_9)),
-                    @Point(id = "108753000000", coordinates = @Loc(value = LOCATION_10)),
-                    @Point(id = "108755000000", coordinates = @Loc(value = LOCATION_11)),
-                    @Point(id = "108757000000", coordinates = @Loc(value = LOCATION_12)) },
+            points = {
+                    @Point(id = "108752000000", coordinates = @Loc(value = LOCATION_1), tags = {
+                            "building=yes" }),
+                    @Point(id = "108754000000", coordinates = @Loc(value = LOCATION_5), tags = {
+                            "building=yes" }),
+                    @Point(id = "108756000000", coordinates = @Loc(value = LOCATION_6), tags = {
+                            "building=yes" }),
+                    @Point(id = "108758000000", coordinates = @Loc(value = LOCATION_2), tags = {
+                            "building=yes" }),
+                    @Point(id = "108751000000", coordinates = @Loc(value = LOCATION_9), tags = {
+                            "building=yes" }),
+                    @Point(id = "108753000000", coordinates = @Loc(value = LOCATION_10), tags = {
+                            "building=yes" }),
+                    @Point(id = "108755000000", coordinates = @Loc(value = LOCATION_11), tags = {
+                            "building=yes" }),
+                    @Point(id = "108757000000", coordinates = @Loc(value = LOCATION_12), tags = {
+                            "building=yes" }) },
 
             lines = { @Line(id = "108768000000", coordinates = { @Loc(value = LOCATION_1),
                     @Loc(value = LOCATION_5), @Loc(value = LOCATION_6), @Loc(value = LOCATION_2),
@@ -169,14 +207,23 @@ public class InvalidRelationSlicingTestRule extends CoreTestRule
 
     @TestAtlas(
 
-            points = { @Point(id = "108752000000", coordinates = @Loc(value = LOCATION_1)),
-                    @Point(id = "108754000000", coordinates = @Loc(value = LOCATION_5)),
-                    @Point(id = "108756000000", coordinates = @Loc(value = LOCATION_6)),
-                    @Point(id = "108758000000", coordinates = @Loc(value = LOCATION_2)),
-                    @Point(id = "108751000000", coordinates = @Loc(value = LOCATION_9)),
-                    @Point(id = "108753000000", coordinates = @Loc(value = LOCATION_18)),
-                    @Point(id = "108755000000", coordinates = @Loc(value = LOCATION_19)),
-                    @Point(id = "108757000000", coordinates = @Loc(value = LOCATION_12)) },
+            points = {
+                    @Point(id = "108752000000", coordinates = @Loc(value = LOCATION_1), tags = {
+                            "building=yes" }),
+                    @Point(id = "108754000000", coordinates = @Loc(value = LOCATION_5), tags = {
+                            "building=yes" }),
+                    @Point(id = "108756000000", coordinates = @Loc(value = LOCATION_6), tags = {
+                            "building=yes" }),
+                    @Point(id = "108758000000", coordinates = @Loc(value = LOCATION_2), tags = {
+                            "building=yes" }),
+                    @Point(id = "108751000000", coordinates = @Loc(value = LOCATION_9), tags = {
+                            "building=yes" }),
+                    @Point(id = "108753000000", coordinates = @Loc(value = LOCATION_18), tags = {
+                            "building=yes" }),
+                    @Point(id = "108755000000", coordinates = @Loc(value = LOCATION_19), tags = {
+                            "building=yes" }),
+                    @Point(id = "108757000000", coordinates = @Loc(value = LOCATION_12), tags = {
+                            "building=yes" }) },
 
             lines = { @Line(id = "108768000000", coordinates = { @Loc(value = LOCATION_1),
                     @Loc(value = LOCATION_5), @Loc(value = LOCATION_6), @Loc(value = LOCATION_2),
@@ -197,16 +244,27 @@ public class InvalidRelationSlicingTestRule extends CoreTestRule
 
     @TestAtlas(
 
-            points = { @Point(id = "108752000000", coordinates = @Loc(value = LOCATION_1)),
-                    @Point(id = "108754000000", coordinates = @Loc(value = LOCATION_5)),
-                    @Point(id = "108756000000", coordinates = @Loc(value = LOCATION_6)),
-                    @Point(id = "108751000000", coordinates = @Loc(value = LOCATION_9)),
-                    @Point(id = "108753000000", coordinates = @Loc(value = LOCATION_10)),
-                    @Point(id = "108755000000", coordinates = @Loc(value = LOCATION_11)),
-                    @Point(id = "108757000000", coordinates = @Loc(value = LOCATION_12)),
-                    @Point(id = "108758000000", coordinates = @Loc(value = LOCATION_13)),
-                    @Point(id = "108759000000", coordinates = @Loc(value = LOCATION_14)),
-                    @Point(id = "108761000000", coordinates = @Loc(value = LOCATION_15)) },
+            points = {
+                    @Point(id = "108752000000", coordinates = @Loc(value = LOCATION_1), tags = {
+                            "building=yes" }),
+                    @Point(id = "108754000000", coordinates = @Loc(value = LOCATION_5), tags = {
+                            "building=yes" }),
+                    @Point(id = "108756000000", coordinates = @Loc(value = LOCATION_6), tags = {
+                            "building=yes" }),
+                    @Point(id = "108751000000", coordinates = @Loc(value = LOCATION_9), tags = {
+                            "building=yes" }),
+                    @Point(id = "108753000000", coordinates = @Loc(value = LOCATION_10), tags = {
+                            "building=yes" }),
+                    @Point(id = "108755000000", coordinates = @Loc(value = LOCATION_11), tags = {
+                            "building=yes" }),
+                    @Point(id = "108757000000", coordinates = @Loc(value = LOCATION_12), tags = {
+                            "building=yes" }),
+                    @Point(id = "108758000000", coordinates = @Loc(value = LOCATION_13), tags = {
+                            "building=yes" }),
+                    @Point(id = "108759000000", coordinates = @Loc(value = LOCATION_14), tags = {
+                            "building=yes" }),
+                    @Point(id = "108761000000", coordinates = @Loc(value = LOCATION_15), tags = {
+                            "building=yes" }) },
 
             lines = { @Line(id = "108768000000", coordinates = { @Loc(value = LOCATION_1),
                     @Loc(value = LOCATION_5), @Loc(value = LOCATION_6), @Loc(value = LOCATION_13),
@@ -228,16 +286,27 @@ public class InvalidRelationSlicingTestRule extends CoreTestRule
 
     @TestAtlas(
 
-            points = { @Point(id = "108752000000", coordinates = @Loc(value = LOCATION_1)),
-                    @Point(id = "108754000000", coordinates = @Loc(value = LOCATION_16)),
-                    @Point(id = "108756000000", coordinates = @Loc(value = LOCATION_17)),
-                    @Point(id = "108751000000", coordinates = @Loc(value = LOCATION_9)),
-                    @Point(id = "108753000000", coordinates = @Loc(value = LOCATION_10)),
-                    @Point(id = "108755000000", coordinates = @Loc(value = LOCATION_11)),
-                    @Point(id = "108757000000", coordinates = @Loc(value = LOCATION_12)),
-                    @Point(id = "108758000000", coordinates = @Loc(value = LOCATION_13)),
-                    @Point(id = "108759000000", coordinates = @Loc(value = LOCATION_14)),
-                    @Point(id = "108761000000", coordinates = @Loc(value = LOCATION_15)) },
+            points = {
+                    @Point(id = "108752000000", coordinates = @Loc(value = LOCATION_1), tags = {
+                            "building=yes" }),
+                    @Point(id = "108754000000", coordinates = @Loc(value = LOCATION_16), tags = {
+                            "building=yes" }),
+                    @Point(id = "108756000000", coordinates = @Loc(value = LOCATION_17), tags = {
+                            "building=yes" }),
+                    @Point(id = "108751000000", coordinates = @Loc(value = LOCATION_9), tags = {
+                            "building=yes" }),
+                    @Point(id = "108753000000", coordinates = @Loc(value = LOCATION_10), tags = {
+                            "building=yes" }),
+                    @Point(id = "108755000000", coordinates = @Loc(value = LOCATION_11), tags = {
+                            "building=yes" }),
+                    @Point(id = "108757000000", coordinates = @Loc(value = LOCATION_12), tags = {
+                            "building=yes" }),
+                    @Point(id = "108758000000", coordinates = @Loc(value = LOCATION_13), tags = {
+                            "building=yes" }),
+                    @Point(id = "108759000000", coordinates = @Loc(value = LOCATION_14), tags = {
+                            "building=yes" }),
+                    @Point(id = "108761000000", coordinates = @Loc(value = LOCATION_15), tags = {
+                            "building=yes" }) },
 
             lines = { @Line(id = "108768000000", coordinates = { @Loc(value = LOCATION_1),
                     @Loc(value = LOCATION_16), @Loc(value = LOCATION_17), @Loc(value = LOCATION_13),

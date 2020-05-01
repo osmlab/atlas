@@ -1,9 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Optional;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -14,29 +12,21 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.complex.Finder;
 import org.openstreetmap.atlas.geography.atlas.items.complex.water.ComplexWaterEntity;
 import org.openstreetmap.atlas.geography.atlas.items.complex.water.finder.ComplexWaterEntityFinder;
-import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
-import org.openstreetmap.atlas.geography.sharding.Shard;
-import org.openstreetmap.atlas.geography.sharding.SlippyTile;
-import org.openstreetmap.atlas.geography.sharding.SlippyTileSharding;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
-import org.openstreetmap.atlas.tags.NaturalTag;
-import org.openstreetmap.atlas.tags.SyntheticRelationMemberAdded;
-import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
- * {@link RawAtlasRelationSlicer} unit tests for slicing {@link Relation}s.
+ * {@link RawAtlasSlicer} unit tests for slicing {@link Relation}s.
  *
  * @author mgostintsev
+ * @author samg
  */
 public class RelationSlicingTest
 {
-    private static RawAtlasCountrySlicer rawAtlasSlicer;
-
     private static AtlasLoadingOption loadingOption;
 
     private static ComplexWaterEntityFinder complexWaterEntityFinder = new ComplexWaterEntityFinder();
@@ -48,151 +38,10 @@ public class RelationSlicingTest
                         .getResourceAsStream("CIV_GIN_LBR_osm_boundaries_with_grid_index.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP)));
         loadingOption.setAdditionalCountryCodes("CIV", "GIN", "LBR");
-        rawAtlasSlicer = new RawAtlasCountrySlicer(loadingOption);
-
     }
 
     @Rule
     public RelationSlicingTestRule setup = new RelationSlicingTestRule();
-
-    @Test
-    public void testDynamicSlicingForMultipleCountries()
-    {
-        final Map<Shard, Atlas> store;
-        store = new HashMap<>();
-        store.put(new SlippyTile(15624, 15756, 15), rawAtlasSlicer
-                .sliceLines(this.setup.getSingleOuterMultiPolygonSpanningTwoAtlases1()));
-        store.put(new SlippyTile(15625, 15756, 15), rawAtlasSlicer
-                .sliceLines(this.setup.getSingleOuterMultiPolygonSpanningTwoAtlases2()));
-
-        final RawAtlasCountrySlicer dynamicSlicer = new RawAtlasCountrySlicer(loadingOption,
-                new SlippyTileSharding(15), shard ->
-                {
-                    if (store.containsKey(shard))
-                    {
-                        return Optional.of(store.get(shard));
-                    }
-                    else
-                    {
-                        return Optional.empty();
-                    }
-                });
-        final Atlas slicedAtlas = dynamicSlicer
-                .sliceRelations(SlippyTile.forName("15-15625-15756"));
-
-        // check that the original multipolygon relation was removed
-        Assert.assertNull(slicedAtlas.relation(214805000000L));
-        // check that the original multipolygon relation was sliced into different relations for
-        // each country
-        Assert.assertEquals(3, slicedAtlas.numberOfRelations());
-        Assert.assertEquals(1, Iterables.size(slicedAtlas.relations(relation ->
-        {
-            return relation.isMultiPolygon()
-                    && Validators.isOfType(relation, NaturalTag.class, NaturalTag.WATER)
-                    && ISOCountryTag.isIn("LBR").test(relation);
-        })));
-        Assert.assertEquals(1, Iterables.size(slicedAtlas.relations(relation ->
-        {
-            return relation.isMultiPolygon()
-                    && Validators.isOfType(relation, NaturalTag.class, NaturalTag.WATER)
-                    && ISOCountryTag.isIn("CIV").test(relation);
-        })));
-
-        // check that these relations close
-        Assert.assertEquals(2,
-                Iterables.size(this.complexWaterEntityFinder.find(slicedAtlas, Finder::ignore)));
-
-        Assert.assertEquals("CIV",
-                slicedAtlas.relation(214805001000L).getTag(ISOCountryTag.KEY).get());
-        Assert.assertEquals("LBR",
-                slicedAtlas.relation(214805002000L).getTag(ISOCountryTag.KEY).get());
-        Assert.assertEquals("-8036582537415278650",
-                slicedAtlas.relation(214805001000L).getTag(SyntheticRelationMemberAdded.KEY).get());
-        Assert.assertEquals("-4590745532357463517",
-                slicedAtlas.relation(214805002000L).getTag(SyntheticRelationMemberAdded.KEY).get());
-
-        // check the non multipolygon relation and make sure it was left intact and tagged with both
-        // country codes
-        Assert.assertNotNull(slicedAtlas.relation(214806000000L));
-        Assert.assertTrue(ISOCountryTag.isIn("CIV").test(slicedAtlas.relation(214806000000L)));
-        Assert.assertTrue(ISOCountryTag.isIn("LBR").test(slicedAtlas.relation(214806000000L)));
-    }
-
-    @Test
-    public void testDynamicSlicingForSingleCountry()
-    {
-        final AtlasLoadingOption civLoadingOption = AtlasLoadingOption.createOptionWithAllEnabled(
-                CountryBoundaryMap.fromPlainText(new InputStreamResource(
-                        () -> LineAndPointSlicingTest.class.getResourceAsStream(
-                                "CIV_GIN_LBR_osm_boundaries_with_grid_index.txt.gz"))
-                                        .withDecompressor(Decompressor.GZIP)));
-        civLoadingOption.setAdditionalCountryCodes("CIV");
-        final RawAtlasCountrySlicer civRawAtlasSlicer = new RawAtlasCountrySlicer(civLoadingOption);
-        final AtlasLoadingOption lbrLoadingOption = AtlasLoadingOption.createOptionWithAllEnabled(
-                CountryBoundaryMap.fromPlainText(new InputStreamResource(
-                        () -> LineAndPointSlicingTest.class.getResourceAsStream(
-                                "CIV_GIN_LBR_osm_boundaries_with_grid_index.txt.gz"))
-                                        .withDecompressor(Decompressor.GZIP)));
-        lbrLoadingOption.setAdditionalCountryCodes("LBR");
-        final RawAtlasCountrySlicer lbrRawAtlasSlicer = new RawAtlasCountrySlicer(lbrLoadingOption);
-        final Map<Shard, Atlas> store;
-        final Atlas multiAtlas1 = new MultiAtlas(
-                civRawAtlasSlicer
-                        .sliceLines(this.setup.getSingleOuterMultiPolygonSpanningTwoAtlases1()),
-                lbrRawAtlasSlicer
-                        .sliceLines(this.setup.getSingleOuterMultiPolygonSpanningTwoAtlases1()));
-
-        final Atlas multiAtlas2 = new MultiAtlas(
-                civRawAtlasSlicer
-                        .sliceLines(this.setup.getSingleOuterMultiPolygonSpanningTwoAtlases2()),
-                lbrRawAtlasSlicer
-                        .sliceLines(this.setup.getSingleOuterMultiPolygonSpanningTwoAtlases2()));
-
-        store = new HashMap<>();
-        store.put(new SlippyTile(15624, 15756, 15), multiAtlas1);
-        store.put(new SlippyTile(15625, 15756, 15), multiAtlas2);
-
-        final RawAtlasCountrySlicer dynamicSlicer = new RawAtlasCountrySlicer(lbrLoadingOption,
-                new SlippyTileSharding(15), shard ->
-                {
-                    if (store.containsKey(shard))
-                    {
-                        return Optional.of(store.get(shard));
-                    }
-                    else
-                    {
-                        return Optional.empty();
-                    }
-                });
-        final Atlas slicedAtlas = dynamicSlicer
-                .sliceRelations(SlippyTile.forName("15-15625-15756"));
-
-        // check that the original multipolygon relation was removed
-        Assert.assertNull(slicedAtlas.relation(214805000000L));
-        // check that the original relation was sliced into different relations for each country
-        Assert.assertEquals(2, slicedAtlas.numberOfRelations());
-        Assert.assertEquals(1, Iterables.size(slicedAtlas.relations(relation ->
-        {
-            return relation.isMultiPolygon()
-                    && Validators.isOfType(relation, NaturalTag.class, NaturalTag.WATER)
-                    && ISOCountryTag.isIn("LBR").test(relation);
-        })));
-
-        // check that these relations close
-        Assert.assertEquals(1,
-                Iterables.size(this.complexWaterEntityFinder.find(slicedAtlas, Finder::ignore)));
-
-        Assert.assertEquals("LBR",
-                slicedAtlas.relation(214805002000L).getTag(ISOCountryTag.KEY).get());
-        Assert.assertEquals("-4590745532357463517",
-                slicedAtlas.relation(214805002000L).getTag(SyntheticRelationMemberAdded.KEY).get());
-
-        // check the non multipolygon relation and make sure it was left intact and tagged with only
-        // the country we're slicing
-        Assert.assertNotNull(slicedAtlas.relation(214806000000L));
-        Assert.assertFalse(ISOCountryTag.isIn("CIV").test(slicedAtlas.relation(214806000000L)));
-        Assert.assertTrue(ISOCountryTag.isIn("LBR").test(slicedAtlas.relation(214806000000L)));
-    }
 
     @Test
     public void testMultiPolygonRelationSpanningTwoCountries()
@@ -205,10 +54,10 @@ public class RelationSlicingTest
         Assert.assertEquals(12, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
+        final Atlas slicedAtlas = new RawAtlasSlicer(loadingOption, rawAtlas).slice();
 
-        Assert.assertEquals(27, slicedAtlas.numberOfPoints());
-        Assert.assertEquals(5, slicedAtlas.numberOfLines());
+        Assert.assertEquals(0, slicedAtlas.numberOfPoints());
+        Assert.assertEquals(9, slicedAtlas.numberOfLines());
         Assert.assertEquals(2, slicedAtlas.numberOfRelations());
     }
 
@@ -224,9 +73,10 @@ public class RelationSlicingTest
         Assert.assertEquals(9, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
-        Assert.assertEquals(3, slicedAtlas.numberOfLines());
-        Assert.assertEquals(14, slicedAtlas.numberOfPoints());
+        final Atlas slicedAtlas = new RawAtlasSlicer(loadingOption, rawAtlas).slice();
+
+        Assert.assertEquals(5, slicedAtlas.numberOfLines());
+        Assert.assertEquals(0, slicedAtlas.numberOfPoints());
         Assert.assertEquals(2, slicedAtlas.numberOfRelations());
 
         // Just for fun (and to validate the sliced multi-polygon validity) - create Complex
@@ -248,7 +98,7 @@ public class RelationSlicingTest
         Assert.assertEquals(9, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
+        final Atlas slicedAtlas = new RawAtlasSlicer(loadingOption, rawAtlas).slice();
         Assert.assertEquals(8, slicedAtlas.numberOfLines());
         Assert.assertEquals(11, slicedAtlas.numberOfPoints());
         Assert.assertEquals(2, slicedAtlas.numberOfRelations());
@@ -271,10 +121,10 @@ public class RelationSlicingTest
         Assert.assertEquals(8, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
+        final Atlas slicedAtlas = new RawAtlasSlicer(loadingOption, rawAtlas).slice();
 
-        Assert.assertEquals(29, slicedAtlas.numberOfPoints());
-        Assert.assertEquals(2, slicedAtlas.numberOfLines());
+        Assert.assertEquals(0, slicedAtlas.numberOfPoints());
+        Assert.assertEquals(8, slicedAtlas.numberOfLines());
         Assert.assertEquals(2, slicedAtlas.numberOfRelations());
     }
 
@@ -288,9 +138,9 @@ public class RelationSlicingTest
         Assert.assertEquals(9, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
+        final Atlas slicedAtlas = new RawAtlasSlicer(loadingOption, rawAtlas).slice();
 
-        Assert.assertEquals(11, slicedAtlas.numberOfPoints());
+        Assert.assertEquals(9, slicedAtlas.numberOfPoints());
         Assert.assertEquals(6, slicedAtlas.numberOfLines());
         Assert.assertEquals(2, slicedAtlas.numberOfRelations());
 
@@ -307,9 +157,9 @@ public class RelationSlicingTest
         Assert.assertEquals(11, rawAtlas.numberOfPoints());
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
+        final Atlas slicedAtlas = new RawAtlasSlicer(loadingOption, rawAtlas).slice();
 
-        Assert.assertEquals(13, slicedAtlas.numberOfPoints());
+        Assert.assertEquals(9, slicedAtlas.numberOfPoints());
         Assert.assertEquals(6, slicedAtlas.numberOfLines());
         Assert.assertEquals(2, slicedAtlas.numberOfRelations());
 
@@ -334,7 +184,7 @@ public class RelationSlicingTest
         Assert.assertEquals(2, rawAtlas.numberOfPoints());
         Assert.assertEquals(3, rawAtlas.numberOfRelations());
 
-        final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
+        final Atlas slicedAtlas = new RawAtlasSlicer(loadingOption, rawAtlas).slice();
         for (final Relation relation : slicedAtlas.relations())
         {
             final Map<String, String> tags = relation.getTags();

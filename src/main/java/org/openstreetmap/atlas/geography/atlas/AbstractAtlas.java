@@ -24,7 +24,7 @@ import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
 import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasCountrySlicer;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.index.PackedSpatialIndex;
 import org.openstreetmap.atlas.geography.index.RTree;
@@ -111,7 +111,7 @@ public abstract class AbstractAtlas extends BareAtlas
         final AtlasLoadingOption loadingOption = AtlasLoadingOption
                 .createOptionWithAllEnabled(boundaryMap);
         loadingOption.setAdditionalCountryCodes(boundaryMap.getLoadedCountries());
-        atlas = new RawAtlasCountrySlicer(loadingOption).slice(atlas);
+        atlas = new RawAtlasSlicer(loadingOption, atlas).slice();
         atlas = new WaySectionProcessor(atlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap)).run();
         atlas.save(atlasResource);

@@ -56,7 +56,6 @@ public final class AtlasLoadingOption implements Serializable
     private ConfiguredTaggableFilter osmPbfNodeFilter = DEFAULT_OSM_PBF_NODE_FILTER;
     private ConfiguredTaggableFilter osmPbfRelationFilter = DEFAULT_OSM_PBF_RELATION_FILTER;
     private ConfiguredTaggableFilter relationSlicingFilter = DEFAULT_RELATION_SLICING_FILTER;
-    private ConfiguredTaggableFilter forceSlicingFilter = null;
 
     private boolean loadAtlasRelation;
     private boolean loadOsmBound;
@@ -160,11 +159,6 @@ public final class AtlasLoadingOption implements Serializable
     public ConfiguredTaggableFilter getEdgeFilter()
     {
         return this.edgeFilter;
-    }
-
-    public ConfiguredTaggableFilter getForceSlicingFilter()
-    {
-        return this.forceSlicingFilter;
     }
 
     public ConfiguredTaggableFilter getOsmPbfNodeFilter()
@@ -287,11 +281,6 @@ public final class AtlasLoadingOption implements Serializable
     public void setEdgeFilter(final ConfiguredTaggableFilter edgeFilter)
     {
         this.edgeFilter = edgeFilter;
-    }
-
-    public void setForceSlicingFilter(final ConfiguredTaggableFilter forceSlicingFilter)
-    {
-        this.forceSlicingFilter = forceSlicingFilter;
     }
 
     public AtlasLoadingOption setLoadAtlasArea(final boolean isLoadAtlasArea)

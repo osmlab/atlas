@@ -11,7 +11,7 @@ import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
 import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasCountrySlicer;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.geography.atlas.routing.AStarRouter;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.boundary.converters.CountryListTwoWayStringConverter;
@@ -114,7 +114,7 @@ public class AtlasDebugTool extends Command
             atlas = new RawAtlasGenerator(pbf, option, multiPolygon).build();
             if (option.isCountrySlicing())
             {
-                atlas = new RawAtlasCountrySlicer(option).slice(atlas);
+                atlas = new RawAtlasSlicer(option, atlas).slice();
             }
             atlas = new WaySectionProcessor(atlas, option).run();
             atlas.save(atlasFile);

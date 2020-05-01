@@ -25,7 +25,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
 import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasCountrySlicer;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.Resource;
@@ -183,7 +183,7 @@ public class OsmPbfIngestTest
                         () -> OsmPbfIngestTest.class.getResourceAsStream("edge-filter.json")))));
         Atlas atlas = new RawAtlasGenerator(pbfFile, option, boundary).build();
         option.setAdditionalCountryCodes(countryBoundaryMap.getLoadedCountries());
-        atlas = new RawAtlasCountrySlicer(option).slice(atlas);
+        atlas = new RawAtlasSlicer(option, atlas).slice();
         atlas = new WaySectionProcessor(atlas, option).run();
 
         // Edges with access=no that need to be included
@@ -205,7 +205,7 @@ public class OsmPbfIngestTest
                     .setAdditionalCountryCodes(COUNTRY_1_NAME);
             Atlas atlas = new RawAtlasGenerator(() -> osmosis, loadingOption, MultiPolygon.MAXIMUM)
                     .build();
-            atlas = new RawAtlasCountrySlicer(loadingOption).slice(atlas);
+            atlas = new RawAtlasSlicer(loadingOption, atlas).slice();
             atlas = new WaySectionProcessor(atlas, AtlasLoadingOption.createOptionWithNoSlicing())
                     .run();
             Assert.assertEquals(2, atlas.numberOfLines());
@@ -239,7 +239,7 @@ public class OsmPbfIngestTest
                     .setAdditionalCountryCodes(COUNTRY_1_NAME);
             Atlas atlas = new RawAtlasGenerator(() -> osmosis, loadingOption, MultiPolygon.MAXIMUM)
                     .build();
-            atlas = new RawAtlasCountrySlicer(loadingOption).slice(atlas);
+            atlas = new RawAtlasSlicer(loadingOption, atlas).slice();
             atlas = new WaySectionProcessor(atlas, AtlasLoadingOption.createOptionWithNoSlicing())
                     .run();
             logger.info("{}", atlas);

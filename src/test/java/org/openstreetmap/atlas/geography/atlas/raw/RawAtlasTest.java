@@ -6,7 +6,7 @@ import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasCountrySlicer;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.Resource;
@@ -49,7 +49,7 @@ public class RawAtlasTest
         logger.debug("Raw Atlas: {}", rawAtlas);
 
         option.setAdditionalCountryCodes("DNK");
-        final Atlas slicedAtlas = new RawAtlasCountrySlicer(option).slice(rawAtlas);
+        final Atlas slicedAtlas = new RawAtlasSlicer(option, rawAtlas).slice();
         logger.debug("Sliced Atlas: {}", slicedAtlas);
 
         // Check the top node 3089123457 has the proper tagging - nearest neighbor and on the
@@ -99,7 +99,7 @@ public class RawAtlasTest
         Assert.assertNotNull(rawAtlas.line(39019000000L));
 
         option.setAdditionalCountryCodes("DMA");
-        final Atlas slicedAtlas = new RawAtlasCountrySlicer(option).slice(rawAtlas);
+        final Atlas slicedAtlas = new RawAtlasSlicer(option, rawAtlas).slice();
         logger.debug("Sliced Atlas: {}", slicedAtlas);
 
         // Line partially inside, should be included
