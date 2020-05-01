@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -155,12 +156,15 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
 
     public CompleteRelation changeMemberRole(final AtlasEntity member, final String role)
     {
-        final RelationBeanItem olditem = this.members
-                .getItemFor(member.getIdentifier(), member.getType()).get();
-        this.members.removeItem(olditem);
-        final RelationBeanItem newItem = new RelationBeanItem(member.getIdentifier(), role,
+        final Optional<RelationBeanItem> oldItem = this.members.getItemFor(member.getIdentifier(),
                 member.getType());
-        this.members.addItem(newItem);
+        if (oldItem.isPresent())
+        {
+            this.members.removeItem(oldItem.get());
+            final RelationBeanItem newItem = new RelationBeanItem(member.getIdentifier(), role,
+                    member.getType());
+            this.members.addItem(newItem);
+        }
         return this;
     }
 
