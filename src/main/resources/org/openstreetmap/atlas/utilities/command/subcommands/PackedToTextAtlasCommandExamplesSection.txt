@@ -10,3 +10,5 @@ Transform an atlas to GeoJSON:
 Transform an atlas to line-delimited GeoJSON, and fail fast if 
 it does not exist:
 #$ packed2text file.atlas -l --strict
+Transform a TextAtlas back into a PackedAtlas:
+#$ packed2text --reverse file.atlas.txt
