@@ -1,79 +1,64 @@
 # `Raw Atlas Slicing`
-
 ## Overview
+Slicing is the operation of taking an `Atlas` and tagging all of its entities with country codes, as well as ensuring that *only* entities from the loaded country code persist in the output `Atlas`. While this operation may sound straightforward, data complexities frequently result in corner cases and complicated calculations in order to make sure the entities in the output `Atlas` are sensible. The term "slicing" describes these more difficult cases because the geometry of an entity frequently spans multiple countries, and thus must be "sliced" into portions that either a) are contained entirely in only one country boundary polygon or b) exactly along the shared overlap of multiple country boundary exterior rings and thus have geometry shared by a set of countries.  
 
-Raw Atlas Slicing is the process of assigning country codes to all Atlas features given an intermediary raw Atlas file. As input, the process takes in a raw Atlas and produces a sliced raw Atlas. It's important to note that both the input and output Atlas files will contain only Points, Lines and Relations. One of the main advantages of the country slicing process is that it will leverage the `DynamicAtlas` and attempt to build Relations that span multiple shards in their entirety. Once the Relation is built, it can be properly sliced along the given country boundaries and as a result, each country can contain valid, country-specific portions of multi-polygons that span one or more countries. In accomplishing this, we can achieve full OSM parity and be able to ingest OSM administrative boundaries and coast lines. Both of these features are currently left out of the Atlas.
+### Initialization
+The slicer is constructed with a minimum input of `Atlas` and `AtlasLoadingOption`
+* The `Atlas` should be raw, i.e. not previously sliced and consisting of only `Line`, `Point`, and `Relation` entities
+* The `AtlasLoadingOption` will use the following paramters: 
+    * `CountryBoundaryMap` to determine country boundary definitions
+    * `countryCodes` to determine which entities to keep in the final Atlas-- any entity whose country code is *not* in the `countryCodes` set will be removed from the final tlas!
+    * `relationSlicingFilter` to determine which `Relations` to expand the `DynamicAtlas` on and attempt to slice-- at a minimum, these relations must be `type->multipolygon` or `type->boundary`, but additional tagging critieria are acceptable here
+    * `edgeFilter` to determine which `Line` entities should be considered future `Edge` entities
+	    * This is important because closed `Line` entities will be sliced as two-dimenstional polygons but closed `Edge` entities (such as a traffic circle) will be sliced as linear features
 
-## Terminology
+If the constructor that takes in a `Sharding` object and `Atlas` fetcher function is used, then additionally the initial `Atlas` will be converted to a `DynamicAtlas` expanded on the `relationSlicingFilter` in the `AtlasLoadingOption`.
+Once the constructor is called, three maps are initialized for `CompleteEntity` representations of all three `AtlasEntity` types. These objects will be used to track changes made during the slicing operation.
 
-This section calls out the main terms and concepts that are key to the slicing code.
+### Slicing Steps
+The high level operations of slicing are executed in the `slice()` method, and can be summarized as follows:
+1. Slice all `Line` entities in the `Atlas` following a basic logic fork:
+	* If the `Line` entity is closed (i.e. a loop) and neither a future `Edge` or a multipolygon `Relation` member, then slice it as an `Area` (2d geometry)
+	* Otherwise, slice it as a linear entity
+2. Slice all multipolygon type `Relation` entities
+3. Slice all `Point` entities
+4. Filter any remaining `Relation` entities-- because we don't expand on all `Relations`, it's impossible to deterministically "slice" these `Relations`, so instead we just filter out any members that are outside the country code set being sliced and update the country tag for the `Relation` to be the sum of its remaining members.
+5. Add all `CompleteEntities` in the staged entity maps as `FeatureChange.ADD`-- these are either existing features being updated or new entities being added, so `FeatureChange.ADD` is always appropriate
+6. Build a new `ChangeAtlas` out of these changes, then cut out any entities that lay outside the shard bounds (frequently happens for data loaded in durin the `DynamicAtlas`expansion for `Relations`)
 
-* We rely on the JTS (Java Topology Suite) library for all geometric operations (spatial queries, intersection and cutting requests) and some key data structures (R-tree, JTS geometry representations).
-* The `CountryBoundaryMap` class is the main driver behind all slicing operations. This class contains the raw country boundary `MultiPolygon` representations as well as an underlying optimization (the grid index) that allows for quick lookup to see whether a specific feature is contained in a boundary.   
-* The main drivers behind the slicing code are the `RawAtlasPointAndLineSlicer` and the `RawAtlasRelationSlicer`. The `RawAtlasPointAndLineSlicer` is responsible for slicing all Points and Lines, updating Relations with any member changes as a result and rebuilding the Atlas in an intermediate state to set it up for Relation slicing. In turn, the `RawAtlasRelationSlicer` then slices all of the Relations - ensuring that if a Relation contains members found in multiple countries, that Relation is created for each corresponding country.
-* The country-slicing code follows a pattern of creating change sets for both slicing iterations and using corresponding change set builders to apply the changes and rebuild the intermediate and final Atlas.
+### Geometry Slicing
+Slicing of all entities follows the same general approach. 
+1. The data for the entity is constructed into a relevant JTS geometry. 
+    * For example, for a closed `Line` that meets the criteria for an `Area`, a JTS `Polygon` is created
+2. This internal envelople for this geometry is checked against the spatial index of the boundary map to calculate which country boundary polygons it intersects
+    * Should this geometry exclusively belong to one country, its geometry is left unaltered and the country code tag is updated to contain this country
+3. Next, geometry is checked for validity-- it must be [valid geometry](http://www.ogc.org/docs/is/) and not empty
+    * This is critical because if we filter out occasional invalid geomtery coming out of the slicing operation; inputting invalid geometry is a guarantee of junk output
+    * If it's invalid, then we remove it from the Atlas
+4. The JTS geometry is then divided into the portions intersected by each country boundary polygon, creating a map of country code to geometric pieces.
+    * ALL of these pieces must meet the requirements for validity and significance, because incredibly small lines or polygons are likely junk data or irrelevant
+    * Should the operation return a GeometryCollection, all geometries in the collection are separated and added to the results Set independently after being checked for validity and significance
+5. The results are post-processed based on the type of AtlasEntity
+    * These operations are largely similar but there are a few different expectations based on AtlasEntity type-- for example, a sliced linear `Line` will attempt to join all resulting `LineString` pieces for each country using `LineMerger` because occasionally a few of these `LineStrings` can be merged
+    * Additionally, the map returned here will use `SortedMap` to guarantee deterministic consistency in `Line` slice creation regardless of what country code settings are used, etc.
+6. On the small chance that the slicing operation returned an empty set or all significant geometry was in exclusively one country, the geometry will be unaltered and the country code tag will be updated to have either the country-missing value or the single country only, respectively
+7. Additionally, should the number of slices be greater than the country identifier space (000-999), then the operation will fail out and the entity will be taggeed with all country codes its geometry spanned
+8. Finally, the slice geomtries will be converted sequentially based on their SortedMap ordering into new `AtlasEntities` with the same tags as their parent entity, but with the geomtery of the slice and the country code tag of the relevant country, and these are be added to the relevant staged `CompleteEntity` map
+    * At the end of this process, the original parent entity will be removed from the relevant staged `CompleteEntity` map and a `FeatureChange.remove` is added to the `changes` `ChangeSet` to ensure it is removed from the final `Atlas`
 
-## Detailed Steps
+### MultiPolygon Relation Slicing
+This operation has some added complexity that is worth explaining in-depth. While the overall approach follows the approach described above, the changes are as follows:
 
-The slicing process is comprised of the following steps:
-
-1. First, slice all of lines in the given Atlas. This involves converting each Atlas `Line` to a JTS Geometry entity, performing the actual slice operation using the `CountryBoundaryMap` class and finally assigning the proper `ISOCountryTag`, `SyntheticBoundaryNodeTag` and `SyntheticNearestNeighborCountryCodeTag` to the resulting line features. We must also assign country codes to all `Point` features that are part of the sliced `Line` feature. During this process, there must be careful considerations for several cases. The first case is to keep track of when to create new Points at the country boundary for cases when a feature is crossing boundaries one or more times. It's also vital to keep a mapping between the newly created Lines and the one that was sliced, so that the appropriate Relations can be updated and remain valid.
-
-2. Once the line slicing is completed - we need to look at any points that haven't been assigned a country code. These are Points that were not part of a `Line` feature - examples include stand alone Points such as trees, barriers, etc. This is one of the simpler slicing operations - since it's just a location containment check using the underlying grid index from the `CountryBoundaryMap`. 
-
-3. Once both Points and Lines have been sliced, an intermediate Atlas is built to be able to slice Relations. The intermediate changes are aggregated using a `SimpleChangeSet` and applied with the `SimpleChangeSetHandler`. It's important to note that during the build - we must replace any Lines that were sliced by their corresponding sliced Lines. 
-
-4. This next step is to slice all Relations. We care mostly about the `MultiPolygon` and `Boundary` type Relations, since these are the relations that will combine their members to form a specific `Polygon` or enclosed area. All other Relations represent more abstract notions (such as turn restrictions or routes) and can be (for the most part) handled by simple grouping individual members organized by country code. To handle the `MultiPolygon` and `Boundary` type relations, we take the following steps:
-    1. We first group together all the inner and outer members so we have fast access to each
-    2. We then build all of the outer and inner rings, if it's possible (invalid Relations may exist)
-    3. Convert the combination of outer and inner members into a JTS `Polygon`
-    4. We clip the resulting `Polygon` along the country boundary
-    5. If there was no clipping - then no action is needed, the Relation falls fully within a country. If there was a clipping, then we need to create new Points, Lines and update the Relation to include these as members. As a result, we have effectively patched the MultiPolygon Relation to be closed at the country boundary. 
-    6. Once the cutting has been done, we try to reconcile any Relation Role inconsistencies that may have arisen as a result. Essentially, we are trying to merge any inners and outers into a single member. To achieve this, we create inner and outer lists of closed members, find any intersection location between the inners and outers and for any such intersection, we take the JTS difference of the two, updating our Points, Lines and Relation members for the new piece that may have been created.
-
-5. Once the MultiPolygon-specific logic has been executed, the next step is to loop through all the Relations and group the members by country. If there is more than a single country present, then the Relation is split into two or more separate Relations, one for each country present.
-
-6. Once all Relations have been sliced and assigned country codes, the final sliced Atlas is built by applying the `RelationChangeSet` changes using the `RelationChangeSetHandler`.
-
-Note: A step needs to be added between 3) and 4) to leverage `DynamicAtlas` to be able to properly build Relations that span multiple shards. This will allow for proper processing of large water bodies, coast lines and administrative boundaries.
+1. The `Relation` is filtered of [invalid members](https://wiki.openstreetmap.org/wiki/Relation:multipolygon#Members)
+2. The geometry is built using the *raw member line geometry*, not the sliced `Lines` in the staged `CompleteEntity` map
+    * This choice ensures that the geometry will build if the raw `Relation` data builds a valid multipolygon, and avoids any possible small stitching errors resultant from data gaps introduced during `Line` slicing
+3. After the multipolygon is sliced against the intersecting country boundary polygons and new sliced `Relations` are created, an additional step occurs: `createSyntheticRelationMembers()`
+    * This method takes the sliced multipolygon for a country, subtracts out the existing sliced `Line` members for that country from that geometry, then generates new `Line` entities to cover the remaining geometry
+    * This operation preserves the ability to build a valid multipolygon out of the sliced `Relation`-- without it, the sliced `Line` members would have major gaps and fail to build into geometry
+	* Additionally, in rare circumstances a member that was previously tagged as an `inner` role will now overlap with the exterior ring of the sliced geometry
+	    * In this case, that member will still be preserved but its role will be switched to an `outer`
 
 ## Synthetic Tags
-
 There are two synthetic tags generated by the country-slicing process:
-
 1. The `SyntheticRelationMemberAdded` - which indicates a Relation that had an added member as a result of country-slicing. An example includes closing a water body MultiPolygon relation with a new `Line` member that runs along a country boundary.
 2. The `SyntheticRelationRoleUpdated` - which indicates a Relation member role update, any time that some combination of inner/outer relation members was merged.
-
-## Code Sample
-
-The slicing code has a single entry point in the `RawAtlasCountrySlicer` class and has two basic use cases:
-
-1. Slice against a given country and `CountryBoundaryMap`.
-2. Slice against a given set of countries and `CountryBoundaryMap`.
-
-Below are examples of each case:
-
-```java
-// Country boundary shapes backed by a spatial index
-final CountryBoundaryMap countryBoundaryMap;
-
-// Set of ISO-3 country codes that will be sliced against
-final Set<String> countries;
-
-// A pre-generated raw atlas
-final Atlas rawAtlas;
-
-final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(countries, countryBoundaryMap).slice(rawAtlas);
-```
-and:
-
-```java
-// Country boundary shapes backed by a spatial index
-final CountryBoundaryMap countryBoundaryMap;
-
-// A pre-generated raw atlas
-final Atlas rawAtlas;
-
-// Slicing against target country with iso-3 country code of ABC
-final Atlas slicedRawAtlas = new RawAtlasCountrySlicer("ABC", countryBoundaryMap).slice(rawAtlas);
-```

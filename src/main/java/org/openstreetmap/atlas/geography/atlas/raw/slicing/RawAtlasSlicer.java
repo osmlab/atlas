@@ -21,15 +21,12 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryCollection;
 import org.locationtech.jts.geom.IntersectionMatrix;
 import org.locationtech.jts.geom.LineString;
-import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.geom.TopologyException;
 import org.locationtech.jts.operation.linemerge.LineMerger;
 import org.locationtech.jts.operation.overlay.snap.SnapOverlayOp;
 import org.locationtech.jts.operation.valid.IsValidOp;
 import org.locationtech.jts.precision.GeometryPrecisionReducer;
-import org.locationtech.jts.precision.PrecisionReducerCoordinateOperation;
 import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
@@ -54,7 +51,6 @@ import org.openstreetmap.atlas.geography.atlas.items.complex.RelationOrAreaToMul
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.AbstractIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.CountrySlicingIdentifierFactory;
-import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.PointIdentifierFactory;
 import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
@@ -66,7 +62,6 @@ import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
-import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
 import org.openstreetmap.atlas.tags.SyntheticRelationMemberAdded;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
@@ -76,12 +71,10 @@ import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Sets;
-
 /**
  * The abstract class that contains all common raw Atlas slicing functionality.
  *
- * @author mgostintsev
+ * @author samg
  */
 public class RawAtlasSlicer
 {
@@ -91,12 +84,6 @@ public class RawAtlasSlicer
     private static final JtsMultiPolygonToMultiPolygonConverter JTS_MULTIPOLYGON_CONVERTER = new JtsMultiPolygonToMultiPolygonConverter();
     private static final RelationOrAreaToMultiPolygonConverter RELATION_TO_MULTIPOLYGON_CONVERTER = new RelationOrAreaToMultiPolygonConverter();
     private static final Logger logger = LoggerFactory.getLogger(RawAtlasSlicer.class);
-    // JTS precision handling
-    private static final Integer SEVEN_DIGIT_PRECISION_SCALE = 10_000_000;
-    private static final PrecisionModel PRECISION_MODEL = new PrecisionModel(
-            SEVEN_DIGIT_PRECISION_SCALE);
-    protected static final PrecisionReducerCoordinateOperation PRECISION_REDUCER = new PrecisionReducerCoordinateOperation(
-            PRECISION_MODEL, true);
 
     // Logging constants
     private static final String COMPLETED_TASK_MESSAGE = "Finished {} for Shard {} in {}";
@@ -220,20 +207,17 @@ public class RawAtlasSlicer
         Time time = Time.now();
         logger.info("Starting slicing for Atlas {}", this.shardOrAtlasName);
         logger.info("Starting line slicing for Atlas {}", this.shardOrAtlasName);
-        this.startingAtlas.lines(line -> this.stagedLines.containsKey(line.getIdentifier())
-                && !Validators.hasValuesFor(this.stagedLines.get(line.getIdentifier()),
-                        ISOCountryTag.class))
-                .forEach(line ->
-                {
-                    if (line.isClosed() && !isAtlasEdge(line) && !isMultipolygonMember(line))
-                    {
-                        sliceArea(line);
-                    }
-                    else
-                    {
-                        sliceLine(line);
-                    }
-                });
+        this.startingAtlas.lines().forEach(line ->
+        {
+            if (line.isClosed() && !isAtlasEdge(line) && !isMultipolygonMember(line))
+            {
+                sliceArea(line);
+            }
+            else
+            {
+                sliceLine(line);
+            }
+        });
         logger.info("Finished line slicing for Atlas {} in {}", this.shardOrAtlasName,
                 time.elapsedSince());
 
@@ -277,10 +261,6 @@ public class RawAtlasSlicer
 
         logger.info("Finished slicing for Atlas {} in {}", this.shardOrAtlasName,
                 overallTime.elapsedSince());
-        if (this.changes.isEmpty())
-        {
-            return cutSubAtlasForOriginalShard(this.startingAtlas);
-        }
 
         return cutSubAtlasForOriginalShard(new ChangeAtlas(this.startingAtlas,
                 new ChangeBuilder().addAll(this.changes).get()));
@@ -312,10 +292,16 @@ public class RawAtlasSlicer
             if (Iterables.isEmpty(pointsAtFirstLocation))
             {
                 final EntityIdentifierGenerator pointIdentifierGenerator = new EntityIdentifierGenerator();
+                final SortedSet<String> countries = new TreeSet<>();
+                final Map<String, String> tags = new HashMap<>();
+                countries.addAll(
+                        Arrays.asList(getCountryBoundaryMap().getCountryCodeISO3(slice.first())
+                                .getIso3CountryCode().split(ISOCountryTag.COUNTRY_DELIMITER)));
+                tags.put(ISOCountryTag.KEY,
+                        String.join(ISOCountryTag.COUNTRY_DELIMITER, countries));
+                tags.put(SyntheticBoundaryNodeTag.KEY, SyntheticBoundaryNodeTag.YES.toString());
                 final CompletePoint syntheticBoundaryNode = new CompletePoint(1L, slice.first(),
-                        createPointTags(slice.first(), false), new HashSet<>());
-                syntheticBoundaryNode.withAddedTag(SyntheticBoundaryNodeTag.KEY,
-                        SyntheticBoundaryNodeTag.YES.toString());
+                        tags, new HashSet<>());
                 syntheticBoundaryNode.withIdentifier(
                         pointIdentifierGenerator.generateIdentifier(syntheticBoundaryNode));
                 this.stagedPoints.put(syntheticBoundaryNode.getIdentifier(), syntheticBoundaryNode);
@@ -334,10 +320,16 @@ public class RawAtlasSlicer
             if (Iterables.isEmpty(pointsAtLastLocation))
             {
                 final EntityIdentifierGenerator pointIdentifierGenerator = new EntityIdentifierGenerator();
+                final SortedSet<String> countries = new TreeSet<>();
+                final Map<String, String> tags = new HashMap<>();
+                countries.addAll(
+                        Arrays.asList(getCountryBoundaryMap().getCountryCodeISO3(slice.last())
+                                .getIso3CountryCode().split(ISOCountryTag.COUNTRY_DELIMITER)));
+                tags.put(ISOCountryTag.KEY,
+                        String.join(ISOCountryTag.COUNTRY_DELIMITER, countries));
+                tags.put(SyntheticBoundaryNodeTag.KEY, SyntheticBoundaryNodeTag.YES.toString());
                 final CompletePoint syntheticBoundaryNode = new CompletePoint(1L, slice.last(),
-                        createPointTags(slice.last(), false), new HashSet<>());
-                syntheticBoundaryNode.withAddedTag(SyntheticBoundaryNodeTag.KEY,
-                        SyntheticBoundaryNodeTag.YES.toString());
+                        tags, new HashSet<>());
                 syntheticBoundaryNode.withIdentifier(
                         pointIdentifierGenerator.generateIdentifier(syntheticBoundaryNode));
                 this.stagedPoints.put(syntheticBoundaryNode.getIdentifier(), syntheticBoundaryNode);
@@ -501,43 +493,6 @@ public class RawAtlasSlicer
                 this.stagedRelations.get(relationIdentifier).withRemovedMember(removedOldLine);
             }
         });
-    }
-
-    private Map<String, String> createPointTags(final Location location, final boolean fromRawAtlas)
-    {
-        final Map<String, String> tags = new HashMap<>();
-
-        // Get the country code details
-        final CountryCodeProperties countryDetails = getCountryBoundaryMap()
-                .getCountryCodeISO3(location);
-
-        // Store the country code, enforce alphabetical order if there are multiple
-        if (countryDetails.inMultipleCountries())
-        {
-            tags.put(ISOCountryTag.KEY, String.join(",", Sets.newTreeSet(Arrays.asList(
-                    countryDetails.getIso3CountryCode().split(ISOCountryTag.COUNTRY_DELIMITER)))));
-        }
-        else
-        {
-            tags.put(ISOCountryTag.KEY, countryDetails.getIso3CountryCode());
-        }
-
-        // If we used nearest neighbor logic to determine the country code, add a tag
-        // to indicate this
-        if (countryDetails.usingNearestNeighbor())
-        {
-            tags.put(SyntheticNearestNeighborCountryCodeTag.KEY,
-                    SyntheticNearestNeighborCountryCodeTag.YES.toString());
-            tags.put(SyntheticBoundaryNodeTag.KEY, SyntheticBoundaryNodeTag.EXISTING.toString());
-        }
-
-        // For any border nodes, add the existing tag
-        if (fromRawAtlas && countryDetails.inMultipleCountries())
-        {
-            tags.put(SyntheticBoundaryNodeTag.KEY, SyntheticBoundaryNodeTag.EXISTING.toString());
-        }
-
-        return tags;
     }
 
     private void createSyntheticRelationMembers(final CompleteRelation newRelation,
@@ -804,28 +759,6 @@ public class RawAtlasSlicer
                         && geometry.getArea() > CountryBoundaryMap.AREA_BUFFER);
     }
 
-    /**
-     * Given a slice {@link Geometry}, create a {@link PolyLine} out of it, ensuring that all
-     * {@link Location}s along the {@link PolyLine} have either {@link Point}s in the original
-     * {@link Atlas}, {@link Point}s made by other slices, or new {@link Point}s using
-     * {@link FeatureChange}s. Additionally, JTS frequently reverses geometry winding during the
-     * slice operation, so the returned {@link PolyLine} will be checked to ensure its winding
-     * matches the source entity's winding.
-     *
-     * @param slice
-     *            The slice {@link Geometry} to make a new {@link Line} for
-     * @param pointIdentifierFactory
-     *            A {@link PointIdentifierFactory} for generating new {@link Point} identifiers if
-     *            needed
-     * @param line
-     *            The {@link Line} being sliced
-     * @param atlas
-     *            The {@link Atlas} being sliced
-     * @param lineChanges
-     *            The {@link ChangeBuilder} tracking {@link Line} slicing changes
-     * @return A {@link PolyLine} representing the slice
-     */
-
     private PolyLine processSlice(final Geometry slice, final Line line)
     {
         PolyLine polylineForSlice;
@@ -1026,19 +959,6 @@ public class RawAtlasSlicer
         return results;
     }
 
-    /**
-     * Converts the given {@link Line} to a JTS {@link Geometry} and slices it. If the results of
-     * slicing are empty, or are from the same country, simply updates the original geometry with
-     * the country tag. Otherwise, calls a helper function to replace this {@link Line} with the
-     * slices.
-     *
-     * @param line
-     *            The {@link Line} to slice
-     * @param atlas
-     *            The {@link Atlas} being sliced
-     * @param lineChanges
-     *            The {@link ChangeBuilder} used to keep track of the {@link Line} slicing changes
-     */
     private void sliceLine(final Line line)
     {
         final Time time = Time.now();
@@ -1138,17 +1058,6 @@ public class RawAtlasSlicer
         return results;
     }
 
-    /**
-     * Clips the the given geometry along the boundary.
-     *
-     * @param identifier
-     *            The identifier of the feature we are clipping
-     * @param geometry
-     *            The {@link Polygon} we are clipping
-     * @return The {@link LineString}s making up the clipped geometry
-     * @throws TopologyException
-     *             Indicating a slicing error
-     */
     private SortedMap<String, org.locationtech.jts.geom.MultiPolygon> sliceMultiPolygonGeometry(
             final long identifier, final org.locationtech.jts.geom.MultiPolygon geometry,
             final Set<org.locationtech.jts.geom.Polygon> intersectingBoundaryPolygons)
@@ -1184,17 +1093,6 @@ public class RawAtlasSlicer
         return results;
     }
 
-    /**
-     * When this is called, all lines (closed and non-closed) crossing country boundaries will have
-     * been sliced. In the pre-process step, we want to handle a couple of scenarios. The first one
-     * is when a multipolygon relation is made up of distinct, non-closed lines tied together with a
-     * Relation. It's possible that after line slicing, we may need to close some of the gaps that
-     * formed along the border. Another scenario we need to handle is to look at all closed members
-     * and identify any that need to be merged.
-     *
-     * @param relation
-     *            The {@link Relation} to pre-process
-     */
     private void sliceMultiPolygonRelation(final CompleteRelation relation)
     {
         final Time time = Time.now();
@@ -1320,14 +1218,6 @@ public class RawAtlasSlicer
         }
     }
 
-    /**
-     * Tag all {@link Point}s in the {@link Atlas} with country codes by making
-     * {@link FeatureChange}s, then rebuilding using {@link ChangeAtlas}. Should no {@link Point}s
-     * need tagging, return the original {@link Atlas}.
-     *
-     * @param rawAtlas
-     *            A raw {@link Atlas} to be point-tagged
-     */
     private void slicePoint(final Point point)
     {
         if (point.getOsmTags().isEmpty()
@@ -1342,7 +1232,17 @@ public class RawAtlasSlicer
         else
         {
             final CompletePoint updatedPoint = this.stagedPoints.get(point.getIdentifier());
-            createPointTags(point.getLocation(), true).forEach(updatedPoint::withAddedTag);
+            final SortedSet<String> countries = new TreeSet<>();
+            countries.addAll(
+                    Arrays.asList(getCountryBoundaryMap().getCountryCodeISO3(point.getLocation())
+                            .getIso3CountryCode().split(ISOCountryTag.COUNTRY_DELIMITER)));
+            updatedPoint.withAddedTag(ISOCountryTag.KEY,
+                    String.join(ISOCountryTag.COUNTRY_DELIMITER, countries));
+            if (countries.size() > 1)
+            {
+                updatedPoint.withAddedTag(SyntheticBoundaryNodeTag.KEY,
+                        SyntheticBoundaryNodeTag.EXISTING.toString());
+            }
             if (!this.isInCountry.test(updatedPoint))
             {
                 this.stagedPoints.remove(point.getIdentifier());

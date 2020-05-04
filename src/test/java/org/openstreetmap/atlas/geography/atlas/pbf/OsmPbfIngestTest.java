@@ -228,29 +228,4 @@ public class OsmPbfIngestTest
             Assert.assertEquals(3, atlas.numberOfLines());
         }
     }
-
-    @Test
-    public void testOutsideWayBoundaryNodes() throws IOException
-    {
-        try (OsmosisReaderMock osmosis = new OsmosisReaderMock(this.store))
-        {
-            final AtlasLoadingOption loadingOption = AtlasLoadingOption
-                    .createOptionWithAllEnabled(this.countryBoundaries1)
-                    .setAdditionalCountryCodes(COUNTRY_1_NAME);
-            Atlas atlas = new RawAtlasGenerator(() -> osmosis, loadingOption, MultiPolygon.MAXIMUM)
-                    .build();
-            atlas = new RawAtlasSlicer(loadingOption, atlas).slice();
-            atlas = new WaySectionProcessor(atlas, AtlasLoadingOption.createOptionWithNoSlicing())
-                    .run();
-            logger.info("{}", atlas);
-            final Edge edgeOut = atlas.edgesIntersecting(OUTSIDE_COUNTRY_1.bounds()).iterator()
-                    .next();
-            final Node nodeOut = edgeOut.end();
-            Assert.assertNotNull(nodeOut.tag(SyntheticBoundaryNodeTag.KEY));
-            final Edge edgeIn = atlas.edgesIntersecting(Location.TEST_7.bounds()).iterator().next();
-            final Node nodeIn = edgeIn.end();
-            Assert.assertNull(nodeIn.tag(SyntheticBoundaryNodeTag.KEY));
-            Assert.assertEquals(2, atlas.numberOfPoints());
-        }
-    }
 }
