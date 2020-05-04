@@ -72,7 +72,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The abstract class that contains all common raw Atlas slicing functionality.
+ * Takes a raw Atlas (i.e. only Points, Lines, and Relations, all lacking country code tags) and
+ * "slices" it
  *
  * @author samg
  */
@@ -110,10 +111,14 @@ public class RawAtlasSlicer
     private final Predicate<AtlasEntity> isInCountry;
 
     /**
+     * This constructor will build a RawAtlasSlicer for use on a single Atlas with no dynamic
+     * expansion on Relations. Primarily for tests, please consider using the alternate constructor
+     * for most use cases!
+     *
      * @param loadingOption
-     *            does
+     *            An AtlasLoadingOption with a minimum of a CountryBoundaryMap included
      * @param startingAtlas
-     *            this
+     *            The raw Atlas to slice
      */
     public RawAtlasSlicer(final AtlasLoadingOption loadingOption, final Atlas startingAtlas)
     {
@@ -134,14 +139,18 @@ public class RawAtlasSlicer
     }
 
     /**
+     * This constructor will build a RawAtlasSlicer for the initial Shard given, using the provided
+     * Atlas fetcher function to dynamically expand on any Relations matching the
+     * relationSlicingFilter in the provided AtlasLoadingOption
+     *
      * @param loadingOption
-     *            does
+     *            An AtlasLoadingOption with a minimum of a CountryBoundaryMap included
      * @param initialShard
-     *            this
+     *            The initial Shard for the output Atlas to slice
      * @param sharding
-     *            not
+     *            The relevant Sharding tree
      * @param atlasFetcher
-     *            count
+     *            A function to get an Atlas object for a given Shard
      */
     public RawAtlasSlicer(final AtlasLoadingOption loadingOption, final Shard initialShard,
             final Sharding sharding, final Function<Shard, Optional<Atlas>> atlasFetcher)
@@ -201,6 +210,14 @@ public class RawAtlasSlicer
                 .put(relation.getIdentifier(), CompleteRelation.from(relation)));
     }
 
+    /**
+     * Calculates the changes needed to slice the Atlas, then builds a ChangeAtlas out of that and
+     * cuts it down to match the boundaries of the initial shard
+     *
+     * @return An Atlas with only entities that lay inside the original Shard bounds and matching
+     *         the country code set provided in the AtlasLoadingOption, all with ISOCountryTags
+     *         properly set
+     */
     public Atlas slice()
     {
         final Time overallTime = Time.now();
@@ -266,6 +283,15 @@ public class RawAtlasSlicer
                 new ChangeBuilder().addAll(this.changes).get()));
     }
 
+    /**
+     * Given a new split Relation, filter its original Relation's members by the country code for
+     * the new split Relation and add only them
+     *
+     * @param newRelation
+     *            A new Relation containing a subset of members based on country code
+     * @param oldRelation
+     *            The original Relation for the new split Relation
+     */
     private void addCountryMembersToSplitRelation(final CompleteRelation newRelation,
             final CompleteRelation oldRelation)
     {
@@ -283,6 +309,16 @@ public class RawAtlasSlicer
                 });
     }
 
+    /**
+     * Given a Line and its slice segment, ensure that any new coordinates where the Line has been
+     * split either have an existing Point that has an updated SyntheticBoundaryNodeTag.EXISTING
+     * value, or a new Point is created with the SyntheticBoundaryNodeTag.NEW value
+     *
+     * @param line
+     *            A Line being sliced that meets the criteria for an Edge (see isAtlasEdge method)
+     * @param slice
+     *            A slice for that Line
+     */
     private void addSyntheticBoundaryNodesForSlice(final Line line, final PolyLine slice)
     {
         if (!slice.first().equals(line.asPolyLine().first()))
@@ -343,6 +379,18 @@ public class RawAtlasSlicer
         }
     }
 
+    /**
+     * Given a remainder geometry for a sliced multipolygon Relation, add in new Lines to the Atlas
+     *
+     * @param newRelation
+     *            A new sliced Relation
+     * @param remainder
+     *            Geometry not covered by this new Relation's existing sliced Line members
+     * @param role
+     *            The role for this geometry in the Relation
+     * @return A Set of ids for the newly added Lines, used to updated the
+     *         SyntheticRelationMemberAdded tag in the new Relation
+     */
     private Set<String> addSyntheticLinesForRemainder(final CompleteRelation newRelation,
             final Geometry remainder, final String role)
     {
@@ -407,6 +455,16 @@ public class RawAtlasSlicer
         return atlas;
     }
 
+    /**
+     * Given a Line that will be a future Area and its slices, create the new Line entities and put
+     * them in the stagedLines map
+     *
+     * @param line
+     *            The Line being sliced as an Area
+     * @param slices
+     *            The map representing the portions of its geometry in each country, mapped to
+     *            country code
+     */
     private void createNewSlicedAreas(final Line line,
             final SortedMap<String, Set<org.locationtech.jts.geom.Polygon>> slices)
     {
@@ -449,6 +507,16 @@ public class RawAtlasSlicer
         });
     }
 
+    /**
+     * Given a non-Area Line and its slices, create the new Line entities and put them in the
+     * stagedLines map
+     *
+     * @param line
+     *            The Line being sliced
+     * @param slices
+     *            The map representing the portions of its geometry in each country, mapped to
+     *            country code
+     */
     private void createNewSlicedLines(final Line line,
             final SortedMap<String, Set<LineString>> slices)
     {
@@ -495,6 +563,15 @@ public class RawAtlasSlicer
         });
     }
 
+    /**
+     * Takes a split multipolygon child Relation and its sliced geometry, subtracts out the existing
+     * Line members, then adds in the remainder as new Lines
+     *
+     * @param newRelation
+     *            The split multipolygon Relation
+     * @param newMultiPolygon
+     *            The sliced MultiPolygon geometry for that Relation
+     */
     private void createSyntheticRelationMembers(final CompleteRelation newRelation,
             final org.locationtech.jts.geom.MultiPolygon newMultiPolygon)
     {
@@ -550,6 +627,17 @@ public class RawAtlasSlicer
         newRelation.withAddedTag(SyntheticRelationMemberAdded.KEY, String.join(",", syntheticIds));
     }
 
+    /**
+     * Takes a new split multipolygon Relation and an outer geometry and cuts out any overlapping
+     * sliced Line members
+     *
+     * @param newRelation
+     *            The split multipolygon Relation
+     * @param slicedPolygonOuter
+     *            One of its outer ring geometries
+     * @return The remainder after all overlapping members have been "cut" out from the
+     *         slicedPolygonOuter geometry
+     */
     private Geometry cutOutExistingMembers(final CompleteRelation newRelation,
             final Geometry slicedPolygonOuter)
     {
@@ -615,6 +703,13 @@ public class RawAtlasSlicer
         }
     }
 
+    /**
+     * For any Relation that we can't slice (non-multipolygon, didn't meet the Relation predicate
+     * criteria, or bad geometry), instead filter out any members that aren't in the country code
+     * set, and update the ISOCountryTag for the Relation
+     *
+     * @param relation
+     */
     private void filterRelation(final CompleteRelation relation)
     {
         final Set<String> countryList = new HashSet<>();
@@ -661,6 +756,11 @@ public class RawAtlasSlicer
         relation.withAddedTag(ISOCountryTag.KEY, ISOCountryTag.join(countryList));
     }
 
+    /**
+     * Returns the country code set being sliced
+     *
+     * @return The set of country codes to slice
+     */
     private Set<String> getCountries()
     {
         if (this.loadingOption.getCountryCodes().isEmpty())
@@ -672,11 +772,24 @@ public class RawAtlasSlicer
         return this.loadingOption.getCountryCodes();
     }
 
+    /**
+     * Returns the country boundary map from the AtlasLoadingOption
+     *
+     * @return The country boundary map from the AtlasLoadingOption
+     */
     private CountryBoundaryMap getCountryBoundaryMap()
     {
         return this.loadingOption.getCountryBoundaryMap();
     }
 
+    /**
+     * Given a JTS geometry, return all Polygons from the country boundary map that intersect its
+     * internal envelope
+     *
+     * @param targetGeometry
+     *            The geometry being queried
+     * @return All Polygons from the country boundary map that intersect its internal envelope
+     */
     private Set<org.locationtech.jts.geom.Polygon> getIntersectingBoundaryPolygons(
             final Geometry targetGeometry)
     {
@@ -684,6 +797,13 @@ public class RawAtlasSlicer
                 .distinct().collect(Collectors.toSet());
     }
 
+    /**
+     * Given a RelationMember, find its staged CompleteEntity
+     *
+     * @param member
+     *            A RelationMember to find
+     * @return Its staged CompleteEntity
+     */
     private AtlasEntity getStagedEntityForMember(final RelationMember member)
     {
         final long identifier = member.getEntity().getIdentifier();
@@ -728,6 +848,14 @@ public class RawAtlasSlicer
         return this.loadingOption.getEdgeFilter().test(line);
     }
 
+    /**
+     * Checks to see if an entity is inside the working set of country codes
+     *
+     * @param entity
+     *            The entity to check
+     * @return True if that entity is inside a country included in the set of country codes being
+     *         sliced, false otherwise
+     */
     private boolean isInsideWorkingBound(final AtlasEntity entity)
     {
         final Optional<String> countryCodes = entity.getTag(ISOCountryTag.KEY);
@@ -746,11 +874,27 @@ public class RawAtlasSlicer
         return false;
     }
 
+    /**
+     * Check to see if a Line is a member of a Relation that meets the Relation predicate-- if so,
+     * we want to slice it as a linear feature even if it's closed
+     *
+     * @param line
+     *            The Line to check
+     * @return True if any Relations it belongs to meet the Relation predicate
+     */
     private boolean isMultipolygonMember(final Line line)
     {
         return line.relations().stream().anyMatch(this.relationPredicate::test);
     }
 
+    /**
+     * A filter to ensure trivial pieces of geometry aren't preserved from the slicing operation
+     *
+     * @param geometry
+     *            The geometry to check
+     * @return True if the geometry is valid and larger than either the
+     *         CountryBoundaryMap.LINE_BUFFER or CountryBoundaryMap.AREA_BUFFER
+     */
     private boolean isSignificantGeometry(final Geometry geometry)
     {
         return geometry.isValid() && (geometry.getDimension() == 1
@@ -759,6 +903,17 @@ public class RawAtlasSlicer
                         && geometry.getArea() > CountryBoundaryMap.AREA_BUFFER);
     }
 
+    /**
+     * Given a slice for a Line entity, construct an appropriate PolyLine for the new sliced Line
+     * member. In the case of a Polygon (i.e. Area), the PolyLine will be constructed such that the
+     * winding represents the winding of the original entity
+     *
+     * @param slice
+     *            The slice for a Line entity
+     * @param line
+     *            The Line being sliced
+     * @return The best PolyLine to represent that slice for the Line
+     */
     private PolyLine processSlice(final Geometry slice, final Line line)
     {
         PolyLine polylineForSlice;
@@ -793,6 +948,13 @@ public class RawAtlasSlicer
         return polylineForSlice;
     }
 
+    /**
+     * Given a multipolygon Relation, purge any members that don't meet the criteria in the OSM
+     * specification
+     *
+     * @param relation
+     *            The Relation to check
+     */
     private void purgeInvalidMultiPolygonMembers(final CompleteRelation relation)
     {
         relation.membersMatching(member -> member.getEntity().getType() != ItemType.LINE
@@ -831,6 +993,12 @@ public class RawAtlasSlicer
                 });
     }
 
+    /**
+     * Remove a Line from the Atlas, and remove it from any Relations that may contain it
+     *
+     * @param line
+     *            The Line to remove
+     */
     private void removeLine(final Line line)
     {
         final CompleteLine removedLine = this.stagedLines.remove(line.getIdentifier());
@@ -844,6 +1012,14 @@ public class RawAtlasSlicer
         });
     }
 
+    /**
+     * Slice a Line that qualifies as an Area by converting it to 2d geometry, calculating its
+     * slices, and creating the new sliced Lines. If it belongs to just one country or cannot be
+     * sliced, upate the ISOCountryTag appropriately instead
+     *
+     * @param line
+     *            The Line to slice as an Area
+     */
     private void sliceArea(final Line line)
     {
         final Time time = Time.now();
@@ -912,6 +1088,17 @@ public class RawAtlasSlicer
         }
     }
 
+    /**
+     * Given a geometry and a set of intersecting country boundary Polygons, calculate the portion
+     * of that geometry contained by each boundary polygon and return those mapped to country code
+     *
+     * @param geometry
+     *            The JTS geometry to slice
+     * @param countryBoundaryPolygons
+     *            All country boundary polygons intersecting it
+     * @return A map of country codes to the portions of JTS geometry inside those country boundary
+     *         polygons
+     */
     private Map<String, Set<org.locationtech.jts.geom.Geometry>> sliceGeometry(
             final Geometry geometry,
             final Set<org.locationtech.jts.geom.Polygon> countryBoundaryPolygons)
@@ -959,6 +1146,14 @@ public class RawAtlasSlicer
         return results;
     }
 
+    /**
+     * Slice a Line by converting it to 1d geometry, calculating its slices, and creating the new
+     * sliced Lines. If it belongs to just one country or cannot be sliced, update the ISOCountryTag
+     * appropriately instead
+     *
+     * @param line
+     *            The Line to slice as an Area
+     */
     private void sliceLine(final Line line)
     {
         final Time time = Time.now();
@@ -1026,6 +1221,17 @@ public class RawAtlasSlicer
         }
     }
 
+    /**
+     * Take a LineString and find its slices, also attempt to merge all LineSlices for a country
+     * together to reduce artifacting
+     *
+     * @param line
+     *            The Line being sliced
+     * @param intersectingBoundaryPolygons
+     *            All intersecting country boundary polygons
+     * @return A SortedMap of country codes to the portions of the Line inside those country
+     *         boundary polygons
+     */
     @SuppressWarnings("unchecked")
     private SortedMap<String, Set<LineString>> sliceLineStringGeometry(final LineString line,
             final Set<org.locationtech.jts.geom.Polygon> intersectingBoundaryPolygons)
@@ -1058,6 +1264,19 @@ public class RawAtlasSlicer
         return results;
     }
 
+    /**
+     * Take a MultiPolygon and find its slices, while also checking for validity and geometric
+     * consistency (i.e. only Polygonal results)
+     *
+     * @param identifier
+     *            The identifier for the Relation being sliced
+     * @param geometry
+     *            The multipolygon being sliced
+     * @param intersectingBoundaryPolygons
+     *            All intersecting country boundary polygons
+     * @return A SortedMap of country codes to the portions of the MultiPolygon inside those country
+     *         boundary polygons
+     */
     private SortedMap<String, org.locationtech.jts.geom.MultiPolygon> sliceMultiPolygonGeometry(
             final long identifier, final org.locationtech.jts.geom.MultiPolygon geometry,
             final Set<org.locationtech.jts.geom.Polygon> intersectingBoundaryPolygons)
@@ -1093,6 +1312,15 @@ public class RawAtlasSlicer
         return results;
     }
 
+    /**
+     * Slice a multipolygon Relation by constructing its geometry out of the valid raw Atlas
+     * members, calculating its slices, and creating the new sliced Relations with valid
+     * MultiPolygon geometry. If it belongs to just one country or cannot be sliced, update the
+     * ISOCountryTag appropriately instead
+     *
+     * @param Relation
+     *            The Relation to slice as a multipolygon
+     */
     private void sliceMultiPolygonRelation(final CompleteRelation relation)
     {
         final Time time = Time.now();
@@ -1218,6 +1446,13 @@ public class RawAtlasSlicer
         }
     }
 
+    /**
+     * Given a point, either remove it from the Atlas if it has no pre-existing tags and doesn't
+     * belong to an Edge, OR update its ISOCountryTag value
+     *
+     * @param point
+     *            The point to slice
+     */
     private void slicePoint(final Point point)
     {
         if (point.getOsmTags().isEmpty()
@@ -1251,6 +1486,17 @@ public class RawAtlasSlicer
         }
     }
 
+    /**
+     * Take a polygon and find its slices, while also checking for validity and geometric
+     * consistency (i.e. only Polygonal results)
+     *
+     * @param polygon
+     *            The Polygon being sliced
+     * @param intersectingBoundaryPolygons
+     *            All intersecting country boundary polygons
+     * @return A SortedMap of country codes to the portions of the Polygon inside those country
+     *         boundary polygons
+     */
     private SortedMap<String, Set<org.locationtech.jts.geom.Polygon>> slicePolygonGeometry(
             final org.locationtech.jts.geom.Polygon polygon,
             final Set<org.locationtech.jts.geom.Polygon> intersectingBoundaryPolygon)
