@@ -1,10 +1,12 @@
 package org.openstreetmap.atlas.geography.atlas.complete;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -88,6 +90,11 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
                 .withBoundsExtendedBy(relation.bounds());
     }
 
+    public CompleteRelation(final long identifier)
+    {
+        this(identifier, null, null, null, null, null, null, null);
+    }
+
     public CompleteRelation(final Long identifier, final Map<String, String> tags, // NOSONAR
             final Rectangle bounds, final RelationBean members,
             final List<Long> allRelationsWithSameOsmIdentifier,
@@ -115,11 +122,6 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     protected CompleteRelation(final Atlas atlas)
     {
         super(atlas);
-    }
-
-    CompleteRelation(final long identifier)
-    {
-        this(identifier, null, null, null, null, null, null, null);
     }
 
     @Override
@@ -150,6 +152,20 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     public Rectangle bounds()
     {
         return this.bounds;
+    }
+
+    public CompleteRelation changeMemberRole(final AtlasEntity member, final String role)
+    {
+        final Optional<RelationBeanItem> oldItem = this.members.getItemFor(member.getIdentifier(),
+                member.getType());
+        if (oldItem.isPresent())
+        {
+            this.members.removeItem(oldItem.get());
+            final RelationBeanItem newItem = new RelationBeanItem(member.getIdentifier(), role,
+                    member.getType());
+            this.members.addItem(newItem);
+        }
+        return this;
     }
 
     @Override
@@ -358,6 +374,13 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
 
     public CompleteRelation withAddedMember(final AtlasEntity newMember, final String role)
     {
+        if (this.members == null)
+        {
+            final Collection<RelationMember> newMembers = new ArrayList<>();
+            newMembers.add(new RelationMember(role, newMember, this.getIdentifier()));
+            final RelationMemberList memberList = new RelationMemberList(newMembers);
+            return this.withMembers(memberList);
+        }
         this.members.addItem(
                 new RelationBeanItem(newMember.getIdentifier(), role, newMember.getType()));
         this.withBoundsExtendedBy(newMember.bounds());

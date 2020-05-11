@@ -1,33 +1,38 @@
 package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.openstreetmap.atlas.geography.Latitude;
+import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.Longitude;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.CountrySlicingIdentifierFactory;
-import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.PointIdentifierFactory;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
-import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
+import org.openstreetmap.atlas.utilities.identifiers.EntityIdentifierGenerator;
 
 /**
- * {@link RawAtlasPointAndLineSlicer} unit tests for slicing Lines and Points.
+ * {@link RawAtlasSlicer} unit tests for slicing Lines and Points.
  *
  * @author mgostintsev
  * @author samgass
  */
 public class LineAndPointSlicingTest
 {
-    private static final RawAtlasCountrySlicer rawAtlasSlicer;
     private static final AtlasLoadingOption loadingOption;
 
     static
@@ -37,7 +42,6 @@ public class LineAndPointSlicingTest
                         .getResourceAsStream("CIV_GIN_LBR_osm_boundaries_with_grid_index.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP)));
         loadingOption.setAdditionalCountryCodes("CIV", "GIN", "LBR");
-        rawAtlasSlicer = new RawAtlasCountrySlicer(loadingOption);
     }
 
     @Rule
@@ -47,7 +51,7 @@ public class LineAndPointSlicingTest
     public void testClosedEdgeSpanningTwoCountries()
     {
         final Atlas rawAtlas = this.setup.getClosedEdgeSpanningTwoCountriesAtlas();
-        final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
+        final Atlas slicedAtlas = new RawAtlasSlicer(loadingOption, rawAtlas).slice();
 
         // Check Line correctness
         Assert.assertEquals(1, rawAtlas.numberOfLines());
@@ -100,7 +104,7 @@ public class LineAndPointSlicingTest
     public void testClosedLineInsideSingleCountry()
     {
         final Atlas rawAtlas = this.setup.getClosedLineFullyInOneCountryAtlas();
-        final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
+        final Atlas slicedAtlas = new RawAtlasSlicer(loadingOption, rawAtlas).slice();
 
         // Check Line correctness
         Assert.assertEquals("A single line exists in the raw Atlas", 1, rawAtlas.numberOfLines());
@@ -129,30 +133,28 @@ public class LineAndPointSlicingTest
     public void testClosedLineSpanningTwoCountries()
     {
         final Atlas rawAtlas = this.setup.getClosedLineSpanningTwoCountriesAtlas();
-        final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
+        final Atlas slicedAtlas = new RawAtlasSlicer(loadingOption, rawAtlas).slice();
 
         // Check Line correctness
         Assert.assertEquals("A single line exists in the raw Atlas", 1, rawAtlas.numberOfLines());
         rawAtlas.lines().forEach(line -> Assert.assertTrue("The line is closed", line.isClosed()));
         rawAtlas.lines().forEach(line -> Assert.assertFalse("The line is counter clockwise:",
                 new Polygon(line.asPolyLine().truncate(0, 1)).isClockwise()));
-        Assert.assertEquals("The line was cut into 2 segments", 2, slicedAtlas.numberOfLines());
-        slicedAtlas.lines()
-                .forEach(line -> Assert.assertTrue("Both segments are closed", line.isClosed()));
+        Assert.assertEquals("The line was cut into 2 segments", 2, slicedAtlas.numberOfAreas());
 
         final CountrySlicingIdentifierFactory lineIdentifierFactory = new CountrySlicingIdentifierFactory(
                 1);
 
         Assert.assertEquals("Expect the first segment to have Ivory Coast country code", "CIV",
-                slicedAtlas.line(lineIdentifierFactory.nextIdentifier()).getTag(ISOCountryTag.KEY)
+                slicedAtlas.area(lineIdentifierFactory.nextIdentifier()).getTag(ISOCountryTag.KEY)
                         .get());
         Assert.assertEquals("Expect the second segment to have Liberia country code", "LBR",
-                slicedAtlas.line(lineIdentifierFactory.nextIdentifier()).getTag(ISOCountryTag.KEY)
+                slicedAtlas.area(lineIdentifierFactory.nextIdentifier()).getTag(ISOCountryTag.KEY)
                         .get());
 
         // Check Point correctness
         Assert.assertEquals("Four points exist in the raw Atlas", 4, rawAtlas.numberOfPoints());
-        Assert.assertEquals("Twelve points exist in the sliced Atlas", 12,
+        Assert.assertEquals("Twelve points exist in the sliced Atlas", 4,
                 slicedAtlas.numberOfPoints());
 
         for (final Point point : slicedAtlas.points())
@@ -194,7 +196,7 @@ public class LineAndPointSlicingTest
     public void testCreatingExistingSyntheticBoundaryNode()
     {
         final Atlas rawAtlas = this.setup.getRoadAcrossTwoCountriesWithPointOnBorderAtlas();
-        final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
+        final Atlas slicedAtlas = new RawAtlasSlicer(loadingOption, rawAtlas).slice();
 
         // Check Line correctness
         Assert.assertEquals("A single line exists in the raw Atlas", 1, rawAtlas.numberOfLines());
@@ -249,7 +251,7 @@ public class LineAndPointSlicingTest
     public void testCreatingNewSyntheticBoundaryNode()
     {
         final Atlas rawAtlas = this.setup.getRoadAcrossTwoCountriesAtlas();
-        final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
+        final Atlas slicedAtlas = new RawAtlasSlicer(loadingOption, rawAtlas).slice();
 
         // Check Line correctness
         Assert.assertEquals("A single line exists in the raw Atlas", 1, rawAtlas.numberOfLines());
@@ -276,8 +278,15 @@ public class LineAndPointSlicingTest
         Assert.assertEquals("Three points exist in the sliced Atlas", 3,
                 slicedAtlas.numberOfPoints());
 
-        final PointIdentifierFactory pointIdentifierFactory = new PointIdentifierFactory(1000);
-        final long newPointIdentifier = pointIdentifierFactory.nextIdentifier();
+        final EntityIdentifierGenerator pointIdentifierFactory = new EntityIdentifierGenerator();
+        final Map<String, String> tags = new HashMap<>();
+        tags.put(SyntheticBoundaryNodeTag.KEY, SyntheticBoundaryNodeTag.YES.toString());
+        tags.put(ISOCountryTag.KEY, "CIV,LBR");
+        final CompletePoint synetheticBoundaryPoint = new CompletePoint(1L,
+                new Location(Latitude.degrees(7.2), Longitude.degrees(-8.3174953)), tags,
+                new HashSet<>());
+        final long newPointIdentifier = pointIdentifierFactory
+                .generateIdentifier(synetheticBoundaryPoint);
         slicedAtlas.points().forEach(point ->
         {
             if (point.getIdentifier() == newPointIdentifier)
@@ -308,7 +317,7 @@ public class LineAndPointSlicingTest
     public void testLineFullyInsideOneCountry()
     {
         final Atlas rawAtlas = this.setup.getRoadFullyInOneCountryAtlas();
-        final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
+        final Atlas slicedAtlas = new RawAtlasSlicer(loadingOption, rawAtlas).slice();
 
         // Check Line correctness
         Assert.assertEquals("A single line exists in the raw Atlas", 1, rawAtlas.numberOfLines());
@@ -334,7 +343,7 @@ public class LineAndPointSlicingTest
     public void testLineTouchingBoundary()
     {
         final Atlas rawAtlas = this.setup.getRoadTouchingBoundaryAtlas();
-        final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
+        final Atlas slicedAtlas = new RawAtlasSlicer(loadingOption, rawAtlas).slice();
 
         // Check Line correctness
         Assert.assertEquals("A single line exists in the raw Atlas", 1, rawAtlas.numberOfLines());
@@ -365,7 +374,7 @@ public class LineAndPointSlicingTest
     public void testLineWeavingAcrossBoundary()
     {
         final Atlas rawAtlas = this.setup.getRoadWeavingAlongBoundaryAtlas();
-        final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
+        final Atlas slicedAtlas = new RawAtlasSlicer(loadingOption, rawAtlas).slice();
 
         // Check Line correctness
         Assert.assertEquals("A single line exists in the raw Atlas", 1, rawAtlas.numberOfLines());
@@ -421,41 +430,10 @@ public class LineAndPointSlicingTest
     }
 
     @Test
-    public void testNearestNeighborTagAssignment()
-    {
-        final Atlas rawAtlas = this.setup.getRoadOutsideAllBoundariesAtlas();
-        final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
-
-        // Check Line correctness
-        Assert.assertEquals("A single line exists in the raw Atlas", 1, rawAtlas.numberOfLines());
-        Assert.assertEquals("The line was untouched after cutting", 1, slicedAtlas.numberOfLines());
-        Assert.assertEquals(
-                "Expect the line to have GUINEA country code, as that's the closest boundary available",
-                "GIN", slicedAtlas.line(1).getTag(ISOCountryTag.KEY).get());
-        Assert.assertEquals("Expect a nearest neighbor country code tag to be present",
-                SyntheticNearestNeighborCountryCodeTag.YES.toString(),
-                slicedAtlas.line(1).getTag(SyntheticNearestNeighborCountryCodeTag.KEY).get());
-
-        // Check Point correctness
-        Assert.assertEquals("Two points exist in the raw Atlas", 2, rawAtlas.numberOfPoints());
-        Assert.assertEquals("Two points exist in the sliced Atlas", 2,
-                slicedAtlas.numberOfPoints());
-
-        slicedAtlas.points().forEach(point ->
-        {
-            Assert.assertEquals("Expect all existing points to have GUINEA country code", "GIN",
-                    point.getTag(ISOCountryTag.KEY).get());
-            Assert.assertTrue(
-                    "Expect a nearest neighbor country code tag to be present for all points",
-                    point.getTag(SyntheticNearestNeighborCountryCodeTag.KEY).isPresent());
-        });
-    }
-
-    @Test
     public void testSingleNodeLine()
     {
         final Atlas rawAtlas = this.setup.getSingleNodeLine();
-        final Atlas slicedAtlas = rawAtlasSlicer.slice(rawAtlas);
-        Assert.assertEquals(1, slicedAtlas.numberOfLines());
+        final Atlas slicedAtlas = new RawAtlasSlicer(loadingOption, rawAtlas).slice();
+        Assert.assertEquals(2, slicedAtlas.numberOfLines());
     }
 }

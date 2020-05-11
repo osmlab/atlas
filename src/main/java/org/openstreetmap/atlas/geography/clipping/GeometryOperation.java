@@ -17,18 +17,13 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
  * Wrapper around JTS for geometry operations.
- * 
+ *
  * @author matthieun
  */
 public final class GeometryOperation
 {
     private static final JtsMultiPolygonToMultiPolygonConverter JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER = new JtsMultiPolygonToMultiPolygonConverter();
     private static final JtsMultiPolygonConverter JTS_MULTI_POLYGON_CONVERTER = new JtsMultiPolygonConverter();
-
-    public static Optional<GeometricSurface> union(final MultiPolygon... multiPolygons)
-    {
-        return union(Iterables.asList(multiPolygons));
-    }
 
     public static Optional<GeometricSurface> union(final Iterable<MultiPolygon> multiPolygons)
     {
@@ -46,6 +41,11 @@ public final class GeometryOperation
             throw new CoreException("Error computing union of {}!",
                     Iterables.asList(multiPolygons));
         }
+    }
+
+    public static Optional<GeometricSurface> union(final MultiPolygon... multiPolygons)
+    {
+        return union(Iterables.asList(multiPolygons));
     }
 
     private static Optional<GeometricSurface> handleMultiPolygon(

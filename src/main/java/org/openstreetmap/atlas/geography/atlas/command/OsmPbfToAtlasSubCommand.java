@@ -13,7 +13,7 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
 import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasCountrySlicer;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.tags.filters.ConfiguredTaggableFilter;
@@ -82,7 +82,7 @@ public class OsmPbfToAtlasSubCommand implements FlexibleSubCommand
                 MultiPolygon.MAXIMUM).build();
         if (options.isCountrySlicing())
         {
-            atlas = new RawAtlasCountrySlicer(options).slice(atlas);
+            atlas = new RawAtlasSlicer(options, atlas).slice();
         }
         atlas = new WaySectionProcessor(atlas, options).run();
         atlas.save((File) map.get(OUTPUT_PARAMETER));
