@@ -320,21 +320,25 @@ public class RawAtlasSlicer
      *            A new Relation containing a subset of members based on country code
      * @param oldRelation
      *            The original Relation for the new split Relation
+     * @param countryMultiPolygon
      */
     private void addCountryMembersToSplitRelation(final CompleteRelation newRelation,
-            final CompleteRelation oldRelation)
+            final CompleteRelation oldRelation,
+            final org.locationtech.jts.geom.MultiPolygon countryMultiPolygon)
     {
         oldRelation.membersMatching(member -> Validators.isOfSameType(
                 this.stagedLines.get(member.getEntity().getIdentifier()), newRelation,
                 ISOCountryTag.class)).forEach(member ->
                 {
-                    newRelation.withAddedMember(
-                            this.stagedLines.get(member.getEntity().getIdentifier()),
-                            member.getRole());
-                    this.stagedLines.get(member.getEntity().getIdentifier())
-                            .withRemovedRelationIdentifier(oldRelation.getIdentifier());
-                    this.stagedLines.get(member.getEntity().getIdentifier())
-                            .withAddedRelationIdentifier(newRelation.getIdentifier());
+                    final CompleteLine lineForMember = this.stagedLines
+                            .get(member.getEntity().getIdentifier());
+                    if (JTS_POLYLINE_CONVERTER.convert(lineForMember.asPolyLine())
+                            .intersects(countryMultiPolygon))
+                    {
+                        newRelation.withAddedMember(lineForMember, member.getRole());
+                        lineForMember.withAddedRelationIdentifier(newRelation.getIdentifier());
+                    }
+                    lineForMember.withRemovedRelationIdentifier(oldRelation.getIdentifier());
                 });
     }
 
@@ -481,6 +485,44 @@ public class RawAtlasSlicer
     }
 
     /**
+     * Checks the slices of a Line to see if we can process them succesfully. If there's just one
+     * country, go ahead and tag the line, and if it's too many slices tag the line as well.
+     *
+     * @param slicesKeySet
+     *            The set of country codes for all of the slices
+     * @param totalSlicesCount
+     *            The total number of slices for the line
+     * @return false if the line shouldn't be sliced with these slices, true otherwise
+     */
+    private boolean checkSlices(final Set<String> slicesCountryCodes, final long totalSlicesCount,
+            final Line line)
+    {
+        if (slicesCountryCodes.size() == 1)
+        {
+            final String countryCode = slicesCountryCodes.iterator().next();
+            this.stagedLines.get(line.getIdentifier()).withAddedTag(ISOCountryTag.KEY, countryCode);
+            if (!this.isInCountry.test(this.stagedLines.get(line.getIdentifier())))
+            {
+                removeLine(line);
+            }
+            return false;
+        }
+        else if (totalSlicesCount > AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT)
+        {
+            // this should be rare, but we can't slice the line if we don't have the identifier
+            // space for the slices
+            logger.error(LINE_EXCEEDED_SLICING_IDENTIFIER_SPACE,
+                    AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT, line.getOsmIdentifier(),
+                    this.shardOrAtlasName);
+            final String countryString = String.join(",", slicesCountryCodes);
+            this.stagedLines.get(line.getIdentifier()).withTags(line.getTags())
+                    .withAddedTag(ISOCountryTag.KEY, countryString);
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * Given a Line that will be a future Area and its slices, create the new Line entities and put
      * them in the stagedLines map
      *
@@ -490,7 +532,7 @@ public class RawAtlasSlicer
      *            The map representing the portions of its geometry in each country, mapped to
      *            country code
      */
-    private void createNewSlicedAreas(final Line line,
+    private void createNewSlicedAreas(final Line line, // NOSONAR
             final SortedMap<String, Set<org.locationtech.jts.geom.Polygon>> slices)
     {
         final CountrySlicingIdentifierFactory lineIdentifierFactory = new CountrySlicingIdentifierFactory(
@@ -543,7 +585,7 @@ public class RawAtlasSlicer
      *            The map representing the portions of its geometry in each country, mapped to
      *            country code
      */
-    private void createNewSlicedLines(final Line line,
+    private void createNewSlicedLines(final Line line, // NOSONAR
             final SortedMap<String, Set<LineString>> slices)
     {
         final CountrySlicingIdentifierFactory lineIdentifierFactory = new CountrySlicingIdentifierFactory(
@@ -598,7 +640,7 @@ public class RawAtlasSlicer
      * @param newMultiPolygon
      *            The sliced MultiPolygon geometry for that Relation
      */
-    private void createSyntheticRelationMembers(final CompleteRelation newRelation,
+    private void createSyntheticRelationMembers(final CompleteRelation newRelation, // NOSONAR
             final org.locationtech.jts.geom.MultiPolygon newMultiPolygon)
     {
         final SortedSet<String> syntheticIds = new TreeSet<>();
@@ -766,7 +808,6 @@ public class RawAtlasSlicer
                 throw new CoreException(
                         "Untagged country value for entity {} for relation {} for Atlas {}",
                         stagedRelationMember, relation.getIdentifier(), this.shardOrAtlasName);
-
             }
             Collections.addAll(countryList, countryCodeTag.get().split(","));
         }
@@ -1113,26 +1154,9 @@ public class RawAtlasSlicer
             sliceLine(line);
             return;
         }
-        if (slices.keySet().size() == 1)
+
+        if (!checkSlices(slices.keySet(), slices.values().size(), line))
         {
-            final String countryCode = slices.keySet().iterator().next();
-            this.stagedLines.get(line.getIdentifier()).withAddedTag(ISOCountryTag.KEY, countryCode);
-            if (!this.isInCountry.test(this.stagedLines.get(line.getIdentifier())))
-            {
-                removeLine(line);
-            }
-            return;
-        }
-        else if (slices.values().size() > AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT)
-        {
-            // this should be rare, but we can't slice the line if we don't have the identifier
-            // space for the slices
-            logger.error(LINE_EXCEEDED_SLICING_IDENTIFIER_SPACE,
-                    AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT, line.getOsmIdentifier(),
-                    this.shardOrAtlasName);
-            final String countryString = String.join(",", slices.keySet());
-            this.stagedLines.get(line.getIdentifier()).withTags(line.getTags())
-                    .withAddedTag(ISOCountryTag.KEY, countryString);
             return;
         }
 
@@ -1259,26 +1283,9 @@ public class RawAtlasSlicer
         }
         final SortedMap<String, Set<LineString>> slices = sliceLineStringGeometry(jtsLine,
                 intersectingBoundaryPolygons);
-        if (slices.keySet().size() == 1)
+
+        if (!checkSlices(slices.keySet(), slices.values().size(), line))
         {
-            final String countryCode = slices.keySet().iterator().next();
-            this.stagedLines.get(line.getIdentifier()).withAddedTag(ISOCountryTag.KEY, countryCode);
-            if (!this.isInCountry.test(this.stagedLines.get(line.getIdentifier())))
-            {
-                removeLine(line);
-            }
-            return;
-        }
-        else if (slices.values().size() > AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT)
-        {
-            // this should be rare, but we can't slice the line if we don't have the identifier
-            // space for the slices
-            logger.error(LINE_EXCEEDED_SLICING_IDENTIFIER_SPACE,
-                    AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT, line.getOsmIdentifier(),
-                    this.shardOrAtlasName);
-            final String countryString = String.join(",", slices.keySet());
-            this.stagedLines.get(line.getIdentifier()).withTags(line.getTags())
-                    .withAddedTag(ISOCountryTag.KEY, countryString);
             return;
         }
 
@@ -1326,7 +1333,6 @@ public class RawAtlasSlicer
                     lineSlices.add((LineString) mergedLineSlice);
                 }
             });
-
             results.put(countryCode, lineSlices);
         }
         return results;
@@ -1349,7 +1355,6 @@ public class RawAtlasSlicer
             final long identifier, final org.locationtech.jts.geom.MultiPolygon geometry,
             final Set<org.locationtech.jts.geom.Polygon> intersectingBoundaryPolygons)
     {
-
         final Map<String, Set<org.locationtech.jts.geom.Geometry>> currentResults = sliceGeometry(
                 geometry, intersectingBoundaryPolygons);
         final SortedMap<String, org.locationtech.jts.geom.MultiPolygon> results = new TreeMap<>();
@@ -1379,7 +1384,6 @@ public class RawAtlasSlicer
                 results.put(countryCode, multipolygon);
             }
         }
-
         return results;
     }
 
@@ -1392,7 +1396,7 @@ public class RawAtlasSlicer
      * @param Relation
      *            The Relation to slice as a multipolygon
      */
-    private void sliceMultiPolygonRelation(final CompleteRelation relation)
+    private void sliceMultiPolygonRelation(final CompleteRelation relation) // NOSONAR
     {
         final Time time = Time.now();
         purgeInvalidMultiPolygonMembers(relation);
@@ -1488,7 +1492,8 @@ public class RawAtlasSlicer
                 newRelation.withAddedTag(ISOCountryTag.KEY, countryCode);
                 newRelation.withIdentifier(newRelationId);
                 newRelation.withRelationIdentifiers(relation.relationIdentifiers());
-                addCountryMembersToSplitRelation(newRelation, relation);
+                addCountryMembersToSplitRelation(newRelation, relation,
+                        clippedMultiPolygons.get(countryCode));
                 createSyntheticRelationMembers(newRelation, clippedMultiPolygons.get(countryCode));
                 final SortedSet<String> syntheticIds = new TreeSet<>();
                 if (!syntheticIds.isEmpty())
