@@ -321,10 +321,8 @@ public class WaySectionProcessor
                     line.getTags());
         });
 
-        this.rawAtlas.areas().forEach(area ->
-        {
-            builder.addArea(area.getIdentifier(), area.getClosedGeometry(), area.getTags());
-        });
+        this.rawAtlas.areas().forEach(area -> builder.addArea(area.getIdentifier(),
+                area.getClosedGeometry(), area.getTags()));
 
         // Relations
         this.rawAtlas.relationsLowerOrderFirst().forEach(relation ->
