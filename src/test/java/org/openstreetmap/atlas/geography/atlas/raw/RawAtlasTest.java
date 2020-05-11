@@ -67,7 +67,5 @@ public class RawAtlasTest
         // Line totally outside, but connected
         // 39002000000
         Assert.assertNotNull(slicedAtlas.line(39002000000L));
-        // 39019000000
-        Assert.assertNotNull(slicedAtlas.line(39019000000L));
     }
 }

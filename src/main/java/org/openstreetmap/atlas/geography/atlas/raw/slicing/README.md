@@ -24,13 +24,13 @@ The high level operations of slicing are executed in the `slice()` method, and c
 3. Slice all `Point` entities
 4. Filter any remaining `Relation` entities-- because we don't expand on all `Relations`, it's impossible to deterministically "slice" these `Relations`, so instead we just filter out any members that are outside the country code set being sliced and update the country tag for the `Relation` to be the sum of its remaining members.
 5. Add all `CompleteEntities` in the staged entity maps as `FeatureChange.ADD`-- these are either existing features being updated or new entities being added, so `FeatureChange.ADD` is always appropriate
-6. Build a new `ChangeAtlas` out of these changes, then cut out any entities that lay outside the shard bounds (frequently happens for data loaded in durin the `DynamicAtlas`expansion for `Relations`)
+6. Build a new `ChangeAtlas` out of these changes, then cut out any entities that lay outside the shard bounds (frequently happens for data loaded in during the `DynamicAtlas`expansion for `Relations`)
 
 ### Geometry Slicing
 Slicing of all entities follows the same general approach. 
 1. The data for the entity is constructed into a relevant JTS geometry. 
     * For example, for a closed `Line` that meets the criteria for an `Area`, a JTS `Polygon` is created
-2. This internal envelople for this geometry is checked against the spatial index of the boundary map to calculate which country boundary polygons it intersects
+2. This internal envelope for this geometry is checked against the spatial index of the boundary map to calculate which country boundary polygons it intersects
     * Should this geometry exclusively belong to one country, its geometry is left unaltered and the country code tag is updated to contain this country
 3. Next, geometry is checked for validity-- it must be [valid geometry](http://www.ogc.org/docs/is/) and not empty
     * This is critical because if we filter out occasional invalid geomtery coming out of the slicing operation; inputting invalid geometry is a guarantee of junk output
@@ -42,7 +42,7 @@ Slicing of all entities follows the same general approach.
     * These operations are largely similar but there are a few different expectations based on AtlasEntity type-- for example, a sliced linear `Line` will attempt to join all resulting `LineString` pieces for each country using `LineMerger` because occasionally a few of these `LineStrings` can be merged
     * Additionally, the map returned here will use `SortedMap` to guarantee deterministic consistency in `Line` slice creation regardless of what country code settings are used, etc.
 6. On the small chance that the slicing operation returned an empty set or all significant geometry was in exclusively one country, the geometry will be unaltered and the country code tag will be updated to have either the country-missing value or the single country only, respectively
-7. Additionally, should the number of slices be greater than the country identifier space (000-999), then the operation will fail out and the entity will be taggeed with all country codes its geometry spanned
+7. Additionally, should the number of slices be greater than the country identifier space (000-999), then the operation will fail out and the entity will be tagged with all country codes its geometry spanned
 8. Finally, the slice geomtries will be converted sequentially based on their SortedMap ordering into new `AtlasEntities` with the same tags as their parent entity, but with the geomtery of the slice and the country code tag of the relevant country, and these are be added to the relevant staged `CompleteEntity` map
     * At the end of this process, the original parent entity will be removed from the relevant staged `CompleteEntity` map and a `FeatureChange.remove` is added to the `changes` `ChangeSet` to ensure it is removed from the final `Atlas`
 

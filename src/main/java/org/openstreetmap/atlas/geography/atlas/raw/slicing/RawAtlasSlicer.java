@@ -24,7 +24,6 @@ import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.TopologyException;
 import org.locationtech.jts.operation.linemerge.LineMerger;
 import org.locationtech.jts.operation.overlay.snap.SnapOverlayOp;
-import org.locationtech.jts.operation.valid.IsValidOp;
 import org.locationtech.jts.precision.GeometryPrecisionReducer;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.MultiPolygon;
@@ -35,11 +34,13 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeAtlas;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeBuilder;
 import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
 import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 import org.openstreetmap.atlas.geography.atlas.dynamic.DynamicAtlas;
 import org.openstreetmap.atlas.geography.atlas.dynamic.policy.DynamicAtlasPolicy;
+import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
@@ -86,10 +87,35 @@ public class RawAtlasSlicer
     private static final RelationOrAreaToMultiPolygonConverter RELATION_TO_MULTIPOLYGON_CONVERTER = new RelationOrAreaToMultiPolygonConverter();
     private static final Logger logger = LoggerFactory.getLogger(RawAtlasSlicer.class);
 
+    private static final long SLICING_DURATION_WARN = 10;
+
     // Logging constants
-    private static final String COMPLETED_TASK_MESSAGE = "Finished {} for Shard {} in {}";
-    private static final String DYNAMIC_ATLAS_CREATION_TASK = "dynamic Atlas creation";
-    private static final long RELATION_SLICING_DURATION_WARN = 10;
+    private static final String MULTIPOLYGON_RELATION_SLICING_NOT_NEEDED = "Relation {} for Atlas {} had no sliced members and therefore does not need to be sliced!";
+    private static final String MULTIPOLYGON_RELATION_EXCEPTION_CREATING_POLYGON = "Relation {} for Atlas {} could not be constructed into valid multipolygon!";
+    private static final String MULTIPOLYGON_RELATION_INVALID_GEOMETRY = "Relation {} for Atlas {} had invalid multipolygon geometry {}!";
+    private static final String MULTIPOLYGON_RELATION_HAD_NO_SLICED_GEOMETRY = "Relation {} for Atlas {} had no valid sliced geometry!";
+    private static final String MULTIPOLYGON_RELATION_HAD_EQUIVALENT_SLICED_GEOMETRY = "Relation {} for Atlas {} had sliced geometry equal to original geometry, not slicing!";
+    private static final String MULTIPOLYGON_RELATION_ENTIRELY_SYNTHETIC_GEOMETRY = "Relation {} for Atlas {} created using entirely synthetic members!";
+    private static final String MULTIPOLYGON_RELATION_SLICING_DURATION_EXCEEDED = "Relation {} for Atlas {} took {} to slice!";
+    private static final String MULTIPOLYGON_RELATION_TOPOLOGY_EXCEPTION = "Topology exception while using snap overlay operation on relation {} for Atlas {}, falling back to regular intersection";
+    private static final String MULTIPOLYGON_RELATION_INVALID_MEMBER_REMOVED = "Purging invalid member {} from relation {}";
+    private static final String MULTIPOLYGON_RELATION_INVALID_SLICED_GEOMETRY = "Relation {} sliced for country {} produced invalid geometry {}!";
+
+    private static final String LINE_HAD_MULTIPOLYGON_SLICE = "Line {} for Atlas {} had multipolygon slicing result {}, discarding as cannot be represented in an Area";
+    private static final String LINE_SLICING_DURATION_EXCEEDED = "Line {} for Atlas {} took {} to slice!";
+    private static final String LINE_HAD_INVALID_GEOMETRY = "Line {} for Atlas {} had invalid geometry {}, removing instead of slicing!";
+    private static final String LINE_EXCEEDED_SLICING_IDENTIFIER_SPACE = "Country slicing exceeded maximum line identifier name space of {} for line {} for Atlas {}. It will be added as is, with two or more country codes";
+
+    private static final String STARTED_SLICING = "Starting slicing for Atlas {}";
+    private static final String FINISHED_SLICING = "Finished slicing for Atlas {} in {}";
+    private static final String STARTED_LINE_SLICING = "Starting line slicing for Atlas {}";
+    private static final String FINISHED_LINE_SLICING = "Finished line slicing for Atlas {} in {}";
+    private static final String STARTED_RELATION_SLICING = "Starting relation slicing for Atlas {}";
+    private static final String FINISHED_RELATION_SLICING = "Finished relation slicing for Atlas {} in {}";
+    private static final String STARTED_POINT_SLICING = "Starting point slicing for Atlas {}";
+    private static final String FINISHED_POINT_SLICING = "Finished point slicing for Atlas {} in {}";
+    private static final String STARTED_RELATION_FILTERING = "Starting relation filtering for Atlas {}";
+    private static final String FINISHED_RELATION_FILTERING = "Finished relation filtering for Atlas {} in {}";
 
     // Bring in all Relations that are tagged according to our filter
     private final Predicate<AtlasEntity> relationPredicate;
@@ -107,6 +133,8 @@ public class RawAtlasSlicer
     private final Map<Long, CompleteLine> stagedLines = new HashMap<>();
 
     private final Map<Long, CompletePoint> stagedPoints = new HashMap<>();
+
+    private final Map<Long, CompleteArea> stagedAreas = new HashMap<>();
 
     private final Predicate<AtlasEntity> isInCountry;
 
@@ -171,8 +199,7 @@ public class RawAtlasSlicer
         }
         else
         {
-            throw new CoreException(
-                    "Could not get data for initial shard {} during relation slicing!",
+            throw new CoreException("Could not get data for initial shard {} during slicing!",
                     initialShard.getName());
         }
         final Atlas expandedAtlas = buildExpandedAtlas(initialShard, initialShardOptional.get(),
@@ -222,11 +249,11 @@ public class RawAtlasSlicer
     {
         final Time overallTime = Time.now();
         Time time = Time.now();
-        logger.info("Starting slicing for Atlas {}", this.shardOrAtlasName);
-        logger.info("Starting line slicing for Atlas {}", this.shardOrAtlasName);
+        logger.info(STARTED_SLICING, this.shardOrAtlasName);
+        logger.info(STARTED_LINE_SLICING, this.shardOrAtlasName);
         this.startingAtlas.lines().forEach(line ->
         {
-            if (line.isClosed() && !isAtlasEdge(line) && !isMultipolygonMember(line))
+            if (line.isClosed() && !isAtlasEdge(line))
             {
                 sliceArea(line);
             }
@@ -235,11 +262,11 @@ public class RawAtlasSlicer
                 sliceLine(line);
             }
         });
-        logger.info("Finished line slicing for Atlas {} in {}", this.shardOrAtlasName,
-                time.elapsedSince());
+        logger.info(FINISHED_LINE_SLICING, this.shardOrAtlasName,
+                time.elapsedSince().asMilliseconds());
 
         time = Time.now();
-        logger.info("Starting relation slicing for Atlas {}", this.shardOrAtlasName);
+        logger.info(STARTED_RELATION_SLICING, this.shardOrAtlasName);
         this.startingAtlas.relationsLowerOrderFirst().forEach(relation ->
         {
             if (this.relationPredicate.test(relation))
@@ -247,16 +274,16 @@ public class RawAtlasSlicer
                 sliceMultiPolygonRelation(this.stagedRelations.get(relation.getIdentifier()));
             }
         });
-        logger.info("Finished relation slicing for Atlas {} in {}", this.shardOrAtlasName,
-                time.elapsedSince());
+        logger.info(FINISHED_RELATION_SLICING, this.shardOrAtlasName,
+                time.elapsedSince().asMilliseconds());
 
         time = Time.now();
-        logger.info("Starting point slicing for Atlas {}", this.shardOrAtlasName);
+        logger.info(STARTED_POINT_SLICING, this.shardOrAtlasName);
         this.startingAtlas.points().forEach(this::slicePoint);
-        logger.info("Finished point slicing for Atlas {} in {}", this.shardOrAtlasName,
-                time.elapsedSince());
+        logger.info(FINISHED_POINT_SLICING, this.shardOrAtlasName,
+                time.elapsedSince().asMilliseconds());
 
-        logger.info("Starting relation filtering for Atlas {}", this.shardOrAtlasName);
+        logger.info(STARTED_RELATION_FILTERING, this.shardOrAtlasName);
         this.startingAtlas.relationsLowerOrderFirst().forEach(relation ->
         {
             if (this.stagedRelations.containsKey(relation.getIdentifier())
@@ -266,18 +293,20 @@ public class RawAtlasSlicer
                 filterRelation(this.stagedRelations.get(relation.getIdentifier()));
             }
         });
-        logger.info("Finished relation filtering for Atlas {} in {}", this.shardOrAtlasName,
-                time.elapsedSince());
+        logger.info(FINISHED_RELATION_FILTERING, this.shardOrAtlasName,
+                time.elapsedSince().asMilliseconds());
 
         this.stagedLines.values()
                 .forEach(line -> this.changes.add(FeatureChange.add(line, this.startingAtlas)));
         this.stagedPoints.values()
-                .forEach(line -> this.changes.add(FeatureChange.add(line, this.startingAtlas)));
-        this.stagedRelations.values()
-                .forEach(line -> this.changes.add(FeatureChange.add(line, this.startingAtlas)));
+                .forEach(point -> this.changes.add(FeatureChange.add(point, this.startingAtlas)));
+        this.stagedRelations.values().forEach(
+                relation -> this.changes.add(FeatureChange.add(relation, this.startingAtlas)));
+        this.stagedAreas.values()
+                .forEach(area -> this.changes.add(FeatureChange.add(area, this.startingAtlas)));
 
-        logger.info("Finished slicing for Atlas {} in {}", this.shardOrAtlasName,
-                overallTime.elapsedSince());
+        logger.info(FINISHED_SLICING, this.shardOrAtlasName,
+                overallTime.elapsedSince().asMilliseconds());
 
         return cutSubAtlasForOriginalShard(new ChangeAtlas(this.startingAtlas,
                 new ChangeBuilder().addAll(this.changes).get()));
@@ -441,8 +470,6 @@ public class RawAtlasSlicer
                 && entity.relations().stream()
                         .anyMatch(relation -> this.relationPredicate.test(relation)
                                 && initialAtlas.relation(relation.getIdentifier()) != null);
-        final Time dynamicAtlasTime = Time.now();
-        logger.info(DYNAMIC_ATLAS_CREATION_TASK, initialShard.getName());
         final DynamicAtlasPolicy policy = new DynamicAtlasPolicy(atlasFetcher, sharding,
                 initialShard, Rectangle.MAXIMUM).withDeferredLoading(true)
                         .withExtendIndefinitely(true)
@@ -450,8 +477,6 @@ public class RawAtlasSlicer
 
         final DynamicAtlas atlas = new DynamicAtlas(policy);
         atlas.preemptiveLoad();
-        logger.info(COMPLETED_TASK_MESSAGE, DYNAMIC_ATLAS_CREATION_TASK, initialShard.getName(),
-                dynamicAtlasTime.elapsedSince());
         return atlas;
     }
 
@@ -475,21 +500,22 @@ public class RawAtlasSlicer
             for (final org.locationtech.jts.geom.Polygon slice : slices.get(countryCode))
             {
                 final long lineSliceIdentifier = lineIdentifierFactory.nextIdentifier();
-                final PolyLine newLineGeometry = processSlice(slice, line);
+                final Polygon newLineGeometry = new Polygon(processSlice(slice, line));
                 final Map<String, String> lineTags = line.getTags();
                 lineTags.put(ISOCountryTag.KEY, countryCode);
-                final CompleteLine newLineSlice = CompleteLine.from(line)
-                        .withIdentifier(lineSliceIdentifier).withTags(lineTags)
-                        .withPolyLine(newLineGeometry);
-                if (isInsideWorkingBound(newLineSlice))
+                final Set<Long> relationIds = new HashSet<>();
+                line.relations().forEach(relation -> relationIds.add(relation.getIdentifier()));
+                final CompleteArea newAreaSlice = new CompleteArea(lineSliceIdentifier,
+                        newLineGeometry, lineTags, relationIds);
+                if (isInsideWorkingBound(newAreaSlice))
                 {
-                    this.stagedLines.put(newLineSlice.getIdentifier(), newLineSlice);
+                    this.stagedAreas.put(newAreaSlice.getIdentifier(), newAreaSlice);
                     for (final Relation relation : line.relations())
                     {
                         if (this.stagedRelations.containsKey(relation.getIdentifier()))
                         {
                             this.stagedRelations.get(relation.getIdentifier())
-                                    .withAddedMember(newLineSlice, line);
+                                    .withAddedMember(newAreaSlice, line);
                         }
                     }
                 }
@@ -575,7 +601,6 @@ public class RawAtlasSlicer
     private void createSyntheticRelationMembers(final CompleteRelation newRelation,
             final org.locationtech.jts.geom.MultiPolygon newMultiPolygon)
     {
-
         final SortedSet<String> syntheticIds = new TreeSet<>();
         // add in remaining synthetic segments
         for (int polygonIndex = 0; polygonIndex < newMultiPolygon
@@ -590,8 +615,8 @@ public class RawAtlasSlicer
             }
             else
             {
-                logger.warn("Relation {} created using entirely synthetic members!",
-                        newRelation.getIdentifier());
+                logger.warn(MULTIPOLYGON_RELATION_ENTIRELY_SYNTHETIC_GEOMETRY,
+                        newRelation.getIdentifier(), this.shardOrAtlasName);
             }
 
             if (remainderExterior.isEmpty())
@@ -654,9 +679,8 @@ public class RawAtlasSlicer
                 }
                 catch (final TopologyException exception)
                 {
-                    logger.error(
-                            "Topology exception while using snap overlay operation on relation {}, falling back to regularl intersection",
-                            newRelation.getIdentifier());
+                    logger.error(MULTIPOLYGON_RELATION_TOPOLOGY_EXCEPTION,
+                            newRelation.getIdentifier(), this.shardOrAtlasName);
                     remainder = remainder.difference(outerLineString);
                 }
                 if (member.getRole().equals(RelationTypeTag.MULTIPOLYGON_ROLE_INNER))
@@ -739,8 +763,9 @@ public class RawAtlasSlicer
             final Optional<String> countryCodeTag = stagedRelationMember.getTag(ISOCountryTag.KEY);
             if (countryCodeTag.isEmpty())
             {
-                throw new CoreException("Untagged country value for entity {} for relation {}",
-                        stagedRelationMember, relation.getIdentifier());
+                throw new CoreException(
+                        "Untagged country value for entity {} for relation {} for Atlas {}",
+                        stagedRelationMember, relation.getIdentifier(), this.shardOrAtlasName);
 
             }
             Collections.addAll(countryList, countryCodeTag.get().split(","));
@@ -823,6 +848,14 @@ public class RawAtlasSlicer
             }
             return null;
         }
+        else if (member.getEntity() instanceof Area)
+        {
+            if (this.stagedAreas.containsKey(identifier))
+            {
+                return this.stagedAreas.get(identifier);
+            }
+            return null;
+        }
         else
         {
             if (this.stagedRelations.containsKey(identifier))
@@ -897,6 +930,11 @@ public class RawAtlasSlicer
      */
     private boolean isSignificantGeometry(final Geometry geometry)
     {
+        if (!geometry.isValid() && logger.isWarnEnabled())
+        {
+            logger.warn("Found invalid geometry {} during slicing Atlas {}", geometry.toText(),
+                    this.shardOrAtlasName);
+        }
         return geometry.isValid() && (geometry.getDimension() == 1
                 && geometry.getLength() > CountryBoundaryMap.LINE_BUFFER
                 || geometry.getDimension() == 2
@@ -928,8 +966,8 @@ public class RawAtlasSlicer
         }
         else
         {
-            throw new CoreException("Unexpected geometry when slicing line {}",
-                    line.getIdentifier());
+            throw new CoreException("Unexpected geometry when slicing line {} for Atlas {}",
+                    line.getOsmIdentifier(), this.shardOrAtlasName);
         }
 
         // JTS frequently reverses the winding during slicing-- this checks the winding of the
@@ -963,12 +1001,17 @@ public class RawAtlasSlicer
                 .forEach(invalidMember ->
                 {
                     final long identifier = invalidMember.getEntity().getIdentifier();
-                    logger.warn("Purging invalid member {} from relation {}", invalidMember,
-                            relation.getIdentifier());
+                    logger.warn(MULTIPOLYGON_RELATION_INVALID_MEMBER_REMOVED, invalidMember,
+                            relation.getOsmIdentifier());
                     relation.withRemovedMember(invalidMember.getEntity());
                     if (invalidMember.getEntity().getType().equals(ItemType.LINE))
                     {
                         this.stagedLines.get(identifier)
+                                .withRemovedRelationIdentifier(relation.getIdentifier());
+                    }
+                    else if (invalidMember.getEntity().getType().equals(ItemType.AREA))
+                    {
+                        this.stagedAreas.get(identifier)
                                 .withRemovedRelationIdentifier(relation.getIdentifier());
                     }
                     else if (invalidMember.getEntity().getType().equals(ItemType.POINT))
@@ -1015,7 +1058,7 @@ public class RawAtlasSlicer
     /**
      * Slice a Line that qualifies as an Area by converting it to 2d geometry, calculating its
      * slices, and creating the new sliced Lines. If it belongs to just one country or cannot be
-     * sliced, upate the ISOCountryTag appropriately instead
+     * sliced, update the ISOCountryTag appropriately instead
      *
      * @param line
      *            The Line to slice as an Area
@@ -1043,21 +1086,34 @@ public class RawAtlasSlicer
         // only check this once we know it's likely to be sliced
         if (jtsPolygon.isEmpty() || !jtsPolygon.isValid())
         {
-            logger.error("Way {} had invalid geometry, removing from Atlas {}!",
-                    line.getIdentifier(), this.shardOrAtlasName);
-            removeLine(line);
+            if (logger.isErrorEnabled())
+            {
+                logger.error(LINE_HAD_INVALID_GEOMETRY, line.getOsmIdentifier(),
+                        this.shardOrAtlasName, jtsPolygon.toText());
+            }
+            final SortedSet<String> countries = new TreeSet<>();
+            intersectingBoundaryPolygons.forEach(polygon -> countries
+                    .add(CountryBoundaryMap.getGeometryProperty(polygon, ISOCountryTag.KEY)));
+            final String countryCodes = String.join(",", countries);
+            this.stagedLines.get(line.getIdentifier()).withAddedTag(ISOCountryTag.KEY,
+                    countryCodes);
             return;
         }
-        final SortedMap<String, Set<org.locationtech.jts.geom.Polygon>> slices = slicePolygonGeometry(
-                jtsPolygon, intersectingBoundaryPolygons);
-        if (slices.isEmpty())
+        final SortedMap<String, Set<org.locationtech.jts.geom.Polygon>> slices;
+        try
         {
-            logger.warn("Way {} had empty sliced geometry!", line.getIdentifier());
-            this.stagedLines.get(line.getIdentifier()).withTags(line.getTags())
-                    .withAddedTag(ISOCountryTag.KEY, ISOCountryTag.COUNTRY_MISSING);
+            slices = slicePolygonGeometry(line.getOsmIdentifier(), jtsPolygon,
+                    intersectingBoundaryPolygons);
+        }
+        catch (final CoreException exception)
+        {
+            logger.error(
+                    "Line {} for Atlas {} had multipolygon slicing result when sliced as polygon, will slice as line instead!",
+                    line.getOsmIdentifier(), this.shardOrAtlasName);
+            sliceLine(line);
             return;
         }
-        else if (slices.keySet().size() == 1)
+        if (slices.keySet().size() == 1)
         {
             final String countryCode = slices.keySet().iterator().next();
             this.stagedLines.get(line.getIdentifier()).withAddedTag(ISOCountryTag.KEY, countryCode);
@@ -1069,9 +1125,10 @@ public class RawAtlasSlicer
         }
         else if (slices.values().size() > AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT)
         {
-            logger.error(
-                    "Country slicing exceeded maximum line identifier name space of {} for Line {} for Atlas {}. It will be added as is, with two or more country codes.",
-                    AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT, line.getIdentifier(),
+            // this should be rare, but we can't slice the line if we don't have the identifier
+            // space for the slices
+            logger.error(LINE_EXCEEDED_SLICING_IDENTIFIER_SPACE,
+                    AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT, line.getOsmIdentifier(),
                     this.shardOrAtlasName);
             final String countryString = String.join(",", slices.keySet());
             this.stagedLines.get(line.getIdentifier()).withTags(line.getTags())
@@ -1081,10 +1138,19 @@ public class RawAtlasSlicer
 
         createNewSlicedAreas(line, slices);
 
-        if (time.elapsedSince().isMoreThan(Duration.minutes(RELATION_SLICING_DURATION_WARN)))
+        if (time.elapsedSince().isMoreThan(Duration.minutes(SLICING_DURATION_WARN)))
         {
-            logger.warn("Line {} for Atlas {} took {} to slice!", line.getIdentifier(),
-                    this.shardOrAtlasName, time.elapsedSince());
+            logger.warn(LINE_SLICING_DURATION_EXCEEDED, line.getOsmIdentifier(),
+                    this.shardOrAtlasName, time.elapsedSince().asMilliseconds());
+        }
+
+        // HACK ALERT UGH
+        if (isMultipolygonMember(line))
+        {
+            // readd line to staged lines since we know we just removed it to slice it-- we only get
+            // to here if we had to slice the line
+            this.stagedLines.put(line.getIdentifier(), CompleteLine.from(line));
+            sliceLine(line);
         }
     }
 
@@ -1109,6 +1175,8 @@ public class RawAtlasSlicer
             final String countryCode = CountryBoundaryMap.getGeometryProperty(boundaryPolygon,
                     ISOCountryTag.KEY);
             final IntersectionMatrix matrix = geometry.relate(boundaryPolygon);
+            // occasionally, the geometry's internal envelope will intersect multiple boundary
+            // polygons but the geometry doesn't. in this case, just tag the geometry entirely
             if (matrix.isWithin())
             {
                 CountryBoundaryMap.setGeometryProperty(geometry, ISOCountryTag.KEY, countryCode);
@@ -1152,7 +1220,7 @@ public class RawAtlasSlicer
      * appropriately instead
      *
      * @param line
-     *            The Line to slice as an Area
+     *            The Line to slice as an Line
      */
     private void sliceLine(final Line line)
     {
@@ -1176,21 +1244,22 @@ public class RawAtlasSlicer
         // we only want to do this validation if we're going to slice it
         if (jtsLine.isEmpty() || !jtsLine.isValid())
         {
-            logger.error("Way {} had invalid geometry, removing from Atlas {}!",
-                    line.getIdentifier(), this.shardOrAtlasName);
-            removeLine(line);
+            if (logger.isErrorEnabled())
+            {
+                logger.error(LINE_HAD_INVALID_GEOMETRY, line.getOsmIdentifier(),
+                        this.shardOrAtlasName, jtsLine.toText());
+            }
+            final SortedSet<String> countries = new TreeSet<>();
+            intersectingBoundaryPolygons.forEach(polygon -> countries
+                    .add(CountryBoundaryMap.getGeometryProperty(polygon, ISOCountryTag.KEY)));
+            final String countryCodes = String.join(",", countries);
+            this.stagedLines.get(line.getIdentifier()).withAddedTag(ISOCountryTag.KEY,
+                    countryCodes);
             return;
         }
         final SortedMap<String, Set<LineString>> slices = sliceLineStringGeometry(jtsLine,
                 intersectingBoundaryPolygons);
-        if (slices.isEmpty())
-        {
-            logger.warn("Way {} had empty sliced geometry!", line.getIdentifier());
-            this.stagedLines.get(line.getIdentifier()).withTags(line.getTags())
-                    .withAddedTag(ISOCountryTag.KEY, ISOCountryTag.COUNTRY_MISSING);
-            return;
-        }
-        else if (slices.keySet().size() == 1)
+        if (slices.keySet().size() == 1)
         {
             final String countryCode = slices.keySet().iterator().next();
             this.stagedLines.get(line.getIdentifier()).withAddedTag(ISOCountryTag.KEY, countryCode);
@@ -1202,9 +1271,10 @@ public class RawAtlasSlicer
         }
         else if (slices.values().size() > AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT)
         {
-            logger.error(
-                    "Country slicing exceeded maximum line identifier name space of {} for Line {} for Atlas {}. It will be added as is, with two or more country codes.",
-                    AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT, line.getIdentifier(),
+            // this should be rare, but we can't slice the line if we don't have the identifier
+            // space for the slices
+            logger.error(LINE_EXCEEDED_SLICING_IDENTIFIER_SPACE,
+                    AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT, line.getOsmIdentifier(),
                     this.shardOrAtlasName);
             final String countryString = String.join(",", slices.keySet());
             this.stagedLines.get(line.getIdentifier()).withTags(line.getTags())
@@ -1214,10 +1284,10 @@ public class RawAtlasSlicer
 
         createNewSlicedLines(line, slices);
 
-        if (time.elapsedSince().isMoreThan(Duration.minutes(RELATION_SLICING_DURATION_WARN)))
+        if (time.elapsedSince().isMoreThan(Duration.minutes(SLICING_DURATION_WARN)))
         {
-            logger.warn("Line {} for Atlas {} took {} to slice!", line.getIdentifier(),
-                    this.shardOrAtlasName, time.elapsedSince());
+            logger.warn(LINE_SLICING_DURATION_EXCEEDED, line.getOsmIdentifier(),
+                    this.shardOrAtlasName, time.elapsedSince().asMilliseconds());
         }
     }
 
@@ -1248,9 +1318,7 @@ public class RawAtlasSlicer
                     .filter(polygon -> polygon instanceof org.locationtech.jts.geom.LineString)
                     .forEach(lineMerger::add);
             final String countryCode = entry.getKey();
-
             lineMerger.add(lineSlices);
-
             lineMerger.getMergedLineStrings().forEach(mergedLineSlice ->
             {
                 if (mergedLineSlice instanceof LineString)
@@ -1300,8 +1368,11 @@ public class RawAtlasSlicer
                     JtsPrecisionManager.getGeometryFactory());
             if (multipolygon.isEmpty() || !multipolygon.isValid())
             {
-                logger.warn("Relation {} sliced for country {} produced invalid geometry!",
-                        identifier, countryCode);
+                if (logger.isErrorEnabled())
+                {
+                    logger.warn(MULTIPOLYGON_RELATION_INVALID_SLICED_GEOMETRY, identifier,
+                            countryCode, multipolygon.toText());
+                }
             }
             else
             {
@@ -1324,8 +1395,16 @@ public class RawAtlasSlicer
     private void sliceMultiPolygonRelation(final CompleteRelation relation)
     {
         final Time time = Time.now();
-
         purgeInvalidMultiPolygonMembers(relation);
+        if (relation
+                .membersMatching(member -> member.getEntity().getType().equals(ItemType.LINE)
+                        && this.startingAtlas.line(member.getEntity().getIdentifier()) == null)
+                .isEmpty())
+        {
+            logger.info(MULTIPOLYGON_RELATION_SLICING_NOT_NEEDED, relation.getOsmIdentifier(),
+                    this.shardOrAtlasName);
+            return;
+        }
         final org.locationtech.jts.geom.MultiPolygon jtsMp;
         try
         {
@@ -1335,9 +1414,8 @@ public class RawAtlasSlicer
         }
         catch (final CoreException exception)
         {
-            logger.error(
-                    "Malformed polygon for relation {}! Falling back to line slicing for relation",
-                    relation.getIdentifier());
+            logger.error(MULTIPOLYGON_RELATION_EXCEPTION_CREATING_POLYGON,
+                    relation.getOsmIdentifier(), this.shardOrAtlasName, exception);
             return;
         }
 
@@ -1356,9 +1434,11 @@ public class RawAtlasSlicer
 
         if (!jtsMp.isValid())
         {
-            logger.error(
-                    "Malformed polygon for relation {}! Falling back to line slicing for relation",
-                    relation.getIdentifier());
+            if (logger.isErrorEnabled())
+            {
+                logger.error(MULTIPOLYGON_RELATION_INVALID_GEOMETRY, relation.getOsmIdentifier(),
+                        this.shardOrAtlasName, jtsMp.toText());
+            }
             return;
         }
 
@@ -1367,8 +1447,8 @@ public class RawAtlasSlicer
 
         if (clippedMultiPolygons.isEmpty())
         {
-            logger.error("Falling back to line slicing for relation {} with bad geometry",
-                    relation.getIdentifier());
+            logger.error(MULTIPOLYGON_RELATION_HAD_NO_SLICED_GEOMETRY, relation.getOsmIdentifier(),
+                    this.shardOrAtlasName);
             return;
         }
 
@@ -1377,16 +1457,10 @@ public class RawAtlasSlicer
         {
             final String country = entry.getKey();
             final org.locationtech.jts.geom.MultiPolygon countryMultipolygon = entry.getValue();
-            final IsValidOp countryValid = new IsValidOp(countryMultipolygon);
-            countryValid.setSelfTouchingRingFormingHoleValid(false);
-            if (!countryValid.isValid())
+            if (countryMultipolygon.equals(jtsMp))
             {
-                logger.error("Falling back to line slicing for relation {} with bad geometry",
-                        relation.getIdentifier());
-                return;
-            }
-            else if (countryMultipolygon.equals(jtsMp))
-            {
+                logger.info(MULTIPOLYGON_RELATION_HAD_EQUIVALENT_SLICED_GEOMETRY,
+                        relation.getOsmIdentifier(), this.shardOrAtlasName);
                 // just tag with the country code and move on, no slicing needed
                 relation.withAddedTag(ISOCountryTag.KEY, country);
                 return;
@@ -1439,10 +1513,10 @@ public class RawAtlasSlicer
         this.changes.add(FeatureChange.remove(relation, this.startingAtlas));
         this.stagedRelations.remove(relation.getIdentifier());
         this.splitRelations.put(relation.getIdentifier(), relationByCountry);
-        if (time.elapsedSince().isMoreThan(Duration.minutes(RELATION_SLICING_DURATION_WARN)))
+        if (time.elapsedSince().isMoreThan(Duration.minutes(SLICING_DURATION_WARN)))
         {
-            logger.warn("Relation {} for Atlas {} took {} to slice!", relation.getIdentifier(),
-                    this.shardOrAtlasName, time.elapsedSince());
+            logger.warn(MULTIPOLYGON_RELATION_SLICING_DURATION_EXCEEDED,
+                    relation.getOsmIdentifier(), this.shardOrAtlasName, time.elapsedSince());
         }
     }
 
@@ -1490,6 +1564,8 @@ public class RawAtlasSlicer
      * Take a polygon and find its slices, while also checking for validity and geometric
      * consistency (i.e. only Polygonal results)
      *
+     * @param identifier
+     *            the OSM identifier for the Line being sliced
      * @param polygon
      *            The Polygon being sliced
      * @param intersectingBoundaryPolygons
@@ -1498,7 +1574,7 @@ public class RawAtlasSlicer
      *         boundary polygons
      */
     private SortedMap<String, Set<org.locationtech.jts.geom.Polygon>> slicePolygonGeometry(
-            final org.locationtech.jts.geom.Polygon polygon,
+            final long identifier, final org.locationtech.jts.geom.Polygon polygon,
             final Set<org.locationtech.jts.geom.Polygon> intersectingBoundaryPolygon)
     {
         final Map<String, Set<Geometry>> currentResults = sliceGeometry(polygon,
@@ -1513,9 +1589,13 @@ public class RawAtlasSlicer
             {
                 if (geometry instanceof org.locationtech.jts.geom.Polygon)
                 {
+                    // this can happen when a country boundary introduces a hole into a polygon that
+                    // was previously simple. in this case, we *must* discard the result. we surface
+                    // the log as an error so it should be easy to find
                     if (((org.locationtech.jts.geom.Polygon) geometry).getNumInteriorRing() > 0)
                     {
-                        logger.error("Discarding multipolygon slicing result");
+                        throw new CoreException(LINE_HAD_MULTIPOLYGON_SLICE, identifier,
+                                this.shardOrAtlasName, geometry.toText());
                     }
                     else
                     {

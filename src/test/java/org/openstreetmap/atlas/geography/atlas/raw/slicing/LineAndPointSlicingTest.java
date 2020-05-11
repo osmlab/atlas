@@ -140,18 +140,16 @@ public class LineAndPointSlicingTest
         rawAtlas.lines().forEach(line -> Assert.assertTrue("The line is closed", line.isClosed()));
         rawAtlas.lines().forEach(line -> Assert.assertFalse("The line is counter clockwise:",
                 new Polygon(line.asPolyLine().truncate(0, 1)).isClockwise()));
-        Assert.assertEquals("The line was cut into 2 segments", 2, slicedAtlas.numberOfLines());
-        slicedAtlas.lines()
-                .forEach(line -> Assert.assertTrue("Both segments are closed", line.isClosed()));
+        Assert.assertEquals("The line was cut into 2 segments", 2, slicedAtlas.numberOfAreas());
 
         final CountrySlicingIdentifierFactory lineIdentifierFactory = new CountrySlicingIdentifierFactory(
                 1);
 
         Assert.assertEquals("Expect the first segment to have Ivory Coast country code", "CIV",
-                slicedAtlas.line(lineIdentifierFactory.nextIdentifier()).getTag(ISOCountryTag.KEY)
+                slicedAtlas.area(lineIdentifierFactory.nextIdentifier()).getTag(ISOCountryTag.KEY)
                         .get());
         Assert.assertEquals("Expect the second segment to have Liberia country code", "LBR",
-                slicedAtlas.line(lineIdentifierFactory.nextIdentifier()).getTag(ISOCountryTag.KEY)
+                slicedAtlas.area(lineIdentifierFactory.nextIdentifier()).getTag(ISOCountryTag.KEY)
                         .get());
 
         // Check Point correctness
@@ -436,6 +434,6 @@ public class LineAndPointSlicingTest
     {
         final Atlas rawAtlas = this.setup.getSingleNodeLine();
         final Atlas slicedAtlas = new RawAtlasSlicer(loadingOption, rawAtlas).slice();
-        Assert.assertEquals(1, slicedAtlas.numberOfLines());
+        Assert.assertEquals(2, slicedAtlas.numberOfLines());
     }
 }

@@ -321,6 +321,11 @@ public class WaySectionProcessor
                     line.getTags());
         });
 
+        this.rawAtlas.areas().forEach(area ->
+        {
+            builder.addArea(area.getIdentifier(), area.getClosedGeometry(), area.getTags());
+        });
+
         // Relations
         this.rawAtlas.relationsLowerOrderFirst().forEach(relation ->
         {
@@ -368,13 +373,13 @@ public class WaySectionProcessor
                                         }
                                     });
                         }
-                        else if (builder.peek().area(memberIdentifier) != null)
-                        {
-                            bean.addItem(memberIdentifier, memberRole, ItemType.AREA);
-                        }
                         else if (builder.peek().line(memberIdentifier) != null)
                         {
                             bean.addItem(memberIdentifier, memberRole, ItemType.LINE);
+                        }
+                        else if (builder.peek().area(memberIdentifier) != null)
+                        {
+                            bean.addItem(memberIdentifier, memberRole, ItemType.AREA);
                         }
                         else
                         {
@@ -390,6 +395,17 @@ public class WaySectionProcessor
                         else
                         {
                             logger.debug(RELATION_MEMBER_EXCLUSION_MESSAGE, ItemType.RELATION,
+                                    memberIdentifier, relation.getIdentifier());
+                        }
+                        break;
+                    case AREA:
+                        if (builder.peek().area(memberIdentifier) != null)
+                        {
+                            bean.addItem(memberIdentifier, memberRole, ItemType.AREA);
+                        }
+                        else
+                        {
+                            logger.debug(RELATION_MEMBER_EXCLUSION_MESSAGE, ItemType.AREA,
                                     memberIdentifier, relation.getIdentifier());
                         }
                         break;

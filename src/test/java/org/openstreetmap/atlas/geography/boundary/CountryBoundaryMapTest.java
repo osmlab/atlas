@@ -229,7 +229,7 @@ public class CountryBoundaryMapTest
         final Atlas rawAtlas = builder.get();
         final Atlas slicedAtlas = new RawAtlasSlicer(
                 AtlasLoadingOption.createOptionWithAllEnabled(map), rawAtlas).slice();
-        Assert.assertEquals(2, slicedAtlas.numberOfLines());
+        Assert.assertEquals(2, slicedAtlas.numberOfAreas());
     }
 
     @Test
