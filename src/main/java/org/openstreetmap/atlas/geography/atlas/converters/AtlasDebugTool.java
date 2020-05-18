@@ -95,7 +95,7 @@ public class AtlasDebugTool extends Command
                     {
                         multiPolygon = boundaryMap.countryBoundary(country).get(0).getBoundary();
                     }
-                    option.setAdditionalCountryCodes(country);
+                    option.setCountryCode(country);
                 }
             }
             else

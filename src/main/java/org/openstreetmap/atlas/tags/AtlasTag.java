@@ -18,7 +18,10 @@ public final class AtlasTag
 
     public static final Set<String> TAGS_FROM_ATLAS = Collections.unmodifiableSet(
             new HashSet<>(Arrays.asList(ISOCountryTag.KEY, SyntheticBoundaryNodeTag.KEY,
-                    SyntheticDuplicateOsmNodeTag.KEY, SyntheticNearestNeighborCountryCodeTag.KEY)));
+                    SyntheticDuplicateOsmNodeTag.KEY, SyntheticGeometrySlicedTag.KEY,
+                    SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY,
+                    SyntheticInvalidWaySectionTag.KEY, SyntheticRelationMemberAdded.KEY,
+                    SyntheticRelationRoleUpdated.KEY, SyntheticSyntheticRelationMemberTag.KEY)));
 
     private AtlasTag()
     {
