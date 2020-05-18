@@ -461,7 +461,7 @@ public class RawAtlasSlicer
             final EntityIdentifierGenerator lineIdentifierGenerator = new EntityIdentifierGenerator();
             final CompleteLine newLine = new CompleteLine(0L,
                     JTS_POLYLINE_CONVERTER.backwardConvert(remainderLine), newLineTags,
-                    new HashSet<Long>());
+                    new HashSet<>());
             newLine.withIdentifier(lineIdentifierGenerator.generateIdentifier(newLine));
             newLine.withAddedRelationIdentifier(newRelation.getIdentifier());
             newRelation.withAddedMember(newLine, role);
