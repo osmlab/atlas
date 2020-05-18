@@ -3,16 +3,20 @@ package org.openstreetmap.atlas.geography.atlas.dynamic;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.change.AtlasEntityKey;
 import org.openstreetmap.atlas.geography.atlas.dynamic.policy.DynamicAtlasPolicy;
 import org.openstreetmap.atlas.geography.atlas.dynamic.rules.DynamicAtlasPreemptiveLoadTestRule;
+import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
 import org.openstreetmap.atlas.geography.sharding.SlippyTileSharding;
@@ -22,6 +26,8 @@ import org.openstreetmap.atlas.geography.sharding.SlippyTileSharding;
  */
 public class DynamicAtlasPreemptiveLoadTest
 {
+    private static final Shard INITIAL_SHARD = new SlippyTile(240, 246, 9);
+
     @Rule
     public DynamicAtlasPreemptiveLoadTestRule rule = new DynamicAtlasPreemptiveLoadTestRule();
 
@@ -37,7 +43,7 @@ public class DynamicAtlasPreemptiveLoadTest
                 {
                     return Optional.empty();
                 }
-            }, new SlippyTileSharding(9), new SlippyTile(240, 246, 9), Rectangle.MAXIMUM)
+            }, new SlippyTileSharding(9), INITIAL_SHARD, Rectangle.MAXIMUM)
                     .withDeferredLoading(true).withExtendIndefinitely(false);
     private final Supplier<DynamicAtlasPolicy> allInitialShardsPolicySupplier = () -> new DynamicAtlasPolicy(
             shard ->
@@ -51,9 +57,64 @@ public class DynamicAtlasPreemptiveLoadTest
                     return Optional.empty();
                 }
             }, new SlippyTileSharding(9),
-            Rectangle.forLocated(new SlippyTile(240, 246, 9).bounds().center(),
+            Rectangle.forLocated(INITIAL_SHARD.bounds().center(),
                     new SlippyTile(241, 246, 9).bounds().center()),
             Rectangle.MAXIMUM).withDeferredLoading(true).withExtendIndefinitely(false);
+    private final Supplier<DynamicAtlasPolicy> singleHitPolicySupplier = () -> new DynamicAtlasPolicy(
+            shard ->
+            {
+                if (this.store.containsKey(shard))
+                {
+                    return Optional.of(this.store.get(shard));
+                }
+                else
+                {
+                    return Optional.empty();
+                }
+            }, new SlippyTileSharding(9), INITIAL_SHARD, Rectangle.MAXIMUM)
+                    .withDeferredLoading(true).withExtendIndefinitely(true)
+                    .withAtlasEntitiesToConsiderForExpansion(new Predicate<>()
+                    {
+                        private final Map<AtlasEntityKey, Integer> identifiersChecked = new HashMap<>();
+
+                        @Override
+                        public boolean test(final AtlasEntity atlasEntity)
+                        {
+                            final AtlasEntityKey key = AtlasEntityKey.from(atlasEntity.getType(),
+                                    atlasEntity.getIdentifier());
+                            if (this.identifiersChecked.containsKey(key)
+                                    && this.identifiersChecked.get(key) > 4)
+                            {
+                                throw new CoreException("Checked {} {} times!", key,
+                                        this.identifiersChecked.get(key));
+                            }
+                            else
+                            {
+                                int newCount = 1;
+                                if (this.identifiersChecked.containsKey(key))
+                                {
+                                    newCount += this.identifiersChecked.get(key);
+                                }
+                                this.identifiersChecked.put(key, newCount);
+                            }
+                            return true;
+                        }
+                    });
+
+    @Test
+    public void loadPreemptivelyCapExpansionCheckTest()
+    {
+        final DynamicAtlas dynamicAtlas = new DynamicAtlas(this.singleHitPolicySupplier.get());
+        dynamicAtlas.preemptiveLoad();
+        Assert.assertEquals(3, dynamicAtlas.numberOfEdges());
+        for (int i = 0; i < 10; i++)
+        {
+            // Make sure that every time the preemptive load is done, the DynamicAtlas does not do
+            // further geometry checks for each feature request
+            dynamicAtlas.nodes().forEach(node -> Assert.assertTrue(node.within(Rectangle.MAXIMUM)));
+        }
+        Assert.assertEquals(2, dynamicAtlas.getTimesMultiAtlasWasBuiltUnderneath());
+    }
 
     @Test
     public void loadPreemptivelyTest()
