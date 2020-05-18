@@ -1,14 +1,11 @@
 package org.openstreetmap.atlas.geography.atlas.pbf;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.tags.filters.ConfiguredTaggableFilter;
-import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.configuration.StandardConfiguration;
 
 /**
@@ -62,7 +59,7 @@ public final class AtlasLoadingOption implements Serializable
     private boolean countrySlicing;
     private boolean waySectioning;
     private boolean loadWaysSpanningCountryBoundaries;
-    private final Set<String> countryCodes = new HashSet<>();
+    private String countryCode;
 
     private CountryBoundaryMap countryBoundaryMap;
 
@@ -151,9 +148,9 @@ public final class AtlasLoadingOption implements Serializable
         return this.countryBoundaryMap;
     }
 
-    public Set<String> getCountryCodes()
+    public String getCountryCode()
     {
-        return this.countryCodes;
+        return this.countryCode;
     }
 
     public ConfiguredTaggableFilter getEdgeFilter()
@@ -251,17 +248,6 @@ public final class AtlasLoadingOption implements Serializable
         return this.waySectioning;
     }
 
-    public AtlasLoadingOption setAdditionalCountryCodes(final Iterable<String> countryCodes)
-    {
-        this.countryCodes.addAll(Iterables.asSet(countryCodes));
-        return this;
-    }
-
-    public AtlasLoadingOption setAdditionalCountryCodes(final String... countryCodes)
-    {
-        return setAdditionalCountryCodes(Iterables.asSet(countryCodes));
-    }
-
     public void setAreaFilter(final ConfiguredTaggableFilter areaFilter)
     {
         this.areaFilter = areaFilter;
@@ -270,6 +256,12 @@ public final class AtlasLoadingOption implements Serializable
     public void setCountryBoundaryMap(final CountryBoundaryMap countryBoundaryMap)
     {
         this.countryBoundaryMap = countryBoundaryMap;
+    }
+
+    public AtlasLoadingOption setCountryCode(final String countryCode)
+    {
+        this.countryCode = countryCode;
+        return this;
     }
 
     public AtlasLoadingOption setCountrySlicing(final boolean isCountrySlicing)

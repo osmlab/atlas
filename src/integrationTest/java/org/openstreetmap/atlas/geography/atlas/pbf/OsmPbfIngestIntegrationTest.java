@@ -243,7 +243,6 @@ public class OsmPbfIngestIntegrationTest extends AtlasIntegrationTest
 
         final AtlasLoadingOption loadingOption = AtlasLoadingOption.createOptionWithAllEnabled(map);
         Atlas atlas = new RawAtlasGenerator(pbf, loadingOption, loadingArea).build();
-        loadingOption.setAdditionalCountryCodes(map.getLoadedCountries());
         atlas = new RawAtlasSlicer(loadingOption, atlas).slice();
         atlas = new WaySectionProcessor(atlas, loadingOption).run();
         // Make sure that the big bridge over water made it to the Atlas
