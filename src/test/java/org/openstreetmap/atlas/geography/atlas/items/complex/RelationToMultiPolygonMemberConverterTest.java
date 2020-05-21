@@ -83,6 +83,10 @@ public class RelationToMultiPolygonMemberConverterTest
     public void testRings()
     {
         final List<Polygon> outers = Iterables.asList(OUTER.convert(this.atlas.relation(0)));
+        final Location first = outers.get(0).first();
+        final Location last = outers.get(outers.size() - 1).first();
+        Assert.assertEquals("POINT (-122.028932 37.332451)", first.toString());
+        Assert.assertEquals("POINT (-122.033948 37.32544)", last.toString());
         Assert.assertTrue(outers.contains(OUTER_LOOP));
         Assert.assertTrue(outers.contains(INNER_LOOP));
         Assert.assertEquals(INNER_LOOP, INNER.convert(this.atlas.relation(0)).iterator().next());
