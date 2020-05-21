@@ -97,8 +97,9 @@ public class Pool implements Closeable
         if (!this.errors.isEmpty())
         {
             this.errors.forEach(error -> logger.error("Unhandled error in {}!", this.name, error));
-            throw new CoreException("{} tasks in {} had uncaught errors!", this.errors.size(),
-                    this.name);
+            throw new CoreException(
+                    "{} tasks in {} had uncaught errors! Attaching one of those as cause.",
+                    this.errors.size(), this.name, this.errors.iterator().next());
         }
     }
 
