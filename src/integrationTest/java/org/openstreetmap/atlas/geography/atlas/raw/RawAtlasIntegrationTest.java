@@ -60,11 +60,10 @@ public class RawAtlasIntegrationTest
                 .fromPlainText(new InputStreamResource(() -> RawAtlasIntegrationTest.class
                         .getResourceAsStream("CIV_GIN_LBR_osm_boundaries_with_grid_index.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
-        loadingOptionAll = AtlasLoadingOption.createOptionWithAllEnabled(boundary)
-                .setAdditionalCountryCodes("CIV", "LBR", "GIN");
+        loadingOptionAll = AtlasLoadingOption.createOptionWithAllEnabled(boundary);
 
         loadingOptionIvoryCoast = AtlasLoadingOption.createOptionWithAllEnabled(boundary)
-                .setAdditionalCountryCodes("CIV");
+                .setCountryCode("CIV");
 
         // This is an OSM node that doesn't have any tags, is not a member of a relation or part of
         // a way. It should end up as a point in the final atlas.
@@ -80,28 +79,25 @@ public class RawAtlasIntegrationTest
         // Create a country boundary map with the fake Antarctica country boundary
         final CountryBoundaryMap antarticaBoundary = CountryBoundaryMap.fromBoundaryMap(boundaries);
         loadingOptionAntarctica = AtlasLoadingOption.createOptionWithAllEnabled(antarticaBoundary)
-                .setAdditionalCountryCodes(antarctica);
+                .setCountryCode(antarctica);
 
         final CountryBoundaryMap intersectionAtEndBoundary = CountryBoundaryMap
                 .fromPlainText(new InputStreamResource(() -> RawAtlasIntegrationTest.class
                         .getResourceAsStream("layerIntersectionAtEndBoundaryMap.txt")));
         loadingOptionIntersectionAtEnd = AtlasLoadingOption
-                .createOptionWithAllEnabled(intersectionAtEndBoundary)
-                .setAdditionalCountryCodes("RUS");
+                .createOptionWithAllEnabled(intersectionAtEndBoundary).setCountryCode("RUS");
 
         final CountryBoundaryMap intersectionAtStartBoundary = CountryBoundaryMap
                 .fromPlainText(new InputStreamResource(() -> RawAtlasIntegrationTest.class
                         .getResourceAsStream("layerIntersectionAtStartBoundaryMap.txt")));
         loadingOptionIntersectionAtStart = AtlasLoadingOption
-                .createOptionWithAllEnabled(intersectionAtStartBoundary)
-                .setAdditionalCountryCodes("RUS");
+                .createOptionWithAllEnabled(intersectionAtStartBoundary).setCountryCode("RUS");
 
         final CountryBoundaryMap intersectionAtMiddleBoundary = CountryBoundaryMap
                 .fromPlainText(new InputStreamResource(() -> RawAtlasIntegrationTest.class
                         .getResourceAsStream("layerIntersectionInMiddleBoundaryMap.txt")));
         loadingOptionIntersectionAtMiddle = AtlasLoadingOption
-                .createOptionWithAllEnabled(intersectionAtMiddleBoundary)
-                .setAdditionalCountryCodes("SGP");
+                .createOptionWithAllEnabled(intersectionAtMiddleBoundary).setCountryCode("SGP");
     }
 
     @Rule

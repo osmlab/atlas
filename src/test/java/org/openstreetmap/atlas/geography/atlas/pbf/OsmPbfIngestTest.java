@@ -182,7 +182,6 @@ public class OsmPbfIngestTest
                 new ConfiguredTaggableFilter(new StandardConfiguration(new InputStreamResource(
                         () -> OsmPbfIngestTest.class.getResourceAsStream("edge-filter.json")))));
         Atlas atlas = new RawAtlasGenerator(pbfFile, option, boundary).build();
-        option.setAdditionalCountryCodes(countryBoundaryMap.getLoadedCountries());
         atlas = new RawAtlasSlicer(option, atlas).slice();
         atlas = new WaySectionProcessor(atlas, option).run();
 
@@ -202,7 +201,7 @@ public class OsmPbfIngestTest
         {
             final AtlasLoadingOption loadingOption = AtlasLoadingOption
                     .createOptionWithAllEnabled(this.countryBoundariesAll)
-                    .setAdditionalCountryCodes(COUNTRY_1_NAME);
+                    .setCountryCode(COUNTRY_1_NAME);
             Atlas atlas = new RawAtlasGenerator(() -> osmosis, loadingOption, MultiPolygon.MAXIMUM)
                     .build();
             atlas = new RawAtlasSlicer(loadingOption, atlas).slice();

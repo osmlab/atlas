@@ -56,7 +56,7 @@ public class RawAtlasTest
         // 39019000000
         Assert.assertNotNull(rawAtlas.line(39019000000L));
 
-        option.setAdditionalCountryCodes("DMA");
+        option.setCountryCode("DMA");
         final Atlas slicedAtlas = new RawAtlasSlicer(option, rawAtlas).slice();
         logger.debug("Sliced Atlas: {}", slicedAtlas);
 

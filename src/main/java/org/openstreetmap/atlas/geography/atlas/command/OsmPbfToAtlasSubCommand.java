@@ -1,11 +1,8 @@
 package org.openstreetmap.atlas.geography.atlas.command;
 
 import java.io.PrintStream;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
 import org.openstreetmap.atlas.geography.MultiPolygon;
@@ -18,6 +15,7 @@ import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.tags.filters.ConfiguredTaggableFilter;
 import org.openstreetmap.atlas.utilities.configuration.StandardConfiguration;
+import org.openstreetmap.atlas.utilities.conversion.StringConverter;
 import org.openstreetmap.atlas.utilities.runtime.Command.Optionality;
 import org.openstreetmap.atlas.utilities.runtime.Command.Switch;
 import org.openstreetmap.atlas.utilities.runtime.Command.SwitchList;
@@ -63,10 +61,9 @@ public class OsmPbfToAtlasSubCommand implements FlexibleSubCommand
             "Whether to load ways (boolean)", Boolean::parseBoolean, Optionality.OPTIONAL, "true");
 
     // Country parameters
-    private static final Switch<Set<String>> COUNTRY_CODES_PARAMETER = new Switch<>("country-codes",
-            "Countries from the country map to convert (comma separated ISO3 codes)",
-            code -> Arrays.stream(code.split(",")).collect(Collectors.toSet()),
-            Optionality.OPTIONAL);
+    private static final Switch<String> COUNTRY_CODE_PARAMETER = new Switch<>("country-code",
+            "Country from the country map to convert (comma separated ISO3 codes)",
+            StringConverter.IDENTITY, Optionality.OPTIONAL);
     private static final Switch<File> COUNTRY_MAP_PARAMETER = new Switch<>("country-boundary-map",
             "Path to a local WKT or shp file containing a country boundary map", File::new,
             Optionality.OPTIONAL);
@@ -107,7 +104,7 @@ public class OsmPbfToAtlasSubCommand implements FlexibleSubCommand
         return new SwitchList().with(INPUT_PARAMETER, OUTPUT_PARAMETER, EDGE_FILTER_PARAMETER,
                 NODE_FILTER_PARAMETER, RELATION_FILTER_PARAMETER, WAY_FILTER_PARAMETER,
                 WAY_SECTION_FILTER_PARAMETER, LOAD_RELATIONS_PARAMETER, LOAD_WAYS_PARAMETER,
-                COUNTRY_CODES_PARAMETER, COUNTRY_MAP_PARAMETER, COUNTRY_SLICING_PARAMETER);
+                COUNTRY_CODE_PARAMETER, COUNTRY_MAP_PARAMETER, COUNTRY_SLICING_PARAMETER);
     }
 
     @Override
@@ -169,8 +166,8 @@ public class OsmPbfToAtlasSubCommand implements FlexibleSubCommand
         });
 
         // Set country options
-        ((Optional<Set>) map.getOption(COUNTRY_CODES_PARAMETER))
-                .ifPresent(options::setAdditionalCountryCodes);
+        ((Optional<String>) map.getOption(COUNTRY_CODE_PARAMETER))
+                .ifPresent(options::setCountryCode);
         ((Optional<Boolean>) map.getOption(COUNTRY_SLICING_PARAMETER))
                 .ifPresent(options::setCountrySlicing);
 

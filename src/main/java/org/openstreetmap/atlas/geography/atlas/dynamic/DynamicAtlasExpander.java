@@ -183,8 +183,7 @@ class DynamicAtlasExpander
     {
         StreamIterable<V> result = Iterables.stream(entitiesSupplier.get())
                 .filter(Objects::nonNull);
-        final boolean shouldStopExploring = this.policy.isDeferLoading()
-                && !this.policy.isExtendIndefinitely() && this.preemptiveLoadDone;
+        final boolean shouldStopExploring = this.policy.isDeferLoading() && this.preemptiveLoadDone;
         while (!shouldStopExploring && !entitiesCovered(result, entityCoveredPredicate))
         {
             result = Iterables.stream(entitiesSupplier.get()).filter(Objects::nonNull);

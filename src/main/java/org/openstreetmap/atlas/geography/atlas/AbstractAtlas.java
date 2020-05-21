@@ -110,7 +110,6 @@ public abstract class AbstractAtlas extends BareAtlas
         Atlas atlas = new RawAtlasGenerator(osmPbf).build();
         final AtlasLoadingOption loadingOption = AtlasLoadingOption
                 .createOptionWithAllEnabled(boundaryMap);
-        loadingOption.setAdditionalCountryCodes(boundaryMap.getLoadedCountries());
         atlas = new RawAtlasSlicer(loadingOption, atlas).slice();
         atlas = new WaySectionProcessor(atlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap)).run();
