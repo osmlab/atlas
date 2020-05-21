@@ -48,8 +48,9 @@ public class CountryShardToBoundsCommandTest
         final File folder = File.temporaryFolder();
         try
         {
-            final Resource resource = new InputStreamResource(() -> WKTShardCommandTest.class
-                    .getResourceAsStream("MAF_AIA_osm_boundaries_with_grid_index.txt"));
+            final Resource resource = new InputStreamResource(
+                    () -> CountryShardToBoundsCommandTest.class
+                            .getResourceAsStream("MAF_AIA_osm_boundaries_with_grid_index.txt"));
             final File boundaryMap = folder.child("MAF_AIA_osm_boundaries_with_grid_index.txt");
             resource.copyTo(boundaryMap);
 
