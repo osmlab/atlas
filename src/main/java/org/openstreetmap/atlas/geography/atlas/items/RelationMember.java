@@ -58,10 +58,10 @@ public class RelationMember implements Comparable<RelationMember>, Located, GeoJ
         {
             final long identifier1 = this.getEntity().getIdentifier();
             final long identifier2 = other.getEntity().getIdentifier();
-            final int delta = Long.compare(identifier1, identifier2);
-            if (delta != 0)
+            final int comparisonMarker = Long.compare(identifier1, identifier2);
+            if (comparisonMarker != 0)
             {
-                return delta;
+                return comparisonMarker;
             }
             else
             {
