@@ -358,6 +358,7 @@ public class DynamicTileSharding extends Command implements Sharding
     private static final long serialVersionUID = 229952569300405488L;
     // The root of the tree for this dynamic sharding
     private final Node root;
+    private final String resourceName;
 
     public static void main(final String[] args)
     {
@@ -373,6 +374,7 @@ public class DynamicTileSharding extends Command implements Sharding
     public DynamicTileSharding(final Resource resource)
     {
         this.root = Node.read(resource);
+        this.resourceName = resource.getName();
     }
 
     /**
@@ -381,6 +383,7 @@ public class DynamicTileSharding extends Command implements Sharding
     private DynamicTileSharding()
     {
         this.root = new Node();
+        this.resourceName = "N/A";
     }
 
     @Override
@@ -398,6 +401,12 @@ public class DynamicTileSharding extends Command implements Sharding
 
         final DynamicTileSharding that = (DynamicTileSharding) other;
         return this.root.deepEquals(that.root);
+    }
+
+    @Override
+    public String getName()
+    {
+        return "dynamic@" + this.resourceName;
     }
 
     @Override

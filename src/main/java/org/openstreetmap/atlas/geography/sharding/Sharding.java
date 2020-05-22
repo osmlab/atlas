@@ -95,6 +95,14 @@ public interface Sharding extends Serializable, GeoJson
     }
 
     /**
+     * Get the name of this {@link Sharding}. The name should succinctly describe this
+     * {@link Sharding}'s parameters.
+     *
+     * @return the name of this {@link Sharding}
+     */
+    String getName();
+
+    /**
      * Get the neighboring shards for a given shard.
      *
      * @param shard
@@ -105,12 +113,21 @@ public interface Sharding extends Serializable, GeoJson
 
     /**
      * Get a shard given its name
-     * 
+     *
      * @param name
      *            The name of the shard
      * @return The corresponding shard
      */
     Shard shardForName(String name);
+
+    /**
+     * Generate shards. This needs to be deterministic!
+     *
+     * @param surface
+     *            The bounds to limit the shards.
+     * @return The shards {@link Iterable}.
+     */
+    Iterable<Shard> shards(GeometricSurface surface);
 
     /**
      * Generate shards for the whole planet. This needs to be deterministic!
@@ -121,15 +138,6 @@ public interface Sharding extends Serializable, GeoJson
     {
         return shards(Rectangle.MAXIMUM);
     }
-
-    /**
-     * Generate shards. This needs to be deterministic!
-     *
-     * @param surface
-     *            The bounds to limit the shards.
-     * @return The shards {@link Iterable}.
-     */
-    Iterable<Shard> shards(GeometricSurface surface);
 
     /**
      * Generate shards. This needs to be deterministic!
