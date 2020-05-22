@@ -2,6 +2,8 @@ package org.openstreetmap.atlas.utilities.command.abstractcommand;
 
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,9 +41,13 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsMarkerInterface
 {
+    /**
+     * DEFAULT_CONTEXT is the integer value of a command's default context. Subclasses may register
+     * additional option parser contexts. They should use this value when performing contextual
+     * operations on the default context. See {@link SimpleOptionAndArgumentParser} for more
+     * information about contexts.
+     */
     public static final int DEFAULT_CONTEXT = 3;
-    public static final String DESCRIPTION = "DESCRIPTION";
-    public static final String EXAMPLES = "EXAMPLES";
 
     private static final String LINE_SEPARATOR = "line.separator";
     private static final Logger logger = LoggerFactory
@@ -71,18 +77,30 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     private static final int PAGER_OFFSET = 3;
     private static final int TERMINAL_COLUMN_OFFSET = 2;
 
+    /*
+     * The following options are default-registered.
+     */
     private static final String VERBOSE_OPTION_LONG = "verbose";
     private static final Character VERBOSE_OPTION_SHORT = 'v';
     private static final String VERBOSE_OPTION_DESCRIPTION = "Show verbose output messages.";
+
     private static final String HELP_OPTION_LONG = "help";
     private static final Character HELP_OPTION_SHORT = 'h';
     private static final String HELP_OPTION_DESCRIPTION = "Show this help menu.";
+
     private static final String VERSION_OPTION_LONG = "version";
     private static final Character VERSION_OPTION_SHORT = 'V';
     private static final String VERSION_OPTION_DESCRIPTION = "Print the command version and exit.";
+
     private static final int HELP_OPTION_CONTEXT = 1;
     private static final int VERSION_OPTION_CONTEXT = 2;
+
+    /*
+     * This is a hack option that can be supplied by callers to override the option parser's default
+     * behaviour. If present, it is stripped from ARGS before reaching the option parser.
+     */
     private static final String IGNORE_UNKNOWN_OPTIONS = "--ignore-unknown-options";
+
     /*
      * Maximum allowed column width. If the user's terminal is very wide, we don't want to display
      * documentation all the way to the max column, since it may become hard to read.
@@ -92,6 +110,12 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     private final SimpleOptionAndArgumentParser parser = new SimpleOptionAndArgumentParser();
     private final DocumentationRegistrar registrar = new DocumentationRegistrar();
 
+    /*
+     * These variables control terminal-related parameters. Their values can be set by the caller
+     * from the command line using sentinal arguments. Try running the atlas-shell-tools "atlas"
+     * wrapper perl program with the '--debug' option to see how this works. Also, see the method
+     * "unpackSentinelArguments".
+     */
     private boolean useColorStdout = false;
     private boolean useColorStderr = false;
     private boolean usePager = false;
@@ -105,10 +129,23 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      * examples of this in subclass implementations). However, for simplicity's sake we use
      * System.out/err for direct messages intended for the user to read on the command line. This
      * makes it easier for users to adjust their log configuration to show the desired level of
-     * diagnostics without affecting the actual command outputs.
+     * diagnostics without affecting the actual command outputs. We are declaring explicit stream
+     * variables here so that downstream classes can override the streams for unit-testing purposes.
+     */
+    /**
+     * See {@link AbstractAtlasShellToolsCommand#setNewOutStream(PrintStream)}.
      */
     private PrintStream outStream = System.out; // NOSONAR
+    /**
+     * See {@link AbstractAtlasShellToolsCommand#setNewErrStream(PrintStream)}.
+     */
     private PrintStream errStream = System.err; // NOSONAR
+
+    /**
+     * The default value here is {@link FileSystems#getDefault()}. See
+     * {@link AbstractAtlasShellToolsCommand#setNewFileSystem(FileSystem)} for more information.
+     */
+    private FileSystem fileSystem = FileSystems.getDefault();
 
     /**
      * Execute the command logic. Subclasses of {@link AbstractAtlasShellToolsCommand} must
@@ -125,6 +162,16 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      * @return the simple name of the command
      */
     public abstract String getCommandName();
+
+    /**
+     * Get the {@link FileSystem} for this command.
+     *
+     * @return the {@link FileSystem} for this command.
+     */
+    public FileSystem getFileSystem()
+    {
+        return this.fileSystem;
+    }
 
     /**
      * A simple description of the command. It should be brief - see the NAME section of any man
@@ -263,6 +310,19 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     public void setNewErrStream(final PrintStream newErrStream)
     {
         this.errStream = newErrStream;
+    }
+
+    /**
+     * Set a new {@link FileSystem} for this command. Implementations should respect the set
+     * {@link FileSystem} when performing file operations. This is particularly useful for
+     * unit-testing, where we may want to use an alternate file system (e.g. in-memory).
+     *
+     * @param newFileSystem
+     *            the new {@link FileSystem} to use.
+     */
+    public void setNewFileSystem(final FileSystem newFileSystem)
+    {
+        this.fileSystem = newFileSystem;
     }
 
     /**

@@ -120,9 +120,9 @@ public class OsmToAtlasCommand extends MultipleOutputCommand
     @Override
     public void registerManualPageSections()
     {
-        addManualPageSection(DESCRIPTION, OsmToAtlasCommand.class
+        addManualPageSection("DESCRIPTION", OsmToAtlasCommand.class
                 .getResourceAsStream("OsmToAtlasCommandDescriptionSection.txt"));
-        addManualPageSection(EXAMPLES, OsmToAtlasCommand.class
+        addManualPageSection("EXAMPLES", OsmToAtlasCommand.class
                 .getResourceAsStream("OsmToAtlasCommandExamplesSection.txt"));
         super.registerManualPageSections();
     }
