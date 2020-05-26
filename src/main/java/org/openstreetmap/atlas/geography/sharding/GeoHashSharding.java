@@ -21,6 +21,12 @@ public class GeoHashSharding implements Sharding
         this.precision = precision;
     }
 
+    @Override
+    public String getName()
+    {
+        return "geohash@" + this.precision;
+    }
+
     public int getPrecision()
     {
         return this.precision;

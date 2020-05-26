@@ -494,6 +494,13 @@ public class SimpleOptionAndArgumentParser
         return option.isPresent();
     }
 
+    /**
+     * Set this parser to ignore unknown options.
+     *
+     * @param ignore
+     *            true to ignore unknown option
+     * @return this modified instance
+     */
     public SimpleOptionAndArgumentParser ignoreUnknownOptions(final boolean ignore)
     {
         this.ignoreUnknownOptions = ignore;
