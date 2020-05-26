@@ -114,7 +114,8 @@ public class File extends AbstractWritableResource implements Comparable<File>
              * as directories themselves. Attempting to create parent directories for the path
              * "foo/bar/baz/bat" where baz is a symlink results in a FileAlreadyExistsException on
              * baz, even if baz points to a directory such that "foo/bar/baz/bat" is still a valid
-             * path.
+             * path. We can then ignore the exception since all further file operations will proceed
+             * normally, provided the filesystem follows symlinks as expected.
              */
             catch (final FileAlreadyExistsException exception)
             {
@@ -133,17 +134,6 @@ public class File extends AbstractWritableResource implements Comparable<File>
         this(file.toPath(), createParentDirectories);
     }
 
-    /**
-     * Create a {@link WritableResource} from a {@link java.io.File}.
-     * <p>
-     * Compression is automatically added for the following deflaters:
-     * <ol>
-     * <li>GZIP</li>
-     * </ol>
-     *
-     * @param path
-     *            The path of the file.
-     */
     public File(final String path)
     {
         this(Path.of(path), true);
