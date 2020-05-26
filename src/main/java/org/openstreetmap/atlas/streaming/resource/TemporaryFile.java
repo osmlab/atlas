@@ -1,25 +1,40 @@
 package org.openstreetmap.atlas.streaming.resource;
 
 import java.io.Closeable;
+import java.nio.file.Path;
 
 /**
  * @author matthieun
  */
 public class TemporaryFile extends File implements Closeable
 {
+    TemporaryFile(final Path path)
+    {
+        super(path);
+    }
+
+    @Deprecated
     TemporaryFile(final java.io.File file)
     {
         super(file);
     }
 
-    TemporaryFile(final String file)
+    @Deprecated
+    TemporaryFile(final String stringPath)
     {
-        super(file);
+        super(stringPath);
     }
 
     @Override
     public void close()
     {
-        this.delete();
+        if (this.isDirectory())
+        {
+            this.deleteRecursively();
+        }
+        else
+        {
+            this.delete();
+        }
     }
 }

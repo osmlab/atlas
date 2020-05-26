@@ -2,25 +2,24 @@ package org.openstreetmap.atlas.streaming.resource;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileAttribute;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Random;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.streaming.compression.Compressor;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
-import org.openstreetmap.atlas.utilities.runtime.Retry;
-import org.openstreetmap.atlas.utilities.scalars.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,57 +32,138 @@ import org.slf4j.LoggerFactory;
 public class File extends AbstractWritableResource implements Comparable<File>
 {
     private static final Logger logger = LoggerFactory.getLogger(File.class);
-    private static final Random RANDOM = new Random();
     private static final String COULD_NOT_CREATE_DIRECTORIES_FOR_PATH = "Could not create directories for path {}";
+
+    private static final String JAVA_TEMPORARY_DIRECTORY;
+    static
+    {
+        final String property = System.getProperty("java.io.tmpdir");
+        if (property == null)
+        {
+            throw new CoreException("Could not get System property java.io.tmpdir");
+        }
+        else
+        {
+            JAVA_TEMPORARY_DIRECTORY = property;
+        }
+    }
 
     private final Path path;
     private String name = null;
 
-    /*
-     * TODO change these temporary methods to use Files#createTempDirectory?
+    /**
+     * Get a {@link TemporaryFile} in the default location using the default {@link FileSystem}.
+     * This method is deprecated in favor of {@link File#temporary(FileSystem)}, which should allow
+     * tests to avoid race conditions and other nasty global filesystem bugs. See the tests for the
+     * {@link File} class for details on how to use jimfs as an alternative {@link FileSystem}.
+     *
+     * @return the temporary file
+     * @deprecated please use {@link File#temporary(FileSystem)} instead.
      */
+    @Deprecated
     public static TemporaryFile temporary()
     {
-        return new Retry(1, Duration.ZERO).run(() ->
-        {
-            try
-            {
-                return new TemporaryFile(java.io.File.createTempFile(
-                        String.valueOf(RANDOM.nextInt(Integer.MAX_VALUE)),
-                        FileSuffix.TEMPORARY.toString()));
-            }
-            catch (final IOException e)
-            {
-                throw new CoreException("Unable to get temporary file.", e);
-            }
-        });
+        return temporary(FileSystems.getDefault());
     }
 
+    /**
+     * Get a {@link TemporaryFile} in the default location using the default {@link FileSystem}, but
+     * with a specified prefix and suffix. This method is deprecated in favor of
+     * {@link File#temporary(FileSystem, String, String)}, which should allow tests to avoid race
+     * conditions and other nasty global filesystem bugs. See the tests for the {@link File} class
+     * for details on how to use jimfs as an alternative {@link FileSystem}.
+     *
+     * @param prefix
+     *            the prefix to use
+     * @param suffix
+     *            the suffix to use
+     * @return the temporary file
+     * @deprecated please use {@link File#temporary(FileSystem, String, String)} instead.
+     */
+    @Deprecated
     public static TemporaryFile temporary(final String prefix, final String suffix)
     {
+        return temporary(FileSystems.getDefault(), prefix, suffix);
+    }
+
+    public static TemporaryFile temporary(final FileSystem fileSystem)
+    {
+        return temporary(fileSystem, null, FileSuffix.TEMPORARY.toString());
+    }
+
+    public static TemporaryFile temporary(final FileSystem fileSystem, final String prefix,
+            final String suffix)
+    {
+        final Path directory = fileSystem.getPath(JAVA_TEMPORARY_DIRECTORY);
+        return temporary(directory, prefix, suffix);
+    }
+
+    public static TemporaryFile temporary(final Path directory, final String prefix,
+            final String suffix)
+    {
+        /*
+         * Create the directory and all parents if it/they do not exist. This may occur in cases
+         * where the FileSystem is in-memory.
+         */
+        new File(directory).mkdirs();
         try
         {
-            return new TemporaryFile(java.io.File.createTempFile(prefix, suffix));
+            return new TemporaryFile(Files.createTempFile(directory, prefix, suffix));
         }
-        catch (final IOException e)
+        catch (final IOException exception)
         {
             throw new CoreException(
-                    "Unable to create a temporary file with prefix {} and suffix {}", prefix,
-                    suffix, e);
+                    "Unable to create a temporary file with prefix '{}' and suffix '{}' at {}",
+                    prefix, suffix, directory.toAbsolutePath(), exception);
         }
     }
 
+    public static TemporaryFile temporaryFolder(final FileSystem fileSystem)
+    {
+        return temporaryFolder(fileSystem, null);
+    }
+
+    public static TemporaryFile temporaryFolder(final FileSystem fileSystem, final String prefix)
+    {
+        final Path directory = fileSystem.getPath(JAVA_TEMPORARY_DIRECTORY);
+        return temporaryFolder(directory, prefix);
+    }
+
+    /**
+     * Get a {@link TemporaryFile} folder in the default location using the default
+     * {@link FileSystem}. This method is deprecated in favor of
+     * {@link File#temporaryFolder(FileSystem)}, which should allow tests to avoid race conditions
+     * and other nasty global filesystem bugs. See the tests for the {@link File} class for details
+     * on how to use jimfs as an alternative {@link FileSystem}.
+     *
+     * @return the temporary folder
+     * @deprecated please use {@link File#temporaryFolder(FileSystem)} instead.
+     */
+    @Deprecated
     public static TemporaryFile temporaryFolder()
     {
-        try (TemporaryFile temporary = File.temporary())
+        return temporaryFolder(FileSystems.getDefault());
+    }
+
+    public static TemporaryFile temporaryFolder(final Path directory, final String prefix)
+    {
+        /*
+         * Create the directory and all parents if it/they do not exist. This may occur in cases
+         * where the FileSystem is in-memory.
+         */
+        new File(directory).mkdirs();
+        try
         {
-            final TemporaryFile parent = new TemporaryFile(new TemporaryFile(temporary.getParent()) // NOSONAR
-                    .child(RANDOM.nextInt(Integer.MAX_VALUE) + "").getFile());
-            parent.mkdirs();
-            return parent;
+            return new TemporaryFile(Files.createTempDirectory(directory, prefix));
+        }
+        catch (final IOException exception)
+        {
+            throw new CoreException("Unable to create a temporary folder with prefix '{}' at {}",
+                    prefix, directory.toAbsolutePath(), exception);
         }
     }
 
+    @Deprecated
     public File(final java.io.File file)
     {
         this(file, true);
@@ -104,82 +184,145 @@ public class File extends AbstractWritableResource implements Comparable<File>
         }
         if (this.path.getParent() != null && createParentDirectories)
         {
-            try
-            {
-                Files.createDirectories(this.path.getParent());
-            }
             /*
-             * We must explicitly catch the case where the direct parent is a symbolic link. This is
-             * due to the fact that Files#createDirectories does not treat symlinks to directories
-             * as directories themselves. Attempting to create parent directories for the path
-             * "foo/bar/baz/bat" where baz is a symlink results in a FileAlreadyExistsException on
-             * baz, even if baz points to a directory such that "foo/bar/baz/bat" is still a valid
-             * path. We can then ignore the exception since all further file operations will proceed
-             * normally, provided the filesystem follows symlinks as expected.
+             * We must explicitly check the case where the direct parent already exists and is a
+             * symbolic link. This is due to the fact that Files#createDirectories does not treat
+             * symlinks to directories as directories themselves. So attempting to create parent
+             * directories for the path "foo/bar/baz/bat" where baz is a symlink results in a
+             * FileAlreadyExistsException on baz, even if baz points to a directory such that
+             * "foo/bar/baz/bat" is still a valid path. This exception is not behaviour we want,
+             * since all subsequent file operations will function normally. Rather, in this case, we
+             * can simply refrain from even attempting to create the parent directories.
              */
-            catch (final FileAlreadyExistsException exception)
+            if (Files.isSymbolicLink(this.path.getParent()))
             {
-                logger.debug("{} already existed and was a symbolic link", this.path.getParent());
+                logger.debug(
+                        "{} already existed and was a symbolic link, skipping parent directory creation",
+                        this.path.getParent());
             }
-            catch (final IOException exception)
+            else
             {
-                throw new CoreException(COULD_NOT_CREATE_DIRECTORIES_FOR_PATH, this.path,
-                        exception);
+                createDirectoriesForPath(this.path.getParent());
             }
         }
     }
 
+    @Deprecated
     public File(final java.io.File file, final boolean createParentDirectories)
     {
         this(file.toPath(), createParentDirectories);
     }
 
+    public File(final String path, final FileSystem fileSystem)
+    {
+        this(path, fileSystem, true);
+    }
+
+    public File(final String path, final FileSystem fileSystem,
+            final boolean createParentDirectories)
+    {
+        this(fileSystem.getPath(path), createParentDirectories);
+    }
+
+    @Deprecated
     public File(final String path)
     {
-        this(Path.of(path), true);
+        this(path, FileSystems.getDefault(), true);
     }
 
+    @Deprecated
     public File(final String path, final boolean createParentDirectories)
     {
-        this(Path.of(path), createParentDirectories);
+        this(path, FileSystems.getDefault(), createParentDirectories);
     }
 
+    /**
+     * Get the basename of this {@link File} object as given by the underlying {@link FileSystem}.
+     *
+     * @return the basename of this {@link File}.
+     */
+    public String basename()
+    {
+        return this.path.getFileName().toString();
+    }
+
+    /**
+     * Get a child {@link File} object for this file with a given name. Note this method will not
+     * actually create the child file in the underlying {@link FileSystem}. However, it will attempt
+     * to create all necessary directories such that "child" can resolve successfully when actually
+     * created, whether that be through {@link File#writeAndClose(String)}, {@link File#mkdirs()},
+     * or something else. This method will fail if this {@link File} object is not resolvable to a
+     * directory.
+     *
+     * @param name
+     *            the name of the desired child
+     * @return the child {@link File} object
+     */
     public File child(final String name)
     {
-        if (!Files.isDirectory(this.path))
+        /*
+         * We must explicitly check the case that this.path is a symbolic link. If it is, then we
+         * want to skip the directory creation step. Why? Because the Files#createDirectories call
+         * used in createDirectoriesForPath will fail when this.path is a symlink, even if it points
+         * to a directory. However in this case, our Files.isDirectory() and Path#resolve() calls
+         * later on will follow symlinks for us by default. So in the end, things resolve properly
+         * in all cases.
+         */
+        if (Files.isSymbolicLink(this.path))
         {
-            throw new CoreException("Cannot create the child of file {}. It has to be a folder.",
+            logger.debug("{} already existed and was a symbolic link, skipping directory creation",
                     this.path);
         }
-        try
+        else
         {
-            Files.createDirectories(this.path);
+            createDirectoriesForPath(this.path);
         }
-        catch (final IOException exception)
+
+        if (!Files.isDirectory(this.path))
         {
-            throw new CoreException(COULD_NOT_CREATE_DIRECTORIES_FOR_PATH, this.path, exception);
+            throw new CoreException(
+                    "Cannot create the child of file {} since it did not resolve to a directory",
+                    this.path);
         }
         return new File(this.path.resolve(name));
     }
 
+    /**
+     * This comparison uses the underlying {@link Path#compareTo(Path)} (Object)} implementation for
+     * each {@link File} object. This means that the file contents are not necessarily considered.
+     * If you are looking to compare files strictly using contents, you may consider implementing
+     * your own {@link Comparator} that uses something like {@link File#all()}.
+     *
+     * @param other
+     *            the other {@link File}
+     * @return the comparison value between the two {@link File}s
+     */
     @Override
     public int compareTo(final File other)
     {
         return this.path.compareTo(other.toPath());
     }
 
+    /**
+     * Delete this {@link File} from the underlying {@link FileSystem}. This will fail to delete
+     * non-empty directories. If you need that behaviour, see {@link File#deleteRecursively()}.
+     */
     public void delete()
     {
         try
         {
             Files.delete(this.path);
         }
-        catch (final IOException e)
+        catch (final IOException exception)
         {
-            throw new CoreException("Cannot delete file", e);
+            throw new CoreException("Cannot delete file {}", this.path, exception);
         }
     }
 
+    /**
+     * Delete this {@link File} from the underlying {@link FileSystem}. If this {@link File} is a
+     * non-empty directory, recursively delete all contents before deleting this {@link File}.
+     */
     public void deleteRecursively()
     {
         try
@@ -209,6 +352,17 @@ public class File extends AbstractWritableResource implements Comparable<File>
         }
     }
 
+    /**
+     * This equals check uses the underlying {@link Path#equals(Object)} implementation for each
+     * {@link File} object. This means that the file contents are not necessarily considered. If you
+     * are looking to compare files strictly using contents, you may consider comparing the values
+     * of {@link File#all()}.
+     *
+     * @param other
+     *            the other {@link File}
+     * @return if the two {@link File} objects are equal as specified by
+     *         {@link Path#equals(Object)}.
+     */
     @Override
     public boolean equals(final Object other)
     {
@@ -219,11 +373,21 @@ public class File extends AbstractWritableResource implements Comparable<File>
         return false;
     }
 
+    /**
+     * Check if this {@link File} actually exists in the underlying {@link FileSystem}.
+     *
+     * @return true if this {@link File} exists
+     */
     public boolean exists()
     {
-        return getFile().exists();
+        return Files.exists(this.path);
     }
 
+    /**
+     * Return a string version of this {@link File}'s absolute path.
+     *
+     * @return the absolute path of this {@link File} as a string
+     */
     public String getAbsolutePath()
     {
         return this.path.toAbsolutePath().toString();
@@ -242,6 +406,15 @@ public class File extends AbstractWritableResource implements Comparable<File>
         return new java.io.File(this.path.toAbsolutePath().toString());
     }
 
+    /**
+     * Get the name of this {@link File} {@link Resource}, as specified by the latter interface. By
+     * default, this implementation defers to the name of the {@link File} as given by the
+     * underlying {@link FileSystem}. However, through the use of {@link File#withName(String)}, it
+     * is possible this name may deviate from this {@link File}'s true basename. For the true
+     * basename, try {@link File#basename()}.
+     *
+     * @return the name of this {@link File} {@link Resource}
+     */
     @Override
     public String getName()
     {
@@ -249,14 +422,27 @@ public class File extends AbstractWritableResource implements Comparable<File>
         {
             return this.name;
         }
-        return this.path.getFileName().toString();
+        return this.basename();
     }
 
+    /**
+     * Return a string version of this {@link File}'s parent path. This may be absolute or relative,
+     * depending on the status of the underlying {@link Path}. For the example file
+     * File("foo/bar/baz"), this method will return "foo/bar".
+     *
+     * @return the parent path of this {@link File} as a string
+     */
     public String getParent()
     {
         return this.path.getParent().toString();
     }
 
+    /**
+     * Return a string version of this {@link File}'s path. This may be absolute or relative,
+     * depending on the status of the underlying {@link Path}.
+     *
+     * @return the path of this {@link File} as a string
+     */
     public String getPath()
     {
         return this.path.toString();
@@ -287,10 +473,13 @@ public class File extends AbstractWritableResource implements Comparable<File>
     }
 
     /**
+     * TODO fix this method, it uses the depcreated getFile
+     *
      * @return An list of files in the directory and sub directories if this object a directory. The
      *         list will be empty if the directory is empty. If this object is a file, the list will
      *         contain only the file itself.
      */
+    @Deprecated
     public List<File> listFilesRecursively()
     {
         final List<File> result = new ArrayList<>();
@@ -316,18 +505,13 @@ public class File extends AbstractWritableResource implements Comparable<File>
         return result;
     }
 
-    public boolean mkdirs()
+    /**
+     * Create a directory for this {@link File}'s {@link Path} by creating all non-existent parent
+     * directories first. See {@link Files#createDirectories(Path, FileAttribute[])}.
+     */
+    public void mkdirs()
     {
-        try
-        {
-            Files.createDirectories(this.path);
-            return true;
-        }
-        catch (final IOException exception)
-        {
-            logger.error(COULD_NOT_CREATE_DIRECTORIES_FOR_PATH, this.path, exception);
-            return false;
-        }
+        createDirectoriesForPath(this.path);
     }
 
     /**
@@ -339,6 +523,11 @@ public class File extends AbstractWritableResource implements Comparable<File>
 
     }
 
+    /**
+     * Get the {@link Path} object associated with this {@link File}.
+     *
+     * @return the {@link Path} for this {@link File}
+     */
     public Path toPath()
     {
         return this.path;
@@ -347,21 +536,45 @@ public class File extends AbstractWritableResource implements Comparable<File>
     @Override
     public String toString()
     {
-        return this.path.toAbsolutePath().toString();
+        return this.getAbsolutePath();
     }
 
+    /**
+     * Utilize a given {@link Compressor} when writing to this {@link File}.
+     *
+     * @param compressor
+     *            the {@link Compressor} to use
+     * @return this {@link File} for chaining
+     */
     public File withCompressor(final Compressor compressor)
     {
         this.setCompressor(compressor);
         return this;
     }
 
+    /**
+     * Utilize a given {@link Decompressor} when reading from this {@link File}.
+     *
+     * @param decompressor
+     *            the {@link Decompressor} to use
+     * @return this {@link File} for chaining
+     */
     public File withDecompressor(final Decompressor decompressor)
     {
         this.setDecompressor(decompressor);
         return this;
     }
 
+    /**
+     * Update the name of this {@link File} {@link Resource}. Note that this simply changes the name
+     * metadata in the {@link Resource} object, it *will not* change the actual name of the file in
+     * the filesystem. Generally, users should avoid this method as it may cause confusion in
+     * downstream code.
+     *
+     * @param name
+     *            the new name
+     * @return this {@link File} for chaining
+     */
     public File withName(final String name)
     {
         this.name = name;
@@ -374,10 +587,6 @@ public class File extends AbstractWritableResource implements Comparable<File>
         try
         {
             return new BufferedInputStream(Files.newInputStream(this.path));
-        }
-        catch (final FileNotFoundException exception)
-        {
-            throw new CoreException("Cannot find file {}", this.path, exception);
         }
         catch (final IOException exception)
         {
@@ -392,13 +601,28 @@ public class File extends AbstractWritableResource implements Comparable<File>
         {
             return new BufferedOutputStream(Files.newOutputStream(this.path));
         }
-        catch (final FileNotFoundException exception)
-        {
-            throw new CoreException("Cannot find file {}", this.path, exception);
-        }
         catch (final IOException exception)
         {
             throw new CoreException("Cannot write to file {}", this.path, exception);
+        }
+    }
+
+    /**
+     * Create a directory for a given {@link Path} by creating all non-existent parent directories
+     * first. See documentation for {@link Files#createDirectories(Path, FileAttribute[])}.
+     *
+     * @param path
+     *            the given {@link Path}
+     */
+    private void createDirectoriesForPath(final Path path)
+    {
+        try
+        {
+            Files.createDirectories(path);
+        }
+        catch (final IOException exception)
+        {
+            throw new CoreException(COULD_NOT_CREATE_DIRECTORIES_FOR_PATH, path, exception);
         }
     }
 }
