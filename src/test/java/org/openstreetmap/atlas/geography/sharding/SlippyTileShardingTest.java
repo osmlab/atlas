@@ -22,4 +22,11 @@ public class SlippyTileShardingTest
         final Sharding sharding = Sharding.forString("slippy@11");
         sharding.shardForName("10-498-354");
     }
+
+    @Test
+    public void testGetName()
+    {
+        final Sharding sharding = Sharding.forString("slippy@11");
+        Assert.assertEquals("slippy@11", sharding.getName());
+    }
 }

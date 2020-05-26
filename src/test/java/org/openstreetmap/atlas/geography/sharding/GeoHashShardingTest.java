@@ -30,6 +30,13 @@ public class GeoHashShardingTest
     }
 
     @Test
+    public void testGetName()
+    {
+        final Sharding sharding = Sharding.forString("geohash@4");
+        Assert.assertEquals("geohash@4", sharding.getName());
+    }
+
+    @Test
     public void testGetPrecision()
     {
         Assert.assertEquals(7, ((GeoHashSharding) this.sharding).getPrecision());
