@@ -27,7 +27,7 @@ public class TemporaryFile extends File implements Closeable
     /**
      * Construct a new {@link TemporaryFile} with the given {@link Path}. All parent directories
      * will be automatically created.
-     * 
+     *
      * @param path
      *            the path
      */
