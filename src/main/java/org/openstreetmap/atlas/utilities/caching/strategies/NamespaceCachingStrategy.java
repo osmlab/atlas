@@ -194,7 +194,8 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
             {
                 try
                 {
-                    final Path temporaryLocalFilePath = Paths.get(temporaryLocalFile.getPathString());
+                    final Path temporaryLocalFilePath = Paths
+                            .get(temporaryLocalFile.getPathString());
                     final Path cachedFilePath = Paths.get(cachedFile.getPathString());
                     Files.move(temporaryLocalFilePath, cachedFilePath,
                             StandardCopyOption.ATOMIC_MOVE);

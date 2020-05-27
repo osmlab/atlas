@@ -70,7 +70,8 @@ public class AtlasFindByAtlasIdentifierSubCommandTest
         final File temp = File.temporary();
 
         // Run AtlasFindByAtlasIdentifierSubCommand
-        final String[] args = { "find-atlas-id", String.format("-input=%1$s", SHARD_PATH.getPathString()),
+        final String[] args = { "find-atlas-id",
+                String.format("-input=%1$s", SHARD_PATH.getPathString()),
                 "-id=546649246000001,575954012000000",
                 String.format("-joinedOutput=%1$s", temp.getPathString()) };
         new AtlasReader(args).runWithoutQuitting(args);
