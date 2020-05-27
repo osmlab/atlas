@@ -363,6 +363,9 @@ public class FileTest
                     new HashSet<>(home.listFiles(true)));
             Assert.assertEquals(Sets.hashSet(file1, file2), new HashSet<>(home.listFiles()));
             Assert.assertEquals(Sets.hashSet(file1), new HashSet<>(file1.listFiles()));
+
+            Assert.assertTrue(
+                    new HashSet<>(new File(filesystem.getPath("/foo/bar")).listFiles()).isEmpty());
         }
         catch (final IOException exception)
         {
@@ -392,6 +395,9 @@ public class FileTest
             Assert.assertEquals(Sets.hashSet(file1, file2, file3, file4),
                     new HashSet<>(home.listFilesRecursively()));
             Assert.assertEquals(Sets.hashSet(file1), new HashSet<>(file1.listFilesRecursively()));
+            Assert.assertTrue(
+                    new HashSet<>(new File(filesystem.getPath("/foo/bar")).listFilesRecursively())
+                            .isEmpty());
         }
         catch (final IOException exception)
         {

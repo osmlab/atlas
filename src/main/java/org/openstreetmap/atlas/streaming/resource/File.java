@@ -643,9 +643,9 @@ public class File extends AbstractWritableResource implements Comparable<File>
     /**
      * Get a {@link List} of all {@link File} objects at this {@link File}'s path, excluding any
      * directories. If this {@link File} is a regular file, then return a {@link List} containing
-     * only itself. For example, suppose this {@link File} is a directory called "foo/" containing
-     * "bar", "baz/", "bat/", and "fred". This method would return the following {@link List}: [bar,
-     * fred].
+     * only itself. If this {@link File} does not exist, return an empty {@link List}. For example,
+     * suppose this {@link File} is a directory called "foo/" containing "bar", "baz/", "bat/", and
+     * "fred". This method would return the following {@link List}: [bar, fred].
      *
      * @return a {@link List} of all file-only {@link File}s (not directories) at this
      *         {@link File}'s path
@@ -658,11 +658,11 @@ public class File extends AbstractWritableResource implements Comparable<File>
     /**
      * Get a {@link List} of all {@link File} objects at this {@link File}'s path, optionally
      * including or excluding any directories. If this {@link File} is a regular file, then return a
-     * {@link List} containing only itself. For example, suppose this {@link File} is a directory
-     * called "foo/" containing "bar", "baz/", "bat/", and "fred". When includeDirectories is
-     * specified "true", this method would return the following {@link List}: [bar, baz, bat, fred].
-     * When includeDirectories is specified "false", this method would instead return the following
-     * {@link List}: [bar, fred].
+     * {@link List} containing only itself. If this {@link File} does not exist, return an empty
+     * {@link List}. For example, suppose this {@link File} is a directory called "foo/" containing
+     * "bar", "baz/", "bat/", and "fred". When includeDirectories is specified "true", this method
+     * would return the following {@link List}: [bar, baz, bat, fred]. When includeDirectories is
+     * specified "false", this method would instead return the following {@link List}: [bar, fred].
      *
      * @param includeDirectories
      *            whether or not to include directories in the list
@@ -671,6 +671,10 @@ public class File extends AbstractWritableResource implements Comparable<File>
     public List<File> listFiles(final boolean includeDirectories)
     {
         final List<File> result = new ArrayList<>();
+        if (!this.exists())
+        {
+            return result;
+        }
         if (!this.isDirectory())
         {
             result.add(this);
@@ -705,9 +709,10 @@ public class File extends AbstractWritableResource implements Comparable<File>
     /**
      * If this {@link File} is a directory, recursively list all {@link File}s contained by this
      * {@link File}. Subdirectories will themselves be listed recursively. If this {@link File} is a
-     * file, simply return a singleton list containing this {@link File}. The 'includeDirectories'
-     * parameter will only control whether directories are included in the final list, not whether
-     * subdirectories are expanded. All subdirectories are always expanded.
+     * file, simply return a singleton list containing this {@link File}. If this {@link File} does
+     * not exist, return an empty {@link List}. The 'includeDirectories' parameter will only control
+     * whether directories are included in the final list, not whether subdirectories are expanded.
+     * All subdirectories are always expanded.
      *
      * @param includeDirectories
      *            whether or not to include directories in the list
@@ -716,6 +721,10 @@ public class File extends AbstractWritableResource implements Comparable<File>
     public List<File> listFilesRecursively(final boolean includeDirectories)
     {
         final List<File> result = new ArrayList<>();
+        if (!this.exists())
+        {
+            return result;
+        }
         if (!this.isDirectory())
         {
             result.add(this);
@@ -747,7 +756,8 @@ public class File extends AbstractWritableResource implements Comparable<File>
      * If this {@link File} is a directory, recursively list all {@link File}s contained by this
      * {@link File}. Subdirectories will themselves be listed recursively. The final result will
      * contain only leaf {@link File} objects. If this {@link File} is a file, simply return a
-     * singleton list containing this {@link File}.
+     * singleton list containing this {@link File}. If this {@link File} does not exist, return an
+     * empty {@link List}.
      *
      * @return the {@link List} of all {@link File}s contained in this {@link File}
      */
