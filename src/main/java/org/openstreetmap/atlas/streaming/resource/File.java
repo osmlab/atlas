@@ -181,7 +181,10 @@ public class File extends AbstractWritableResource implements Comparable<File>
     /**
      * Create a temporary folder with a given prefix at the system default temporary location. The
      * name of the folder will be generated randomly and will be prefixed by the given prefix.
-     *
+     * 
+     * @param fileSystem
+     *            the {@link FileSystem} to use for this {@link TemporaryFile}, use *
+     *            {@link FileSystems#getDefault()} for the default local {@link FileSystem}
      * @param prefix
      *            a string prefix to use for the temporary folder
      * @return the folder's {@link TemporaryFile}
@@ -313,6 +316,8 @@ public class File extends AbstractWritableResource implements Comparable<File>
      *
      * @param file
      *            the {@link java.io.File} to use
+     * @param createParentDirectories
+     *            whether or not to create necessary parent directories
      * @deprecated please use {@link File#File(Path, boolean)}
      */
     @Deprecated
