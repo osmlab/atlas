@@ -104,6 +104,28 @@ public class FileTest
     }
 
     @Test
+    public void testConstructors()
+    {
+        try (FileSystem filesystem = Jimfs.newFileSystem(Configuration.osX()))
+        {
+            final Path filePath = filesystem.getPath("/Users/foobar/file.gz");
+            final File file = new File(filePath, true);
+            file.writeAndClose("foobar");
+            Assert.assertEquals("foobar", file.all());
+
+            final Path file2Path = filesystem.getPath("/Users/bazbat/file");
+            final File file2 = new File(file2Path, false);
+            Assert.assertFalse(file2.exists());
+            final File dir = new File("/Users/bazbat", filesystem, false);
+            Assert.assertFalse(dir.exists());
+        }
+        catch (final IOException exception)
+        {
+            throw new CoreException("FileSystem operation failed", exception);
+        }
+    }
+
+    @Test
     public void testDelete()
     {
         try (FileSystem filesystem = Jimfs.newFileSystem(Configuration.osX()))
