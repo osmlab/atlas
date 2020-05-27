@@ -6,6 +6,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import org.junit.Assert;
@@ -15,6 +16,7 @@ import org.junit.rules.ExpectedException;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.streaming.compression.Compressor;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
+import org.openstreetmap.atlas.utilities.collections.Sets;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
@@ -322,6 +324,60 @@ public class FileTest
     }
 
     @Test
+    public void testListFiles()
+    {
+        try (FileSystem filesystem = Jimfs.newFileSystem(Configuration.osX()))
+        {
+            final File home = new File(filesystem.getPath("/Users/foobar"));
+            final File file1 = home.child("file1");
+            file1.writeAndClose("foobar\n");
+            final File file2 = home.child("file2");
+            file2.writeAndClose("bazbat\n");
+            final File dir1 = home.child("dir1");
+            final File file3 = dir1.child("file3");
+            file3.writeAndClose("fred\n");
+
+            Assert.assertEquals(Sets.hashSet(file1, file2, dir1),
+                    new HashSet<>(home.listFiles(true)));
+            Assert.assertEquals(Sets.hashSet(file1, file2), new HashSet<>(home.listFiles()));
+            Assert.assertEquals(Sets.hashSet(file1), new HashSet<>(file1.listFiles()));
+        }
+        catch (final IOException exception)
+        {
+            throw new CoreException("FileSystem operation failed", exception);
+        }
+    }
+
+    @Test
+    public void testListFilesRecursively()
+    {
+        try (FileSystem filesystem = Jimfs.newFileSystem(Configuration.osX()))
+        {
+            final File home = new File(filesystem.getPath("/Users/foobar"));
+            final File file1 = home.child("file1");
+            file1.writeAndClose("foobar\n");
+            final File file2 = home.child("file2");
+            file2.writeAndClose("bazbat\n");
+            final File dir1 = home.child("dir1");
+            final File file3 = dir1.child("file3");
+            file3.writeAndClose("fred\n");
+            final File dir2 = dir1.child("dir2");
+            final File file4 = dir2.child("file4");
+            file4.writeAndClose("ned\n");
+
+            Assert.assertEquals(Sets.hashSet(file1, file2, file3, file4, dir1, dir2),
+                    new HashSet<>(home.listFilesRecursively(true)));
+            Assert.assertEquals(Sets.hashSet(file1, file2, file3, file4),
+                    new HashSet<>(home.listFilesRecursively()));
+            Assert.assertEquals(Sets.hashSet(file1), new HashSet<>(file1.listFilesRecursively()));
+        }
+        catch (final IOException exception)
+        {
+            throw new CoreException("FileSystem operation failed", exception);
+        }
+    }
+
+    @Test
     public void testMkdirs()
     {
         try (FileSystem filesystem = Jimfs.newFileSystem(Configuration.osX()))
@@ -356,7 +412,53 @@ public class FileTest
             final File file = new File(filePath);
             file.writeAndClose("foobar\n");
 
-            Assert.assertEquals("/Users/foobar", file.parent().getAbsolutePath());
+            Assert.assertEquals("/Users/foobar", file.parent().getAbsolutePathString());
+        }
+        catch (final IOException exception)
+        {
+            throw new CoreException("FileSystem operation failed", exception);
+        }
+    }
+
+    @Test
+    public void testProperSymlinkHandling()
+    {
+        try (FileSystem filesystem = Jimfs.newFileSystem(Configuration.osX()))
+        {
+            final Path homeDirectoryPath = filesystem.getPath("/Users/foobar");
+            Files.createDirectories(homeDirectoryPath);
+
+            final Path desktopPath = homeDirectoryPath.resolve("Desktop");
+            Files.createDirectory(desktopPath);
+
+            final Path directoryOnDesktopPath = desktopPath.resolve("folder_on_desktop");
+            Files.createDirectory(directoryOnDesktopPath);
+
+            final Path fileOnDesktopPath = desktopPath.resolve("file_on_desktop");
+            Files.createFile(fileOnDesktopPath);
+            final List<String> lines = Arrays.asList("foo", "bar");
+            Files.write(fileOnDesktopPath, lines, StandardCharsets.UTF_8);
+
+            final Path tmpDirectoryPath = filesystem.getPath("/tmp");
+            Files.createDirectory(tmpDirectoryPath);
+
+            final Path symlinkToDesktopPath = tmpDirectoryPath.resolve("symlink_to_desktop");
+            Files.createSymbolicLink(symlinkToDesktopPath, desktopPath);
+
+            final File desktopFolder = new File(desktopPath);
+
+            Assert.assertTrue(Files.exists(desktopFolder.toPath()));
+            Assert.assertTrue(Files.isDirectory(desktopFolder.toPath()));
+
+            final File symlinkToDesktop = new File(symlinkToDesktopPath);
+            final File fileOnDesktopThruSymlink = symlinkToDesktop.child("file_on_desktop");
+            final File nonexistentFileOnDesktopThruSymlink = symlinkToDesktop
+                    .child("nonexistant_file_on_desktop");
+
+            Assert.assertTrue(fileOnDesktopThruSymlink.exists());
+            Assert.assertFalse(nonexistentFileOnDesktopThruSymlink.exists());
+            nonexistentFileOnDesktopThruSymlink.writeAndClose("foobar");
+            Assert.assertTrue(nonexistentFileOnDesktopThruSymlink.exists());
         }
         catch (final IOException exception)
         {
@@ -396,10 +498,10 @@ public class FileTest
             Assert.assertEquals("file", file.getName());
             file.withName("myFile");
             Assert.assertEquals("myFile", file.getName());
-            Assert.assertEquals("/Users/foobar/file", file.getAbsolutePath());
+            Assert.assertEquals("/Users/foobar/file", file.getAbsolutePathString());
             Assert.assertEquals("/Users/foobar/file", file.toString());
-            Assert.assertEquals("/Users/foobar/file", file.getPath());
-            Assert.assertEquals("/Users/foobar", file.getParent());
+            Assert.assertEquals("/Users/foobar/file", file.getPathString());
+            Assert.assertEquals("/Users/foobar", file.getParentPathString());
         }
         catch (final IOException exception)
         {
@@ -466,53 +568,5 @@ public class FileTest
         {
             throw new CoreException("FileSystem operation failed", exception);
         }
-    }
-
-    @Test
-    public void todoRemoveThisTest()
-    {
-        try (FileSystem filesystem = Jimfs.newFileSystem(Configuration.osX()))
-        {
-            final Path homeDirectoryPath = filesystem.getPath("/Users/foobar");
-            Files.createDirectories(homeDirectoryPath);
-
-            final Path desktopPath = homeDirectoryPath.resolve("Desktop");
-            Files.createDirectory(desktopPath);
-
-            final Path directoryOnDesktopPath = desktopPath.resolve("folder_on_desktop");
-            Files.createDirectory(directoryOnDesktopPath);
-
-            final Path fileOnDesktopPath = desktopPath.resolve("file_on_desktop");
-            Files.createFile(fileOnDesktopPath);
-            final List<String> lines = Arrays.asList("foo", "bar");
-            Files.write(fileOnDesktopPath, lines, StandardCharsets.UTF_8);
-
-            final Path tmpDirectoryPath = filesystem.getPath("/tmp");
-            Files.createDirectory(tmpDirectoryPath);
-
-            final Path symlinkToDesktopPath = tmpDirectoryPath.resolve("symlink_to_desktop");
-            Files.createSymbolicLink(symlinkToDesktopPath, desktopPath);
-
-            final File desktopFolder = new File(desktopPath);
-            Assert.assertTrue(Files.exists(desktopFolder.toPath()));
-            Assert.assertTrue(Files.isDirectory(desktopFolder.toPath()));
-
-            final File symlinkToDesktop = new File(symlinkToDesktopPath);
-            final File fileOnDesktopThruSymlink = symlinkToDesktop.child("file_on_desktop");
-            final File nonexistantFileOnDesktopThruSymlink = symlinkToDesktop
-                    .child("nonexistant_file_on_desktop");
-            Assert.assertTrue(fileOnDesktopThruSymlink.exists());
-            Assert.assertFalse(nonexistantFileOnDesktopThruSymlink.exists());
-            nonexistantFileOnDesktopThruSymlink.writeAndClose("foobar");
-            Assert.assertTrue(nonexistantFileOnDesktopThruSymlink.exists());
-        }
-        catch (final IOException exception)
-        {
-            throw new CoreException("FileSystem operation failed", exception);
-        }
-        /*
-         * TODO we need to also see what happens when we perform file operations with a symlink that
-         * points to a file
-         */
     }
 }

@@ -9,6 +9,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -16,6 +17,7 @@ import java.nio.file.attribute.FileAttribute;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.streaming.compression.Compressor;
@@ -24,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * File from a local file system as a {@link AbstractWritableResource}.
+ * File from a local file system as an {@link AbstractWritableResource}.
  *
  * @author matthieun
  * @author lcram
@@ -35,6 +37,7 @@ public class File extends AbstractWritableResource implements Comparable<File>
     private static final String COULD_NOT_CREATE_DIRECTORIES_FOR_PATH = "Could not create directories for path {}";
 
     private static final String JAVA_TEMPORARY_DIRECTORY;
+
     static
     {
         final String property = System.getProperty("java.io.tmpdir");
@@ -54,8 +57,12 @@ public class File extends AbstractWritableResource implements Comparable<File>
     /**
      * Get a {@link TemporaryFile} in the default location using the default {@link FileSystem}.
      * This method is deprecated in favor of {@link File#temporary(FileSystem)}, which should allow
-     * tests to avoid race conditions and other nasty global filesystem bugs. See the tests for the
-     * {@link File} class for details on how to use jimfs as an alternative {@link FileSystem}.
+     * test cases much more control and flexibility over their environments. If your code needs to
+     * use the default filesystem, then call {@link File#temporary(FileSystem)} with
+     * {@link FileSystems#getDefault()}. However, your code would be more flexible if it were
+     * file-system-agnostic and received the {@link FileSystem} as an input from calling code. See
+     * the unit tests for the {@link File} class for details on how to use jimfs as an alternative
+     * {@link FileSystem} in testing cases.
      *
      * @return the temporary file
      * @deprecated please use {@link File#temporary(FileSystem)} instead.
@@ -69,9 +76,12 @@ public class File extends AbstractWritableResource implements Comparable<File>
     /**
      * Get a {@link TemporaryFile} in the default location using the default {@link FileSystem}, but
      * with a specified prefix and suffix. This method is deprecated in favor of
-     * {@link File#temporary(FileSystem, String, String)}, which should allow tests to avoid race
-     * conditions and other nasty global filesystem bugs. See the tests for the {@link File} class
-     * for details on how to use jimfs as an alternative {@link FileSystem}.
+     * {@link File#temporary(FileSystem)}, which should allow test cases much more control and
+     * flexibility over their environments. If your code needs to use the default filesystem, then
+     * call {@link File#temporary(FileSystem)} with {@link FileSystems#getDefault()}. However, your
+     * code would be more flexible if it were file-system-agnostic and received the
+     * {@link FileSystem} as an input from calling code. See the unit tests for the {@link File}
+     * class for details on how to use jimfs as an alternative {@link FileSystem} in testing cases.
      *
      * @param prefix
      *            the prefix to use
@@ -86,11 +96,34 @@ public class File extends AbstractWritableResource implements Comparable<File>
         return temporary(FileSystems.getDefault(), prefix, suffix);
     }
 
+    /**
+     * Create a temporary file at the system default temporary location. The name of the file will
+     * be generated randomly and will have the suffix given by {@link FileSuffix#TEMPORARY}.
+     *
+     * @param fileSystem
+     *            the {@link FileSystem} to use for this {@link TemporaryFile}, use
+     *            {@link FileSystems#getDefault()} for the default local {@link FileSystem}
+     * @return the file's {@link TemporaryFile}
+     */
     public static TemporaryFile temporary(final FileSystem fileSystem)
     {
         return temporary(fileSystem, null, FileSuffix.TEMPORARY.toString());
     }
 
+    /**
+     * Create a temporary file with a given prefix and suffix at the system default temporary
+     * location. The name of the file will be generated randomly and will be prefixed by the given
+     * prefix. The file will have a suffix given by the suffix parameter.
+     *
+     * @param fileSystem
+     *            the {@link FileSystem} to use for this {@link TemporaryFile}, use
+     *            {@link FileSystems#getDefault()} for the default local {@link FileSystem}
+     * @param prefix
+     *            a string prefix to use for the temporary file
+     * @param suffix
+     *            a string suffix to use for the temporary file
+     * @return the file's {@link TemporaryFile}
+     */
     public static TemporaryFile temporary(final FileSystem fileSystem, final String prefix,
             final String suffix)
     {
@@ -98,12 +131,25 @@ public class File extends AbstractWritableResource implements Comparable<File>
         return temporary(directory, prefix, suffix);
     }
 
+    /**
+     * Create a temporary file with a given prefix and suffix at a given directory. The name of the
+     * file will be generated randomly and will be prefixed by the given prefix. The file will have
+     * a suffix given by the suffix parameter.
+     *
+     * @param directory
+     *            the parent directory for this temporary file
+     * @param prefix
+     *            a string prefix to use for the temporary file
+     * @param suffix
+     *            a string suffix to use for the temporary file
+     * @return the file's {@link TemporaryFile}
+     */
     public static TemporaryFile temporary(final Path directory, final String prefix,
             final String suffix)
     {
         /*
-         * Create the directory and all parents if it/they do not exist. This may occur in cases
-         * where the FileSystem is in-memory.
+         * Create the directory and all parents if it/they do not exist. Since Files.createTempFile
+         * will not actually create parent directories, this step is necessary in some cases.
          */
         new File(directory).mkdirs();
         try
@@ -118,11 +164,28 @@ public class File extends AbstractWritableResource implements Comparable<File>
         }
     }
 
+    /**
+     * Create a temporary folder at the system default temporary location. The name of the folder
+     * will be generated randomly.
+     *
+     * @param fileSystem
+     *            the {@link FileSystem} to use for this {@link TemporaryFile}, use
+     *            {@link FileSystems#getDefault()} for the default local {@link FileSystem}
+     * @return the folder's {@link TemporaryFile}
+     */
     public static TemporaryFile temporaryFolder(final FileSystem fileSystem)
     {
         return temporaryFolder(fileSystem, null);
     }
 
+    /**
+     * Create a temporary folder with a given prefix at the system default temporary location. The
+     * name of the folder will be generated randomly and will be prefixed by the given prefix.
+     *
+     * @param prefix
+     *            a string prefix to use for the temporary folder
+     * @return the folder's {@link TemporaryFile}
+     */
     public static TemporaryFile temporaryFolder(final FileSystem fileSystem, final String prefix)
     {
         final Path directory = fileSystem.getPath(JAVA_TEMPORARY_DIRECTORY);
@@ -132,9 +195,12 @@ public class File extends AbstractWritableResource implements Comparable<File>
     /**
      * Get a {@link TemporaryFile} folder in the default location using the default
      * {@link FileSystem}. This method is deprecated in favor of
-     * {@link File#temporaryFolder(FileSystem)}, which should allow tests to avoid race conditions
-     * and other nasty global filesystem bugs. See the tests for the {@link File} class for details
-     * on how to use jimfs as an alternative {@link FileSystem}.
+     * {@link File#temporaryFolder(FileSystem)}, which should allow test cases much more control and
+     * flexibility over their environments. If your code needs to use the default filesystem, then
+     * call {@link File#temporaryFolder(FileSystem)} with {@link FileSystems#getDefault()}. However,
+     * your code would be more flexible if it were file-system-agnostic and received the
+     * {@link FileSystem} as an input from calling code. See the unit tests for the {@link File}
+     * class for details on how to use jimfs as an alternative {@link FileSystem} in testing cases.
      *
      * @return the temporary folder
      * @deprecated please use {@link File#temporaryFolder(FileSystem)} instead.
@@ -145,11 +211,21 @@ public class File extends AbstractWritableResource implements Comparable<File>
         return temporaryFolder(FileSystems.getDefault());
     }
 
+    /**
+     * Create a temporary folder with a given prefix at a given directory. The name of the folder
+     * will be generated randomly and will be prefixed by the given prefix.
+     *
+     * @param directory
+     *            the parent directory for this temporary folder
+     * @param prefix
+     *            a string prefix to use for the temporary folder
+     * @return the folder's {@link TemporaryFile}
+     */
     public static TemporaryFile temporaryFolder(final Path directory, final String prefix)
     {
         /*
-         * Create the directory and all parents if it/they do not exist. This may occur in cases
-         * where the FileSystem is in-memory.
+         * Create the directory and all parents if it/they do not exist. Since Files.createTempFile
+         * will not actually create parent directories, this step is necessary in some cases.
          */
         new File(directory).mkdirs();
         try
@@ -163,17 +239,41 @@ public class File extends AbstractWritableResource implements Comparable<File>
         }
     }
 
+    /**
+     * Create a new {@link File} from a {@link java.io.File}, creating all necessary parent
+     * directories.
+     *
+     * @param file
+     *            the {@link java.io.File} to use
+     * @deprecated please use {@link File#File(Path)}
+     */
     @Deprecated
     public File(final java.io.File file)
     {
         this(file, true);
     }
 
+    /**
+     * Create a new {@link File} from a given {@link Path}, creating all necessary parent
+     * directories.
+     *
+     * @param path
+     *            the {@link Path} to use
+     */
     public File(final Path path)
     {
         this(path, true);
     }
 
+    /**
+     * Create a new {@link File} from a given {@link Path}, optionally creating all necessary parent
+     * directories.
+     *
+     * @param path
+     *            the {@link Path} to use
+     * @param createParentDirectories
+     *            whether or not to create necessary parent directories
+     */
     public File(final Path path, final boolean createParentDirectories)
     {
         this.path = path;
@@ -207,33 +307,81 @@ public class File extends AbstractWritableResource implements Comparable<File>
         }
     }
 
+    /**
+     * Create a new {@link File} from a {@link java.io.File}, optionally creating all necessary
+     * parent directories.
+     *
+     * @param file
+     *            the {@link java.io.File} to use
+     * @deprecated please use {@link File#File(Path, boolean)}
+     */
     @Deprecated
     public File(final java.io.File file, final boolean createParentDirectories)
     {
         this(file.toPath(), createParentDirectories);
     }
 
-    public File(final String path, final FileSystem fileSystem)
+    /**
+     * Create a new {@link File} from a given path string, using the given {@link FileSystem} to
+     * resolve the path string into an actual {@link Path}. Automatically create all necessary
+     * parent directories.
+     *
+     * @param pathString
+     *            the path string to the file
+     * @param fileSystem
+     *            the {@link FileSystem} to use for resolution
+     */
+    public File(final String pathString, final FileSystem fileSystem)
     {
-        this(path, fileSystem, true);
+        this(pathString, fileSystem, true);
     }
 
-    public File(final String path, final FileSystem fileSystem,
+    /**
+     * Create a new {@link File} from a given path string, using the given {@link FileSystem} to
+     * resolve the path string into an actual {@link Path}. Optionally create all necessary parent
+     * directories.
+     *
+     * @param pathString
+     *            the path string to the file
+     * @param fileSystem
+     *            the {@link FileSystem} to use for resolution
+     * @param createParentDirectories
+     *            whether or not to create necessary parent directories
+     */
+    public File(final String pathString, final FileSystem fileSystem,
             final boolean createParentDirectories)
     {
-        this(fileSystem.getPath(path), createParentDirectories);
+        this(fileSystem.getPath(pathString), createParentDirectories);
     }
 
+    /**
+     * Create a new {@link File} from a given path string, using the default {@link FileSystem}
+     * (i.e. {@link FileSystems#getDefault()}) to resolve the path string into an actual
+     * {@link Path}. Automatically create all necessary parent directories.
+     *
+     * @param pathString
+     *            the path string to the file
+     */
     @Deprecated
-    public File(final String path)
+    public File(final String pathString)
     {
-        this(path, FileSystems.getDefault(), true);
+        this(pathString, FileSystems.getDefault(), true);
     }
 
+    /**
+     * Create a new {@link File} from a given path string, using the default {@link FileSystem}
+     * (i.e. {@link FileSystems#getDefault()}) to resolve the path string into an actual
+     * {@link Path}. Optionally create all necessary parent directories.
+     *
+     * @param pathString
+     *            the path string to the file
+     * @param createParentDirectories
+     *            whether or not to create necessary parent directories
+     */
     @Deprecated
-    public File(final String path, final boolean createParentDirectories)
+    public File(final String pathString, final boolean createParentDirectories)
     {
-        this(path, FileSystems.getDefault(), createParentDirectories);
+        this(pathString, FileSystems.getDefault(), createParentDirectories);
     }
 
     /**
@@ -388,9 +536,9 @@ public class File extends AbstractWritableResource implements Comparable<File>
      *
      * @return the absolute path of this {@link File} as a string
      */
-    public String getAbsolutePath()
+    public String getAbsolutePathString()
     {
-        return this.path.toAbsolutePath().toString();
+        return this.toAbsolutePath().toString();
     }
 
     /**
@@ -407,11 +555,13 @@ public class File extends AbstractWritableResource implements Comparable<File>
     }
 
     /**
-     * Get the name of this {@link File} {@link Resource}, as specified by the latter interface. By
-     * default, this implementation defers to the name of the {@link File} as given by the
-     * underlying {@link FileSystem}. However, through the use of {@link File#withName(String)}, it
-     * is possible this name may deviate from this {@link File}'s true basename. For the true
-     * basename, try {@link File#basename()}.
+     * Get the name of this {@link File} {@link Resource}, as specified by the {@link Resource}
+     * interface. By default, this implementation defers to the name of the {@link File} as given by
+     * the underlying {@link FileSystem}. However, through the use of {@link File#withName(String)},
+     * it is possible this name may deviate from this {@link File}'s true basename. For the
+     * ground-truth file system basename, try {@link File#basename()}. We recommend you use
+     * {@link File#basename()} in all cases where the actual {@link File} name is what you care
+     * about.
      *
      * @return the name of this {@link File} {@link Resource}
      */
@@ -432,9 +582,9 @@ public class File extends AbstractWritableResource implements Comparable<File>
      *
      * @return the parent path of this {@link File} as a string
      */
-    public String getParent()
+    public String getParentPathString()
     {
-        return this.path.getParent().toString();
+        return this.toParentPath().toString();
     }
 
     /**
@@ -443,9 +593,9 @@ public class File extends AbstractWritableResource implements Comparable<File>
      *
      * @return the path of this {@link File} as a string
      */
-    public String getPath()
+    public String getPathString()
     {
-        return this.path.toString();
+        return this.toPath().toString();
     }
 
     @Override
@@ -454,11 +604,24 @@ public class File extends AbstractWritableResource implements Comparable<File>
         return this.path.hashCode();
     }
 
+    /**
+     * Determine if this {@link File} is a directory. See
+     * {@link Files#isDirectory(Path, LinkOption...)} for more details.
+     *
+     * @return if this {@link File} is a directory
+     */
     public boolean isDirectory()
     {
         return Files.isDirectory(this.path);
     }
 
+    /**
+     * Get the size in bytes of this {@link File}. This method defers to the implementation of the
+     * underlying {@link FileSystem} to compute the file size. See {@link Files#size(Path)} for
+     * details.
+     *
+     * @return the size in bytes of this {@link File}
+     */
     @Override
     public long length()
     {
@@ -473,41 +636,126 @@ public class File extends AbstractWritableResource implements Comparable<File>
     }
 
     /**
-     * TODO fix this method, it uses the depcreated getFile
+     * Get a {@link List} of all {@link File} objects at this {@link File}'s path, excluding any
+     * directories. If this {@link File} is a regular file, then return a {@link List} containing
+     * only itself. For example, suppose this {@link File} is a directory called "foo/" containing
+     * "bar", "baz/", "bat/", and "fred". This method would return the following {@link List}: [bar,
+     * fred].
      *
-     * @return An list of files in the directory and sub directories if this object a directory. The
-     *         list will be empty if the directory is empty. If this object is a file, the list will
-     *         contain only the file itself.
+     * @return a {@link List} of all file-only {@link File}s (not directories) at this
+     *         {@link File}'s path
      */
-    @Deprecated
-    public List<File> listFilesRecursively()
+    public List<File> listFiles()
+    {
+        return listFiles(false);
+    }
+
+    /**
+     * Get a {@link List} of all {@link File} objects at this {@link File}'s path, optionally
+     * including or excluding any directories. If this {@link File} is a regular file, then return a
+     * {@link List} containing only itself. For example, suppose this {@link File} is a directory
+     * called "foo/" containing "bar", "baz/", "bat/", and "fred". When includeDirectories is
+     * specified "true", this method would return the following {@link List}: [bar, baz, bat, fred].
+     * When includeDirectories is specified "false", this method would instead return the following
+     * {@link List}: [bar, fred].
+     *
+     * @param includeDirectories
+     *            whether or not to include directories in the list
+     * @return a {@link List} of all {@link File}s at this {@link File}'s path
+     */
+    public List<File> listFiles(final boolean includeDirectories)
     {
         final List<File> result = new ArrayList<>();
-        if (this.getFile().isDirectory())
+        if (!this.isDirectory())
         {
-            for (final java.io.File file : this.getFile().listFiles())
+            result.add(this);
+            return result;
+        }
+        try (Stream<Path> pathStream = Files.list(this.path))
+        {
+            pathStream.forEach(path0 ->
             {
-                final File newFile = new File(file.getAbsolutePath());
+                final File file = new File(path0, false);
                 if (file.isDirectory())
                 {
-                    result.addAll(newFile.listFilesRecursively());
+                    if (includeDirectories)
+                    {
+                        result.add(file);
+                    }
                 }
                 else
                 {
-                    result.add(newFile);
+                    result.add(file);
                 }
-            }
+            });
         }
-        else if (this.getFile().exists())
+        catch (final IOException exception)
         {
-            result.add(this);
+            throw new CoreException("Could not list files at {}", this.path);
         }
+
         return result;
     }
 
     /**
+     * If this {@link File} is a directory, recursively list all {@link File}s contained by this
+     * {@link File}. Subdirectories will themselves be listed recursively. If this {@link File} is a
+     * file, simply return a singleton list containing this {@link File}. The 'includeDirectories'
+     * parameter will only control whether directories are included in the final list, not whether
+     * subdirectories are expanded. All subdirectories are always expanded.
+     *
+     * @param includeDirectories
+     *            whether or not to include directories in the list
+     * @return the {@link List} of all {@link File}s contained in this {@link File}
+     */
+    public List<File> listFilesRecursively(final boolean includeDirectories)
+    {
+        final List<File> result = new ArrayList<>();
+        if (!this.isDirectory())
+        {
+            result.add(this);
+            return result;
+        }
+
+        for (final File file : this.listFiles(true))
+        {
+            final File listedFile = new File(file.toAbsolutePath());
+            if (listedFile.isDirectory())
+            {
+                if (includeDirectories)
+                {
+                    result.add(listedFile);
+                }
+                // We need to carry through the value of includeDirectories
+                result.addAll(listedFile.listFilesRecursively(includeDirectories));
+            }
+            else
+            {
+                result.add(listedFile);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * If this {@link File} is a directory, recursively list all {@link File}s contained by this
+     * {@link File}. Subdirectories will themselves be listed recursively. The final result will
+     * contain only leaf {@link File} objects. If this {@link File} is a file, simply return a
+     * singleton list containing this {@link File}.
+     *
+     * @return the {@link List} of all {@link File}s contained in this {@link File}
+     */
+    public List<File> listFilesRecursively()
+    {
+        return listFilesRecursively(false);
+    }
+
+    /**
      * Create a directory for this {@link File}'s {@link Path} by creating all non-existent parent
-     * directories first. See {@link Files#createDirectories(Path, FileAttribute[])}.
+     * directories first. See {@link Files#createDirectories(Path, FileAttribute[])}. For example,
+     * if this {@link File} is specified by the {@link Path} "/foo/bar/baz", then this method will
+     * first create "foo" if necessary, followed by "bar", and then finally "baz".
      */
     public void mkdirs()
     {
@@ -515,12 +763,37 @@ public class File extends AbstractWritableResource implements Comparable<File>
     }
 
     /**
-     * @return {@link File} object of the parent directory
+     * Get a {@link File} object representing the parent directory of this {@link File}.
+     *
+     * @return a {@link File} object of the parent directory
      */
     public File parent()
     {
         return new File(this.path.getParent());
+    }
 
+    /**
+     * Get the absolute {@link Path} object associated with this {@link File}.
+     *
+     * @return the absolute {@link Path} for this {@link File}
+     */
+    public Path toAbsolutePath()
+    {
+        if (this.path.isAbsolute())
+        {
+            return this.path;
+        }
+        return this.path.toAbsolutePath();
+    }
+
+    /**
+     * Get the parent {@link Path} of the {@link Path} object associated with this {@link File}.
+     *
+     * @return the parent {@link Path} of this {@link File}.
+     */
+    public Path toParentPath()
+    {
+        return this.parent().toPath();
     }
 
     /**
@@ -536,7 +809,7 @@ public class File extends AbstractWritableResource implements Comparable<File>
     @Override
     public String toString()
     {
-        return this.getAbsolutePath();
+        return this.getAbsolutePathString();
     }
 
     /**

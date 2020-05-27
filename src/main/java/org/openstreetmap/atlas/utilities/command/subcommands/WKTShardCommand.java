@@ -204,7 +204,7 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         if (!boundaryMapFile.exists())
         {
             this.outputDelegate.printlnErrorMessage(
-                    "boundary file " + boundaryMapFile.getAbsolutePath() + " does not exist");
+                    "boundary file " + boundaryMapFile.getAbsolutePathString() + " does not exist");
             return Optional.empty();
         }
         if (this.optionAndArgumentDelegate.hasVerboseOption())

@@ -54,7 +54,7 @@ public class WKTShardCommandTest
             final ByteArrayOutputStream outContent2 = new ByteArrayOutputStream();
             command = new WKTShardCommand();
             command.setNewOutStream(new PrintStream(outContent2));
-            command.runSubcommand("--tree=" + shardingTree.getAbsolutePath(), "POINT (1 1)");
+            command.runSubcommand("--tree=" + shardingTree.getAbsolutePathString(), "POINT (1 1)");
             Assert.assertEquals(
                     "POINT (1 1) covered by:\n" + "[SlippyTile: zoom = 1, x = 1, y = 0]\n",
                     outContent2.toString());
@@ -68,7 +68,7 @@ public class WKTShardCommandTest
             command = new WKTShardCommand();
             command.setNewOutStream(new PrintStream(outContent1b));
             final String polygonString = "POLYGON ((-63.07390759923378 18.20801927106241,-63.05279324986854 18.20801927106241,-63.05279324986854 18.1971750442678,-63.07390759923378 18.1971750442678,-63.07390759923378 18.20801927106241))";
-            command.runSubcommand("--country-boundary=" + boundaryMap.getAbsolutePath(),
+            command.runSubcommand("--country-boundary=" + boundaryMap.getAbsolutePathString(),
                     polygonString);
             Assert.assertEquals(polygonString + " contains or intersects:\n" + "AIA\n",
                     outContent1b.toString());
@@ -77,7 +77,7 @@ public class WKTShardCommandTest
             command = new WKTShardCommand();
             command.setNewOutStream(new PrintStream(outContent2b));
             final String pointString = "POINT (-63.07390759923378 18.20801927106241)";
-            command.runSubcommand("--country-boundary=" + boundaryMap.getAbsolutePath(),
+            command.runSubcommand("--country-boundary=" + boundaryMap.getAbsolutePathString(),
                     pointString);
             Assert.assertEquals(pointString + " covered by:\n" + "AIA\n", outContent2b.toString());
 
@@ -85,7 +85,7 @@ public class WKTShardCommandTest
             command = new WKTShardCommand();
             command.setNewOutStream(new PrintStream(outContent3b));
             final String lineString = "LINESTRING (-63.07390759923378 18.20801927106241,-63.05279324986854 18.20801927106241)";
-            command.runSubcommand("--country-boundary=" + boundaryMap.getAbsolutePath(),
+            command.runSubcommand("--country-boundary=" + boundaryMap.getAbsolutePathString(),
                     lineString);
             Assert.assertEquals(lineString + " intersects:\n" + "AIA\n", outContent3b.toString());
         }
@@ -107,7 +107,7 @@ public class WKTShardCommandTest
             final ByteArrayOutputStream outContent1a = new ByteArrayOutputStream();
             final WKTShardCommand command = new WKTShardCommand();
             command.setNewOutStream(new PrintStream(outContent1a));
-            command.runSubcommand("--slippy=10", "--input=" + inputText.getAbsolutePath());
+            command.runSubcommand("--slippy=10", "--input=" + inputText.getAbsolutePathString());
             Assert.assertEquals(
                     "POINT (0 0) covered by:\n" + "[SlippyTile: zoom = 10, x = 512, y = 512]\n"
                             + "\n" + "POINT (1 1) covered by:\n"

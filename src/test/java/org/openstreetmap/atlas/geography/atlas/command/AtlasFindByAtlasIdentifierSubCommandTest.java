@@ -29,7 +29,7 @@ public class AtlasFindByAtlasIdentifierSubCommandTest
         final List<String> shardList = Arrays.asList(TXT_PATH + "/DNK_1.atlas.txt",
                 TXT_PATH + "/DNK_2.atlas.txt", TXT_PATH + "/DNK_3.atlas.txt");
         shardList.forEach(shard -> new TextAtlasBuilder().read(new File(shard))
-                .save(new File(SHARD_PATH.getPath() + shard.replace("txt", "atlas"))));
+                .save(new File(SHARD_PATH.getPathString() + shard.replace("txt", "atlas"))));
     }
 
     @AfterClass
@@ -50,7 +50,7 @@ public class AtlasFindByAtlasIdentifierSubCommandTest
         {
             // Run AtlasFindByAtlasIdentifierSubCommand
             final String[] args = { "find-atlas-id",
-                    String.format("-input=%1$s", SHARD_PATH.getPath()),
+                    String.format("-input=%1$s", SHARD_PATH.getPathString()),
                     "-id=546649246000001,575954012000000" };
             new AtlasReader(args).runWithoutQuitting(args);
         }
@@ -70,9 +70,9 @@ public class AtlasFindByAtlasIdentifierSubCommandTest
         final File temp = File.temporary();
 
         // Run AtlasFindByAtlasIdentifierSubCommand
-        final String[] args = { "find-atlas-id", String.format("-input=%1$s", SHARD_PATH.getPath()),
+        final String[] args = { "find-atlas-id", String.format("-input=%1$s", SHARD_PATH.getPathString()),
                 "-id=546649246000001,575954012000000",
-                String.format("-joinedOutput=%1$s", temp.getPath()) };
+                String.format("-joinedOutput=%1$s", temp.getPathString()) };
         new AtlasReader(args).runWithoutQuitting(args);
 
         Assert.assertTrue(temp.length() > 0);

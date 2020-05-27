@@ -31,8 +31,8 @@ public class PbfToAtlasCommandTest
             new OsmFileToPbf().update(osmFile, pbfFile);
 
             final StringList arguments = new StringList();
-            arguments.add(pbfFile.getAbsolutePath());
-            arguments.add("--output=" + folder.getAbsolutePath());
+            arguments.add(pbfFile.getAbsolutePathString());
+            arguments.add("--output=" + folder.getAbsolutePathString());
             arguments.add("--countryName=FRA");
 
             final String[] args = new String[arguments.size()];
