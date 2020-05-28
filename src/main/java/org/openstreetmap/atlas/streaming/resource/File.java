@@ -181,7 +181,7 @@ public class File extends AbstractWritableResource implements Comparable<File>
     /**
      * Create a temporary folder with a given prefix at the system default temporary location. The
      * name of the folder will be generated randomly and will be prefixed by the given prefix.
-     * 
+     *
      * @param fileSystem
      *            the {@link FileSystem} to use for this {@link TemporaryFile}, use *
      *            {@link FileSystems#getDefault()} for the default local {@link FileSystem}
