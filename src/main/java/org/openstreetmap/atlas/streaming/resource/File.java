@@ -366,6 +366,7 @@ public class File extends AbstractWritableResource implements Comparable<File>
      *
      * @param pathString
      *            the path string to the file
+     * @deprecated please use {@link File#File(String, FileSystem)} instead
      */
     @Deprecated
     public File(final String pathString)
@@ -382,6 +383,7 @@ public class File extends AbstractWritableResource implements Comparable<File>
      *            the path string to the file
      * @param createParentDirectories
      *            whether or not to create necessary parent directories
+     * @deprecated please use {@link File#File(String, FileSystem, boolean)} instead
      */
     @Deprecated
     public File(final String pathString, final boolean createParentDirectories)
@@ -552,6 +554,8 @@ public class File extends AbstractWritableResource implements Comparable<File>
      * here for backwards-compatibility purposes.
      *
      * @return a {@link java.io.File} version of this {@link File} resource
+     * @deprecated please move away from this method, and consider using either this class or
+     *             {@link Files} for file operations
      */
     @Deprecated
     public java.io.File getFile()
