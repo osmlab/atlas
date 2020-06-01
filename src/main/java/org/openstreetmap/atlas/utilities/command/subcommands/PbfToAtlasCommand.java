@@ -101,9 +101,8 @@ public class PbfToAtlasCommand extends MultipleOutputCommand
             else
             {
                 // save atlas in place
-                concatenatedPath = Paths.get(
-                        Paths.get(pbf.getAbsolutePath()).getParent().toAbsolutePath().toString(),
-                        rawAtlasFilename);
+                concatenatedPath = Paths.get(Paths.get(pbf.getAbsolutePathString()).getParent()
+                        .toAbsolutePath().toString(), rawAtlasFilename);
             }
             this.outputDelegate.printlnStdout(concatenatedPath.toAbsolutePath().toString());
             final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());

@@ -94,8 +94,8 @@ public class AtlasFeatureCountsSubCommand extends AbstractAtlasSubCommand
         }
         catch (final IOException oops)
         {
-            throw new CoreException("Error writing to file: {}", file.getAbsolutePath().toString(),
-                    oops);
+            throw new CoreException("Error writing to file: {}",
+                    file.getAbsolutePathString().toString(), oops);
         }
 
         return 0;

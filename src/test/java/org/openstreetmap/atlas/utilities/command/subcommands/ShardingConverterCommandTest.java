@@ -30,9 +30,9 @@ public class ShardingConverterCommandTest
             createTestAtlas(folder);
             final File output = folder.child("output");
             final StringList arguments = new StringList();
-            arguments.add("--input=" + folder.child("input").getAbsolutePath());
+            arguments.add("--input=" + folder.child("input").getAbsolutePathString());
             arguments.add("--inputSharding=slippy@11");
-            arguments.add("--output=" + output.getAbsolutePath());
+            arguments.add("--output=" + output.getAbsolutePathString());
             arguments.add("--outputSharding=geohash@4");
 
             final String[] args = new String[arguments.size()];
@@ -65,8 +65,8 @@ public class ShardingConverterCommandTest
         new OsmFileToPbf().update(osmFile, pbfFile);
 
         final StringList arguments = new StringList();
-        arguments.add(pbfFile.getAbsolutePath());
-        arguments.add("--output=" + folder.getAbsolutePath());
+        arguments.add(pbfFile.getAbsolutePathString());
+        arguments.add("--output=" + folder.getAbsolutePathString());
         arguments.add("--countryName=FRA");
 
         final String[] args = new String[arguments.size()];

@@ -57,7 +57,8 @@ public class CountryShardToBoundsCommandTest
             final ByteArrayOutputStream outContent1b = new ByteArrayOutputStream();
             command = new CountryShardToBoundsCommand();
             command.setNewOutStream(new PrintStream(outContent1b));
-            command.runSubcommand("--country-boundary=" + boundaryMap.getAbsolutePath(), "AIA");
+            command.runSubcommand("--country-boundary=" + boundaryMap.getAbsolutePathString(),
+                    "AIA");
             final String expected = "AIA boundary:\n"
                     + "POLYGON ((-62.76312 18.1617887, -62.8763889 18.1902778,";
             Assert.assertEquals(expected, outContent1b.toString().substring(0, expected.length()));

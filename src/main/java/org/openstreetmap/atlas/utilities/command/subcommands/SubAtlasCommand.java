@@ -166,7 +166,7 @@ public class SubAtlasCommand extends AtlasLoaderCommand
         else
         {
             this.outputDelegate.printlnWarnMessage(
-                    "skipping save of empty subatlas cut from " + atlasResource.getPath());
+                    "skipping save of empty subatlas cut from " + atlasResource.getPathString());
         }
     }
 

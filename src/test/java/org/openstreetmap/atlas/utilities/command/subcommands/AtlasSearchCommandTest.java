@@ -142,8 +142,8 @@ public class AtlasSearchCommandTest
         new OsmFileToPbf().update(osmFile, pbfFile);
 
         final StringList arguments = new StringList();
-        arguments.add(pbfFile.getAbsolutePath());
-        arguments.add("--output=" + folder.getAbsolutePath());
+        arguments.add(pbfFile.getAbsolutePathString());
+        arguments.add("--output=" + folder.getAbsolutePathString());
         arguments.add("--countryName=FRA");
 
         final String[] args = new String[arguments.size()];
@@ -152,6 +152,6 @@ public class AtlasSearchCommandTest
             args[index] = arguments.get(index);
         }
         new PbfToAtlasCommand().runSubcommand(args);
-        return folder.child("FRA_AtlasSearchCommandTest.atlas").getAbsolutePath();
+        return folder.child("FRA_AtlasSearchCommandTest.atlas").getAbsolutePathString();
     }
 }

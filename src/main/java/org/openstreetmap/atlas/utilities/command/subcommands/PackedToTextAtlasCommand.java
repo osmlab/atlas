@@ -91,7 +91,7 @@ public class PackedToTextAtlasCommand extends AtlasLoaderCommand
         if (this.optionAndArgumentDelegate.hasVerboseOption())
         {
             this.outputDelegate
-                    .printlnCommandMessage("converting " + atlasResource.getPath() + "...");
+                    .printlnCommandMessage("converting " + atlasResource.getPathString() + "...");
         }
         try
         {
@@ -100,7 +100,7 @@ public class PackedToTextAtlasCommand extends AtlasLoaderCommand
         catch (final Exception exception)
         {
             this.outputDelegate.printlnErrorMessage("failed to save file for "
-                    + atlasResource.getPath() + ": " + exception.getMessage());
+                    + atlasResource.getPathString() + ": " + exception.getMessage());
         }
     }
 

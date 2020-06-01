@@ -1,6 +1,8 @@
 package org.openstreetmap.atlas.geography.sharding;
 
 import java.io.Serializable;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometricSurface;
@@ -26,13 +28,16 @@ public interface Sharding extends Serializable, GeoJson
     int SLIPPY_ZOOM_MAXIMUM = 18;
 
     /**
-     * Parse a sharding definition string
+     * Parse a sharding definition string and use the given {@link FileSystem} if the {@link String}
+     * references a {@link DynamicTileSharding}.
      *
      * @param sharding
      *            The definition string
+     * @param fileSystem
+     *            the {@link FileSystem} to use for a {@link DynamicTileSharding}
      * @return The corresponding {@link Sharding} instance.
      */
-    static Sharding forString(final String sharding)
+    static Sharding forString(final String sharding, final FileSystem fileSystem)
     {
         final StringList split;
         split = StringList.split(sharding, "@");
@@ -62,9 +67,22 @@ public interface Sharding extends Serializable, GeoJson
         if ("dynamic".equals(split.get(0)))
         {
             final String definition = split.get(1);
-            return new DynamicTileSharding(new File(definition));
+            return new DynamicTileSharding(new File(definition, fileSystem));
         }
         throw new CoreException("Sharding type {} is not recognized.", split.get(0));
+    }
+
+    /**
+     * Parse a sharding definition string and use the default {@link FileSystem} if the
+     * {@link String} references a {@link DynamicTileSharding}.
+     *
+     * @param sharding
+     *            The definition string
+     * @return The corresponding {@link Sharding} instance.
+     */
+    static Sharding forString(final String sharding)
+    {
+        return Sharding.forString(sharding, FileSystems.getDefault());
     }
 
     @Override

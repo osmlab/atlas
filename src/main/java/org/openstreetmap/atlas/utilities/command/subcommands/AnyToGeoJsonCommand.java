@@ -155,7 +155,7 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
         if (!atlasFile.exists())
         {
             this.outputDelegate
-                    .printlnErrorMessage("file not found: " + atlasFile.getAbsolutePath());
+                    .printlnErrorMessage("file not found: " + atlasFile.getAbsolutePathString());
             return 1;
         }
         final Atlas atlas = new AtlasResourceLoader().load(atlasFile);

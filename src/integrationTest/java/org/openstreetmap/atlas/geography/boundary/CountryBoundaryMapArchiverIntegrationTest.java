@@ -24,7 +24,7 @@ public class CountryBoundaryMapArchiverIntegrationTest
                     + CountryBoundaryMapArchiverIntegrationTest.class
                             .getResource("oceanTestBoundary.txt").getPath());
             arguments.add("-" + CountryBoundaryMapArchiver.OUTPUT.getName() + "="
-                    + temporary.getAbsolutePath());
+                    + temporary.getAbsolutePathString());
             arguments.add(
                     "-" + CountryBoundaryMapArchiver.OCEAN_BOUNDARY_ZOOM_LEVEL.getName() + "=3");
             arguments
