@@ -125,8 +125,8 @@ public class ComplexWaterEntityFinder implements Finder<ComplexWaterEntity>
                     .map(ComplexWaterEntity::getWaterType).map(WaterType::toString)
                     .collect(Collectors.joining(","));
 
-            logger.error("Skipping AtlasEnity : {} as it got mapped to {}", atlasEntity,
-                    matchedWaterBodies);
+            logger.error("Skipping AtlasEnity : {} as it got mapped to multiple types: {}",
+                    atlasEntity, matchedWaterBodies);
             return Optional.empty();
         }
 
