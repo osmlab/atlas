@@ -113,7 +113,7 @@ public class ComplexWaterEntityFinder implements Finder<ComplexWaterEntity>
 
         if (complexWaterEntities.isEmpty())
         {
-            logger.error("AtlasEntity: {} did not match any water type filters", atlasEntity);
+            logger.trace("AtlasEntity: {} did not match any water type filters", atlasEntity);
             return Optional.empty();
         }
         else if (complexWaterEntities.size() > 1)
