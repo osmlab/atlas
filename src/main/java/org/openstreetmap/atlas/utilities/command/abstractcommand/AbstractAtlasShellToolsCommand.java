@@ -148,6 +148,12 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     private FileSystem fileSystem = FileSystems.getDefault();
 
     /**
+     * By default the command environment will be given by {@link System#getenv()}. See
+     * {@link AbstractAtlasShellToolsCommand#setNewEnvironment(Map)} for more information.
+     */
+    private Map<String, String> environment = null;
+
+    /**
      * Execute the command logic. Subclasses of {@link AbstractAtlasShellToolsCommand} must
      * implement this method, but in general it should not be called directly. See
      * {@link AbstractAtlasShellToolsCommand#runSubcommandAndExit(String...)}.
@@ -162,6 +168,21 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      * @return the simple name of the command
      */
     public abstract String getCommandName();
+
+    /**
+     * @param name
+     *            the name of the environment variable
+     * @return the string value of the variable, or {@code null} if the variable is not defined in
+     *         the environment
+     */
+    public String getEnvironmentValue(final String name)
+    {
+        if (this.environment == null)
+        {
+            return System.getenv(name);
+        }
+        return this.environment.getOrDefault(name, null);
+    }
 
     /**
      * Get the {@link FileSystem} for this command.
@@ -297,6 +318,20 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     public void runSubcommandAndExit(final String... args)
     {
         System.exit(this.runSubcommand(args));
+    }
+
+    /**
+     * Set a new {@link Map} to act as the system environment for this command. This may be useful
+     * for various unit tests which want to inject alternate values into a command's environment
+     * variables (for example, changing the location of user.home to be independent of the machine
+     * context).
+     *
+     * @param newEnvironment
+     *            the new environment {@link Map}
+     */
+    public void setNewEnvironment(final Map<String, String> newEnvironment)
+    {
+        this.environment = newEnvironment;
     }
 
     /**
