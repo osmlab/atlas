@@ -130,7 +130,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      * System.out/err for direct messages intended for the user to read on the command line. This
      * makes it easier for users to adjust their log configuration to show the desired level of
      * diagnostics without affecting the actual command outputs. We are declaring explicit stream
-     * variables here so that downstream classes can override the streams for unit-testing purposes.
+     * variables here so that client classes (i.e. unit tests) can override the streams for testing
+     * purposes.
      */
     /**
      * See {@link AbstractAtlasShellToolsCommand#setNewOutStream(PrintStream)}.
@@ -140,12 +141,20 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      * See {@link AbstractAtlasShellToolsCommand#setNewErrStream(PrintStream)}.
      */
     private PrintStream errStream = System.err; // NOSONAR
-
+    /**
+     * See {@link AbstractAtlasShellToolsCommand#setNewInStream(InputStream)}.
+     */
+    private InputStream inStream = System.in;
     /**
      * The default value here is {@link FileSystems#getDefault()}. See
      * {@link AbstractAtlasShellToolsCommand#setNewFileSystem(FileSystem)} for more information.
      */
     private FileSystem fileSystem = FileSystems.getDefault();
+    /**
+     * By default the command environment will be given by {@link System#getenv()}. See
+     * {@link AbstractAtlasShellToolsCommand#setNewEnvironment(Map)} for more information.
+     */
+    private Map<String, String> environment = null;
 
     /**
      * Execute the command logic. Subclasses of {@link AbstractAtlasShellToolsCommand} must
@@ -164,6 +173,26 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     public abstract String getCommandName();
 
     /**
+     * Get the value of an environment variable. Command implementations should always defer to this
+     * method rather than {@link System#getenv()}, since unit tests may be utilizing
+     * {@link AbstractAtlasShellToolsCommand#setNewEnvironment(Map)} to inject a custom environment
+     * for testing purposes.
+     *
+     * @param name
+     *            the name of the environment variable
+     * @return the string value of the variable, or {@code null} if the variable is not defined in
+     *         the environment
+     */
+    public String getEnvironmentValue(final String name)
+    {
+        if (this.environment == null)
+        {
+            return System.getenv(name);
+        }
+        return this.environment.getOrDefault(name, null);
+    }
+
+    /**
      * Get the {@link FileSystem} for this command.
      *
      * @return the {@link FileSystem} for this command.
@@ -171,6 +200,16 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     public FileSystem getFileSystem()
     {
         return this.fileSystem;
+    }
+
+    /**
+     * Get the {@link InputStream} for this command.
+     * 
+     * @return the {@link InputStream} for this command.
+     */
+    public InputStream getInStream()
+    {
+        return this.inStream;
     }
 
     /**
@@ -300,6 +339,20 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     }
 
     /**
+     * Set a new {@link Map} to act as the system environment for this command. This may be useful
+     * for various unit tests which want to inject alternate values into a command's environment
+     * variables (for example, changing the location of user.home to be independent of the machine
+     * context).
+     *
+     * @param newEnvironment
+     *            the new environment {@link Map}
+     */
+    public void setNewEnvironment(final Map<String, String> newEnvironment)
+    {
+        this.environment = newEnvironment;
+    }
+
+    /**
      * Set a new {@link PrintStream} for the stderr writer methods. This may be useful for various
      * unit tests which want to intercept command error output to check it against some expected
      * result.
@@ -323,6 +376,19 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     public void setNewFileSystem(final FileSystem newFileSystem)
     {
         this.fileSystem = newFileSystem;
+    }
+
+    /**
+     * Set a new {@link InputStream} for this command. Implementations should respect the set
+     * {@link InputStream} when reading input from the user. This is particularly useful for
+     * unit-testing, where we may want to inject arbitrary input for testing purposes.
+     * 
+     * @param inStream
+     *            the new {@link InputStream} to use
+     */
+    public void setNewInStream(final InputStream inStream)
+    {
+        this.inStream = inStream;
     }
 
     /**
