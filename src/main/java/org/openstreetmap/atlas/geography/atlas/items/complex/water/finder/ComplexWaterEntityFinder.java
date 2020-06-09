@@ -113,7 +113,7 @@ public class ComplexWaterEntityFinder implements Finder<ComplexWaterEntity>
 
         if (complexWaterEntities.isEmpty())
         {
-            logger.error("AtlasEntity: {} did not match any water type filters", atlasEntity);
+            logger.trace("AtlasEntity: {} did not match any water type filters", atlasEntity);
             return Optional.empty();
         }
         else if (complexWaterEntities.size() > 1)
@@ -125,8 +125,8 @@ public class ComplexWaterEntityFinder implements Finder<ComplexWaterEntity>
                     .map(ComplexWaterEntity::getWaterType).map(WaterType::toString)
                     .collect(Collectors.joining(","));
 
-            logger.error("Skipping AtlasEnity : {} as it got mapped to {}", atlasEntity,
-                    matchedWaterBodies);
+            logger.error("Skipping AtlasEnity : {} as it got mapped to multiple types: {}",
+                    atlasEntity, matchedWaterBodies);
             return Optional.empty();
         }
 

@@ -34,7 +34,7 @@ public class ComplexIslandFinder implements Finder<ComplexIsland>
      *
      * @param atlas
      *            The {@link Atlas} to browse.
-     * @return
+     * @return an {@link Iterable} of the {@link ComplexIsland}s in the given {@link Atlas}
      */
     @Override
     public Iterable<ComplexIsland> find(final Atlas atlas)

@@ -390,7 +390,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             if (entityMatchesAllCriteriaSoFar)
             {
                 this.outputDelegate.printlnStdout(
-                        "Found entity matching criteria in " + atlasResource.getPath() + ":",
+                        "Found entity matching criteria in " + atlasResource.getPathString() + ":",
                         TTYAttribute.BOLD);
                 this.outputDelegate.printlnStdout(
                         ((CompleteEntity) CompleteEntity.from(entity))

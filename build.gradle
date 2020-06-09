@@ -68,6 +68,7 @@ dependencies
     compile packages.checkstyle
     compile packages.diff_utils
     compile packages.groovy_json
+    compile packages.jim_fs
 
     testCompile packages.checkstyle_tests
 
