@@ -19,9 +19,9 @@ public class AtlasShellToolsDemoCommandTest
     {
         final ByteArrayOutputStream outContent1 = new ByteArrayOutputStream();
         final ByteArrayOutputStream errContent1 = new ByteArrayOutputStream();
+        final InputStream inStream = new ByteArrayInputStream("hello!".getBytes());
 
         final AtlasShellToolsDemoCommand command = new AtlasShellToolsDemoCommand();
-        final InputStream inStream = new ByteArrayInputStream("hello!".getBytes());
         command.setNewOutStream(new PrintStream(outContent1));
         command.setNewErrStream(new PrintStream(errContent1));
         command.setNewInStream(inStream);

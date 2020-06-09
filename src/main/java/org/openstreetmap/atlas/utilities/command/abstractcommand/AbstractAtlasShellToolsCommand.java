@@ -130,7 +130,8 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      * System.out/err for direct messages intended for the user to read on the command line. This
      * makes it easier for users to adjust their log configuration to show the desired level of
      * diagnostics without affecting the actual command outputs. We are declaring explicit stream
-     * variables here so that downstream classes can override the streams for unit-testing purposes.
+     * variables here so that client classes (i.e. unit tests) can override the streams for testing
+     * purposes.
      */
     /**
      * See {@link AbstractAtlasShellToolsCommand#setNewOutStream(PrintStream)}.
