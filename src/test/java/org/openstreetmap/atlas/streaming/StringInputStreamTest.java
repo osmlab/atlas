@@ -41,12 +41,19 @@ public class StringInputStreamTest
          * fail. This happens because it appears that String#equals actually uses the underlying
          * byte buffer to check equality.
          */
-        final byte[] buffer = new byte[source.length()];
+        final byte[] buffer1 = new byte[source.length()];
 
         // Here we try to read a length longer than the String, this should work anyway
-        final int bytesRead1 = stream1.read(buffer, 0, stream1.getSource().length() + 100);
+        final int bytesRead1 = stream1.read(buffer1, 0, stream1.getSource().length() + 100);
         Assert.assertEquals(6, bytesRead1);
-        Assert.assertEquals(source, new String(buffer, StandardCharsets.UTF_8));
+        Assert.assertEquals(source, new String(buffer1, StandardCharsets.UTF_8));
+
+        final StringInputStream stream2 = new StringInputStream(source);
+        final byte[] buffer2 = new byte[source.length()];
+
+        // Here we try to read an invalid number of bytes (i.e. we set requested length to -1)
+        final int bytesRead2 = stream2.read(buffer2, 0, -1);
+        Assert.assertEquals(0, bytesRead2);
     }
 
     @Test
@@ -78,5 +85,36 @@ public class StringInputStreamTest
         Assert.assertEquals(-1, byteRead7);
         final int byteRead8 = stream1.read();
         Assert.assertEquals(-1, byteRead8);
+    }
+
+    @Test
+    public void testMultiBufferRead()
+    {
+        final String source = "Hello world!";
+        final StringInputStream stream1 = new StringInputStream(source);
+
+        final byte[] buffer1 = new byte["Hello".length()];
+        final byte[] buffer2 = new byte[" world!".length()];
+
+        final int bytesRead1 = stream1.read(buffer1, 0, buffer1.length);
+        Assert.assertEquals(5, bytesRead1);
+        Assert.assertEquals("Hello", new String(buffer1, StandardCharsets.UTF_8));
+
+        final int bytesRead2 = stream1.read(buffer2, 0, buffer2.length);
+        Assert.assertEquals(7, bytesRead2);
+        Assert.assertEquals(" world!", new String(buffer2, StandardCharsets.UTF_8));
+    }
+
+    @Test
+    public void testOffsetBufferRead()
+    {
+        final String source = "Hello world!";
+        final StringInputStream stream1 = new StringInputStream(source);
+
+        final byte[] buffer1 = new byte["Hello world!".length()];
+
+        final int bytesRead1 = stream1.read(buffer1, 5, buffer1.length);
+        Assert.assertEquals(7, bytesRead1);
+        Assert.assertEquals(" world!", new String(buffer1, StandardCharsets.UTF_8));
     }
 }

@@ -43,26 +43,26 @@ public class StringInputStream extends InputStream
     @Override
     public int read(final byte[] buffer, final int offset, final int length)
     {
-        int mutableLength = length;
+        int requestedReadLength = length;
         if (this.index >= this.source.length())
         {
             return -1;
         }
 
         final int availableToRead = this.source.length() - this.index;
-        if (mutableLength > availableToRead)
+        if (requestedReadLength > availableToRead)
         {
-            mutableLength = availableToRead;
+            requestedReadLength = availableToRead;
         }
-        if (mutableLength <= 0)
+        if (requestedReadLength <= 0)
         {
             return 0;
         }
 
         final byte[] stringBytes = this.source.getBytes();
-        System.arraycopy(stringBytes, this.index, buffer, offset, mutableLength);
+        System.arraycopy(stringBytes, this.index, buffer, offset, requestedReadLength);
 
-        this.index += mutableLength;
-        return mutableLength;
+        this.index += requestedReadLength;
+        return requestedReadLength;
     }
 }
