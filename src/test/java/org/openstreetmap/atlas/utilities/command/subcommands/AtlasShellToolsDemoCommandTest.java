@@ -6,7 +6,7 @@ import java.io.PrintStream;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.openstreetmap.atlas.streaming.StringInputStream;
+import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 
 /**
@@ -19,7 +19,7 @@ public class AtlasShellToolsDemoCommandTest
     {
         final ByteArrayOutputStream outContent1 = new ByteArrayOutputStream();
         final ByteArrayOutputStream errContent1 = new ByteArrayOutputStream();
-        final InputStream inStream = new StringInputStream("hello!");
+        final InputStream inStream = new StringResource("hello!").read();
 
         final AtlasShellToolsDemoCommand command = new AtlasShellToolsDemoCommand();
         command.setNewOutStream(new PrintStream(outContent1));
