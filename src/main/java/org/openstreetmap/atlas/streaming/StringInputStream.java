@@ -1,6 +1,5 @@
 package org.openstreetmap.atlas.streaming;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -19,8 +18,18 @@ public class StringInputStream extends InputStream
         this.index = 0;
     }
 
+    /**
+     * Get the source {@link String} for this {@link StringInputStream}.
+     * 
+     * @return the source {@link String}
+     */
+    public String getSource()
+    {
+        return this.source;
+    }
+
     @Override
-    public int read() throws IOException
+    public int read()
     {
         if (this.index < this.source.length())
         {
@@ -29,5 +38,31 @@ public class StringInputStream extends InputStream
             return result;
         }
         return -1;
+    }
+
+    @Override
+    public int read(final byte[] buffer, final int offset, final int length)
+    {
+        int mutableLength = length;
+        if (this.index >= this.source.length())
+        {
+            return -1;
+        }
+
+        final int availableToRead = this.source.length() - this.index;
+        if (mutableLength > availableToRead)
+        {
+            mutableLength = availableToRead;
+        }
+        if (mutableLength <= 0)
+        {
+            return 0;
+        }
+
+        final byte[] stringBytes = this.source.getBytes();
+        System.arraycopy(stringBytes, this.index, buffer, offset, mutableLength);
+
+        this.index += mutableLength;
+        return mutableLength;
     }
 }
