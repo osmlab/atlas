@@ -1,12 +1,12 @@
 package org.openstreetmap.atlas.utilities.command.subcommands;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.streaming.StringInputStream;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 
 /**
@@ -19,7 +19,7 @@ public class AtlasShellToolsDemoCommandTest
     {
         final ByteArrayOutputStream outContent1 = new ByteArrayOutputStream();
         final ByteArrayOutputStream errContent1 = new ByteArrayOutputStream();
-        final InputStream inStream = new ByteArrayInputStream("hello!".getBytes());
+        final InputStream inStream = new StringInputStream("hello!");
 
         final AtlasShellToolsDemoCommand command = new AtlasShellToolsDemoCommand();
         command.setNewOutStream(new PrintStream(outContent1));
