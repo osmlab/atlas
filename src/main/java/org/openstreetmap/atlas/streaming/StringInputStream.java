@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.streaming;
 
 import java.io.InputStream;
+import java.util.Objects;
 
 /**
  * An {@link InputStream} that reads from a {@link String} for convenience
@@ -43,6 +44,8 @@ public class StringInputStream extends InputStream
     @Override
     public int read(final byte[] buffer, final int offset, final int length)
     {
+        Objects.checkFromIndexSize(offset, length, buffer.length);
+
         int requestedReadLength = length;
         if (this.index >= this.source.length())
         {

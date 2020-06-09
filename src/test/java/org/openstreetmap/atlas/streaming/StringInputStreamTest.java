@@ -4,13 +4,18 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /**
  * @author lcram
  */
 public class StringInputStreamTest
 {
+    @Rule
+    public final ExpectedException expectedException = ExpectedException.none();
+
     @Test
     public void testBasicBufferRead()
     {
@@ -32,7 +37,22 @@ public class StringInputStreamTest
     }
 
     @Test
-    public void testBufferReadEdgeCases()
+    public void testBufferReadEdgeCaseLengthInvalid()
+    {
+        final String source = "Hello!";
+        final StringInputStream stream1 = new StringInputStream(source);
+
+        final byte[] buffer1 = new byte[source.length()];
+
+        // Here we try to read an invalid number of bytes (i.e. we set requested length to -1)
+        this.expectedException.expect(IndexOutOfBoundsException.class);
+        this.expectedException.expectMessage("Range [0, 0 + -1) out of bounds for length 6");
+        final int bytesRead1 = stream1.read(buffer1, 0, -1);
+        Assert.assertEquals(0, bytesRead1);
+    }
+
+    @Test
+    public void testBufferReadEdgeCaseLengthTooLong()
     {
         final String source = "Hello!";
         final StringInputStream stream1 = new StringInputStream(source);
@@ -43,17 +63,10 @@ public class StringInputStreamTest
          */
         final byte[] buffer1 = new byte[source.length()];
 
-        // Here we try to read a length longer than the String, this should work anyway
-        final int bytesRead1 = stream1.read(buffer1, 0, stream1.getSource().length() + 100);
-        Assert.assertEquals(6, bytesRead1);
-        Assert.assertEquals(source, new String(buffer1, StandardCharsets.UTF_8));
-
-        final StringInputStream stream2 = new StringInputStream(source);
-        final byte[] buffer2 = new byte[source.length()];
-
-        // Here we try to read an invalid number of bytes (i.e. we set requested length to -1)
-        final int bytesRead2 = stream2.read(buffer2, 0, -1);
-        Assert.assertEquals(0, bytesRead2);
+        // Here we try to read a length longer than the String
+        this.expectedException.expect(IndexOutOfBoundsException.class);
+        this.expectedException.expectMessage("Range [0, 0 + 7) out of bounds for length 6");
+        final int read = stream1.read(buffer1, 0, stream1.getSource().length() + 1);
     }
 
     @Test
@@ -113,8 +126,49 @@ public class StringInputStreamTest
 
         final byte[] buffer1 = new byte["Hello world!".length()];
 
-        final int bytesRead1 = stream1.read(buffer1, 5, buffer1.length);
-        Assert.assertEquals(7, bytesRead1);
-        Assert.assertEquals(" world!", new String(buffer1, StandardCharsets.UTF_8));
+        final int initialChunkSize = 5;
+        final int bytesRead1 = stream1.read(buffer1, 0, initialChunkSize);
+        Assert.assertEquals(5, bytesRead1);
+        final int bytesRead2 = stream1.read(buffer1, 5, buffer1.length - initialChunkSize);
+        Assert.assertEquals(7, bytesRead2);
+
+        Assert.assertEquals("Hello world!", new String(buffer1, StandardCharsets.UTF_8));
+    }
+
+    @Test
+    public void testReadOnAlreadyReadStream()
+    {
+        final String source = "Hello world!";
+        final StringInputStream stream1 = new StringInputStream(source);
+
+        /*
+         * Read 5 bytes of the input into a buffer. This means our buffer will not be entirely
+         * filled.
+         */
+        final byte[] buffer1 = new byte["Hello world!".length()];
+        final int readChunkSize = 5;
+        final int bytesRead1 = stream1.read(buffer1, 0, readChunkSize);
+        Assert.assertEquals(readChunkSize, bytesRead1);
+        Assert.assertEquals("Hello\0\0\0\0\0\0\0", new String(buffer1, StandardCharsets.UTF_8));
+
+        /*
+         * Now we try to read with a length larger than the remaining stream. Again, our buffer will
+         * not be entirely filled.
+         */
+        final byte[] buffer2 = new byte["Hello world!".length()];
+        final int bytesRead2 = stream1.read(buffer2, 0, buffer2.length);
+        Assert.assertEquals(7, bytesRead2);
+        Assert.assertEquals(" world!\0\0\0\0\0", new String(buffer2, StandardCharsets.UTF_8));
+    }
+
+    @Test
+    public void testReadZeroLength()
+    {
+        final String source = "Hello world!";
+        final StringInputStream stream1 = new StringInputStream(source);
+
+        final byte[] buffer1 = new byte["Hello world!".length()];
+        final int bytesRead1 = stream1.read(buffer1, 0, 0);
+        Assert.assertEquals(0, bytesRead1);
     }
 }
