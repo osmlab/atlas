@@ -126,7 +126,7 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
         this.outputDelegate.printlnStdout(breakfast, TTYAttribute.BOLD);
         this.outputDelegate.printlnStdout("Now say something!");
         this.outputDelegate.printStdout("> ");
-        try (final Scanner scanner = new Scanner(this.getInStream()))
+        try (Scanner scanner = new Scanner(this.getInStream()))
         {
             final String input = scanner.nextLine();
             this.outputDelegate.printlnStdout("You said: " + input);
