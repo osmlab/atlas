@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.utilities.command.subcommands;
 
 import java.util.List;
+import java.util.Scanner;
 
 import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
@@ -117,10 +118,17 @@ public class AtlasShellToolsDemoCommand extends AbstractAtlasShellToolsCommand
 
     private void executeBreakfastContext()
     {
+        this.outputDelegate.printlnCommandMessage(
+                "value of HOME environment variable: " + this.getEnvironmentValue("user.home"));
         final String breakfast = this.optionAndArgumentDelegate
                 .getUnaryArgument("favoriteBreakfastFood").orElse("Default waffles :(");
         this.outputDelegate.printlnStdout("Using special breakfast mode:");
         this.outputDelegate.printlnStdout(breakfast, TTYAttribute.BOLD);
+        this.outputDelegate.printlnStdout("Now say something!");
+        this.outputDelegate.printStdout("> ");
+        final Scanner scanner = new Scanner(this.getInStream());
+        final String input = scanner.nextLine();
+        this.outputDelegate.printlnStdout("You said: " + input);
     }
 
     private void executeLunchDinnerContext()

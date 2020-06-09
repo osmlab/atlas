@@ -140,13 +140,15 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      * See {@link AbstractAtlasShellToolsCommand#setNewErrStream(PrintStream)}.
      */
     private PrintStream errStream = System.err; // NOSONAR
-
+    /**
+     * See {@link AbstractAtlasShellToolsCommand#setNewInStream(InputStream)}.
+     */
+    private InputStream inStream = System.in;
     /**
      * The default value here is {@link FileSystems#getDefault()}. See
      * {@link AbstractAtlasShellToolsCommand#setNewFileSystem(FileSystem)} for more information.
      */
     private FileSystem fileSystem = FileSystems.getDefault();
-
     /**
      * By default the command environment will be given by {@link System#getenv()}. See
      * {@link AbstractAtlasShellToolsCommand#setNewEnvironment(Map)} for more information.
@@ -170,6 +172,11 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     public abstract String getCommandName();
 
     /**
+     * Get the value of an environment variable. Command implementations should always defer to this
+     * method rather than {@link System#getenv()}, since unit tests may be utilizing
+     * {@link AbstractAtlasShellToolsCommand#setNewEnvironment(Map)} to inject a custom environment
+     * for testing purposes.
+     *
      * @param name
      *            the name of the environment variable
      * @return the string value of the variable, or {@code null} if the variable is not defined in
@@ -192,6 +199,16 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     public FileSystem getFileSystem()
     {
         return this.fileSystem;
+    }
+
+    /**
+     * Get the {@link InputStream} for this command.
+     * 
+     * @return the {@link InputStream} for this command.
+     */
+    public InputStream getInStream()
+    {
+        return this.inStream;
     }
 
     /**
@@ -358,6 +375,19 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     public void setNewFileSystem(final FileSystem newFileSystem)
     {
         this.fileSystem = newFileSystem;
+    }
+
+    /**
+     * Set a new {@link InputStream} for this command. Implementations should respect the set
+     * {@link InputStream} when reading input from the user. This is particularly useful for
+     * unit-testing, where we may want to inject arbitrary input for testing purposes.
+     * 
+     * @param inStream
+     *            the new {@link InputStream} to use
+     */
+    public void setNewInStream(final InputStream inStream)
+    {
+        this.inStream = inStream;
     }
 
     /**
