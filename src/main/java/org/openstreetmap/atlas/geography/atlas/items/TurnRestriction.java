@@ -54,6 +54,7 @@ public final class TurnRestriction implements Located, Serializable, Taggable
     private Route too;
     private final TurnRestrictionType type;
     private Route via;
+    private String invalidReason = null;
 
     /**
      * Create a {@link TurnRestriction} from a {@link Relation}
@@ -236,7 +237,7 @@ public final class TurnRestriction implements Located, Serializable, Taggable
                 && route.isSubRoute(turnRestriction.getFrom());
     }
 
-    private TurnRestriction(final Relation relation)
+    public TurnRestriction(final Relation relation)
     {
         Route fromMember = null;
         Route viaMember = null;
@@ -341,6 +342,7 @@ public final class TurnRestriction implements Located, Serializable, Taggable
         }
         catch (final CoreException e)
         {
+            this.invalidReason = e.getMessage();
             logger.trace("Could not build TurnRestriction from relation {}", relation, e);
             this.from = null;
             this.via = null;
@@ -377,6 +379,11 @@ public final class TurnRestriction implements Located, Serializable, Taggable
         return this.from;
     }
 
+    public String getInvalidReason()
+    {
+        return this.invalidReason;
+    }
+
     @Override
     public Optional<String> getTag(final String key)
     {
@@ -405,6 +412,11 @@ public final class TurnRestriction implements Located, Serializable, Taggable
     public Optional<Route> getVia()
     {
         return Optional.ofNullable(this.via);
+    }
+
+    public boolean isValid()
+    {
+        return this.from != null && this.too != null && route() != null;
     }
 
     /**
@@ -497,10 +509,5 @@ public final class TurnRestriction implements Located, Serializable, Taggable
         relation.members().stream().filter(member -> "from".equals(member.getRole()))
                 .forEach(member -> fromIdentifiers.add(member.getEntity().getIdentifier()));
         return fromIdentifiers.equals(toIdentifiers);
-    }
-
-    private boolean isValid()
-    {
-        return this.from != null && this.too != null && route() != null;
     }
 }
