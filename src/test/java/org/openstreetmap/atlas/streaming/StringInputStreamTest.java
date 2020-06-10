@@ -2,6 +2,10 @@ package org.openstreetmap.atlas.streaming;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Scanner;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -170,5 +174,21 @@ public class StringInputStreamTest
         final byte[] buffer1 = new byte["Hello world!".length()];
         final int bytesRead1 = stream1.read(buffer1, 0, 0);
         Assert.assertEquals(0, bytesRead1);
+    }
+
+    @Test
+    public void testWithScanner()
+    {
+        final String source = "line1\nline2\nline3\nline4\n";
+        final StringInputStream stream1 = new StringInputStream(source);
+
+        final List<String> lines = new ArrayList<>();
+        final Scanner scanner = new Scanner(stream1);
+        while (scanner.hasNextLine())
+        {
+            lines.add(scanner.nextLine());
+        }
+
+        Assert.assertEquals(Arrays.asList("line1", "line2", "line3", "line4"), lines);
     }
 }
