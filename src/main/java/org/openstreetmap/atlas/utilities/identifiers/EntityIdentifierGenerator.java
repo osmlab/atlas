@@ -12,6 +12,7 @@ import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEntity;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 
@@ -101,30 +102,30 @@ public class EntityIdentifierGenerator
     {
         final StringBuilder builder = new StringBuilder();
         builder.append(";");
-        switch (entity.getType())
+        if (entity.getType() == ItemType.RELATION)
         {
-            case RELATION:
-                final CompleteRelation relation = (CompleteRelation) entity;
-                if (relation.members() != null)
+            final CompleteRelation relation = (CompleteRelation) entity;
+            if (relation.members() != null)
+            {
+                final RelationBean bean = relation.members().asBean();
+                builder.append("RelationBean[");
+                for (final RelationBean.RelationBeanItem beanItem : bean)
                 {
-                    final RelationBean bean = relation.members().asBean();
-                    builder.append("RelationBean[");
-                    for (final RelationBean.RelationBeanItem beanItem : bean)
-                    {
-                        builder.append("(");
-                        builder.append(beanItem.getType());
-                        builder.append(",");
-                        builder.append(beanItem.getIdentifier());
-                        builder.append(",");
-                        builder.append(beanItem.getRole());
-                        builder.append(")");
-                    }
-                    builder.append("]");
+                    builder.append("(");
+                    builder.append(beanItem.getType());
+                    builder.append(",");
+                    builder.append(beanItem.getIdentifier());
+                    builder.append(",");
+                    builder.append(beanItem.getRole());
+                    builder.append(")");
                 }
-                return builder.toString();
-            default:
-                return "";
+                builder.append("]");
+            }
+            return builder.toString();
         }
+
+        // Otherwise no extra data
+        return "";
     }
 
     /**
