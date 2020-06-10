@@ -1,6 +1,5 @@
 package org.openstreetmap.atlas.streaming;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,7 +73,7 @@ public class StringInputStreamTest
     }
 
     @Test
-    public void testByteReadSuccess() throws IOException
+    public void testByteReadSuccess()
     {
         final String source = "Hello!";
         final StringInputStream stream1 = new StringInputStream(source);
@@ -102,6 +101,24 @@ public class StringInputStreamTest
         Assert.assertEquals(-1, byteRead7);
         final int byteRead8 = stream1.read();
         Assert.assertEquals(-1, byteRead8);
+    }
+
+    @Test
+    public void testMixReads()
+    {
+        final String source = "Hello!";
+        final StringInputStream stream1 = new StringInputStream(source);
+
+        final int byteRead1 = stream1.read();
+        Assert.assertEquals(72, byteRead1);
+
+        final int byteRead2 = stream1.read();
+        Assert.assertEquals(101, byteRead2);
+
+        final byte[] buffer1 = new byte["llo!".length()];
+        final int bytesRead1 = stream1.read(buffer1, 0, buffer1.length);
+        Assert.assertEquals(4, bytesRead1);
+        Assert.assertEquals("llo!", new String(buffer1, StandardCharsets.UTF_8));
     }
 
     @Test
