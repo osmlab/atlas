@@ -363,7 +363,7 @@ public class CountryBoundaryMap implements Serializable, GeoJson
                 // Trying to override an existing value - this shouldn't happen!
                 if (!Objects.equals(existingValue, value))
                 {
-                    logger.error(
+                    logger.debug(
                             "Trying to override existing '{}' key's value of '{}' with '{}' for geometry {}",
                             key, existingValue, value, geometry.toString());
                 }
