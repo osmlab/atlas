@@ -101,6 +101,7 @@ public class RawAtlasSlicer
     private static final String MULTIPOLYGON_RELATION_SLICING_DURATION_EXCEEDED = "Relation {} for Atlas {} took {} to slice!";
     private static final String MULTIPOLYGON_RELATION_INVALID_MEMBER_REMOVED = "Purging invalid member {} from relation {}";
     private static final String MULTIPOLYGON_RELATION_INVALID_SLICED_GEOMETRY = "Relation {} sliced for country {} produced invalid geometry {}!";
+    private static final String MULTIPOLYGON_RELATION_OVERLAPPING_INNERS = "Relation {} for Atlas {} had overlapping inners, but slicing will continue!";
 
     private static final String LINE_HAD_MULTIPOLYGON_SLICE = "Line {} for Atlas {} had multipolygon slicing result when sliced as polygon, will slice as line instead!";
     private static final String LINE_SLICING_DURATION_EXCEEDED = "Line {} for Atlas {} took {} to slice!";
@@ -869,6 +870,33 @@ public class RawAtlasSlicer
     }
 
     /**
+     * Checks two sets of geometries to see if one contains any geometries that are covered by or
+     * equals to any geometries in the second set
+     *
+     * @param geometries
+     *            A Set of Geometries to check
+     * @param geometriesComparison
+     *            A second Set of Geometries to compare to
+     * @return True if any geometry in geometries is equal to or is covered by a geometry in
+     *         geometryComparison, false otherwise
+     */
+    private boolean isCoveredBy(final Set<Geometry> geometries,
+            final Set<Geometry> geometriesComparison)
+    {
+        for (final Geometry comparisonGeometry : geometriesComparison)
+        {
+            for (final Geometry geometry : geometries)
+            {
+                if (geometry.equals(comparisonGeometry) || geometry.covers(comparisonGeometry))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * Check to see if a Line is a member of a Relation that meets the Relation predicate-- if so,
      * we want to slice it as a linear feature even if it's closed
      *
@@ -1031,11 +1059,19 @@ public class RawAtlasSlicer
     private org.locationtech.jts.geom.MultiPolygon removeOsmValidOverlappingInners(
             final Relation relation, final org.locationtech.jts.geom.MultiPolygon multipolygon)
     {
-        final Set<Line> innerLines = new HashSet<>();
+        final Set<Geometry> slicedInnerLines = new HashSet<>();
         relation.membersMatching(
                 member -> member.getRole().equals(RelationTypeTag.MULTIPOLYGON_ROLE_INNER))
-                .forEach(member -> innerLines
-                        .add(this.stagedLines.get(member.getEntity().getIdentifier())));
+                .forEach(member ->
+                {
+                    final Line innerLine = this.stagedLines.get(member.getEntity().getIdentifier());
+                    if (innerLine.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
+                    {
+                        slicedInnerLines
+                                .add(JTS_POLYLINE_CONVERTER.convert(innerLine.asPolyLine()));
+                    }
+                });
+
         final org.locationtech.jts.geom.Polygon[] modifiedPolygons = new org.locationtech.jts.geom.Polygon[multipolygon
                 .getNumGeometries()];
         for (int i = 0; i < multipolygon.getNumGeometries(); i++)
@@ -1053,27 +1089,15 @@ public class RawAtlasSlicer
                     final Geometry comparisonInner = currentPolygon.getInteriorRingN(k);
                     if (currentInner.intersects(comparisonInner))
                     {
-                        // okay, it might be a candidate for removal
-                        remove = true;
-
-                        // but now validate that it's not composed of sliced lines
-                        for (final Line innerLine : innerLines)
+                        final Set<Geometry> inners = new HashSet<>();
+                        inners.add(currentInner);
+                        inners.add(comparisonInner);
+                        if (isCoveredBy(inners, slicedInnerLines))
                         {
-                            final LineString jtsLine = JTS_POLYLINE_CONVERTER
-                                    .convert(innerLine.asPolyLine());
-                            if ((jtsLine.equals(currentInner) || currentInner.covers(jtsLine))
-                                    && innerLine.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
-                            {
-                                remove = false;
-                            }
-                            else if ((jtsLine.equals(comparisonInner)
-                                    || comparisonInner.covers(jtsLine))
-                                    && innerLine.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
-                            {
-                                remove = false;
-                            }
+                            remove = false;
+                            break;
                         }
-                        break;
+                        remove = true;
                     }
                 }
                 if (!remove)
@@ -1442,9 +1466,8 @@ public class RawAtlasSlicer
             }
             else
             {
-                logger.warn(
-                        "Continuning to slice multipolygon relation {} for Atlas {} even though inners overlap!",
-                        relation.getOsmIdentifier(), this.shardOrAtlasName);
+                logger.warn(MULTIPOLYGON_RELATION_OVERLAPPING_INNERS, relation.getOsmIdentifier(),
+                        this.shardOrAtlasName);
             }
         }
 
