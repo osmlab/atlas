@@ -116,6 +116,11 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
     private static final String LOCATION_58 = "6.9452756,-8.3230369";
     private static final String LOCATION_59 = "6.9402756,-8.3230369";
 
+    private static final String LOCATION_60 = "6.9393431,-8.3299635";
+    private static final String LOCATION_61 = "6.9393531,-8.3299635";
+    private static final String LOCATION_62 = "6.9393531,-8.3299535";
+    private static final String LOCATION_63 = "6.9393431,-8.3299535";
+
     @TestAtlas(
 
             points = { @Point(id = "108752000000", coordinates = @Loc(value = LOCATION_40)),
@@ -716,6 +721,74 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
                                     @Member(id = "214777000000", role = "outer", type = "line") }) })
     private Atlas singleOuterMultiPolygonSpanningTwoAtlases2;
 
+    @TestAtlas(
+
+            points = { @Point(id = "108752000000", coordinates = @Loc(value = LOCATION_13)),
+                    @Point(id = "108754000000", coordinates = @Loc(value = LOCATION_14)),
+                    @Point(id = "108756000000", coordinates = @Loc(value = LOCATION_15)),
+                    @Point(id = "108758000000", coordinates = @Loc(value = LOCATION_16)),
+                    @Point(id = "108760000000", coordinates = @Loc(value = LOCATION_17)),
+                    @Point(id = "108762000000", coordinates = @Loc(value = LOCATION_18)),
+                    @Point(id = "108764000000", coordinates = @Loc(value = LOCATION_19)),
+                    @Point(id = "108766000000", coordinates = @Loc(value = LOCATION_20)) },
+
+            lines = {
+                    @Line(id = "108768000000", coordinates = { @Loc(value = LOCATION_13),
+                            @Loc(value = LOCATION_14), @Loc(value = LOCATION_15),
+                            @Loc(value = LOCATION_16), @Loc(value = LOCATION_13) }),
+                    @Line(id = "108770000000", coordinates = { @Loc(value = "6.9393431,-8.3299635"),
+                            @Loc(value = "6.9309326,-8.3299635 "),
+                            @Loc(value = "6.9309326,-8.3134173"),
+                            @Loc(value = "6.9393431,-8.3134173"),
+                            @Loc(value = "6.9393431,-8.3299635") }),
+                    @Line(id = "108760000000", coordinates = { @Loc(value = LOCATION_60),
+                            @Loc(value = LOCATION_61), @Loc(value = LOCATION_62),
+                            @Loc(value = LOCATION_63), @Loc(value = LOCATION_60) }) },
+
+            relations = {
+
+                    @Relation(tags = { "type=multipolygon", "building=yes" }, members = {
+                            @Member(id = "108768000000", role = "outer", type = "line"),
+                            @Member(id = "108770000000", role = "inner", type = "line"),
+                            @Member(id = "108760000000", role = "inner", type = "line") })
+
+            })
+    private Atlas multiPolygonWithOverlappingSlicedInners;
+
+    @TestAtlas(
+
+            points = { @Point(id = "108752000000", coordinates = @Loc(value = LOCATION_13)),
+                    @Point(id = "108754000000", coordinates = @Loc(value = LOCATION_14)),
+                    @Point(id = "108756000000", coordinates = @Loc(value = LOCATION_15)),
+                    @Point(id = "108758000000", coordinates = @Loc(value = LOCATION_16)),
+                    @Point(id = "108760000000", coordinates = @Loc(value = LOCATION_17)),
+                    @Point(id = "108762000000", coordinates = @Loc(value = LOCATION_18)),
+                    @Point(id = "108764000000", coordinates = @Loc(value = LOCATION_19)),
+                    @Point(id = "108766000000", coordinates = @Loc(value = LOCATION_20)) },
+
+            lines = {
+                    @Line(id = "108768000000", coordinates = { @Loc(value = LOCATION_13),
+                            @Loc(value = LOCATION_14), @Loc(value = LOCATION_15),
+                            @Loc(value = LOCATION_16), @Loc(value = LOCATION_13) }),
+                    @Line(id = "108770000000", coordinates = { @Loc(value = "6.9393431,-8.3299635"),
+                            @Loc(value = "6.9309326,-8.3299635 "),
+                            @Loc(value = "6.9309326,-8.3234173"),
+                            @Loc(value = "6.9393431,-8.3234173"),
+                            @Loc(value = "6.9393431,-8.3299635") }),
+                    @Line(id = "108760000000", coordinates = { @Loc(value = LOCATION_60),
+                            @Loc(value = LOCATION_61), @Loc(value = LOCATION_62),
+                            @Loc(value = LOCATION_63), @Loc(value = LOCATION_60) }) },
+
+            relations = {
+
+                    @Relation(tags = { "type=multipolygon", "building=yes" }, members = {
+                            @Member(id = "108768000000", role = "outer", type = "line"),
+                            @Member(id = "108770000000", role = "inner", type = "line"),
+                            @Member(id = "108760000000", role = "inner", type = "line") })
+
+            })
+    private Atlas multiPolygonWithOverlappingUnslicedInners;
+
     public Atlas getClosedEdgeSpanningTwoCountriesAtlas()
     {
         return this.closedEdgeSpanningTwoCountries;
@@ -759,6 +832,16 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
     public Atlas getIntersectingInnerAndOuterMembersAtlas()
     {
         return this.intersectingInnerAndOuterMemberRelation;
+    }
+
+    public Atlas getMultiPolygonWithOverlappingSlicedInners()
+    {
+        return this.multiPolygonWithOverlappingSlicedInners;
+    }
+
+    public Atlas getMultiPolygonWithOverlappingUnslicedInners()
+    {
+        return this.multiPolygonWithOverlappingUnslicedInners;
     }
 
     public Atlas getOpenMultiPolygonAcrossBoundaryAtlas()
