@@ -21,7 +21,8 @@ public final class AtlasTag
                     SyntheticDuplicateOsmNodeTag.KEY, SyntheticGeometrySlicedTag.KEY,
                     SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY,
                     SyntheticInvalidWaySectionTag.KEY, SyntheticRelationMemberAdded.KEY,
-                    SyntheticRelationRoleUpdated.KEY, SyntheticSyntheticRelationMemberTag.KEY)));
+                    SyntheticRelationRoleUpdated.KEY, SyntheticSyntheticRelationMemberTag.KEY,
+                    SyntheticInvalidGeometryTag.KEY)));
 
     private AtlasTag()
     {

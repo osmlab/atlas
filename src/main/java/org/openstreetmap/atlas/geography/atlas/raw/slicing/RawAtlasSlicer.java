@@ -21,6 +21,7 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryCollection;
 import org.locationtech.jts.geom.IntersectionMatrix;
 import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.LinearRing;
 import org.locationtech.jts.operation.linemerge.LineMerger;
 import org.locationtech.jts.precision.GeometryPrecisionReducer;
 import org.openstreetmap.atlas.exception.CoreException;
@@ -62,6 +63,7 @@ import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 import org.openstreetmap.atlas.tags.SyntheticGeometrySlicedTag;
+import org.openstreetmap.atlas.tags.SyntheticInvalidGeometryTag;
 import org.openstreetmap.atlas.tags.SyntheticInvalidMultiPolygonRelationMembersRemovedTag;
 import org.openstreetmap.atlas.tags.SyntheticRelationMemberAdded;
 import org.openstreetmap.atlas.tags.SyntheticSyntheticRelationMemberTag;
@@ -99,6 +101,7 @@ public class RawAtlasSlicer
     private static final String MULTIPOLYGON_RELATION_SLICING_DURATION_EXCEEDED = "Relation {} for Atlas {} took {} to slice!";
     private static final String MULTIPOLYGON_RELATION_INVALID_MEMBER_REMOVED = "Purging invalid member {} from relation {}";
     private static final String MULTIPOLYGON_RELATION_INVALID_SLICED_GEOMETRY = "Relation {} sliced for country {} produced invalid geometry {}!";
+    private static final String MULTIPOLYGON_RELATION_OVERLAPPING_INNERS = "Relation {} for Atlas {} had overlapping inners, but slicing will continue!";
 
     private static final String LINE_HAD_MULTIPOLYGON_SLICE = "Line {} for Atlas {} had multipolygon slicing result when sliced as polygon, will slice as line instead!";
     private static final String LINE_SLICING_DURATION_EXCEEDED = "Line {} for Atlas {} took {} to slice!";
@@ -867,6 +870,33 @@ public class RawAtlasSlicer
     }
 
     /**
+     * Checks two sets of geometries to see if one contains any geometries that are covered by or
+     * equals to any geometries in the second set
+     *
+     * @param geometries
+     *            A Set of Geometries to check
+     * @param geometriesComparison
+     *            A second Set of Geometries to compare to
+     * @return True if any geometry in geometries is equal to or is covered by a geometry in
+     *         geometryComparison, false otherwise
+     */
+    private boolean isCoveredBy(final Set<Geometry> geometries,
+            final Set<Geometry> geometriesComparison)
+    {
+        for (final Geometry comparisonGeometry : geometriesComparison)
+        {
+            for (final Geometry geometry : geometries)
+            {
+                if (geometry.equals(comparisonGeometry) || geometry.covers(comparisonGeometry))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * Check to see if a Line is a member of a Relation that meets the Relation predicate-- if so,
      * we want to slice it as a linear feature even if it's closed
      *
@@ -1026,6 +1056,64 @@ public class RawAtlasSlicer
         });
     }
 
+    private org.locationtech.jts.geom.MultiPolygon removeOsmValidOverlappingInners(
+            final Relation relation, final org.locationtech.jts.geom.MultiPolygon multipolygon)
+    {
+        final Set<Geometry> slicedInnerLines = new HashSet<>();
+        relation.membersMatching(
+                member -> member.getRole().equals(RelationTypeTag.MULTIPOLYGON_ROLE_INNER))
+                .forEach(member ->
+                {
+                    final Line innerLine = this.stagedLines.get(member.getEntity().getIdentifier());
+                    if (innerLine.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
+                    {
+                        slicedInnerLines
+                                .add(JTS_POLYLINE_CONVERTER.convert(innerLine.asPolyLine()));
+                    }
+                });
+
+        final org.locationtech.jts.geom.Polygon[] modifiedPolygons = new org.locationtech.jts.geom.Polygon[multipolygon
+                .getNumGeometries()];
+        for (int i = 0; i < multipolygon.getNumGeometries(); i++)
+        {
+            final org.locationtech.jts.geom.Polygon currentPolygon = (org.locationtech.jts.geom.Polygon) multipolygon
+                    .getGeometryN(i);
+            final List<LinearRing> holes = new ArrayList<>();
+
+            for (int j = 0; j < currentPolygon.getNumInteriorRing(); j++)
+            {
+                final Geometry currentInner = currentPolygon.getInteriorRingN(j);
+                boolean remove = false;
+                for (int k = j + 1; k < currentPolygon.getNumInteriorRing(); k++)
+                {
+                    final Geometry comparisonInner = currentPolygon.getInteriorRingN(k);
+                    if (currentInner.intersects(comparisonInner))
+                    {
+                        final Set<Geometry> inners = new HashSet<>();
+                        inners.add(currentInner);
+                        inners.add(comparisonInner);
+                        if (isCoveredBy(inners, slicedInnerLines))
+                        {
+                            remove = false;
+                            break;
+                        }
+                        remove = true;
+                    }
+                }
+                if (!remove)
+                {
+                    holes.add((LinearRing) currentInner);
+                }
+            }
+            modifiedPolygons[i] = new org.locationtech.jts.geom.Polygon(
+                    (LinearRing) currentPolygon.getExteriorRing(),
+                    holes.toArray(new LinearRing[holes.size()]),
+                    JtsPrecisionManager.getGeometryFactory());
+        }
+        return new org.locationtech.jts.geom.MultiPolygon(modifiedPolygons,
+                JtsPrecisionManager.getGeometryFactory());
+    }
+
     /**
      * Slice a Line that qualifies as an Area by converting it to 2d geometry, calculating its
      * slices, and creating the new sliced Lines. If it belongs to just one country or cannot be
@@ -1068,6 +1156,8 @@ public class RawAtlasSlicer
             final String countryCodes = String.join(",", countries);
             this.stagedLines.get(line.getIdentifier()).withAddedTag(ISOCountryTag.KEY,
                     countryCodes);
+            this.stagedLines.get(line.getIdentifier()).withAddedTag(SyntheticInvalidGeometryTag.KEY,
+                    SyntheticInvalidGeometryTag.YES.toString());
             return;
         }
         final SortedMap<String, Set<org.locationtech.jts.geom.Polygon>> slices;
@@ -1208,6 +1298,8 @@ public class RawAtlasSlicer
             final String countryCodes = String.join(",", countries);
             this.stagedLines.get(line.getIdentifier()).withAddedTag(ISOCountryTag.KEY,
                     countryCodes);
+            this.stagedLines.get(line.getIdentifier()).withAddedTag(SyntheticInvalidGeometryTag.KEY,
+                    SyntheticInvalidGeometryTag.YES.toString());
             return;
         }
         final SortedMap<String, Set<LineString>> slices = sliceLineStringGeometry(jtsLine,
@@ -1329,7 +1421,7 @@ public class RawAtlasSlicer
     {
         final Time time = Time.now();
         purgeInvalidMultiPolygonMembers(relation);
-        final org.locationtech.jts.geom.MultiPolygon jtsMp;
+        org.locationtech.jts.geom.MultiPolygon jtsMp;
         try
         {
             final MultiPolygon multipolygon = RELATION_TO_MULTIPOLYGON_CONVERTER
@@ -1340,6 +1432,8 @@ public class RawAtlasSlicer
         {
             logger.error(MULTIPOLYGON_RELATION_EXCEPTION_CREATING_POLYGON,
                     relation.getOsmIdentifier(), this.shardOrAtlasName, exception);
+            relation.withAddedTag(SyntheticInvalidGeometryTag.KEY,
+                    SyntheticInvalidGeometryTag.YES.toString());
             return;
         }
 
@@ -1358,12 +1452,23 @@ public class RawAtlasSlicer
 
         if (!jtsMp.isValid())
         {
-            if (logger.isErrorEnabled())
+            jtsMp = removeOsmValidOverlappingInners(relation, jtsMp);
+            if (!jtsMp.isValid())
             {
-                logger.error(MULTIPOLYGON_RELATION_INVALID_GEOMETRY, relation.getOsmIdentifier(),
-                        this.shardOrAtlasName, jtsMp.toText());
+                if (logger.isErrorEnabled())
+                {
+                    logger.error(MULTIPOLYGON_RELATION_INVALID_GEOMETRY,
+                            relation.getOsmIdentifier(), this.shardOrAtlasName, jtsMp.toText());
+                }
+                relation.withAddedTag(SyntheticInvalidGeometryTag.KEY,
+                        SyntheticInvalidGeometryTag.YES.toString());
+                return;
             }
-            return;
+            else
+            {
+                logger.warn(MULTIPOLYGON_RELATION_OVERLAPPING_INNERS, relation.getOsmIdentifier(),
+                        this.shardOrAtlasName);
+            }
         }
 
         final SortedMap<String, org.locationtech.jts.geom.MultiPolygon> clippedMultiPolygons = sliceMultiPolygonGeometry(
