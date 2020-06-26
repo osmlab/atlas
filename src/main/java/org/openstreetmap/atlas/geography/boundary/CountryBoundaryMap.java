@@ -92,7 +92,7 @@ public class CountryBoundaryMap implements Serializable, GeoJson
     // Buffer values for slicing operation. If the remaining piece turns to be smaller than
     // buffer, we'll just ignore them.
     public static final double LINE_BUFFER = 0.000001;
-    public static final double AREA_BUFFER = 0.000000005;
+    public static final double AREA_BUFFER = 0.0000000001;
     // Slicing constants
     public static final int MAXIMUM_EXPECTED_COUNTRIES_TO_SLICE_WITH = 3;
     public static final int PRECISION_MODEL = 100_000_000;
