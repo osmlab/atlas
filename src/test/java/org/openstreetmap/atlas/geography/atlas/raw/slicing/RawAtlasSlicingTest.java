@@ -30,6 +30,7 @@ import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
 import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 import org.openstreetmap.atlas.tags.SyntheticGeometrySlicedTag;
+import org.openstreetmap.atlas.tags.SyntheticInvalidGeometryTag;
 import org.openstreetmap.atlas.tags.SyntheticInvalidMultiPolygonRelationMembersRemovedTag;
 import org.openstreetmap.atlas.tags.SyntheticRelationMemberAdded;
 import org.openstreetmap.atlas.tags.SyntheticSyntheticRelationMemberTag;
@@ -1001,6 +1002,50 @@ public class RawAtlasSlicingTest
                 lbrRelation.getTag(SyntheticRelationMemberAdded.KEY).get());
         Assert.assertTrue(lbrRelation
                 .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).isEmpty());
+    }
+
+    @Test
+    public void testMultiPolygonWithOverlappingSlicedInners()
+    {
+        final Atlas rawAtlas = this.setup.getMultiPolygonWithOverlappingSlicedInners();
+        final Atlas lbrSlicedAtlas = new RawAtlasSlicer(
+                AtlasLoadingOption.createOptionWithAllEnabled(boundary).setCountryCode("LBR"),
+                rawAtlas).slice();
+        lbrSlicedAtlas.relations().forEach(relation ->
+        {
+            Assert.assertTrue(relation.getTag(SyntheticInvalidGeometryTag.KEY).isPresent());
+            Assert.assertFalse(relation.getTag(SyntheticGeometrySlicedTag.KEY).isPresent());
+        });
+        final Atlas civSlicedAtlas = new RawAtlasSlicer(
+                AtlasLoadingOption.createOptionWithAllEnabled(boundary).setCountryCode("CIV"),
+                rawAtlas).slice();
+        civSlicedAtlas.relations().forEach(relation ->
+        {
+            Assert.assertTrue(relation.getTag(SyntheticInvalidGeometryTag.KEY).isPresent());
+            Assert.assertFalse(relation.getTag(SyntheticGeometrySlicedTag.KEY).isPresent());
+        });
+    }
+
+    @Test
+    public void testMultiPolygonWithOverlappingUnslicedInners()
+    {
+        final Atlas rawAtlas = this.setup.getMultiPolygonWithOverlappingUnslicedInners();
+        final Atlas lbrSlicedAtlas = new RawAtlasSlicer(
+                AtlasLoadingOption.createOptionWithAllEnabled(boundary).setCountryCode("LBR"),
+                rawAtlas).slice();
+        lbrSlicedAtlas.relations().forEach(relation ->
+        {
+            Assert.assertFalse(relation.getTag(SyntheticInvalidGeometryTag.KEY).isPresent());
+            Assert.assertTrue(relation.getTag(SyntheticGeometrySlicedTag.KEY).isPresent());
+        });
+        final Atlas civSlicedAtlas = new RawAtlasSlicer(
+                AtlasLoadingOption.createOptionWithAllEnabled(boundary).setCountryCode("CIV"),
+                rawAtlas).slice();
+        civSlicedAtlas.relations().forEach(relation ->
+        {
+            Assert.assertFalse(relation.getTag(SyntheticInvalidGeometryTag.KEY).isPresent());
+            Assert.assertTrue(relation.getTag(SyntheticGeometrySlicedTag.KEY).isPresent());
+        });
     }
 
     /**
