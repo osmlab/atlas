@@ -16,7 +16,7 @@ public class AngleTest
     private static final Logger logger = LoggerFactory.getLogger(AngleTest.class);
 
     @Test
-    public void testAddSubstract()
+    public void testAddSubtract()
     {
         logger.info("Small: " + Angle.dm7(2320));
         final Angle ninety = Angle.degrees(90);
@@ -151,6 +151,16 @@ public class AngleTest
         final Angle value = Angle.MINIMUM;
         Assert.assertEquals(-Math.PI, value.asRadians(), 1e-9);
         Assert.assertEquals(Math.PI, value.asPositiveRadians(), 1e-9);
+    }
+
+    @Test
+    public void testReverse()
+    {
+        Assert.assertEquals(Angle.degrees(0), Angle.MINIMUM.reverse());
+        Assert.assertEquals(Angle.degrees((double) -1 / Angle.DM7_PER_DEGREE),
+                Angle.MAXIMUM.reverse());
+        Assert.assertEquals(Angle.degrees(90), Angle.degrees(-90).reverse());
+        Assert.assertEquals(Angle.degrees(-90), Angle.degrees(90).reverse());
     }
 
     @Test
