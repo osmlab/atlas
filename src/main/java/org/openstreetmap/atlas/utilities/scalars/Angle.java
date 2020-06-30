@@ -271,6 +271,11 @@ public class Angle implements Serializable
         return Distance.AVERAGE_EARTH_RADIUS.scaleBy(this.asPositiveRadians());
     }
 
+    public final Angle reverse()
+    {
+        return Angle.dm7(this.getDm7() - Angle.REVOLUTION_DM7 / 2);
+    }
+
     /**
      * Subtracts an {@link Angle} from this.
      *
