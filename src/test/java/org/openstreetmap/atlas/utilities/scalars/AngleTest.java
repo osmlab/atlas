@@ -156,11 +156,13 @@ public class AngleTest
     @Test
     public void testReverse()
     {
+        System.out.println(Angle.MAXIMUM);
         Assert.assertEquals(Angle.degrees(0), Angle.MINIMUM.reverse());
         Assert.assertEquals(Angle.degrees((double) -1 / Angle.DM7_PER_DEGREE),
                 Angle.MAXIMUM.reverse());
         Assert.assertEquals(Angle.degrees(90), Angle.degrees(-90).reverse());
         Assert.assertEquals(Angle.degrees(-90), Angle.degrees(90).reverse());
+        Assert.assertEquals(Angle.degrees(90), Angle.degrees(-450).reverse());
     }
 
     @Test
