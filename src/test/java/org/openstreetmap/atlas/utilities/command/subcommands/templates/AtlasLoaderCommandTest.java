@@ -19,6 +19,9 @@ import com.google.common.jimfs.Jimfs;
  */
 public class AtlasLoaderCommandTest
 {
+    /**
+     * @author lcram
+     */
     private static class TestImplementationCommand extends AtlasLoaderCommand
     {
         @Override

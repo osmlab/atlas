@@ -18,6 +18,9 @@ import com.google.common.jimfs.Jimfs;
  */
 public class MultipleOutputCommandTest
 {
+    /**
+     * @author lcram
+     */
     private static class TestImplementationCommand extends MultipleOutputCommand
     {
         @Override
