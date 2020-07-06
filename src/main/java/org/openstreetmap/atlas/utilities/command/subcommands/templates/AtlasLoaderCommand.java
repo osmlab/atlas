@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.utilities.command.subcommands.templates;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -97,7 +98,7 @@ public abstract class AtlasLoaderCommand extends MultipleOutputCommand
             processAtlas(
                     new MultiAtlas(
                             atlasTupleStream.map(Tuple::getSecond).collect(Collectors.toList())),
-                    COMBINED_ATLAS_NAME, new File(COMBINED_ATLAS_NAME));
+                    COMBINED_ATLAS_NAME, new File(COMBINED_ATLAS_NAME, this.getFileSystem()));
         }
         else
         {
@@ -193,7 +194,7 @@ public abstract class AtlasLoaderCommand extends MultipleOutputCommand
         final AtlasResourceLoader loader = new AtlasResourceLoader();
         inputAtlasPaths.stream().forEach(path ->
         {
-            final File file = new File(path, false);
+            final File file = new File(path, this.getFileSystem(), false);
             if (!file.exists())
             {
                 this.outputDelegate.printlnWarnMessage("file not found: " + path);
@@ -208,10 +209,10 @@ public abstract class AtlasLoaderCommand extends MultipleOutputCommand
                 {
                     this.outputDelegate.printlnCommandMessage("loading " + path);
                 }
-                final Atlas atlas = loader.load(file);
-                if (atlas != null)
+                final Optional<Atlas> atlas = loader.safeLoad(file);
+                if (atlas.isPresent())
                 {
-                    this.atlases.add(new Tuple<>(file, atlas));
+                    this.atlases.add(new Tuple<>(file, atlas.get()));
                 }
                 else
                 {

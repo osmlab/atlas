@@ -222,7 +222,7 @@ public class AtlasResourceLoader
         }
         catch (final Exception exception)
         {
-            logger.warn("Could not load atlas from supplied resources", exception);
+            logger.error("Could not load atlas from supplied resources", exception);
             return Optional.empty();
         }
     }
@@ -260,7 +260,7 @@ public class AtlasResourceLoader
         }
         catch (final Exception exception)
         {
-            logger.warn("Could not load atlas from supplied resources", exception);
+            logger.error("Could not load atlas from supplied resources", exception);
             return Optional.empty();
         }
     }

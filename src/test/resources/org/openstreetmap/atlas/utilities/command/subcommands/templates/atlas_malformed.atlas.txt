@@ -1,0 +1,7 @@
+# Nodes
+adsadasd
+# Edges
+# Areas
+# Lines
+# Points
+# Relations
