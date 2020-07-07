@@ -117,7 +117,8 @@ public class CountryShardToBoundsCommand extends AbstractAtlasShellToolsCommand
         final CountryBoundaryMap countryBoundaryMap;
         final File boundaryMapFile = new File(
                 this.optionAndArgumentDelegate.getOptionArgument(COUNTRY_BOUNDARY_OPTION_LONG)
-                        .orElseThrow(AtlasShellToolsException::new));
+                        .orElseThrow(AtlasShellToolsException::new),
+                this.getFileSystem());
         if (!boundaryMapFile.exists())
         {
             this.outputDelegate.printlnErrorMessage(

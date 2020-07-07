@@ -1,13 +1,17 @@
 package org.openstreetmap.atlas.utilities.command.subcommands;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.FileSystem;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.streaming.resource.File;
-import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
-import org.openstreetmap.atlas.streaming.resource.Resource;
+
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
 
 /**
  * @author lcram
@@ -15,7 +19,30 @@ import org.openstreetmap.atlas.streaming.resource.Resource;
 public class CountryShardToBoundsCommandTest
 {
     @Test
-    public void testCommand()
+    public void testCountry()
+    {
+        try (FileSystem filesystem = Jimfs.newFileSystem(Configuration.osX()))
+        {
+            setupFilesystem(filesystem);
+            final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+            final CountryShardToBoundsCommand command = new CountryShardToBoundsCommand();
+            command.setNewOutStream(new PrintStream(outContent));
+            command.setNewFileSystem(filesystem);
+
+            command.runSubcommand("--country-boundary=/Users/foo/boundary.txt", "AIA");
+
+            final String expected = "AIA boundary:\n"
+                    + "POLYGON ((-62.76312 18.1617887, -62.8763889 18.1902778,";
+            Assert.assertEquals(expected, outContent.toString().substring(0, expected.length()));
+        }
+        catch (final IOException exception)
+        {
+            throw new CoreException("FileSystem operation failed", exception);
+        }
+    }
+
+    @Test
+    public void testShard()
     {
         final ByteArrayOutputStream outContent1a = new ByteArrayOutputStream();
         CountryShardToBoundsCommand command = new CountryShardToBoundsCommand();
@@ -44,28 +71,12 @@ public class CountryShardToBoundsCommandTest
                 "POLYGON ((-0.3515625 -0.1757812, -0.3515625 0, 0 0, 0 -0.1757812, -0.3515625 -0.1757812)) exactly matched shard:\n"
                         + "[GeoHashTile: value = 7zzz]\n",
                 outContent3a.toString());
+    }
 
-        final File folder = File.temporaryFolder();
-        try
-        {
-            final Resource resource = new InputStreamResource(
-                    () -> CountryShardToBoundsCommandTest.class
-                            .getResourceAsStream("MAF_AIA_osm_boundaries_with_grid_index.txt"));
-            final File boundaryMap = folder.child("MAF_AIA_osm_boundaries_with_grid_index.txt");
-            resource.copyTo(boundaryMap);
-
-            final ByteArrayOutputStream outContent1b = new ByteArrayOutputStream();
-            command = new CountryShardToBoundsCommand();
-            command.setNewOutStream(new PrintStream(outContent1b));
-            command.runSubcommand("--country-boundary=" + boundaryMap.getAbsolutePathString(),
-                    "AIA");
-            final String expected = "AIA boundary:\n"
-                    + "POLYGON ((-62.76312 18.1617887, -62.8763889 18.1902778,";
-            Assert.assertEquals(expected, outContent1b.toString().substring(0, expected.length()));
-        }
-        finally
-        {
-            folder.deleteRecursively();
-        }
+    private void setupFilesystem(final FileSystem filesystem) throws IOException
+    {
+        final File boundaryFile = new File(filesystem.getPath("/Users/foo", "boundary.txt"));
+        boundaryFile.writeAndClose(CountryShardToBoundsCommandTest.class
+                .getResourceAsStream("MAF_AIA_osm_boundaries_with_grid_index.txt").readAllBytes());
     }
 }
