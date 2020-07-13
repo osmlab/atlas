@@ -9,6 +9,7 @@ import java.util.Optional;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.MultiPolyLine;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.streaming.readers.json.serializers.PropertiesLocated;
@@ -25,6 +26,7 @@ import com.google.gson.JsonPrimitive;
  * @author cuthbertm
  * @author mgostintsev
  * @author rmegraw
+ * @author chunzhu
  */
 public class GeoJsonBuilder
 {
@@ -361,6 +363,10 @@ public class GeoJsonBuilder
             else if (located instanceof Polygon)
             {
                 feature = create((Polygon) located);
+            }
+            else if (located instanceof MultiPolyLine)
+            {
+                feature = createMultiLineStrings((MultiPolyLine) located);
             }
             else
             {
