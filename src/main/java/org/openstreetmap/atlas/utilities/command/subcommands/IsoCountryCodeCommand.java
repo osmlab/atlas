@@ -70,8 +70,7 @@ public class IsoCountryCodeCommand extends AbstractAtlasShellToolsCommand
                             .getOptionArgument(NUMBER_OPTION_LONG, Integer::parseInt)
                             .orElse(DEFAULT_MATCH_NUMBER), query);
 
-            if (!forIsoCode.isPresent()
-                    && IsoCountry.forCountryCode(query.toUpperCase()).isPresent())
+            if (forIsoCode.isEmpty() && IsoCountry.forCountryCode(query.toUpperCase()).isPresent())
             {
                 this.outputDelegate.printlnWarnMessage(
                         "did you mean case-sensitive ISO code '" + query.toUpperCase() + "'?");
@@ -158,7 +157,7 @@ public class IsoCountryCodeCommand extends AbstractAtlasShellToolsCommand
         for (final String country : countries)
         {
             final Optional<IsoCountry> forCode = IsoCountry.forCountryCode(country);
-            if (!forCode.isPresent())
+            if (forCode.isEmpty())
             {
                 throw new AtlasShellToolsException();
             }
