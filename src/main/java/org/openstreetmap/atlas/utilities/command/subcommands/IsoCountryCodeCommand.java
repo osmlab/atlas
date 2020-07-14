@@ -68,7 +68,7 @@ public class IsoCountryCodeCommand extends AbstractAtlasShellToolsCommand
             final List<IsoCountry> forDisplayNameTopMatches = IsoCountryFuzzyMatcher
                     .forDisplayCountryTopMatches(this.optionAndArgumentDelegate
                             .getOptionArgument(NUMBER_OPTION_LONG, Integer::parseInt)
-                            .orElse(DEFAULT_MATCH_NUMBER), query);
+                            .orElse(DEFAULT_MATCH_NUMBER), query.toLowerCase());
 
             if (forIsoCode.isEmpty() && IsoCountry.forCountryCode(query.toUpperCase()).isPresent())
             {

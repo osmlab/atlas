@@ -69,14 +69,33 @@ public final class IsoCountryFuzzyMatcher
         if (number <= 0 || number > IsoCountry.ALL_DISPLAY_COUNTRIES.size())
         {
             throw new CoreException("number " + number + " out of range (0, "
-                    + IsoCountry.ALL_DISPLAY_COUNTRIES.size() + ")");
+                    + IsoCountry.ALL_DISPLAY_COUNTRIES.size() + "]");
         }
         final Map<String, Integer> countryRankings = new HashMap<>();
         for (final String countryName : IsoCountry.ALL_DISPLAY_COUNTRIES)
         {
-            final int distance = LevenshteinDistance.getDefaultInstance().apply(displayCountry,
-                    countryName);
-            countryRankings.put(countryName, distance);
+            final String countryNameLowerCase = countryName.toLowerCase();
+            final String[] nameComponents = countryNameLowerCase.split("\\s+");
+            if (nameComponents.length > 1)
+            {
+                int bestInterCountryDistance = Integer.MAX_VALUE;
+                for (final String nameComponent : nameComponents)
+                {
+                    final int distance = LevenshteinDistance.getDefaultInstance()
+                            .apply(displayCountry, nameComponent);
+                    if (distance < bestInterCountryDistance)
+                    {
+                        bestInterCountryDistance = distance;
+                    }
+                    countryRankings.put(countryName, bestInterCountryDistance);
+                }
+            }
+            else
+            {
+                final int distance = LevenshteinDistance.getDefaultInstance().apply(displayCountry,
+                        countryNameLowerCase);
+                countryRankings.put(countryName, distance);
+            }
         }
         final List<Entry<String, Integer>> entries = new ArrayList<>(countryRankings.entrySet());
         entries.sort(Entry.comparingByValue());
