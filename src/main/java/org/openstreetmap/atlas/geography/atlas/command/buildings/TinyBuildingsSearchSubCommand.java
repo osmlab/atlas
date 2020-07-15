@@ -14,6 +14,7 @@ import java.util.stream.StreamSupport;
 
 import org.apache.commons.compress.utils.IOUtils;
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.command.AbstractAtlasSubCommand;
 import org.openstreetmap.atlas.geography.atlas.command.AtlasCommandConstants;
@@ -54,12 +55,13 @@ public class TinyBuildingsSearchSubCommand extends AbstractAtlasSubCommand
             final String url = String.format("http://www.openstreetmap.org/%s/%d",
                     tinyBuilding.getSource().getType() == ItemType.AREA ? "way" : "relation",
                     tinyBuilding.getOsmIdentifier());
-            if (tinyBuilding.getOutline().isPresent())
+            final Optional<MultiPolygon> outline = tinyBuilding.getOutline();
+            if (outline.isPresent())
             {
                 this.output.printf("%s,%d,%d,%s,%.2f\n",
                         tinyBuilding.getTag(ISOCountryTag.class, Optional.empty()).orElse("UNK"),
                         tinyBuilding.getIdentifier(), tinyBuilding.getOsmIdentifier(), url,
-                        tinyBuilding.getOutline().get().surface().asMeterSquared());
+                        outline.get().surface().asMeterSquared());
             }
             else
             {
@@ -160,9 +162,10 @@ public class TinyBuildingsSearchSubCommand extends AbstractAtlasSubCommand
 
     private boolean tooSmall(final ComplexBuilding building)
     {
-        if (building.getOutline().isPresent())
+        final Optional<MultiPolygon> outline = building.getOutline();
+        if (outline.isPresent())
         {
-            return building.getOutline().get().surface().isLessThanOrEqualTo(this.minimumSurface);
+            return outline.get().surface().isLessThanOrEqualTo(this.minimumSurface);
         }
         else
         {

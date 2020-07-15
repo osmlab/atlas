@@ -64,8 +64,7 @@ public class BuildingsWithHeightSearchSubCommand extends AbstractAtlasSubCommand
             this.valid = outline.isPresent();
             if (outline.isPresent())
             {
-                final Location location = building.getOutline().get().outers().iterator().next()
-                        .first();
+                final Location location = outline.get().outers().iterator().next().first();
                 this.iso3 = building.getTag(ISOCountryTag.class, Optional.empty()).orElse("UNK");
                 this.atlasIdentifier = building.getIdentifier();
                 this.osmIdentifier = building.getOsmIdentifier();
