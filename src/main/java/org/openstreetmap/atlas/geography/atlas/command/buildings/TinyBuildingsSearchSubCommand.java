@@ -57,7 +57,7 @@ public class TinyBuildingsSearchSubCommand extends AbstractAtlasSubCommand
             this.output.printf("%s,%d,%d,%s,%.2f\n",
                     tinyBuilding.getTag(ISOCountryTag.class, Optional.empty()).orElse("UNK"),
                     tinyBuilding.getIdentifier(), tinyBuilding.getOsmIdentifier(), url,
-                    tinyBuilding.getOutline().surface().asMeterSquared());
+                    tinyBuilding.getOutline().get().surface().asMeterSquared());
         }
 
         @Override
@@ -151,6 +151,6 @@ public class TinyBuildingsSearchSubCommand extends AbstractAtlasSubCommand
 
     private boolean tooSmall(final ComplexBuilding building)
     {
-        return building.getOutline().surface().isLessThanOrEqualTo(this.minimumSurface);
+        return building.getOutline().get().surface().isLessThanOrEqualTo(this.minimumSurface);
     }
 }

@@ -60,11 +60,12 @@ public class BuildingsWithHeightSearchSubCommand extends AbstractAtlasSubCommand
             this.url = String.format("http://www.openstreetmap.org/%s/%d",
                     building.getSource().getType() == ItemType.AREA ? "way" : "relation",
                     building.getOsmIdentifier());
-            final MultiPolygon outline = building.getOutline();
-            this.valid = outline != null;
+            final Optional<MultiPolygon> outline = building.getOutline();
+            this.valid = outline.isPresent();
             if (this.valid)
             {
-                final Location location = building.getOutline().outers().iterator().next().first();
+                final Location location = building.getOutline().get().outers().iterator().next()
+                        .first();
                 this.iso3 = building.getTag(ISOCountryTag.class, Optional.empty()).orElse("UNK");
                 this.atlasIdentifier = building.getIdentifier();
                 this.osmIdentifier = building.getOsmIdentifier();
