@@ -29,6 +29,8 @@ import groovy.lang.Script;
  */
 public class StringToPredicateConverter<T> implements Converter<String, Predicate<T>>
 {
+    private static final String SCRIPT = "%s Predicate predicate = { e ->  return %s;  }; return predicate;";
+
     private final List<String> additionalWhitelistPackages;
 
     public StringToPredicateConverter()
@@ -60,7 +62,7 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
                 GroovyShell.DEFAULT_CODE_BASE);
         groovyCodeSource.setCachable(true);
         try (GroovyClassLoader groovyClassLoader = new GroovyClassLoader(
-                this.getClass().getClassLoader(), compilerConfiguration);)
+                this.getClass().getClassLoader(), compilerConfiguration))
         {
             @SuppressWarnings("unchecked")
             final Class<Script> scriptClass = groovyClassLoader.parseClass(groovyCodeSource);
@@ -84,6 +86,31 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
         {
             throw new CoreException("Unable to parse {} into a predicate.", string, exception);
         }
+    }
+
+    /**
+     * @param string
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public Predicate<T> convertUnsafe(final String string)
+    {
+        final Binding binding = new Binding();
+        final GroovyShell shell = new GroovyShell(binding);
+
+        final StringBuilder importsBuilder = new StringBuilder();
+        final List<String> importsWhitelist = new ArrayList<>(
+                Arrays.asList("java.lang", "groovy.lang", "java.util.function"));
+        importsWhitelist.addAll(this.additionalWhitelistPackages);
+        for (final String importPackage : importsWhitelist)
+        {
+            importsBuilder.append("import ");
+            importsBuilder.append(importPackage);
+            importsBuilder.append(".*; ");
+        }
+        final String fullScript = String.format(SCRIPT, importsBuilder.toString(), string);
+
+        return (Predicate<T>) shell.evaluate(fullScript);
     }
 
     /**
