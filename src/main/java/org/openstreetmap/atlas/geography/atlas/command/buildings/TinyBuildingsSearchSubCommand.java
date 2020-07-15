@@ -54,10 +54,19 @@ public class TinyBuildingsSearchSubCommand extends AbstractAtlasSubCommand
             final String url = String.format("http://www.openstreetmap.org/%s/%d",
                     tinyBuilding.getSource().getType() == ItemType.AREA ? "way" : "relation",
                     tinyBuilding.getOsmIdentifier());
-            this.output.printf("%s,%d,%d,%s,%.2f\n",
-                    tinyBuilding.getTag(ISOCountryTag.class, Optional.empty()).orElse("UNK"),
-                    tinyBuilding.getIdentifier(), tinyBuilding.getOsmIdentifier(), url,
-                    tinyBuilding.getOutline().get().surface().asMeterSquared());
+            if (tinyBuilding.getOutline().isPresent())
+            {
+                this.output.printf("%s,%d,%d,%s,%.2f\n",
+                        tinyBuilding.getTag(ISOCountryTag.class, Optional.empty()).orElse("UNK"),
+                        tinyBuilding.getIdentifier(), tinyBuilding.getOsmIdentifier(), url,
+                        tinyBuilding.getOutline().get().surface().asMeterSquared());
+            }
+            else
+            {
+                this.output.printf("%s,%d,%d,%s\n",
+                        tinyBuilding.getTag(ISOCountryTag.class, Optional.empty()).orElse("UNK"),
+                        tinyBuilding.getIdentifier(), tinyBuilding.getOsmIdentifier(), url);
+            }
         }
 
         @Override
@@ -151,6 +160,13 @@ public class TinyBuildingsSearchSubCommand extends AbstractAtlasSubCommand
 
     private boolean tooSmall(final ComplexBuilding building)
     {
-        return building.getOutline().get().surface().isLessThanOrEqualTo(this.minimumSurface);
+        if (building.getOutline().isPresent())
+        {
+            return building.getOutline().get().surface().isLessThanOrEqualTo(this.minimumSurface);
+        }
+        else
+        {
+            return false;
+        }
     }
 }

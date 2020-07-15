@@ -62,7 +62,7 @@ public class BuildingsWithHeightSearchSubCommand extends AbstractAtlasSubCommand
                     building.getOsmIdentifier());
             final Optional<MultiPolygon> outline = building.getOutline();
             this.valid = outline.isPresent();
-            if (this.valid)
+            if (outline.isPresent())
             {
                 final Location location = building.getOutline().get().outers().iterator().next()
                         .first();
