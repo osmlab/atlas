@@ -99,7 +99,7 @@ public class ComplexBuilding extends ComplexEntity
      */
     public Optional<MultiPolygon> getOutline()
     {
-        return Optional.of(this.outline);
+        return Optional.ofNullable(this.outline);
     }
 
     /**
