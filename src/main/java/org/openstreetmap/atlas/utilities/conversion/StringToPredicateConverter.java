@@ -10,6 +10,8 @@ import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
@@ -29,7 +31,10 @@ import groovy.lang.Script;
  */
 public class StringToPredicateConverter<T> implements Converter<String, Predicate<T>>
 {
-    private static final String SCRIPT = "%s Predicate predicate = { e ->  return %s;  }; return predicate;";
+    private static final Logger logger = LoggerFactory.getLogger(StringToPredicateConverter.class);
+    private static final String SCRIPT = "%s Predicate predicate = { e -> return %s; }; return predicate;";
+    private static final List<String> DEFAULT_IMPORTS = Arrays.asList("java.lang", "groovy.lang",
+            "java.util.function");
 
     private final List<String> additionalWhitelistPackages;
 
@@ -56,52 +61,22 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
     @Override
     public Predicate<T> convert(final String booleanExpressionString)
     {
-        final SecureASTCustomizer securityCustomizer = new SecureASTCustomizer();
-        final List<String> importsWhitelist = new ArrayList<>(
-                Arrays.asList("java.lang", "groovy.lang", "java.util.function"));
-        importsWhitelist.addAll(this.additionalWhitelistPackages);
-
-        securityCustomizer.setStarImportsWhitelist(importsWhitelist);
-        securityCustomizer.setPackageAllowed(false);
-        securityCustomizer.setMethodDefinitionAllowed(false);
-        securityCustomizer.setIndirectImportCheckEnabled(true);
-
-        final ImportCustomizer importCustomizer = new ImportCustomizer();
-        importCustomizer.addStarImports(importsWhitelist.toArray(new String[0]));
-
-        final CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
-        compilerConfiguration.addCompilationCustomizers(securityCustomizer);
-        compilerConfiguration.addCompilationCustomizers(importCustomizer);
-
-        final GroovyCodeSource groovyCodeSource = new GroovyCodeSource(booleanExpressionString,
-                "ThePredicate", GroovyShell.DEFAULT_CODE_BASE);
-        groovyCodeSource.setCachable(true);
-        try (GroovyClassLoader groovyClassLoader = new GroovyClassLoader(
-                this.getClass().getClassLoader(), compilerConfiguration))
+        final Class<Script> scriptClass = checkExpressionSafety(booleanExpressionString);
+        return element ->
         {
-            @SuppressWarnings("unchecked")
-            final Class<Script> scriptClass = groovyClassLoader.parseClass(groovyCodeSource);
-            return element ->
+            try
             {
-                try
-                {
-                    final Binding binding = new Binding();
-                    binding.setProperty("e", element);
-                    final Script script = scriptClass.getDeclaredConstructor(Binding.class)
-                            .newInstance(binding);
-                    return (boolean) script.run();
-                }
-                catch (final Exception exception)
-                {
-                    throw new CoreException("Something went wrong with this predicate ", exception);
-                }
-            };
-        }
-        catch (final Exception exception)
-        {
-            throw new CoreException("Unable to parse {} into a predicate.", booleanExpressionString,
-                    exception);
-        }
+                final Binding binding = new Binding();
+                binding.setProperty("e", element);
+                final Script script = scriptClass.getDeclaredConstructor(Binding.class)
+                        .newInstance(binding);
+                return (boolean) script.run();
+            }
+            catch (final Exception exception)
+            {
+                throw new CoreException("Something went wrong with this predicate ", exception);
+            }
+        };
     }
 
     /**
@@ -117,12 +92,13 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
     @SuppressWarnings("unchecked")
     public Predicate<T> convertUnsafe(final String booleanExpressionString)
     {
+        checkExpressionSafety(booleanExpressionString);
+
         final Binding binding = new Binding();
         final GroovyShell shell = new GroovyShell(binding);
 
         final StringBuilder importsBuilder = new StringBuilder();
-        final List<String> importsWhitelist = new ArrayList<>(
-                Arrays.asList("java.lang", "groovy.lang", "java.util.function"));
+        final List<String> importsWhitelist = new ArrayList<>(DEFAULT_IMPORTS);
         importsWhitelist.addAll(this.additionalWhitelistPackages);
         for (final String importPackage : importsWhitelist)
         {
@@ -132,6 +108,7 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
         }
         final String fullScript = String.format(SCRIPT, importsBuilder.toString(),
                 booleanExpressionString);
+        logger.error("Acquiring predicate with unsafe script: {}", fullScript);
 
         return (Predicate<T>) shell.evaluate(fullScript);
     }
@@ -160,5 +137,50 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
     {
         this.additionalWhitelistPackages.addAll(Arrays.asList(whitelist));
         return this;
+    }
+
+    /**
+     * Clear any previously added imports.
+     * 
+     * @return the updated converter
+     */
+    public StringToPredicateConverter<T> withClearedStarImportPackages()
+    {
+        this.additionalWhitelistPackages.clear();
+        return this;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Class<Script> checkExpressionSafety(final String booleanExpressionString)
+    {
+        final SecureASTCustomizer securityCustomizer = new SecureASTCustomizer();
+        final List<String> importsWhitelist = new ArrayList<>(DEFAULT_IMPORTS);
+        importsWhitelist.addAll(this.additionalWhitelistPackages);
+
+        securityCustomizer.setStarImportsWhitelist(importsWhitelist);
+        securityCustomizer.setPackageAllowed(false);
+        securityCustomizer.setMethodDefinitionAllowed(false);
+        securityCustomizer.setIndirectImportCheckEnabled(true);
+
+        final ImportCustomizer importCustomizer = new ImportCustomizer();
+        importCustomizer.addStarImports(importsWhitelist.toArray(new String[0]));
+
+        final CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
+        compilerConfiguration.addCompilationCustomizers(securityCustomizer);
+        compilerConfiguration.addCompilationCustomizers(importCustomizer);
+
+        final GroovyCodeSource groovyCodeSource = new GroovyCodeSource(booleanExpressionString,
+                "ThePredicate", GroovyShell.DEFAULT_CODE_BASE);
+        groovyCodeSource.setCachable(true);
+        try (GroovyClassLoader groovyClassLoader = new GroovyClassLoader(
+                this.getClass().getClassLoader(), compilerConfiguration))
+        {
+            return groovyClassLoader.parseClass(groovyCodeSource);
+        }
+        catch (final Exception exception)
+        {
+            throw new CoreException("Unable to parse {} into a predicate.", booleanExpressionString,
+                    exception);
+        }
     }
 }

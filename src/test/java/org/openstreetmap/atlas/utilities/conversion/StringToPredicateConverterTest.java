@@ -1,14 +1,18 @@
 package org.openstreetmap.atlas.utilities.conversion;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.function.Predicate;
 
+import org.codehaus.groovy.control.MultipleCompilationErrorsException;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.utilities.collections.Maps;
+import org.openstreetmap.atlas.utilities.time.Time;
 
 /**
  * @author lcram
@@ -17,6 +21,52 @@ public class StringToPredicateConverterTest
 {
     @Rule
     public StringToPredicateConverterTestRule rule = new StringToPredicateConverterTestRule();
+
+    @Rule
+    public final ExpectedException expectedException = ExpectedException.none();
+
+    @Test
+    public void checkSecurityForConvert()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("Unable to parse");
+        new StringToPredicateConverter<Integer>().convert(
+                "e.intValue() == org.openstreetmap.atlas.utilities.random.RandomTagsSupplier.randomTags(5).size()");
+    }
+
+    @Test
+    public void checkSecurityForConvertUnsafe()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("Unable to parse");
+        new StringToPredicateConverter<Integer>().convertUnsafe(
+                "e.intValue() == org.openstreetmap.atlas.utilities.random.RandomTagsSupplier.randomTags(5).size()");
+    }
+
+    @Test
+    public void testComplexExpression()
+    {
+        /*
+         * This complex expression will always return true.
+         */
+        final String complexExpression = "Boolean val = false; if (!val) { val = true; }; val";
+        final Predicate<String> predicate = new StringToPredicateConverter<String>()
+                .convert(complexExpression);
+        Assert.assertTrue(predicate.test("ignoredValue"));
+    }
+
+    @Test
+    public void testComplexExpressionFail()
+    {
+        /*
+         * This complex expression will always return true. However, it cannot be converted using
+         * the unsafe version of the method. Complex expressions are only supported by the regular
+         * converter.
+         */
+        final String complexExpression = "Boolean val = false; if (!val) { val = true; }; val";
+        this.expectedException.expect(MultipleCompilationErrorsException.class);
+        new StringToPredicateConverter<String>().convertUnsafe(complexExpression);
+    }
 
     @Test
     public void testConvert()
@@ -34,7 +84,7 @@ public class StringToPredicateConverterTest
                 .convert("e.intValue() == RandomTagsSupplier.randomTags(5).size()");
         final Predicate<Integer> predicate6 = new StringToPredicateConverter<Integer>()
                 .withAddedStarImportPackages(
-                        Arrays.asList("org.openstreetmap.atlas.utilities.random"))
+                        Collections.singletonList("org.openstreetmap.atlas.utilities.random"))
                 .convert("e.intValue() == RandomTagsSupplier.randomTags(5).size()");
 
         Assert.assertTrue(predicate1.test("foo"));
@@ -69,8 +119,11 @@ public class StringToPredicateConverterTest
                 .convertUnsafe("e.intValue() == RandomTagsSupplier.randomTags(5).size()");
         final Predicate<Integer> predicate6 = new StringToPredicateConverter<Integer>()
                 .withAddedStarImportPackages(
-                        Arrays.asList("org.openstreetmap.atlas.utilities.random"))
+                        Collections.singletonList("org.openstreetmap.atlas.utilities.random"))
                 .convertUnsafe("e.intValue() == RandomTagsSupplier.randomTags(5).size()");
+
+        final Predicate<String> predicateZ = new StringToPredicateConverter<String>()
+                .convertUnsafe("e.equals(\"foo\"); e.equals(\"foo\")");
 
         Assert.assertTrue(predicate1.test("foo"));
         Assert.assertFalse(predicate1.test("bar"));
@@ -86,5 +139,30 @@ public class StringToPredicateConverterTest
 
         Assert.assertTrue(predicate5.test(5));
         Assert.assertTrue(predicate6.test(5));
+    }
+
+    @Test
+    public void zTimeTest()
+    {
+        final Predicate<String> predicate1 = new StringToPredicateConverter<String>()
+                .convert("e.equals(\"foo\")");
+        final Predicate<String> predicate1Unsafe = new StringToPredicateConverter<String>()
+                .convertUnsafe("e.equals(\"foo\")");
+
+        final int num = 1000000;
+
+        Time start = Time.now();
+        for (int i = 0; i < num; i++)
+        {
+            predicate1.test("foo");
+        }
+        System.out.println("safe: " + start.elapsedSince().asMilliseconds());
+
+        start = Time.now();
+        for (int i = 0; i < num; i++)
+        {
+            predicate1Unsafe.test("foo");
+        }
+        System.out.println("unsafe: " + start.elapsedSince().asMilliseconds());
     }
 }
