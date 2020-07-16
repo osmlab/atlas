@@ -38,8 +38,23 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
         this.additionalWhitelistPackages = new ArrayList<>();
     }
 
+    /**
+     * Convert a {@link String} representing a boolean condition into a {@link Predicate} that
+     * checks for the condition's validity. The binding assumes the variable under consideration is
+     * named 'e'. For example, to get a predicate that checks if a given string has the contents
+     * "foo", one could supply "e.equals(\"foo\")" as an argument. This would generate a predicate
+     * that looks approximately like: <code>
+     * <p>
+     * Predicate&lt;T&gt; predicate = e -> { return e.equals("foo"); };
+     * </p>
+     * </code>
+     *
+     * @param booleanExpressionString
+     *            a boolean expression involving the object 'e' under consideration
+     * @return the {@link Predicate} object
+     */
     @Override
-    public Predicate<T> convert(final String string)
+    public Predicate<T> convert(final String booleanExpressionString)
     {
         final SecureASTCustomizer securityCustomizer = new SecureASTCustomizer();
         final List<String> importsWhitelist = new ArrayList<>(
@@ -58,8 +73,8 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
         compilerConfiguration.addCompilationCustomizers(securityCustomizer);
         compilerConfiguration.addCompilationCustomizers(importCustomizer);
 
-        final GroovyCodeSource groovyCodeSource = new GroovyCodeSource(string, "ThePredicate",
-                GroovyShell.DEFAULT_CODE_BASE);
+        final GroovyCodeSource groovyCodeSource = new GroovyCodeSource(booleanExpressionString,
+                "ThePredicate", GroovyShell.DEFAULT_CODE_BASE);
         groovyCodeSource.setCachable(true);
         try (GroovyClassLoader groovyClassLoader = new GroovyClassLoader(
                 this.getClass().getClassLoader(), compilerConfiguration))
@@ -84,16 +99,23 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
         }
         catch (final Exception exception)
         {
-            throw new CoreException("Unable to parse {} into a predicate.", string, exception);
+            throw new CoreException("Unable to parse {} into a predicate.", booleanExpressionString,
+                    exception);
         }
     }
 
     /**
-     * @param string
-     * @return
+     * Similar to {@link StringToPredicateConverter#convert(String)}, but uses some hacks to improve
+     * runtime in certain cases. This version is EXTREMELY INSECURE and should never be used. Please
+     * use {@link StringToPredicateConverter#convert(String)} unless you are extremely sure you want
+     * unsafe conversion and understand what security features you are sacrificing.
+     *
+     * @param booleanExpressionString
+     *            a boolean expression involving the object 'e' under consideration
+     * @return the {@link Predicate} object
      */
     @SuppressWarnings("unchecked")
-    public Predicate<T> convertUnsafe(final String string)
+    public Predicate<T> convertUnsafe(final String booleanExpressionString)
     {
         final Binding binding = new Binding();
         final GroovyShell shell = new GroovyShell(binding);
@@ -108,7 +130,8 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
             importsBuilder.append(importPackage);
             importsBuilder.append(".*; ");
         }
-        final String fullScript = String.format(SCRIPT, importsBuilder.toString(), string);
+        final String fullScript = String.format(SCRIPT, importsBuilder.toString(),
+                booleanExpressionString);
 
         return (Predicate<T>) shell.evaluate(fullScript);
     }
@@ -135,10 +158,7 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
      */
     public StringToPredicateConverter<T> withAddedStarImportPackages(final String... whitelist)
     {
-        for (final String anImport : whitelist)
-        {
-            this.additionalWhitelistPackages.add(anImport);
-        }
+        this.additionalWhitelistPackages.addAll(Arrays.asList(whitelist));
         return this;
     }
 }
