@@ -68,6 +68,17 @@ public class StringToPredicateConverterTest
     }
 
     @Test
+    public void testComplexExpressionFail2()
+    {
+        /*
+         * Another complex expression which should fail.
+         */
+        final String complexExpression = "e.equals(\"foo\"); e.equals(\"foo\")";
+        this.expectedException.expect(MultipleCompilationErrorsException.class);
+        new StringToPredicateConverter<String>().convertUnsafe(complexExpression);
+    }
+
+    @Test
     public void testConvert()
     {
         final Predicate<String> predicate1 = new StringToPredicateConverter<String>()
@@ -120,9 +131,6 @@ public class StringToPredicateConverterTest
                 .withAddedStarImportPackages(
                         Collections.singletonList("org.openstreetmap.atlas.utilities.random"))
                 .convertUnsafe("e.intValue() == RandomTagsSupplier.randomTags(5).size()");
-
-        final Predicate<String> predicateZ = new StringToPredicateConverter<String>()
-                .convertUnsafe("e.equals(\"foo\"); e.equals(\"foo\")");
 
         Assert.assertTrue(predicate1.test("foo"));
         Assert.assertFalse(predicate1.test("bar"));

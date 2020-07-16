@@ -32,7 +32,7 @@ import groovy.lang.Script;
 public class StringToPredicateConverter<T> implements Converter<String, Predicate<T>>
 {
     private static final Logger logger = LoggerFactory.getLogger(StringToPredicateConverter.class);
-    private static final String SCRIPT = "%s Predicate predicate = { e -> return %s; }; return predicate;";
+    private static final String SCRIPT = "%s Predicate predicate = { e -> return (%s); }; return predicate;";
     private static final List<String> DEFAULT_IMPORTS = Arrays.asList("java.lang", "groovy.lang",
             "java.util.function");
 
@@ -46,13 +46,12 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
     /**
      * Convert a {@link String} representing a boolean condition into a {@link Predicate} that
      * checks for the condition's validity. The binding assumes the variable under consideration is
-     * named 'e'. For example, to get a predicate that checks if a given string has the contents
-     * "foo", one could supply "e.equals(\"foo\")" as an argument. This would generate a predicate
-     * that looks approximately like: <code>
+     * named 'e'. Multi-statement expressions are supported. For example, to get a predicate that
+     * checks if a given string has the contents "foo", one could supply "e.equals(\"foo\")" as an
+     * argument. This would generate a predicate that looks approximately like:
      * <p>
-     * Predicate&lt;T&gt; predicate = e -> { return e.equals("foo"); };
+     * <code>Predicate predicate = e -&gt; { return (e.equals("foo")); };</code>
      * </p>
-     * </code>
      *
      * @param booleanExpressionString
      *            a boolean expression involving the object 'e' under consideration
@@ -83,7 +82,9 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
      * Similar to {@link StringToPredicateConverter#convert(String)}, but uses some hacks to improve
      * runtime in certain cases. This version is EXTREMELY INSECURE and should never be used. Please
      * use {@link StringToPredicateConverter#convert(String)} unless you are extremely sure you want
-     * unsafe conversion and understand what security features you are sacrificing.
+     * unsafe conversion and understand what security features you are sacrificing. Note also that
+     * due to the limitations of the improvement hacks, this conversion only supports single
+     * statement expressions.
      *
      * @param booleanExpressionString
      *            a boolean expression involving the object 'e' under consideration
