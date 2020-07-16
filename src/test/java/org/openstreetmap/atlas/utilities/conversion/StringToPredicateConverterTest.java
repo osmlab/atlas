@@ -12,7 +12,6 @@ import org.junit.rules.ExpectedException;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.utilities.collections.Maps;
-import org.openstreetmap.atlas.utilities.time.Time;
 
 /**
  * @author lcram
@@ -139,30 +138,5 @@ public class StringToPredicateConverterTest
 
         Assert.assertTrue(predicate5.test(5));
         Assert.assertTrue(predicate6.test(5));
-    }
-
-    @Test
-    public void zTimeTest()
-    {
-        final Predicate<String> predicate1 = new StringToPredicateConverter<String>()
-                .convert("e.equals(\"foo\")");
-        final Predicate<String> predicate1Unsafe = new StringToPredicateConverter<String>()
-                .convertUnsafe("e.equals(\"foo\")");
-
-        final int num = 1000000;
-
-        Time start = Time.now();
-        for (int i = 0; i < num; i++)
-        {
-            predicate1.test("foo");
-        }
-        System.out.println("safe: " + start.elapsedSince().asMilliseconds());
-
-        start = Time.now();
-        for (int i = 0; i < num; i++)
-        {
-            predicate1Unsafe.test("foo");
-        }
-        System.out.println("unsafe: " + start.elapsedSince().asMilliseconds());
     }
 }
