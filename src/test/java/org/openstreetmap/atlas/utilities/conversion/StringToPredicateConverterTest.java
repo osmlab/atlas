@@ -147,4 +147,25 @@ public class StringToPredicateConverterTest
         Assert.assertTrue(predicate5.test(5));
         Assert.assertTrue(predicate6.test(5));
     }
+
+    @Test
+    public void testImportInjectionProtection1()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("Invalid import");
+        new StringToPredicateConverter<Integer>()
+                .withAddedStarImportPackages(Collections.singletonList(
+                        "org.openstreetmap.atlas.utilities.random.*;System.out.println(\"INJECTED\");import org.openstreetmap.atlas"))
+                .convertUnsafe("e.intValue() == RandomTagsSupplier.randomTags(5).size()");
+    }
+
+    @Test
+    public void testImportInjectionProtection2()
+    {
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("Invalid import");
+        new StringToPredicateConverter<Integer>()
+                .withAddedStarImportPackages(Collections.singletonList("System.out.println()"))
+                .convertUnsafe("e.intValue() == RandomTagsSupplier.randomTags(5).size()");
+    }
 }

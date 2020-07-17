@@ -109,7 +109,7 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
         }
         final String fullScript = String.format(SCRIPT, importsBuilder.toString(),
                 booleanExpressionString);
-        logger.trace("Acquiring predicate with unsafe script: {}", fullScript);
+        logger.error("Acquiring predicate with unsafe script: {}", fullScript);
 
         return (Predicate<T>) shell.evaluate(fullScript);
     }
@@ -123,6 +123,10 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
      */
     public StringToPredicateConverter<T> withAddedStarImportPackages(final List<String> whitelist)
     {
+        for (final String importString : whitelist)
+        {
+            checkImportStringFormat(importString);
+        }
         this.additionalWhitelistPackages.addAll(whitelist);
         return this;
     }
@@ -136,13 +140,17 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
      */
     public StringToPredicateConverter<T> withAddedStarImportPackages(final String... whitelist)
     {
+        for (final String importString : whitelist)
+        {
+            checkImportStringFormat(importString);
+        }
         this.additionalWhitelistPackages.addAll(Arrays.asList(whitelist));
         return this;
     }
 
     /**
      * Clear any previously added imports.
-     * 
+     *
      * @return the updated converter
      */
     public StringToPredicateConverter<T> withClearedStarImportPackages()
@@ -182,6 +190,17 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
         {
             throw new CoreException("Unable to parse {} into a predicate.", booleanExpressionString,
                     exception);
+        }
+    }
+
+    /*
+     * Attempt some basic checks to make sure imports are not trying to sneak in extra code.
+     */
+    private void checkImportStringFormat(final String importString)
+    {
+        if (!importString.matches("^[a-zA-Z0-9\\\\.]+$"))
+        {
+            throw new CoreException("Invalid import '{}'", importString);
         }
     }
 }
