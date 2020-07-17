@@ -52,6 +52,7 @@ public class Change implements Located, Serializable
     private final int identifier;
     private Rectangle bounds;
     private String name;
+    private transient Map<AtlasEntityKey, FeatureChange> allChangesMappedByAtlasEntityKey;
 
     /**
      * Merge {@link FeatureChange}s inside {@link Change} objects and create a
@@ -88,10 +89,14 @@ public class Change implements Located, Serializable
 
     public Map<AtlasEntityKey, FeatureChange> allChangesMappedByAtlasEntityKey()
     {
-        return changes()
-                .map(featureChange -> Tuple.createTuple(AtlasEntityKey.from(featureChange),
-                        featureChange))
-                .collect(Collectors.toMap(Tuple::getFirst, Tuple::getSecond));
+        if (this.allChangesMappedByAtlasEntityKey == null)
+        {
+            this.allChangesMappedByAtlasEntityKey = changes()
+                    .map(featureChange -> Tuple.createTuple(AtlasEntityKey.from(featureChange),
+                            featureChange))
+                    .collect(Collectors.toMap(Tuple::getFirst, Tuple::getSecond));
+        }
+        return this.allChangesMappedByAtlasEntityKey;
     }
 
     @Override
