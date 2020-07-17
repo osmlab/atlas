@@ -63,12 +63,6 @@ public class TinyBuildingsSearchSubCommand extends AbstractAtlasSubCommand
                         tinyBuilding.getIdentifier(), tinyBuilding.getOsmIdentifier(), url,
                         outline.get().surface().asMeterSquared());
             }
-            else
-            {
-                this.output.printf("%s,%d,%d,%s\n",
-                        tinyBuilding.getTag(ISOCountryTag.class, Optional.empty()).orElse("UNK"),
-                        tinyBuilding.getIdentifier(), tinyBuilding.getOsmIdentifier(), url);
-            }
         }
 
         @Override
