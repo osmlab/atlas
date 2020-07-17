@@ -21,7 +21,8 @@ import org.slf4j.LoggerFactory;
  */
 public class StringToPredicateConverterTest
 {
-    private static final Logger logger = LoggerFactory.getLogger(StringToPredicateConverterTest.class);
+    private static final Logger logger = LoggerFactory
+            .getLogger(StringToPredicateConverterTest.class);
 
     @Rule
     public StringToPredicateConverterTestRule rule = new StringToPredicateConverterTestRule();
