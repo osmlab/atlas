@@ -81,10 +81,10 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
     /**
      * Similar to {@link StringToPredicateConverter#convert(String)}, but uses some hacks to improve
      * runtime in certain cases. This version is EXTREMELY INSECURE and should never be used. Please
-     * use {@link StringToPredicateConverter#convert(String)} unless you are extremely sure you want
-     * unsafe conversion and understand what security features you are sacrificing. Note also that
-     * due to the limitations of the improvement hacks, this conversion only supports single
-     * statement expressions.
+     * use {@link StringToPredicateConverter#convert(String)} unless you are sure you want unsafe
+     * conversion and understand what security features you are sacrificing. Note also that due to
+     * the limitations of the improvement hacks, this conversion only supports single statement
+     * expressions.
      *
      * @param booleanExpressionString
      *            a boolean expression involving the object 'e' under consideration
@@ -109,7 +109,7 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
         }
         final String fullScript = String.format(SCRIPT, importsBuilder.toString(),
                 booleanExpressionString);
-        logger.error("Acquiring predicate with unsafe script: {}", fullScript);
+        logger.trace("Acquiring predicate with unsafe script: {}", fullScript);
 
         return (Predicate<T>) shell.evaluate(fullScript);
     }
