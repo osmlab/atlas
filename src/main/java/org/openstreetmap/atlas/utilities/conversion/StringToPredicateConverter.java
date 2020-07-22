@@ -109,7 +109,7 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
         }
         final String fullScript = String.format(SCRIPT, importsBuilder.toString(),
                 booleanExpressionString);
-        logger.error("Acquiring predicate with unsafe script: {}", fullScript);
+        logger.warn("Acquiring predicate with unsafe script: {}", fullScript);
 
         return (Predicate<T>) shell.evaluate(fullScript);
     }
