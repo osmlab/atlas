@@ -1,6 +1,8 @@
 package org.openstreetmap.atlas.locale;
 
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.SerializationUtils;
 import org.junit.Assert;
@@ -14,6 +16,18 @@ import org.openstreetmap.atlas.exception.CoreException;
  */
 public class IsoLanguageTest
 {
+    @Test
+    public void testEquals()
+    {
+        final Set<IsoLanguage> isoLanguages = IsoLanguage.all().collect(Collectors.toSet());
+        IsoLanguage.forLanguageCode("en").ifPresent(isoLanguage ->
+        {
+            final IsoLanguage clone = SerializationUtils
+                    .deserialize(SerializationUtils.serialize(isoLanguage));
+            Assert.assertTrue(isoLanguages.contains(clone));
+        });
+    }
+
     @Test
     public void testLanguage()
     {
