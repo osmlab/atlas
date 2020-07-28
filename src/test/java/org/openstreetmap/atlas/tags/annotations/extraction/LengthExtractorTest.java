@@ -94,4 +94,11 @@ public class LengthExtractorTest
         Assert.assertEquals(Optional.of(Distance.meters(20.5)),
                 LengthExtractor.validateAndExtract("20.5"));
     }
+
+    @Test
+    public void validNumberWithCommaDescimalSeparatorTest()
+    {
+        Assert.assertEquals(Optional.of(Distance.meters(20.5)),
+                LengthExtractor.validateAndExtract("20,5"));
+    }
 }
