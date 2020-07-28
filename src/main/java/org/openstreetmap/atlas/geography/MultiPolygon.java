@@ -12,11 +12,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import org.locationtech.jts.operation.valid.IsValidOp;
+import org.locationtech.jts.operation.valid.TopologyValidationError;
 import org.openstreetmap.atlas.geography.clipping.Clip;
 import org.openstreetmap.atlas.geography.clipping.Clip.ClipType;
+import org.openstreetmap.atlas.geography.clipping.GeometryOperation;
 import org.openstreetmap.atlas.geography.converters.MultiPolygonStringConverter;
 import org.openstreetmap.atlas.geography.converters.WkbMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.WktMultiPolygonConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsLocationConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonGeometry;
@@ -384,6 +389,60 @@ public class MultiPolygon
     public boolean isEmpty()
     {
         return this.outerToInners.isEmpty();
+    }
+
+    /**
+     * @return True if this {@link MultiPolygon} is valid according to the OGC SFS specification.
+     *         See {@code org.locationtech.jts.geom.Geometry.isValid()}
+     */
+    public boolean isOGCValid()
+    {
+        return new JtsMultiPolygonToMultiPolygonConverter().backwardConvert(this).isValid();
+    }
+
+    /**
+     * @return True if this {@link MultiPolygon} is valid according to the OSM specification. OSM
+     *         allows some inners of the MultiPolygon to touch on more than a single point, to allow
+     *         for one inner to be split in multiple parts tagged differently. Example: a forest
+     *         with an inner, that is one side a meadow, and on the other side some marshland.
+     */
+    public boolean isOSMValid()
+    {
+        final org.locationtech.jts.geom.MultiPolygon jtsMultiPolygon = new JtsMultiPolygonToMultiPolygonConverter()
+                .backwardConvert(this);
+        final TopologyValidationError topologyValidationError = new IsValidOp(jtsMultiPolygon)
+                .getValidationError();
+        if (topologyValidationError != null)
+        {
+            // In this case, the geometry is not OGC valid, here we capture the
+            // TopologyValidationError to know what to do next.
+            if (TopologyValidationError.SELF_INTERSECTION == topologyValidationError.getErrorType())
+            {
+                final Location errorLocation = new JtsLocationConverter()
+                        .backwardConvert(topologyValidationError.getCoordinate());
+                final List<Polygon> ringsOfInterest = Iterables
+                        .stream(new MultiIterable<>(outers(), inners()))
+                        .filter(ringOfInterest -> ringOfInterest
+                                .fullyGeometricallyEncloses(errorLocation))
+                        .collectToList();
+                for (int i = 0; i < ringsOfInterest.size(); i++)
+                {
+                    for (int j = i + 1; j < ringsOfInterest.size(); j++)
+                    {
+                        final Polygon left = ringsOfInterest.get(i);
+                        final Polygon right = ringsOfInterest.get(j);
+                        // Make sure this is just a PolyLine
+                        final Optional<GeometricSurface> intersection = GeometryOperation
+                                .intersection(new MultiIterable<Polygon>(left, right));
+                    }
+                }
+            }
+            return false;
+        }
+        else
+        {
+            return true;
+        }
     }
 
     /**
