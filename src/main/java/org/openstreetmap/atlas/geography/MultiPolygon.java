@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.locationtech.jts.operation.valid.IsValidOp;
 import org.locationtech.jts.operation.valid.TopologyValidationError;
@@ -37,6 +38,7 @@ import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.openstreetmap.atlas.utilities.scalars.Surface;
+import org.openstreetmap.atlas.utilities.tuples.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -424,33 +426,7 @@ public class MultiPolygon
                         .backwardConvert(topologyValidationError.getCoordinate());
                 final Rectangle errorExpandedBoundingBox = errorLocation
                         .boxAround(Distance.ONE_METER);
-                final List<Polygon> ringsOfInterest = Iterables
-                        .stream(new MultiIterable<>(outers(), inners()))
-                        .filter(ringOfInterest -> ringOfInterest
-                                .intersects(errorExpandedBoundingBox))
-                        .collectToList();
-                final List<GeometricObject> intersections = new ArrayList<>();
-                for (int i = 0; i < ringsOfInterest.size(); i++)
-                {
-                    for (int j = i + 1; j < ringsOfInterest.size(); j++)
-                    {
-                        // Make sure this is just a PolyLine
-                        final List<Polygon> candidates = new ArrayList<>();
-                        candidates.add(ringsOfInterest.get(i));
-                        candidates.add(ringsOfInterest.get(j));
-                        GeometryOperation.intersection(candidates).ifPresent(intersections::add);
-                    }
-                }
-                boolean allIntersectionsArePolyLines = true;
-                for (final GeometricObject intersection : intersections)
-                {
-                    if (!isLinear(intersection))
-                    {
-                        allIntersectionsArePolyLines = false;
-                        break;
-                    }
-                }
-                return ringsOfInterest.size() > 1 && allIntersectionsArePolyLines;
+                return isOSMValidSelfIntersection(errorExpandedBoundingBox);
             }
             return false;
         }
@@ -600,7 +576,58 @@ public class MultiPolygon
     private boolean isLinear(final GeometricObject geometricObject)
     {
         return (geometricObject instanceof PolyLine && !(geometricObject instanceof Polygon))
-                || geometricObject instanceof MultiPolyLine;
+                || geometricObject instanceof MultiPolyLine || geometricObject instanceof Location;
+    }
+
+    /**
+     * Given an OGC intersection location, check all the touching features to see if they are OSM
+     * valid.
+     * 
+     * @param errorExpandedBoundingBox
+     *            Small bounding box around the error location
+     * @return True if the error is not an error according to OSM
+     */
+    private boolean isOSMValidSelfIntersection(final Rectangle errorExpandedBoundingBox)
+    {
+        final List<Tuple<Boolean, Polygon>> ringsOfInterest = Iterables
+                .stream(new MultiIterable<>(
+                        outers().stream().map(outer -> new Tuple<>(true, outer))
+                                .collect(Collectors.toList()),
+                        inners().stream().map(inner -> new Tuple<>(false, inner))
+                                .collect(Collectors.toList())))
+                .filter(ringOfInterest -> ringOfInterest.getSecond()
+                        .intersects(errorExpandedBoundingBox))
+                .collectToList();
+        final List<GeometricObject> intersections = new ArrayList<>();
+        for (int i = 0; i < ringsOfInterest.size(); i++)
+        {
+            for (int j = i + 1; j < ringsOfInterest.size(); j++)
+            {
+                // Make sure this is just a PolyLine
+                final List<Tuple<Boolean, Polygon>> candidates = new ArrayList<>();
+                candidates.add(ringsOfInterest.get(i));
+                candidates.add(ringsOfInterest.get(j));
+                if (candidates.get(0).getFirst() || candidates.get(1).getFirst())
+                {
+                    // There is a self intersection between at least one outer, this is not
+                    // OSM valid
+                    return false;
+                }
+                GeometryOperation.intersection(
+                        candidates.stream().map(Tuple::getSecond).collect(Collectors.toList()))
+                        .ifPresent(intersections::add);
+            }
+        }
+        boolean allIntersectionsArePolyLines = true;
+        for (final GeometricObject intersection : intersections)
+        {
+            if (!isLinear(intersection))
+            {
+                allIntersectionsArePolyLines = false;
+                break;
+            }
+        }
+        return ringsOfInterest.size() > 1 && allIntersectionsArePolyLines;
     }
 
     private boolean overlapsInternal(final PolyLine polyLine, final boolean runReverseCheck)

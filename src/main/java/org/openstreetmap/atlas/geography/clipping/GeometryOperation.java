@@ -13,6 +13,7 @@ import org.openstreetmap.atlas.geography.GeometricObject;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.geography.converters.jts.JtsLocationConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolyLineConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
@@ -32,6 +33,7 @@ public final class GeometryOperation
     private static final JtsPolygonConverter JTS_POLYGON_CONVERTER = new JtsPolygonConverter();
     private static final JtsMultiPolyLineConverter JTS_MULTI_POLY_LINE_CONVERTER = new JtsMultiPolyLineConverter();
     private static final JtsPolyLineConverter JTS_POLY_LINE_CONVERTER = new JtsPolyLineConverter();
+    private static final JtsLocationConverter JTS_LOCATION_CONVERTER = new JtsLocationConverter();
 
     public static Optional<GeometricObject> intersection(final Iterable<Polygon> polygons)
     {
@@ -88,6 +90,10 @@ public final class GeometryOperation
         {
             return handleLineString((org.locationtech.jts.geom.LineString) result);
         }
+        else if (result instanceof org.locationtech.jts.geom.Point)
+        {
+            return handlePoint((org.locationtech.jts.geom.Point) result);
+        }
         else
         {
             return handleGeometricSurface(result)
@@ -133,6 +139,13 @@ public final class GeometryOperation
             final org.locationtech.jts.geom.MultiPolygon result)
     {
         return Optional.of(JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER.convert(result));
+    }
+
+    private static Optional<GeometricObject> handlePoint(
+            final org.locationtech.jts.geom.Point result)
+    {
+        return Optional.of(JTS_LOCATION_CONVERTER.backwardConvert(result.getCoordinate()))
+                .map(location -> (GeometricObject) location);
     }
 
     private static Optional<GeometricSurface> handlePolygon(

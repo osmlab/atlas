@@ -29,76 +29,91 @@ public class MultiPolygonTest
 {
     private static final Logger logger = LoggerFactory.getLogger(MultiPolygonTest.class);
 
+    private static final MultiPolygon DEFAULT_MULTIPOLYGON = MultiPolygon
+            .wkt("MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)),"
+                    + "((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),"
+                    + "(30 20, 20 15, 20 25, 30 20)))");
+
+    public static MultiPolygon getFrom(final String name, final Class<?> clazz)
+    {
+        if (name.endsWith(FileSuffix.WKT.toString()))
+        {
+            final String wkt = new InputStreamResource(() -> clazz.getResourceAsStream(name)).all();
+            return MultiPolygon.wkt(wkt);
+        }
+        else if (name.endsWith(".josm.osm"))
+        {
+            final Atlas atlas = TestAtlasHandler.getAtlasFromJosmOsmResource(true,
+                    new InputStreamResource(() -> clazz.getResourceAsStream(name)), name);
+            return new RelationOrAreaToMultiPolygonConverter()
+                    .convert(atlas.relations().iterator().next());
+        }
+        throw new CoreException("Unknown File Type {}", name);
+    }
+
+    public static MultiPolygon getFrom(final String name)
+    {
+        return getFrom(name, MultiPolygonTest.class);
+    }
+
     @Test
     public void testAsGeoJsonGeometry()
     {
-        final MultiPolygon multiPolygon = MultiPolygon
-                .wkt("MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)),"
-                        + "((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),"
-                        + "(30 20, 20 15, 20 25, 30 20)))");
         final String geoJson = "{\"type\":\"MultiPolygon\",\"coordinates\":[[[[40.0,40.0],[20.0,45.0],[45.0,30.0],[40.0,40.0]]],[[[20.0,35.0],[10.0,30.0],[10.0,10.0],[30.0,5.0],[45.0,20.0],[20.0,35.0]],[[30.0,20.0],[20.0,15.0],[20.0,25.0],[30.0,20.0]]]]}";
-        final JsonObject geometry = multiPolygon.asGeoJsonGeometry();
+        final JsonObject geometry = DEFAULT_MULTIPOLYGON.asGeoJsonGeometry();
         Assert.assertEquals(geoJson, geometry.toString());
     }
 
     @Test
     public void testCoversPolyLine()
     {
-        final MultiPolygon multiPolygon = MultiPolygon
-                .wkt("MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)),"
-                        + "((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),"
-                        + "(30 20, 20 15, 20 25, 30 20)))");
         final PolyLine nonCoveredLine = new PolyLine(Location.forString("19.507134, 23.999584"),
                 Location.forString("32.062144, 32.049430"));
-        Assert.assertFalse(multiPolygon.fullyGeometricallyEncloses(nonCoveredLine));
+        Assert.assertFalse(DEFAULT_MULTIPOLYGON.fullyGeometricallyEncloses(nonCoveredLine));
         final PolyLine coveredLine = new PolyLine(Location.forString("32.095270, 19.955880"),
                 Location.forString("22.175213, 36.610574"));
-        Assert.assertTrue(multiPolygon.fullyGeometricallyEncloses(coveredLine));
+        Assert.assertTrue(DEFAULT_MULTIPOLYGON.fullyGeometricallyEncloses(coveredLine));
         final PolyLine outside = PolyLine.TEST_POLYLINE;
-        Assert.assertFalse(multiPolygon.fullyGeometricallyEncloses(outside));
+        Assert.assertFalse(DEFAULT_MULTIPOLYGON.fullyGeometricallyEncloses(outside));
         final PolyLine jumpyLine = new PolyLine(Location.forString("32.095270, 19.955880"),
                 Location.forString("39.927387, 32.842205"));
-        Assert.assertFalse(multiPolygon.fullyGeometricallyEncloses(jumpyLine));
+        Assert.assertFalse(DEFAULT_MULTIPOLYGON.fullyGeometricallyEncloses(jumpyLine));
     }
 
     @Test
     public void testCoversPolygon()
     {
-        final MultiPolygon multiPolygon = MultiPolygon
-                .wkt("MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)),"
-                        + "((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),"
-                        + "(30 20, 20 15, 20 25, 30 20)))");
-        logger.info("multiPolygon: {}", multiPolygon.toWkt());
+        logger.info("multiPolygon: {}", DEFAULT_MULTIPOLYGON.toWkt());
         final Polygon coveringPolygon = new Polygon(Location.forString("48.861903, 2.344141"),
                 Location.forString("6.215559, 1.431353"),
                 Location.forString("-1.302400, 36.818213"),
                 Location.forString("22.648164, 50.364465"));
         logger.info("coveringPolygon: {}", coveringPolygon.toWkt());
-        Assert.assertTrue(multiPolygon.overlaps(coveringPolygon));
-        Assert.assertFalse(multiPolygon.intersects(coveringPolygon));
+        Assert.assertTrue(DEFAULT_MULTIPOLYGON.overlaps(coveringPolygon));
+        Assert.assertFalse(DEFAULT_MULTIPOLYGON.intersects(coveringPolygon));
 
         final Polygon insideInnerPolygon = new Polygon(Location.forString("20.146558, 23.310950"),
                 Location.forString("19.623812, 24.507328"),
                 Location.forString("19.247746, 23.339148"));
         logger.info("insideInnerPolygon: {}", insideInnerPolygon.toWkt());
-        Assert.assertFalse(multiPolygon.overlaps(insideInnerPolygon));
-        Assert.assertFalse(multiPolygon.intersects(insideInnerPolygon));
+        Assert.assertFalse(DEFAULT_MULTIPOLYGON.overlaps(insideInnerPolygon));
+        Assert.assertFalse(DEFAULT_MULTIPOLYGON.intersects(insideInnerPolygon));
 
         final Polygon intersectingInnerPolygon = new Polygon(
                 Location.forString("20.146558, 23.310950"),
                 Location.forString("19.623812, 24.507328"),
                 Location.forString("27.156014, 30.298381"));
         logger.info("intersectingInnerPolygon: {}", intersectingInnerPolygon.toWkt());
-        Assert.assertTrue(multiPolygon.overlaps(intersectingInnerPolygon));
-        Assert.assertTrue(multiPolygon.intersects(intersectingInnerPolygon));
+        Assert.assertTrue(DEFAULT_MULTIPOLYGON.overlaps(intersectingInnerPolygon));
+        Assert.assertTrue(DEFAULT_MULTIPOLYGON.intersects(intersectingInnerPolygon));
 
         final Polygon intersectingOuterPolygon = new Polygon(
                 Location.forString("48.861903, 2.344141"),
                 Location.forString("22.648164, 50.364465"),
                 Location.forString("27.156014, 30.298381"));
         logger.info("intersectingOuterPolygon: {}", intersectingOuterPolygon.toWkt());
-        Assert.assertTrue(multiPolygon.overlaps(intersectingInnerPolygon));
-        Assert.assertTrue(multiPolygon.intersects(intersectingInnerPolygon));
+        Assert.assertTrue(DEFAULT_MULTIPOLYGON.overlaps(intersectingInnerPolygon));
+        Assert.assertTrue(DEFAULT_MULTIPOLYGON.intersects(intersectingInnerPolygon));
     }
 
     @Test
@@ -151,19 +166,6 @@ public class MultiPolygonTest
     }
 
     @Test
-    public void testOGCAndOSMValidity()
-    {
-        final MultiPolygon multiPolygon1 = getFrom("MultiPolygonTestGeom1.wkt");
-        Assert.assertFalse(multiPolygon1.isOGCValid());
-        Assert.assertFalse(multiPolygon1.isOSMValid());
-
-        final MultiPolygon multiPolygon2 = getFrom("MultiPolygonTestGeom2.josm.osm");
-        System.out.println(multiPolygon2.toWkt());
-        Assert.assertFalse(multiPolygon1.isOGCValid());
-        Assert.assertTrue(multiPolygon1.isOSMValid());
-    }
-
-    @Test
     public void testOverlap()
     {
         final MultiPolygon multiPolygon1 = MultiPolygon.wkt("MULTIPOLYGON ("
@@ -171,10 +173,7 @@ public class MultiPolygonTest
         final MultiPolygon multiPolygon2 = MultiPolygon
                 .wkt("MULTIPOLYGON (" + "((10 35, 35 35, 35 10, 10 10, 10 35),"
                         + "(15 30, 30 30, 30 15, 15 15, 15 30)))");
-        final MultiPolygon multiPolygon3 = MultiPolygon
-                .wkt("MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)),"
-                        + "((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),"
-                        + "(30 20, 20 15, 20 25, 30 20)))");
+        final MultiPolygon multiPolygon3 = DEFAULT_MULTIPOLYGON;
 
         Assert.assertFalse(multiPolygon1.overlaps(multiPolygon2));
         Assert.assertFalse(multiPolygon2.overlaps(multiPolygon1));
@@ -223,22 +222,100 @@ public class MultiPolygonTest
         Assert.assertEquals(rectangle.surface(), tilted.surface());
     }
 
-    private MultiPolygon getFrom(final String name)
+    @Test
+    public void testValidity0()
     {
-        if (name.endsWith(FileSuffix.WKT.toString()))
-        {
-            final String wkt = new InputStreamResource(
-                    () -> MultiPolygonTest.class.getResourceAsStream(name)).all();
-            return MultiPolygon.wkt(wkt);
-        }
-        else if (name.endsWith(".josm.osm"))
-        {
-            final Atlas atlas = TestAtlasHandler.getAtlasFromJosmOsmResource(true,
-                    new InputStreamResource(() -> MultiPolygonTest.class.getResourceAsStream(name)),
-                    name);
-            return new RelationOrAreaToMultiPolygonConverter()
-                    .convert(atlas.relations().iterator().next());
-        }
-        throw new CoreException("Unknown File Type {}", name);
+        Assert.assertTrue(DEFAULT_MULTIPOLYGON.isOGCValid());
+        Assert.assertTrue(DEFAULT_MULTIPOLYGON.isOSMValid());
+    }
+
+    @Test
+    public void testValidity1()
+    {
+        // Self intersecting multipolygon
+        final MultiPolygon multiPolygon = getFrom("MultiPolygonTestGeom1.wkt");
+        Assert.assertFalse(multiPolygon.isOGCValid());
+        Assert.assertFalse(multiPolygon.isOSMValid());
+    }
+
+    @Test
+    public void testValidity10()
+    {
+        // Two inners hug each other OSM valid, but two inners do not
+        final MultiPolygon multiPolygon = getFrom("MultiPolygonTestGeom10.josm.osm");
+        Assert.assertFalse(multiPolygon.isOGCValid());
+        Assert.assertFalse(multiPolygon.isOSMValid());
+    }
+
+    @Test
+    public void testValidity2()
+    {
+        // Two inners touch each other on a segment
+        final MultiPolygon multiPolygon = getFrom("MultiPolygonTestGeom2.josm.osm");
+        Assert.assertFalse(multiPolygon.isOGCValid());
+        Assert.assertTrue(multiPolygon.isOSMValid());
+    }
+
+    @Test
+    public void testValidity3()
+    {
+        // Three inners touch each other in one segment each (2 segments in total) and one point
+        final MultiPolygon multiPolygon = getFrom("MultiPolygonTestGeom3.josm.osm");
+        Assert.assertFalse(multiPolygon.isOGCValid());
+        Assert.assertTrue(multiPolygon.isOSMValid());
+    }
+
+    @Test
+    public void testValidity4()
+    {
+        // Three inners touch each other in one segment each (2 segments in total)
+        final MultiPolygon multiPolygon = getFrom("MultiPolygonTestGeom4.josm.osm");
+        Assert.assertFalse(multiPolygon.isOGCValid());
+        Assert.assertTrue(multiPolygon.isOSMValid());
+    }
+
+    @Test
+    public void testValidity5()
+    {
+        // One of the inners intersects an outer
+        final MultiPolygon multiPolygon = getFrom("MultiPolygonTestGeom5.josm.osm");
+        Assert.assertFalse(multiPolygon.isOGCValid());
+        Assert.assertFalse(multiPolygon.isOSMValid());
+    }
+
+    @Test
+    public void testValidity6()
+    {
+        // Nested inners
+        final MultiPolygon multiPolygon = getFrom("MultiPolygonTestGeom6.josm.osm");
+        Assert.assertFalse(multiPolygon.isOGCValid());
+        Assert.assertFalse(multiPolygon.isOSMValid());
+    }
+
+    @Test
+    public void testValidity7()
+    {
+        // Nested outers
+        final MultiPolygon multiPolygon = getFrom("MultiPolygonTestGeom7.josm.osm");
+        Assert.assertFalse(multiPolygon.isOGCValid());
+        Assert.assertFalse(multiPolygon.isOSMValid());
+    }
+
+    @Test
+    public void testValidity8()
+    {
+        // Duplicate inners
+        final MultiPolygon multiPolygon = getFrom("MultiPolygonTestGeom8.josm.osm");
+        Assert.assertFalse(multiPolygon.isOGCValid());
+        Assert.assertFalse(multiPolygon.isOSMValid());
+    }
+
+    @Test
+    public void testValidity9()
+    {
+        // Inner outside outer, hugging it along a segment
+        final MultiPolygon multiPolygon = getFrom("MultiPolygonTestGeom9.josm.osm");
+        Assert.assertFalse(multiPolygon.isOGCValid());
+        Assert.assertFalse(multiPolygon.isOSMValid());
     }
 }

@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <node id='-104784' action='modify' visible='true' lat='43.10221667001' lon='5.93210756242' />
+  <node id='-104785' action='modify' visible='true' lat='43.10298826566' lon='5.93324481905' />
+  <node id='-104786' action='modify' visible='true' lat='43.10236635848' lon='5.93449677274' />
+  <node id='-104787' action='modify' visible='true' lat='43.10181118988' lon='5.93559596954' />
+  <node id='-104788' action='modify' visible='true' lat='43.10137456213' lon='5.93290149629' />
+  <node id='-104857' action='modify' visible='true' lat='43.10267497353' lon='5.93620535728' />
+  <node id='-104858' action='modify' visible='true' lat='43.10217419796' lon='5.93622178748' />
+  <node id='-104884' action='modify' visible='true' lat='43.10155473502' lon='5.93529402673' />
+  <node id='-104885' action='modify' visible='true' lat='43.10285901427' lon='5.93499898374' />
+  <way id='-101793' action='modify' visible='true'>
+    <nd ref='-104784' />
+    <nd ref='-104785' />
+    <nd ref='-104885' />
+    <nd ref='-104884' />
+    <nd ref='-104788' />
+    <nd ref='-104784' />
+  </way>
+  <way id='-102477' action='modify' visible='true'>
+    <nd ref='-104857' />
+    <nd ref='-104786' />
+    <nd ref='-104787' />
+    <nd ref='-104858' />
+    <nd ref='-104857' />
+    <tag k='natural' v='wetland' />
+  </way>
+  <relation id='-99753' action='modify' visible='true'>
+    <member type='way' ref='-102477' role='outer' />
+    <member type='way' ref='-101793' role='outer' />
+    <tag k='landuse' v='forest' />
+    <tag k='type' v='multipolygon' />
+  </relation>
+</osm>
