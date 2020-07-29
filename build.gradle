@@ -44,7 +44,6 @@ dependencies
     compile packages.math
     compile packages.http
     compile packages.jts
-    compile packages.jtslab
     compile packages.spatial4j
     compile packages.geotools
     compile packages.osmosis.core

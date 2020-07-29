@@ -83,6 +83,12 @@ import org.slf4j.LoggerFactory;
  */
 public class RawAtlasSlicer
 {
+    // Buffer values for slicing operation. If the remaining piece turns to be smaller than
+    // buffer, we'll just ignore them.
+    public static final double LINE_BUFFER = 0.000001;
+    public static final double AREA_BUFFER = 0.000000005;
+    public static final double BUFFER_PERCENTAGE = 0.005;
+
     // JTS converters
     private static final JtsPolygonConverter JTS_POLYGON_CONVERTER = new JtsPolygonConverter();
     private static final JtsPolyLineConverter JTS_POLYLINE_CONVERTER = new JtsPolyLineConverter();
@@ -917,17 +923,25 @@ public class RawAtlasSlicer
      * @return True if the geometry is valid and larger than either the
      *         CountryBoundaryMap.LINE_BUFFER or CountryBoundaryMap.AREA_BUFFER
      */
-    private boolean isSignificantGeometry(final Geometry geometry)
+    private boolean isSignificantGeometry(final Geometry original, final Geometry clipped)
     {
-        if (!geometry.isValid() && logger.isWarnEnabled())
+        if (!clipped.isValid() && logger.isWarnEnabled())
         {
-            logger.warn("Found invalid geometry {} during slicing Atlas {}", geometry.toText(),
+            logger.warn("Found invalid geometry {} during slicing Atlas {}", clipped.toText(),
                     this.shardOrAtlasName);
+            return false;
         }
-        return geometry.isValid() && (geometry.getDimension() == 1
-                && geometry.getLength() > CountryBoundaryMap.LINE_BUFFER
-                || geometry.getDimension() == 2
-                        && geometry.getArea() > CountryBoundaryMap.AREA_BUFFER);
+        if (clipped.getDimension() == 1)
+        {
+            return clipped.getLength() > LINE_BUFFER
+                    || clipped.getLength() / original.getLength() > BUFFER_PERCENTAGE;
+        }
+        else if (clipped.getDimension() == 2)
+        {
+            return clipped.getArea() > AREA_BUFFER
+                    || clipped.getArea() / original.getArea() > BUFFER_PERCENTAGE;
+        }
+        return false;
     }
 
     /**
@@ -1240,14 +1254,15 @@ public class RawAtlasSlicer
                 if (clipped instanceof GeometryCollection)
                 {
                     CountryBoundaryMap.geometries((GeometryCollection) clipped)
-                            .filter(this::isSignificantGeometry).forEach(result ->
+                            .filter(result -> isSignificantGeometry(geometry, result))
+                            .forEach(result ->
                             {
                                 CountryBoundaryMap.setGeometryProperty(result, ISOCountryTag.KEY,
                                         countryCode);
                                 results.get(countryCode).add(result);
                             });
                 }
-                else if (isSignificantGeometry(clipped))
+                else if (isSignificantGeometry(geometry, clipped))
                 {
                     CountryBoundaryMap.setGeometryProperty(clipped, ISOCountryTag.KEY, countryCode);
                     results.get(countryCode).add(clipped);

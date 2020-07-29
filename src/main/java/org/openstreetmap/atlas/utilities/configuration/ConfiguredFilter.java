@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.function.Predicate;
 
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.tags.filters.TaggableFilter;
@@ -22,24 +23,26 @@ import com.google.common.collect.Lists;
  */
 public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializable
 {
+    public static final String CONFIGURATION_GLOBAL = "global";
+    public static final String DEFAULT = "default";
+    public static final ConfiguredFilter NO_FILTER = new ConfiguredFilter();
+    public static final String CONFIGURATION_ROOT = CONFIGURATION_GLOBAL + ".filters";
+
     private static final long serialVersionUID = 7503301238426719144L;
     private static final Logger logger = LoggerFactory.getLogger(ConfiguredFilter.class);
-
-    public static final String DEFAULT = "default";
-
-    private static final String CONFIGURATION_GLOBAL = "global";
-    public static final String CONFIGURATION_ROOT = CONFIGURATION_GLOBAL + ".filters";
     private static final String CONFIGURATION_PREDICATE_COMMAND = "predicate.command";
+    private static final String CONFIGURATION_PREDICATE_UNSAFE_COMMAND = "predicate.unsafeCommand";
     private static final String CONFIGURATION_PREDICATE_IMPORTS = "predicate.imports";
     private static final String CONFIGURATION_TAGGABLE_FILTER = "taggableFilter";
-
-    public static final ConfiguredFilter NO_FILTER = new ConfiguredFilter();
+    private static final String CONFIGURATION_HINT_NO_EXPANSION = "hint.noExpansion";
 
     private final String name;
     private final String predicate;
+    private final String unsafePredicate;
+    private transient Predicate<AtlasEntity> filter;
     private final List<String> imports;
     private final String taggableFilter;
-    private transient Predicate<AtlasEntity> filter;
+    private final boolean noExpansion;
 
     public static ConfiguredFilter from(final String name, final Configuration configuration)
     {
@@ -82,10 +85,19 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
         final ConfigurationReader reader = new ConfigurationReader(CONFIGURATION_ROOT + "." + name);
         this.predicate = reader.configurationValue(configuration, CONFIGURATION_PREDICATE_COMMAND,
                 "");
+        this.unsafePredicate = reader.configurationValue(configuration,
+                CONFIGURATION_PREDICATE_UNSAFE_COMMAND, "");
         this.imports = reader.configurationValue(configuration, CONFIGURATION_PREDICATE_IMPORTS,
                 Lists.newArrayList());
         this.taggableFilter = reader.configurationValue(configuration,
                 CONFIGURATION_TAGGABLE_FILTER, "");
+        this.noExpansion = readBoolean(configuration, reader, CONFIGURATION_HINT_NO_EXPANSION,
+                false);
+    }
+
+    public boolean isNoExpansion()
+    {
+        return this.noExpansion;
     }
 
     @Override
@@ -105,11 +117,19 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
         if (this.filter == null)
         {
             Predicate<AtlasEntity> localTemporaryPredicate = atlasEntity -> true;
+            final StringToPredicateConverter<AtlasEntity> predicateReader = new StringToPredicateConverter<>();
+            predicateReader.withAddedStarImportPackages(this.imports);
+            if (!this.predicate.isEmpty() && !this.unsafePredicate.isEmpty())
+            {
+                throw new CoreException("Cannot specify both 'command' and 'unsafeCommand'");
+            }
             if (!this.predicate.isEmpty())
             {
-                final StringToPredicateConverter<AtlasEntity> predicateReader = new StringToPredicateConverter<>();
-                predicateReader.withAddedStarImportPackages(this.imports);
                 localTemporaryPredicate = predicateReader.convert(this.predicate);
+            }
+            if (!this.unsafePredicate.isEmpty())
+            {
+                localTemporaryPredicate = predicateReader.convertUnsafe(this.unsafePredicate);
             }
             final Predicate<AtlasEntity> localPredicate = localTemporaryPredicate;
             final TaggableFilter localTaggablefilter = TaggableFilter
@@ -118,5 +138,18 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
                     && localTaggablefilter.test(atlasEntity);
         }
         return this.filter;
+    }
+
+    private boolean readBoolean(final Configuration configuration, final ConfigurationReader reader,
+            final String booleanName, final boolean defaultValue)
+    {
+        try
+        {
+            return reader.configurationValue(configuration, booleanName, defaultValue);
+        }
+        catch (final Exception e)
+        {
+            throw new CoreException("Unable to read \"{}\"", booleanName, e);
+        }
     }
 }
