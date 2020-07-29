@@ -8,7 +8,6 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Polygon;
-import org.locationtech.jtslab.SnapRoundOverlayFunctions;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -143,8 +142,7 @@ public class CountryBoundaryMapArchiver extends Command
             final org.locationtech.jts.geom.MultiPolygon countryGeometry = factory
                     .createMultiPolygon(
                             boundaryPolygons.toArray(new Polygon[boundaryPolygons.size()]));
-            shardPolyJts = SnapRoundOverlayFunctions.difference(shardPolyJts, countryGeometry,
-                    JTS_SNAP_PRECISION);
+            shardPolyJts = shardPolyJts.difference(countryGeometry);
         }
         return shardPolyJts;
     }
