@@ -56,8 +56,6 @@ public class CountryBoundaryMapArchiver extends Command
             "Save the country boundaries to Geojson and WKT", Boolean::parseBoolean,
             Optionality.OPTIONAL, Boolean.FALSE.toString());
     private static final Logger logger = LoggerFactory.getLogger(CountryBoundaryMapArchiver.class);
-    // Internal
-    private static final double JTS_SNAP_PRECISION = .000000000000001;
 
     public static void main(final String[] args)
     {
