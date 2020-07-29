@@ -97,9 +97,9 @@ public class ComplexBuilding extends ComplexEntity
     /**
      * @return The outline of the building.
      */
-    public MultiPolygon getOutline()
+    public Optional<MultiPolygon> getOutline()
     {
-        return this.outline;
+        return Optional.ofNullable(this.outline);
     }
 
     /**
