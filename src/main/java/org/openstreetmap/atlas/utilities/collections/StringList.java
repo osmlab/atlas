@@ -137,6 +137,11 @@ public class StringList implements Iterable<String>, Serializable
         return this.list.get(index);
     }
 
+    public List<String> getUnderlyingList()
+    {
+        return this.list;
+    }
+
     public boolean isEmpty()
     {
         return this.size() == 0;

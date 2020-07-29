@@ -17,6 +17,8 @@ public class LengthExtractor implements TagExtractor
 {
     private static final LengthValidator VALIDATOR = new LengthValidator();
     private static final String SINGLE_SPACE = " ";
+    private static final String COMMA = ",";
+    private static final String DECIMAL_POINT = ".";
 
     /**
      * Validates and converts a value to a {@link Distance}.
@@ -27,7 +29,10 @@ public class LengthExtractor implements TagExtractor
      */
     public static Optional<Distance> validateAndExtract(final String value)
     {
-        final String uppercaseValue = value.toUpperCase();
+        // Some countries use comma as decimal separator
+        // (https://en.wikipedia.org/wiki/Decimal_separator#Hindu-Arabic_numerals). Replace comma
+        // with decimal point for further processing.
+        final String uppercaseValue = value.replace(COMMA, DECIMAL_POINT).toUpperCase();
         if (VALIDATOR.isValid(uppercaseValue))
         {
             if (uppercaseValue.endsWith(SINGLE_SPACE + Distance.UnitAbbreviations.M))
