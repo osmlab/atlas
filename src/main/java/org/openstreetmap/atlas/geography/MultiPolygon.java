@@ -11,12 +11,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.locationtech.jts.operation.valid.IsValidOp;
+import org.locationtech.jts.operation.valid.TopologyValidationError;
 import org.openstreetmap.atlas.geography.clipping.Clip;
 import org.openstreetmap.atlas.geography.clipping.Clip.ClipType;
+import org.openstreetmap.atlas.geography.clipping.GeometryOperation;
 import org.openstreetmap.atlas.geography.converters.MultiPolygonStringConverter;
 import org.openstreetmap.atlas.geography.converters.WkbMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.WktMultiPolygonConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsLocationConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonGeometry;
@@ -30,7 +36,9 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
+import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.openstreetmap.atlas.utilities.scalars.Surface;
+import org.openstreetmap.atlas.utilities.tuples.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -359,6 +367,7 @@ public class MultiPolygon
         return new ArrayList<>();
     }
 
+    @Override
     public boolean intersects(final PolyLine polyLine)
     {
         for (final Polygon outer : this.outers())
@@ -384,6 +393,47 @@ public class MultiPolygon
     public boolean isEmpty()
     {
         return this.outerToInners.isEmpty();
+    }
+
+    /**
+     * @return True if this {@link MultiPolygon} is valid according to the OGC SFS specification.
+     *         See {@code org.locationtech.jts.geom.Geometry.isValid()}
+     */
+    public boolean isOGCValid()
+    {
+        return new JtsMultiPolygonToMultiPolygonConverter().backwardConvert(this).isValid();
+    }
+
+    /**
+     * @return True if this {@link MultiPolygon} is valid according to the OSM specification. OSM
+     *         allows some inners of the MultiPolygon to touch on more than a single point, to allow
+     *         for one inner to be split in multiple parts tagged differently. Example: a forest
+     *         with an inner, that is one side a meadow, and on the other side some marshland.
+     */
+    public boolean isOSMValid()
+    {
+        final org.locationtech.jts.geom.MultiPolygon jtsMultiPolygon = new JtsMultiPolygonToMultiPolygonConverter()
+                .backwardConvert(this);
+        final TopologyValidationError topologyValidationError = new IsValidOp(jtsMultiPolygon)
+                .getValidationError();
+        if (topologyValidationError != null)
+        {
+            // In this case, the geometry is not OGC valid, here we capture the
+            // TopologyValidationError to know what to do next.
+            if (TopologyValidationError.SELF_INTERSECTION == topologyValidationError.getErrorType())
+            {
+                final Location errorLocation = new JtsLocationConverter()
+                        .backwardConvert(topologyValidationError.getCoordinate());
+                final Rectangle errorExpandedBoundingBox = errorLocation
+                        .boxAround(Distance.ONE_METER);
+                return isOSMValidSelfIntersection(errorExpandedBoundingBox);
+            }
+            return false;
+        }
+        else
+        {
+            return true;
+        }
     }
 
     /**
@@ -521,6 +571,63 @@ public class MultiPolygon
     public String toWkt()
     {
         return new WktMultiPolygonConverter().convert(this);
+    }
+
+    private boolean isLinear(final GeometricObject geometricObject)
+    {
+        return (geometricObject instanceof PolyLine && !(geometricObject instanceof Polygon))
+                || geometricObject instanceof MultiPolyLine || geometricObject instanceof Location;
+    }
+
+    /**
+     * Given an OGC intersection location, check all the touching features to see if they are OSM
+     * valid.
+     * 
+     * @param errorExpandedBoundingBox
+     *            Small bounding box around the error location
+     * @return True if the error is not an error according to OSM
+     */
+    private boolean isOSMValidSelfIntersection(final Rectangle errorExpandedBoundingBox)
+    {
+        final List<Tuple<Boolean, Polygon>> ringsOfInterest = Iterables
+                .stream(new MultiIterable<>(
+                        outers().stream().map(outer -> new Tuple<>(true, outer))
+                                .collect(Collectors.toList()),
+                        inners().stream().map(inner -> new Tuple<>(false, inner))
+                                .collect(Collectors.toList())))
+                .filter(ringOfInterest -> ringOfInterest.getSecond()
+                        .intersects(errorExpandedBoundingBox))
+                .collectToList();
+        final List<GeometricObject> intersections = new ArrayList<>();
+        for (int i = 0; i < ringsOfInterest.size(); i++)
+        {
+            for (int j = i + 1; j < ringsOfInterest.size(); j++)
+            {
+                // Make sure this is just a PolyLine
+                final List<Tuple<Boolean, Polygon>> candidates = new ArrayList<>();
+                candidates.add(ringsOfInterest.get(i));
+                candidates.add(ringsOfInterest.get(j));
+                if (candidates.get(0).getFirst() || candidates.get(1).getFirst())
+                {
+                    // There is a self intersection between at least one outer, this is not
+                    // OSM valid
+                    return false;
+                }
+                GeometryOperation.intersection(
+                        candidates.stream().map(Tuple::getSecond).collect(Collectors.toList()))
+                        .ifPresent(intersections::add);
+            }
+        }
+        boolean allIntersectionsArePolyLines = true;
+        for (final GeometricObject intersection : intersections)
+        {
+            if (!isLinear(intersection))
+            {
+                allIntersectionsArePolyLines = false;
+                break;
+            }
+        }
+        return ringsOfInterest.size() > 1 && allIntersectionsArePolyLines;
     }
 
     private boolean overlapsInternal(final PolyLine polyLine, final boolean runReverseCheck)

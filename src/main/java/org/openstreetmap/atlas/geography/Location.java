@@ -27,8 +27,8 @@ import com.google.gson.JsonObject;
  * @author matthieun
  * @author mgostintsev
  */
-public class Location
-        implements Located, Iterable<Location>, Serializable, GeometryPrintable, GeoJsonGeometry
+public class Location implements Located, Iterable<Location>, Serializable, GeometryPrintable,
+        GeoJsonGeometry, GeometricObject
 {
     public static final String TEST_1_COORDINATES = "37.335310,-122.009566";
     public static final String TEST_2_COORDINATES = "37.321628,-122.028464";
@@ -377,6 +377,12 @@ public class Location
         final double xAxis = Math.cos(lat1) * Math.sin(lat2)
                 - Math.sin(lat1) * Math.cos(lat2) * Math.cos(deltaLon);
         return Heading.radians(Math.atan2(yAxis, xAxis));
+    }
+
+    @Override
+    public boolean intersects(final PolyLine polyLine)
+    {
+        return polyLine.intersects(new Segment(this, this));
     }
 
     /**

@@ -64,7 +64,7 @@ public class OsmToAtlasCommand extends MultipleOutputCommand
 
             if (!absoluteOsmPath.toFile().isDirectory())
             {
-                final Atlas atlas = TestAtlasHandler.getAtlasFromJsomOsmResource(
+                final Atlas atlas = TestAtlasHandler.getAtlasFromJosmOsmResource(
                         this.optionAndArgumentDelegate.hasOption(JOSM),
                         new InputStreamResource(() -> new File(absoluteOsmPath.toString()).read()),
                         absoluteOsmPath.getFileName().toString());

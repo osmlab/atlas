@@ -28,7 +28,7 @@ public class WktLocationConverter implements TwoWayConverter<Location, String>
         }
         catch (final ParseException | ClassCastException e)
         {
-            throw new CoreException("Cannot parse wkt : {}", wkt);
+            throw new CoreException("Cannot parse wkt : {}", wkt, e);
         }
         return new JtsPointConverter().backwardConvert(geometry);
     }

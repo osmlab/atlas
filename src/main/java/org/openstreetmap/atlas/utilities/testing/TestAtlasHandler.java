@@ -65,13 +65,13 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas.SizeEstimate;
  */
 public class TestAtlasHandler implements FieldHandler
 {
-    public static Atlas getAtlasFromJsomOsmResource(final boolean josmFormat,
+    public static Atlas getAtlasFromJosmOsmResource(final boolean josmFormat,
             final AbstractResource resource, final String fileName)
     {
-        return getAtlasFromJsomOsmResource(josmFormat, resource, fileName, Optional.empty());
+        return getAtlasFromJosmOsmResource(josmFormat, resource, fileName, Optional.empty());
     }
 
-    public static Atlas getAtlasFromJsomOsmResource(final boolean josmFormat,
+    public static Atlas getAtlasFromJosmOsmResource(final boolean josmFormat,
             final AbstractResource resource, final String fileName, final Optional<String> iso)
     {
         FileSuffix.suffixFor(fileName).ifPresent(suffix ->
@@ -456,7 +456,7 @@ public class TestAtlasHandler implements FieldHandler
         final String completeName = String.format("%s/%s", packageName, resourcePath);
         try
         {
-            field.set(rule, getAtlasFromJsomOsmResource(josmFormat, new ClassResource(completeName),
+            field.set(rule, getAtlasFromJosmOsmResource(josmFormat, new ClassResource(completeName),
                     Paths.get(completeName).getFileName().toString(),
                     field.getAnnotation(TestAtlas.class).iso().equals(TestAtlas.UNKNOWN_ISO_COUNTRY)
                             ? Optional.empty()

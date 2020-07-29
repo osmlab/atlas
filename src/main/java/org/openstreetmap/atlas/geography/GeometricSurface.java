@@ -7,7 +7,7 @@ import org.openstreetmap.atlas.utilities.scalars.Surface;
  *
  * @author jklamer
  */
-public interface GeometricSurface extends Located, GeometryPrintable
+public interface GeometricSurface extends Located, GeometryPrintable, GeometricObject
 {
     boolean fullyGeometricallyEncloses(Location location);
 

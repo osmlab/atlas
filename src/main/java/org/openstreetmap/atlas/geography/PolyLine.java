@@ -49,8 +49,8 @@ import com.google.gson.JsonObject;
  * @author mgostintsev
  * @author Sid
  */
-public class PolyLine
-        implements Collection<Location>, Located, Serializable, GeometryPrintable, GeoJsonGeometry
+public class PolyLine implements Collection<Location>, Located, Serializable, GeometryPrintable,
+        GeoJsonGeometry, GeometricObject
 {
     public static final PolyLine TEST_POLYLINE = new PolyLine(Location.TEST_3, Location.TEST_7,
             Location.TEST_4, Location.TEST_1, Location.TEST_5);
@@ -622,6 +622,7 @@ public class PolyLine
      *            The other {@link PolyLine}
      * @return True if this {@link PolyLine} intersects the other at least once.
      */
+    @Override
     public boolean intersects(final PolyLine other)
     {
         final List<Segment> segments = this.segments();
