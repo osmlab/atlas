@@ -81,7 +81,7 @@ public class TinyBuildingsSearchSubCommand extends AbstractAtlasSubCommand
             "File containing the CSV information about each tiny building", Paths::get,
             Optionality.REQUIRED);
 
-    private Surface minimumSurface;
+    private Surface minimumSurface = Surface.UNIT_METER_SQUARED_ON_EARTH_SURFACE;
     private TinyBuildingLogger counter;
 
     public TinyBuildingsSearchSubCommand()
@@ -94,6 +94,19 @@ public class TinyBuildingsSearchSubCommand extends AbstractAtlasSubCommand
     public SwitchList switches()
     {
         return super.switches().with(MINIMUM_BUILDING_SIZE_PARAMETER, OUTPUT_FILE_PARAMETER);
+    }
+
+    public boolean tooSmall(final ComplexBuilding building)
+    {
+        final Optional<MultiPolygon> outline = building.getOutline();
+        if (outline.isPresent())
+        {
+            return outline.get().surface().isLessThanOrEqualTo(this.minimumSurface);
+        }
+        else
+        {
+            return false;
+        }
     }
 
     @Override
@@ -151,19 +164,6 @@ public class TinyBuildingsSearchSubCommand extends AbstractAtlasSubCommand
         catch (final IOException oops)
         {
             throw new CoreException("Failure to open output", oops);
-        }
-    }
-
-    private boolean tooSmall(final ComplexBuilding building)
-    {
-        final Optional<MultiPolygon> outline = building.getOutline();
-        if (outline.isPresent())
-        {
-            return outline.get().surface().isLessThanOrEqualTo(this.minimumSurface);
-        }
-        else
-        {
-            return false;
         }
     }
 }
