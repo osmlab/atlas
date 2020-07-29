@@ -8,7 +8,6 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Polygon;
-import org.locationtech.jtslab.SnapRoundOverlayFunctions;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -57,8 +56,6 @@ public class CountryBoundaryMapArchiver extends Command
             "Save the country boundaries to Geojson and WKT", Boolean::parseBoolean,
             Optionality.OPTIONAL, Boolean.FALSE.toString());
     private static final Logger logger = LoggerFactory.getLogger(CountryBoundaryMapArchiver.class);
-    // Internal
-    private static final double JTS_SNAP_PRECISION = .000000000000001;
 
     public static void main(final String[] args)
     {
@@ -143,8 +140,7 @@ public class CountryBoundaryMapArchiver extends Command
             final org.locationtech.jts.geom.MultiPolygon countryGeometry = factory
                     .createMultiPolygon(
                             boundaryPolygons.toArray(new Polygon[boundaryPolygons.size()]));
-            shardPolyJts = SnapRoundOverlayFunctions.difference(shardPolyJts, countryGeometry,
-                    JTS_SNAP_PRECISION);
+            shardPolyJts = shardPolyJts.difference(countryGeometry);
         }
         return shardPolyJts;
     }
