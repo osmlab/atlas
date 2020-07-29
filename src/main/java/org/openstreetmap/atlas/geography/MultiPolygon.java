@@ -35,6 +35,7 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
+import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.openstreetmap.atlas.utilities.scalars.Surface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -364,6 +365,7 @@ public class MultiPolygon
         return new ArrayList<>();
     }
 
+    @Override
     public boolean intersects(final PolyLine polyLine)
     {
         for (final Polygon outer : this.outers())
@@ -420,22 +422,35 @@ public class MultiPolygon
             {
                 final Location errorLocation = new JtsLocationConverter()
                         .backwardConvert(topologyValidationError.getCoordinate());
+                final Rectangle errorExpandedBoundingBox = errorLocation
+                        .boxAround(Distance.ONE_METER);
                 final List<Polygon> ringsOfInterest = Iterables
                         .stream(new MultiIterable<>(outers(), inners()))
                         .filter(ringOfInterest -> ringOfInterest
-                                .fullyGeometricallyEncloses(errorLocation))
+                                .intersects(errorExpandedBoundingBox))
                         .collectToList();
+                final List<GeometricObject> intersections = new ArrayList<>();
                 for (int i = 0; i < ringsOfInterest.size(); i++)
                 {
                     for (int j = i + 1; j < ringsOfInterest.size(); j++)
                     {
-                        final Polygon left = ringsOfInterest.get(i);
-                        final Polygon right = ringsOfInterest.get(j);
                         // Make sure this is just a PolyLine
-                        final Optional<GeometricSurface> intersection = GeometryOperation
-                                .intersection(new MultiIterable<Polygon>(left, right));
+                        final List<Polygon> candidates = new ArrayList<>();
+                        candidates.add(ringsOfInterest.get(i));
+                        candidates.add(ringsOfInterest.get(j));
+                        GeometryOperation.intersection(candidates).ifPresent(intersections::add);
                     }
                 }
+                boolean allIntersectionsArePolyLines = true;
+                for (final GeometricObject intersection : intersections)
+                {
+                    if (!isLinear(intersection))
+                    {
+                        allIntersectionsArePolyLines = false;
+                        break;
+                    }
+                }
+                return ringsOfInterest.size() > 1 && allIntersectionsArePolyLines;
             }
             return false;
         }
@@ -580,6 +595,12 @@ public class MultiPolygon
     public String toWkt()
     {
         return new WktMultiPolygonConverter().convert(this);
+    }
+
+    private boolean isLinear(final GeometricObject geometricObject)
+    {
+        return (geometricObject instanceof PolyLine && !(geometricObject instanceof Polygon))
+                || geometricObject instanceof MultiPolyLine;
     }
 
     private boolean overlapsInternal(final PolyLine polyLine, final boolean runReverseCheck)

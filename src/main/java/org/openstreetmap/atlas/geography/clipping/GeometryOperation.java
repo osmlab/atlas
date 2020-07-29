@@ -9,11 +9,14 @@ import java.util.Set;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.operation.union.UnaryUnionOp;
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.GeometricObject;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolyLineConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 
@@ -27,8 +30,10 @@ public final class GeometryOperation
     private static final JtsMultiPolygonToMultiPolygonConverter JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER = new JtsMultiPolygonToMultiPolygonConverter();
     private static final JtsMultiPolygonConverter JTS_MULTI_POLYGON_CONVERTER = new JtsMultiPolygonConverter();
     private static final JtsPolygonConverter JTS_POLYGON_CONVERTER = new JtsPolygonConverter();
+    private static final JtsMultiPolyLineConverter JTS_MULTI_POLY_LINE_CONVERTER = new JtsMultiPolyLineConverter();
+    private static final JtsPolyLineConverter JTS_POLY_LINE_CONVERTER = new JtsPolyLineConverter();
 
-    public static Optional<GeometricSurface> intersection(final Iterable<Polygon> polygons)
+    public static Optional<GeometricObject> intersection(final Iterable<Polygon> polygons)
     {
         final List<Geometry> toIntersect = new ArrayList<>();
         for (final Polygon polygon : polygons)
@@ -69,6 +74,61 @@ public final class GeometryOperation
         return union(Iterables.asList(multiPolygons));
     }
 
+    private static Optional<GeometricObject> handleGeometricObject(final Geometry result)
+    {
+        if (result.isEmpty())
+        {
+            return Optional.empty();
+        }
+        else if (result instanceof org.locationtech.jts.geom.MultiLineString)
+        {
+            return handleMultiLineString((org.locationtech.jts.geom.MultiLineString) result);
+        }
+        else if (result instanceof org.locationtech.jts.geom.LineString)
+        {
+            return handleLineString((org.locationtech.jts.geom.LineString) result);
+        }
+        else
+        {
+            return handleGeometricSurface(result)
+                    .map(geometricSurface -> (GeometricObject) geometricSurface);
+        }
+    }
+
+    private static Optional<GeometricSurface> handleGeometricSurface(final Geometry result)
+    {
+        if (result.isEmpty())
+        {
+            return Optional.empty();
+        }
+        else if (result instanceof org.locationtech.jts.geom.MultiPolygon)
+        {
+            return handleMultiPolygon((org.locationtech.jts.geom.MultiPolygon) result);
+        }
+        else if (result instanceof org.locationtech.jts.geom.Polygon)
+        {
+            return handlePolygon((org.locationtech.jts.geom.Polygon) result);
+        }
+        else
+        {
+            throw new CoreException("Result is not recognized.");
+        }
+    }
+
+    private static Optional<GeometricObject> handleLineString(
+            final org.locationtech.jts.geom.LineString result)
+    {
+        return Optional.of(JTS_POLY_LINE_CONVERTER.backwardConvert(result))
+                .map(polyLine -> (GeometricObject) polyLine);
+    }
+
+    private static Optional<GeometricObject> handleMultiLineString(
+            final org.locationtech.jts.geom.MultiLineString result)
+    {
+        return Optional.of(JTS_MULTI_POLY_LINE_CONVERTER.backwardConvert(result))
+                .map(polyLines -> (GeometricObject) polyLines);
+    }
+
     private static Optional<GeometricSurface> handleMultiPolygon(
             final org.locationtech.jts.geom.MultiPolygon result)
     {
@@ -92,27 +152,7 @@ public final class GeometryOperation
         }
     }
 
-    private static Optional<GeometricSurface> handlePolygonOrMultipolygon(final Geometry result)
-    {
-        if (result.isEmpty())
-        {
-            return Optional.empty();
-        }
-        else if (result instanceof org.locationtech.jts.geom.MultiPolygon)
-        {
-            return handleMultiPolygon((org.locationtech.jts.geom.MultiPolygon) result);
-        }
-        else if (result instanceof org.locationtech.jts.geom.Polygon)
-        {
-            return handlePolygon((org.locationtech.jts.geom.Polygon) result);
-        }
-        else
-        {
-            throw new CoreException("Result is neither empty, MultiPolygon or Polygon");
-        }
-    }
-
-    private static Optional<GeometricSurface> intersection(final List<Geometry> toIntersect)
+    private static Optional<GeometricObject> intersection(final List<Geometry> toIntersect)
     {
         Geometry result = null;
         for (final Geometry geometry : toIntersect)
@@ -132,14 +172,14 @@ public final class GeometryOperation
         }
         else
         {
-            return handlePolygonOrMultipolygon(result);
+            return handleGeometricObject(result);
         }
     }
 
     private static Optional<GeometricSurface> union(final List<Geometry> toUnion)
     {
         final Geometry result = UnaryUnionOp.union(toUnion);
-        return handlePolygonOrMultipolygon(result);
+        return handleGeometricSurface(result);
     }
 
     private GeometryOperation()

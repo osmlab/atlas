@@ -7,10 +7,15 @@ import java.io.ObjectOutputStream;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.items.complex.RelationOrAreaToMultiPolygonConverter;
 import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
+import org.openstreetmap.atlas.streaming.resource.FileSuffix;
+import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.maps.MultiMapTest;
+import org.openstreetmap.atlas.utilities.testing.TestAtlasHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -146,6 +151,19 @@ public class MultiPolygonTest
     }
 
     @Test
+    public void testOGCAndOSMValidity()
+    {
+        final MultiPolygon multiPolygon1 = getFrom("MultiPolygonTestGeom1.wkt");
+        Assert.assertFalse(multiPolygon1.isOGCValid());
+        Assert.assertFalse(multiPolygon1.isOSMValid());
+
+        final MultiPolygon multiPolygon2 = getFrom("MultiPolygonTestGeom2.josm.osm");
+        System.out.println(multiPolygon2.toWkt());
+        Assert.assertFalse(multiPolygon1.isOGCValid());
+        Assert.assertTrue(multiPolygon1.isOSMValid());
+    }
+
+    @Test
     public void testOverlap()
     {
         final MultiPolygon multiPolygon1 = MultiPolygon.wkt("MULTIPOLYGON ("
@@ -203,5 +221,24 @@ public class MultiPolygonTest
                         Longitude.degrees(rectangle.upperRight().getLongitude().asDegrees() + 0.1)),
                 rectangle.lowerRight()));
         Assert.assertEquals(rectangle.surface(), tilted.surface());
+    }
+
+    private MultiPolygon getFrom(final String name)
+    {
+        if (name.endsWith(FileSuffix.WKT.toString()))
+        {
+            final String wkt = new InputStreamResource(
+                    () -> MultiPolygonTest.class.getResourceAsStream(name)).all();
+            return MultiPolygon.wkt(wkt);
+        }
+        else if (name.endsWith(".josm.osm"))
+        {
+            final Atlas atlas = TestAtlasHandler.getAtlasFromJosmOsmResource(true,
+                    new InputStreamResource(() -> MultiPolygonTest.class.getResourceAsStream(name)),
+                    name);
+            return new RelationOrAreaToMultiPolygonConverter()
+                    .convert(atlas.relations().iterator().next());
+        }
+        throw new CoreException("Unknown File Type {}", name);
     }
 }
