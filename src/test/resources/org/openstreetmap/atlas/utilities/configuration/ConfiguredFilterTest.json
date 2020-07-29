@@ -1,0 +1,51 @@
+{
+    "global":
+    {
+        "filters":
+        {
+            "junctionRoundaboutFilter":
+            {
+                "predicate":
+                {
+                    "imports": [
+                        "org.openstreetmap.atlas.geography.atlas.items"
+                    ],
+                    "command": "e instanceof Node || e instanceof Edge"
+                },
+                "taggableFilter": "junction->roundabout"
+            },
+            "dummyFilter":
+            {
+                "predicate":
+                {
+                    "imports": [
+                        "org.openstreetmap.atlas.geography.atlas.items"
+                    ],
+                    "command": "\"yes\".equals(e.getTag(\"dummy\"))"
+                }
+            },
+            "tagFilterOnly":
+            {
+                "taggableFilter": "junction->roundabout"
+            },
+            "nothingGoesThroughFilter":
+            {
+                "predicate":
+                {
+                    "command": "false"
+                },
+                "hint.noExpansion": true
+            },
+            "unsafePredicateFilter":
+            {
+                "predicate":
+                {
+                    "imports": [
+                        "org.openstreetmap.atlas.geography.atlas.items"
+                    ],
+                    "unsafeCommand": "e instanceof Edge"
+                }
+            }
+        }
+    }
+}
