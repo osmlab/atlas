@@ -221,6 +221,26 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     public abstract String getSimpleDescription();
 
     /**
+     * Get a {@link TTYStringBuilder} that is configured to respect the color settings of stderr.
+     *
+     * @return the configured {@link TTYStringBuilder}
+     */
+    public TTYStringBuilder getTTYStringBuilderForStderr()
+    {
+        return new TTYStringBuilder(this.useColorStderr);
+    }
+
+    /**
+     * Get a {@link TTYStringBuilder} that is configured to respect the color settings of stdout.
+     *
+     * @return the configured {@link TTYStringBuilder}
+     */
+    public TTYStringBuilder getTTYStringBuilderForStdout()
+    {
+        return new TTYStringBuilder(this.useColorStdout);
+    }
+
+    /**
      * Register any desired manual page sections. An OPTIONS section will be automatically
      * generated, so it is recommended that you register at least a DESCRIPTION and EXAMPLES section
      * with some appropriate documentation. See other {@link AbstractAtlasShellToolsCommand}
@@ -382,7 +402,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      * Set a new {@link InputStream} for this command. Implementations should respect the set
      * {@link InputStream} when reading input from the user. This is particularly useful for
      * unit-testing, where we may want to inject arbitrary input for testing purposes.
-     * 
+     *
      * @param inStream
      *            the new {@link InputStream} to use
      */
@@ -801,16 +821,6 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     int getParserContext()
     {
         return this.parser.getContext();
-    }
-
-    TTYStringBuilder getTTYStringBuilderForStderr()
-    {
-        return new TTYStringBuilder(this.useColorStderr);
-    }
-
-    TTYStringBuilder getTTYStringBuilderForStdout()
-    {
-        return new TTYStringBuilder(this.useColorStdout);
     }
 
     Optional<String> getUnaryArgument(final String hint)
