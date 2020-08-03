@@ -40,8 +40,8 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
     private static final String CONFIGURATION_PREDICATE_UNSAFE_COMMAND = "predicate.unsafeCommand";
     private static final String CONFIGURATION_PREDICATE_IMPORTS = "predicate.imports";
     private static final String CONFIGURATION_TAGGABLE_FILTER = "taggableFilter";
-    private static final String CONFIGURATION_WKT_FILTER = "geometry.wktMultiPolygon";
-    private static final String CONFIGURATION_WKB_FILTER = "geometry.wkbMultiPolygon";
+    private static final String CONFIGURATION_WKT_FILTER = "geometry.wkt";
+    private static final String CONFIGURATION_WKB_FILTER = "geometry.wkb";
     private static final String CONFIGURATION_HINT_NO_EXPANSION = "hint.noExpansion";
 
     private static final WktMultiPolygonConverter WKT_MULTI_POLYGON_CONVERTER = new WktMultiPolygonConverter();
