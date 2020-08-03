@@ -3,8 +3,10 @@ package org.openstreetmap.atlas.utilities.conversion;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Inspired from <a href="https://stackoverflow.com/a/140861/1558687"/> and
- * <a href="https://stackoverflow.com/a/9855338/1558687" />
+ * Inspired from <a href=
+ * "https://stackoverflow.com/a/140861/1558687">https://stackoverflow.com/a/140861/1558687</a> and
+ * <a href="https://stackoverflow.com/a/9855338/1558687"
+ * >https://stackoverflow.com/a/9855338/1558687</a>
  * 
  * @author matthieun
  */
