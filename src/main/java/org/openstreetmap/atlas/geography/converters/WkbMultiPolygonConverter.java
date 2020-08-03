@@ -33,7 +33,7 @@ public class WkbMultiPolygonConverter extends WkMultiPolygonConverter<byte[]>
             }
             catch (final ParseException e)
             {
-                throw new CoreException("Unable to parse WKB");
+                throw new CoreException("Unable to parse WKB", e);
             }
         }
     };

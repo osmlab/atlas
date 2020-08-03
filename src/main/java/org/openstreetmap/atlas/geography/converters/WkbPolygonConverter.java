@@ -29,7 +29,7 @@ public class WkbPolygonConverter implements TwoWayConverter<Polygon, byte[]>
         }
         catch (final ParseException | ClassCastException e)
         {
-            throw new CoreException("Cannot parse wkb : {}", WKBWriter.toHex(wkb));
+            throw new CoreException("Cannot parse wkb : {}", WKBWriter.toHex(wkb), e);
         }
         return new JtsPolygonConverter().backwardConvert(geometry);
     }
