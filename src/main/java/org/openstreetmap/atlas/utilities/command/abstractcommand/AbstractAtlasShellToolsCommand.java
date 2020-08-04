@@ -193,6 +193,16 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     }
 
     /**
+     * Get the {@link PrintStream} for this command's err stream.
+     *
+     * @return the {@link PrintStream} for this command's err stream.
+     */
+    public PrintStream getErrStream()
+    {
+        return this.errStream;
+    }
+
+    /**
      * Get the {@link FileSystem} for this command.
      *
      * @return the {@link FileSystem} for this command.
@@ -204,12 +214,22 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
 
     /**
      * Get the {@link InputStream} for this command.
-     * 
+     *
      * @return the {@link InputStream} for this command.
      */
     public InputStream getInStream()
     {
         return this.inStream;
+    }
+
+    /**
+     * Get the {@link PrintStream} for this command's out stream.
+     *
+     * @return the {@link PrintStream} for this command's out stream.
+     */
+    public PrintStream getOutStream()
+    {
+        return this.outStream;
     }
 
     /**
@@ -219,26 +239,6 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      * @return the description
      */
     public abstract String getSimpleDescription();
-
-    /**
-     * Get the {@link PrintStream} for this command's err stream.
-     *
-     * @return the {@link PrintStream} for this command's err stream.
-     */
-    public PrintStream getStderrStream()
-    {
-        return this.errStream;
-    }
-
-    /**
-     * Get the {@link PrintStream} for this command's out stream.
-     *
-     * @return the {@link PrintStream} for this command's out stream.
-     */
-    public PrintStream getStdoutStream()
-    {
-        return this.outStream;
-    }
 
     /**
      * Get a {@link TTYStringBuilder} that is configured to respect the color settings of stderr.
