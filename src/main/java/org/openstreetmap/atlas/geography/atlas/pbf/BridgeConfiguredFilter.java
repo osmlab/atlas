@@ -37,13 +37,13 @@ public class BridgeConfiguredFilter implements Predicate<AtlasEntity>, Serializa
         if (configuredTaggableFilterFilters.size() == 1
                 && EMPTY_MARKER.equals(configuredTaggableFilterFilters.get(0)))
         {
-            // It is a legacy ConfiguredTaggableFilter
-            this.configuredTaggableFilter = new ConfiguredTaggableFilter(configuration);
+            // It is a new ConfiguredFilter
+            this.configuredFilter = ConfiguredFilter.from(root, name, configuration);
         }
         else
         {
-            // It is a new ConfiguredFilter
-            this.configuredFilter = ConfiguredFilter.from(root, name, configuration);
+            // It is a legacy ConfiguredTaggableFilter
+            this.configuredTaggableFilter = new ConfiguredTaggableFilter(configuration);
         }
     }
 

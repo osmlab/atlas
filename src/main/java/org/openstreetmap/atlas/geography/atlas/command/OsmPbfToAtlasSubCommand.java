@@ -8,6 +8,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
+import org.openstreetmap.atlas.geography.atlas.pbf.BridgeConfiguredFilter;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
 import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
@@ -144,8 +145,10 @@ public class OsmPbfToAtlasSubCommand implements FlexibleSubCommand
                 .createOptionWithAllEnabled(countryMap);
 
         // Set filters
-        map.getOption(EDGE_FILTER_PARAMETER).ifPresent(filter -> options.setEdgeFilter(
-                new ConfiguredTaggableFilter(new StandardConfiguration((File) filter))));
+        map.getOption(EDGE_FILTER_PARAMETER)
+                .ifPresent(filter -> options.setEdgeFilter(
+                        new BridgeConfiguredFilter("", AtlasLoadingOption.ATLAS_EDGE_FILTER_NAME,
+                                new StandardConfiguration((File) filter))));
         map.getOption(NODE_FILTER_PARAMETER).ifPresent(filter -> options.setOsmPbfNodeFilter(
                 new ConfiguredTaggableFilter(new StandardConfiguration((File) filter))));
         map.getOption(RELATION_FILTER_PARAMETER)
@@ -153,8 +156,10 @@ public class OsmPbfToAtlasSubCommand implements FlexibleSubCommand
                         new ConfiguredTaggableFilter(new StandardConfiguration((File) filter))));
         map.getOption(WAY_FILTER_PARAMETER).ifPresent(filter -> options.setOsmPbfWayFilter(
                 new ConfiguredTaggableFilter(new StandardConfiguration((File) filter))));
-        map.getOption(WAY_SECTION_FILTER_PARAMETER).ifPresent(filter -> options.setWaySectionFilter(
-                new ConfiguredTaggableFilter(new StandardConfiguration((File) filter))));
+        map.getOption(WAY_SECTION_FILTER_PARAMETER)
+                .ifPresent(filter -> options.setWaySectionFilter(new BridgeConfiguredFilter("",
+                        AtlasLoadingOption.ATLAS_WAY_SECTION_FILTER_NAME,
+                        new StandardConfiguration((File) filter))));
 
         // Set loading options
         ((Optional<Boolean>) map.getOption(LOAD_RELATIONS_PARAMETER))
