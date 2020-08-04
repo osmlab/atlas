@@ -36,13 +36,6 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
     public static final String DEFAULT = "default";
     public static final ConfiguredFilter NO_FILTER = new ConfiguredFilter();
     public static final String CONFIGURATION_ROOT = CONFIGURATION_GLOBAL + ".filters";
-    public static final String TYPE_JSON_PROPERTY_VALUE = "_filter";
-    public static final String NAME_JSON_PROPERTY = "name";
-    public static final String PREDICATE_JSON_PROPERTY = "predicate";
-    public static final String UNSAFE_PREDICATE_JSON_PROPERTY = "unsafePredicate";
-    public static final String IMPORTS_JSON_PROPERTY = "imports";
-    public static final String TAGGABLE_FILTER_JSON_PROPERTY = "taggableFilter";
-    public static final String NO_EXPANSION_JSON_PROPERTY = "noExpansion";
 
     private static final long serialVersionUID = 7503301238426719144L;
     private static final Logger logger = LoggerFactory.getLogger(ConfiguredFilter.class);
@@ -205,15 +198,15 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
     public JsonObject toJson()
     {
         final JsonObject filterObject = new JsonObject();
-        filterObject.addProperty("type", TYPE_JSON_PROPERTY_VALUE);
-        filterObject.addProperty(NAME_JSON_PROPERTY, this.name);
+        filterObject.addProperty("type", "_filter");
+        filterObject.addProperty("name", this.name);
         if (!this.predicate.isEmpty())
         {
-            filterObject.addProperty(PREDICATE_JSON_PROPERTY, this.predicate);
+            filterObject.addProperty("predicate", this.predicate);
         }
         if (!this.unsafePredicate.isEmpty())
         {
-            filterObject.addProperty(UNSAFE_PREDICATE_JSON_PROPERTY, this.unsafePredicate);
+            filterObject.addProperty("unsafePredicate", this.unsafePredicate);
         }
         final JsonArray importsArray = new JsonArray();
         if (!this.imports.isEmpty())
@@ -222,13 +215,13 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
             {
                 importsArray.add(new JsonPrimitive(importString));
             }
-            filterObject.add(IMPORTS_JSON_PROPERTY, importsArray);
+            filterObject.add("imports", importsArray);
         }
         if (!this.taggableFilter.isEmpty())
         {
-            filterObject.addProperty(TAGGABLE_FILTER_JSON_PROPERTY, this.taggableFilter);
+            filterObject.addProperty("taggableFilter", this.taggableFilter); // NOSONAR
         }
-        filterObject.addProperty(NO_EXPANSION_JSON_PROPERTY, this.noExpansion);
+        filterObject.addProperty("noExpansion", this.noExpansion);
 
         return filterObject;
     }
