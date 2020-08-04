@@ -1,13 +1,19 @@
 package org.openstreetmap.atlas.utilities.configuration;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
+import org.openstreetmap.atlas.geography.converters.WkbMultiPolygonConverter;
+import org.openstreetmap.atlas.geography.converters.WktMultiPolygonConverter;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.tags.filters.TaggableFilter;
+import org.openstreetmap.atlas.utilities.conversion.HexStringByteArrayConverter;
 import org.openstreetmap.atlas.utilities.conversion.StringToPredicateConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +40,13 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
     private static final String CONFIGURATION_PREDICATE_UNSAFE_COMMAND = "predicate.unsafeCommand";
     private static final String CONFIGURATION_PREDICATE_IMPORTS = "predicate.imports";
     private static final String CONFIGURATION_TAGGABLE_FILTER = "taggableFilter";
+    private static final String CONFIGURATION_WKT_FILTER = "geometry.wkt";
+    private static final String CONFIGURATION_WKB_FILTER = "geometry.wkb";
     private static final String CONFIGURATION_HINT_NO_EXPANSION = "hint.noExpansion";
+
+    private static final WktMultiPolygonConverter WKT_MULTI_POLYGON_CONVERTER = new WktMultiPolygonConverter();
+    private static final WkbMultiPolygonConverter WKB_MULTI_POLYGON_CONVERTER = new WkbMultiPolygonConverter();
+    private static final HexStringByteArrayConverter HEX_STRING_BYTE_ARRAY_CONVERTER = new HexStringByteArrayConverter();
 
     private final String name;
     private final String predicate;
@@ -43,6 +55,7 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
     private final List<String> imports;
     private final String taggableFilter;
     private final boolean noExpansion;
+    private final List<MultiPolygon> geometryBasedFilters;
 
     public static ConfiguredFilter from(final String name, final Configuration configuration)
     {
@@ -93,6 +106,12 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
                 CONFIGURATION_TAGGABLE_FILTER, "");
         this.noExpansion = readBoolean(configuration, reader, CONFIGURATION_HINT_NO_EXPANSION,
                 false);
+        this.geometryBasedFilters = readGeometries(configuration, reader);
+    }
+
+    public List<MultiPolygon> getGeometryBasedFilters()
+    {
+        return new ArrayList<>(this.geometryBasedFilters);
     }
 
     public boolean isNoExpansion()
@@ -110,6 +129,28 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
     public String toString()
     {
         return this.name;
+    }
+
+    private Predicate<AtlasEntity> geometryPredicate()
+    {
+        if (this.geometryBasedFilters.isEmpty())
+        {
+            return atlasEntity -> true;
+        }
+        else
+        {
+            return atlasEntity ->
+            {
+                for (final MultiPolygon multiPolygon : this.geometryBasedFilters)
+                {
+                    if (atlasEntity.intersects(multiPolygon))
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            };
+        }
     }
 
     private Predicate<AtlasEntity> getFilter()
@@ -134,8 +175,9 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
             final Predicate<AtlasEntity> localPredicate = localTemporaryPredicate;
             final TaggableFilter localTaggablefilter = TaggableFilter
                     .forDefinition(this.taggableFilter);
+            final Predicate<AtlasEntity> geometryPredicate = geometryPredicate();
             this.filter = atlasEntity -> localPredicate.test(atlasEntity)
-                    && localTaggablefilter.test(atlasEntity);
+                    && localTaggablefilter.test(atlasEntity) && geometryPredicate.test(atlasEntity);
         }
         return this.filter;
     }
@@ -151,5 +193,53 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
         {
             throw new CoreException("Unable to read \"{}\"", booleanName, e);
         }
+    }
+
+    private List<MultiPolygon> readGeometries(final Configuration configuration,
+            final ConfigurationReader reader)
+    {
+        final List<MultiPolygon> result = new ArrayList<>();
+        final String defaultValue = "N/A";
+        try
+        {
+            final List<String> values = reader.configurationValues(configuration,
+                    CONFIGURATION_WKT_FILTER, new ArrayList<>());
+            if (!values.isEmpty())
+            {
+                result.addAll(values.stream().map(WKT_MULTI_POLYGON_CONVERTER::backwardConvert)
+                        .collect(Collectors.toList()));
+            }
+        }
+        catch (final Exception e)
+        {
+            final String wktString = reader.configurationValue(configuration,
+                    CONFIGURATION_WKT_FILTER, defaultValue);
+            if (!defaultValue.equals(wktString))
+            {
+                result.add(WKT_MULTI_POLYGON_CONVERTER.backwardConvert(wktString));
+            }
+        }
+        try
+        {
+            final List<String> values = reader.configurationValues(configuration,
+                    CONFIGURATION_WKB_FILTER, new ArrayList<>());
+            if (!values.isEmpty())
+            {
+                result.addAll(values.stream().map(HEX_STRING_BYTE_ARRAY_CONVERTER::convert)
+                        .map(WKB_MULTI_POLYGON_CONVERTER::backwardConvert)
+                        .collect(Collectors.toList()));
+            }
+        }
+        catch (final Exception e)
+        {
+            final String wkbString = reader.configurationValue(configuration,
+                    CONFIGURATION_WKB_FILTER, defaultValue);
+            if (!defaultValue.equals(wkbString))
+            {
+                result.add(WKB_MULTI_POLYGON_CONVERTER
+                        .backwardConvert(HEX_STRING_BYTE_ARRAY_CONVERTER.convert(wkbString)));
+            }
+        }
+        return result;
     }
 }

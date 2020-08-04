@@ -2,11 +2,16 @@ package org.openstreetmap.atlas.utilities.configuration;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.geography.MultiPolygon;
+import org.openstreetmap.atlas.geography.MultiPolygonTest;
+import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
+import org.openstreetmap.atlas.tags.HighwayTag;
 import org.openstreetmap.atlas.utilities.collections.Maps;
+import org.openstreetmap.atlas.utilities.testing.TestAtlasHandler;
 
 /**
  * @author lcram
@@ -16,6 +21,12 @@ public class ConfiguredFilterTest
 {
     private static final String NAMESAKE_JSON = ConfiguredFilterTest.class.getSimpleName()
             + FileSuffix.JSON;
+
+    public Atlas getAtlasFrom(final String name, final Class<?> clazz)
+    {
+        return TestAtlasHandler.getAtlasFromJosmOsmResource(true,
+                new InputStreamResource(() -> clazz.getResourceAsStream(name)), name);
+    }
 
     @Test
     public void testFilter()
@@ -39,6 +50,74 @@ public class ConfiguredFilterTest
     }
 
     @Test
+    public void testGeometryFilter1()
+    {
+        final ConfiguredFilter geometryFilter = get("geometryFilter1");
+        final Atlas atlas = getAtlasFrom("geometryFilter.josm.osm");
+
+        // Make sure the MultiPolygon is the same in the Atlas Relation (origin of the test WKT and
+        // WKB # 2, and in the filter).
+        final MultiPolygon multiPolygon = getGeometryFrom("geometryFilter.josm.osm");
+        Assert.assertEquals(multiPolygon, geometryFilter.getGeometryBasedFilters().get(1));
+
+        final Edge motorway = atlas.edges(entity -> HighwayTag.MOTORWAY.equals(entity.highwayTag()))
+                .iterator().next();
+        Assert.assertTrue(geometryFilter.test(motorway));
+        final Edge trunk = atlas.edges(entity -> HighwayTag.TRUNK.equals(entity.highwayTag()))
+                .iterator().next();
+        Assert.assertFalse(geometryFilter.test(trunk));
+        final Edge primary = atlas.edges(entity -> HighwayTag.PRIMARY.equals(entity.highwayTag()))
+                .iterator().next();
+        Assert.assertTrue(geometryFilter.test(primary));
+        final Edge secondary = atlas
+                .edges(entity -> HighwayTag.SECONDARY.equals(entity.highwayTag())).iterator()
+                .next();
+        Assert.assertTrue(geometryFilter.test(secondary));
+    }
+
+    @Test
+    public void testGeometryFilter2()
+    {
+        final ConfiguredFilter geometryFilter = get("geometryFilter2");
+        final Atlas atlas = getAtlasFrom("geometryFilter.josm.osm");
+
+        final Edge motorway = atlas.edges(entity -> HighwayTag.MOTORWAY.equals(entity.highwayTag()))
+                .iterator().next();
+        Assert.assertTrue(geometryFilter.test(motorway));
+        final Edge trunk = atlas.edges(entity -> HighwayTag.TRUNK.equals(entity.highwayTag()))
+                .iterator().next();
+        Assert.assertFalse(geometryFilter.test(trunk));
+        final Edge primary = atlas.edges(entity -> HighwayTag.PRIMARY.equals(entity.highwayTag()))
+                .iterator().next();
+        Assert.assertTrue(geometryFilter.test(primary));
+        final Edge secondary = atlas
+                .edges(entity -> HighwayTag.SECONDARY.equals(entity.highwayTag())).iterator()
+                .next();
+        Assert.assertTrue(geometryFilter.test(secondary));
+    }
+
+    @Test
+    public void testGeometryFilter3()
+    {
+        final ConfiguredFilter geometryFilter = get("geometryFilter3");
+        final Atlas atlas = getAtlasFrom("geometryFilter.josm.osm");
+
+        final Edge motorway = atlas.edges(entity -> HighwayTag.MOTORWAY.equals(entity.highwayTag()))
+                .iterator().next();
+        Assert.assertTrue(geometryFilter.test(motorway));
+        final Edge trunk = atlas.edges(entity -> HighwayTag.TRUNK.equals(entity.highwayTag()))
+                .iterator().next();
+        Assert.assertFalse(geometryFilter.test(trunk));
+        final Edge primary = atlas.edges(entity -> HighwayTag.PRIMARY.equals(entity.highwayTag()))
+                .iterator().next();
+        Assert.assertTrue(geometryFilter.test(primary));
+        final Edge secondary = atlas
+                .edges(entity -> HighwayTag.SECONDARY.equals(entity.highwayTag())).iterator()
+                .next();
+        Assert.assertFalse(geometryFilter.test(secondary));
+    }
+
+    @Test
     public void testIsNoExpansion()
     {
         Assert.assertTrue(get("nothingGoesThroughFilter").isNoExpansion());
@@ -49,5 +128,15 @@ public class ConfiguredFilterTest
         final Configuration configuration = new StandardConfiguration(new InputStreamResource(
                 () -> ConfiguredFilterTest.class.getResourceAsStream(NAMESAKE_JSON)));
         return ConfiguredFilter.from(name, configuration);
+    }
+
+    private Atlas getAtlasFrom(final String name)
+    {
+        return getAtlasFrom(name, ConfiguredFilterTest.class);
+    }
+
+    private MultiPolygon getGeometryFrom(final String name)
+    {
+        return MultiPolygonTest.getFrom(name, ConfiguredFilterTest.class);
     }
 }

@@ -51,10 +51,16 @@ public class ConfigurationReader
         return configuration.get(this.root, defaultValue).value();
     }
 
+    public List<String> configurationValues(final Configuration configuration, final String key,
+            final List<String> defaultValue)
+    {
+        return configuration.get(configurationKey(key), defaultValue).value();
+    }
+
     public List<String> configurationValues(final Configuration configuration, final String key)
     {
         final List<String> defaults = Lists.newArrayList(CONFIGURATION_PATH_NAME_DEFAULT);
-        final List<String> result = configuration.get(configurationKey(key), defaults).value();
+        final List<String> result = configurationValues(configuration, key, defaults);
         if (defaults.equals(result))
         {
             throw new CoreException("Malformed configuration for {}", configurationKey(key));
