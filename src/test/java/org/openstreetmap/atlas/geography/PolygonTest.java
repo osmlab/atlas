@@ -634,7 +634,7 @@ public class PolygonTest
     }
 
     @Test
-    public void testIsApproximatelyNSidedTriangleWithDuplicates()
+    public void testIsApproximatelyNSidedTrianglesWithDuplicates()
     {
         // Test a perfect triangle with duplicate inner points
         // POLYGON ((-122.05576 37.332439, -122.05576 37.332439, -121.955918 37.255731, -121.955918
