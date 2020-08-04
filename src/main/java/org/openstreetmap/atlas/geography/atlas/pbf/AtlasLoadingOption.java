@@ -6,6 +6,7 @@ import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.tags.filters.ConfiguredTaggableFilter;
+import org.openstreetmap.atlas.utilities.configuration.ConfiguredFilter;
 import org.openstreetmap.atlas.utilities.configuration.StandardConfiguration;
 
 /**
@@ -46,7 +47,7 @@ public final class AtlasLoadingOption implements Serializable
     private boolean loadAtlasArea;
     private boolean loadAtlasNode;
     private boolean loadAtlasEdge;
-    private ConfiguredTaggableFilter edgeFilter = DEFAULT_EDGE_FILTER;
+    private ConfiguredFilter edgeFilter = DEFAULT_EDGE_FILTER;
     private ConfiguredTaggableFilter areaFilter = DEFAULT_AREA_FILTER;
     private ConfiguredTaggableFilter waySectionFilter = DEFAULT_WAY_SECTION_FILTER;
     private ConfiguredTaggableFilter osmPbfWayFilter = DEFAULT_OSM_PBF_WAY_FILTER;
