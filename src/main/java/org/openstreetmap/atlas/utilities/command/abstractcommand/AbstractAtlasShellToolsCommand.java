@@ -221,6 +221,26 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     public abstract String getSimpleDescription();
 
     /**
+     * Get the {@link PrintStream} for this command's err stream.
+     *
+     * @return the {@link PrintStream} for this command's err stream.
+     */
+    public PrintStream getStderrStream()
+    {
+        return this.errStream;
+    }
+
+    /**
+     * Get the {@link PrintStream} for this command's out stream.
+     *
+     * @return the {@link PrintStream} for this command's out stream.
+     */
+    public PrintStream getStdoutStream()
+    {
+        return this.outStream;
+    }
+
+    /**
      * Get a {@link TTYStringBuilder} that is configured to respect the color settings of stderr.
      *
      * @return the configured {@link TTYStringBuilder}
