@@ -1,6 +1,6 @@
 {
-    "osm-pbf-way":
-    {
-        "taggableFilter": "boundary->!||boundary->marker,national_park,protected_area||highway->*||railway->*||waterway->*&hires->!yes"
-    }
+    "filters": [
+        "boundary->!|boundary->marker,national_park,protected_area|highway->*|railway->*|waterway->*",
+        "hires->!yes"
+    ]
 }
