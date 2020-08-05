@@ -99,8 +99,8 @@ public class ConfiguredFilterTest
     @Test
     public void testGeometryFilter3()
     {
-        final ConfiguredFilter geometryFilter = get("", "geometryFilter3",
-                "ConfiguredFilterTestNoRoot.json");
+        final ConfiguredFilter geometryFilter = get("my.root", "geometryFilter3",
+                "ConfiguredFilterTestOtherRoot.json");
         final Atlas atlas = getAtlasFrom("geometryFilter.josm.osm");
 
         final Edge motorway = atlas.edges(entity -> HighwayTag.MOTORWAY.equals(entity.highwayTag()))
