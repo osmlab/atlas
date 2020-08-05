@@ -177,7 +177,7 @@ public class OsmPbfIngestTest
                 .getBoundary();
         final AtlasLoadingOption option = AtlasLoadingOption
                 .createOptionWithAllEnabled(countryBoundaryMap);
-        option.setEdgeFilter(new BridgeConfiguredFilter("", "",
+        option.setEdgeFilter(new BridgeConfiguredFilter("", "edge-filter",
                 new StandardConfiguration(new InputStreamResource(
                         () -> OsmPbfIngestTest.class.getResourceAsStream("edge-filter.json")))));
         Atlas atlas = new RawAtlasGenerator(pbfFile, option, boundary).build();
