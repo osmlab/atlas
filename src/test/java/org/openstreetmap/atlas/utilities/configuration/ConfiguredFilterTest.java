@@ -99,7 +99,8 @@ public class ConfiguredFilterTest
     @Test
     public void testGeometryFilter3()
     {
-        final ConfiguredFilter geometryFilter = get("geometryFilter3");
+        final ConfiguredFilter geometryFilter = get("", "geometryFilter3",
+                "ConfiguredFilterTestNoRoot.json");
         final Atlas atlas = getAtlasFrom("geometryFilter.josm.osm");
 
         final Edge motorway = atlas.edges(entity -> HighwayTag.MOTORWAY.equals(entity.highwayTag()))
@@ -125,9 +126,14 @@ public class ConfiguredFilterTest
 
     private ConfiguredFilter get(final String name)
     {
+        return get(ConfiguredFilter.CONFIGURATION_ROOT, name, NAMESAKE_JSON);
+    }
+
+    private ConfiguredFilter get(final String root, final String name, final String resourceName)
+    {
         final Configuration configuration = new StandardConfiguration(new InputStreamResource(
-                () -> ConfiguredFilterTest.class.getResourceAsStream(NAMESAKE_JSON)));
-        return ConfiguredFilter.from(name, configuration);
+                () -> ConfiguredFilterTest.class.getResourceAsStream(resourceName)));
+        return ConfiguredFilter.from(root, name, configuration);
     }
 
     private Atlas getAtlasFrom(final String name)

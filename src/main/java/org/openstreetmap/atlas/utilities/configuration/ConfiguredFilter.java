@@ -147,7 +147,12 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
             final Configuration configuration)
     {
         this.name = name;
-        final ConfigurationReader reader = new ConfigurationReader(root + "." + name);
+        String readerRoot = "";
+        if (root != null && !root.isEmpty())
+        {
+            readerRoot = root + ".";
+        }
+        final ConfigurationReader reader = new ConfigurationReader(readerRoot + name);
         this.predicate = reader.configurationValue(configuration, CONFIGURATION_PREDICATE_COMMAND,
                 "");
         this.unsafePredicate = reader.configurationValue(configuration,

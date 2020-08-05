@@ -124,7 +124,7 @@ public final class AtlasLoadingOption implements Serializable
 
     public static AtlasLoadingOption withNoFilter()
     {
-        final StringResource pbfFilter = new StringResource("{\"filter\":[]}");
+        final StringResource pbfFilter = new StringResource("{\"filters\":[]}");
         final ConfiguredTaggableFilter filter = new ConfiguredTaggableFilter(
                 new StandardConfiguration(pbfFilter));
         final AtlasLoadingOption atlasLoadingOption = new AtlasLoadingOption();

@@ -33,7 +33,6 @@ import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.tags.HighwayTag;
 import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
-import org.openstreetmap.atlas.tags.filters.ConfiguredTaggableFilter;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.configuration.StandardConfiguration;
 import org.openstreetmap.atlas.utilities.testing.OsmFileParser;
@@ -178,8 +177,8 @@ public class OsmPbfIngestTest
                 .getBoundary();
         final AtlasLoadingOption option = AtlasLoadingOption
                 .createOptionWithAllEnabled(countryBoundaryMap);
-        option.setEdgeFilter(
-                new ConfiguredTaggableFilter(new StandardConfiguration(new InputStreamResource(
+        option.setEdgeFilter(new BridgeConfiguredFilter("", "",
+                new StandardConfiguration(new InputStreamResource(
                         () -> OsmPbfIngestTest.class.getResourceAsStream("edge-filter.json")))));
         Atlas atlas = new RawAtlasGenerator(pbfFile, option, boundary).build();
         atlas = new RawAtlasSlicer(option, atlas).slice();
