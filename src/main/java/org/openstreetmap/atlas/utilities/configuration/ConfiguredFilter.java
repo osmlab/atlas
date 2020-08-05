@@ -132,6 +132,11 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
         return getDefaultFilter(CONFIGURATION_ROOT, configuration);
     }
 
+    public static boolean isPresent(final String name, final Configuration configuration)
+    {
+        return isPresent(CONFIGURATION_ROOT, name, configuration);
+    }
+
     public static boolean isPresent(final String root, final String name,
             final Configuration configuration)
     {
