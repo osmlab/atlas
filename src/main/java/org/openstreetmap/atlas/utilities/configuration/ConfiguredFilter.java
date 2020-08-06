@@ -57,45 +57,107 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
     private final boolean noExpansion;
     private final List<MultiPolygon> geometryBasedFilters;
 
-    public static ConfiguredFilter from(final String name, final Configuration configuration)
+    /**
+     * Create a new {@link ConfiguredFilter}.
+     * <p>
+     * For example, in the following json configuration:
+     * 
+     * <pre>
+     * {@code
+     * {
+     *     "my":
+     *     {
+     *         "conf":
+     *         {
+     *             "filter":
+     *             {
+     *                 "predicate": "....",
+     *                 "geometry.wkb":
+     *                 [
+     *                     "...", "..."
+     *                 ],
+     *                 "taggableFilter": "..."
+     *             }
+     *         }
+     *     }
+     * }
+     * }
+     * </pre>
+     * 
+     * the filter can be accessed using "my.conf" as root, and "filter" as name.
+     * 
+     * @param root
+     *            The root of the configuration hierarchy, where to search for the name of the
+     *            filter.
+     * @param name
+     *            The name of the filter, which is right under the root in the configuration
+     * @param configuration
+     *            The {@link Configuration} containing the configured filter
+     * @return The constructed {@link ConfiguredFilter}
+     */
+    public static ConfiguredFilter from(final String root, final String name,
+            final Configuration configuration)
     {
         if (DEFAULT.equals(name))
         {
-            return getDefaultFilter(configuration);
+            return getDefaultFilter(root, configuration);
         }
-        if (!isPresent(name, configuration))
+        if (!isPresent(root, name, configuration))
         {
             logger.warn(
                     "Attempted to create ConfiguredFilter called \"{}\" but it was not found. It will be swapped with default passthrough filter.",
                     name);
-            return getDefaultFilter(configuration);
+            return getDefaultFilter(root, configuration);
         }
-        return new ConfiguredFilter(name, configuration);
+        return new ConfiguredFilter(root, name, configuration);
     }
 
-    public static ConfiguredFilter getDefaultFilter(final Configuration configuration)
+    public static ConfiguredFilter from(final String name, final Configuration configuration)
     {
-        if (ConfiguredFilter.isPresent(DEFAULT, configuration))
+        return from(CONFIGURATION_ROOT, name, configuration);
+    }
+
+    public static ConfiguredFilter getDefaultFilter(final String root,
+            final Configuration configuration)
+    {
+        if (ConfiguredFilter.isPresent(root, DEFAULT, configuration))
         {
-            return new ConfiguredFilter(DEFAULT, configuration);
+            return new ConfiguredFilter(root, DEFAULT, configuration);
         }
         return NO_FILTER;
     }
 
+    public static ConfiguredFilter getDefaultFilter(final Configuration configuration)
+    {
+        return getDefaultFilter(CONFIGURATION_ROOT, configuration);
+    }
+
     public static boolean isPresent(final String name, final Configuration configuration)
     {
-        return new ConfigurationReader(CONFIGURATION_ROOT).isPresent(configuration, name);
+        return isPresent(CONFIGURATION_ROOT, name, configuration);
+    }
+
+    public static boolean isPresent(final String root, final String name,
+            final Configuration configuration)
+    {
+        return new ConfigurationReader(root).isPresent(configuration, name);
     }
 
     private ConfiguredFilter()
     {
-        this("NO_FILTER", new StandardConfiguration(new StringResource("{}")));
+        this(CONFIGURATION_ROOT, "NO_FILTER", new StandardConfiguration(new StringResource("{}")));
     }
 
-    private ConfiguredFilter(final String name, final Configuration configuration)
+    private ConfiguredFilter(final String root, final String name,
+            final Configuration configuration)
     {
         this.name = name;
-        final ConfigurationReader reader = new ConfigurationReader(CONFIGURATION_ROOT + "." + name);
+        String readerRoot = "";
+        if (root != null && !root.isEmpty())
+        {
+            readerRoot = root + ".";
+        }
+        final ConfigurationReader reader = new ConfigurationReader(readerRoot + name);
         this.predicate = reader.configurationValue(configuration, CONFIGURATION_PREDICATE_COMMAND,
                 "");
         this.unsafePredicate = reader.configurationValue(configuration,

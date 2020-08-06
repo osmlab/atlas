@@ -1,0 +1,13 @@
+{
+    "my-filter":
+    {
+        "taggableFilter": "highway->trunk",
+        "predicate":
+        {
+            "imports": [
+                "org.openstreetmap.atlas.geography.atlas.items"
+            ],
+            "command": "e instanceof Edge"
+        }
+    }
+}
