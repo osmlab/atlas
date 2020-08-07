@@ -21,7 +21,7 @@ import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
  */
 public class IsoCountryCodeCommand extends AbstractAtlasShellToolsCommand
 {
-    private static final int DEFAULT_MATCH_NUMBER = 3;
+    private static final int DEFAULT_MATCH_NUMBER = 10;
 
     private static final char NUMBER_OPTION_SHORT = 'n';
     private static final String NUMBER_OPTION_LONG = "number";

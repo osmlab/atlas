@@ -34,9 +34,12 @@ public class IsoCountryCodeCommandTest
         command.setNewErrStream(new PrintStream(errContent2));
         command.runSubcommand("FOO");
         Assert.assertEquals(
-                "Display country name 'FOO' had no exact matches. 3 closest matches are:\n"
+                "Display country name 'FOO' had no exact matches. 10 closest matches are:\n"
                         + "ST   STP   São Tomé & Príncipe\n" + "TG   TGO   Togo\n"
-                        + "IM   IMN   Isle of Man\n",
+                        + "IM   IMN   Isle of Man\n" + "CK   COK   Cook Islands\n"
+                        + "BF   BFA   Burkina Faso\n" + "PG   PNG   Papua New Guinea\n"
+                        + "AG   ATG   Antigua & Barbuda\n" + "PM   SPM   St. Pierre & Miquelon\n"
+                        + "LA   LAO   Laos\n" + "FO   FRO   Faroe Islands\n",
                 outContent2.toString());
         Assert.assertEquals("", errContent2.toString());
 
@@ -68,9 +71,12 @@ public class IsoCountryCodeCommandTest
         command.setNewErrStream(new PrintStream(errContent5));
         command.runSubcommand("Martin");
         Assert.assertEquals(
-                "Display country name 'Martin' had no exact matches. 3 closest matches are:\n"
+                "Display country name 'Martin' had no exact matches. 10 closest matches are:\n"
                         + "MF   MAF   St. Martin\n" + "SM   SMR   San Marino\n"
-                        + "SX   SXM   Sint Maarten\n",
+                        + "SX   SXM   Sint Maarten\n" + "ML   MLI   Mali\n" + "BH   BHR   Bahrain\n"
+                        + "MP   MNP   Northern Mariana Islands\n"
+                        + "SJ   SJM   Svalbard & Jan Mayen\n" + "HT   HTI   Haiti\n"
+                        + "VG   VGB   British Virgin Islands\n" + "IM   IMN   Isle of Man\n",
                 outContent5.toString());
         Assert.assertEquals("", errContent5.toString());
 
@@ -79,7 +85,7 @@ public class IsoCountryCodeCommandTest
         command = new IsoCountryCodeCommand();
         command.setNewOutStream(new PrintStream(outContent6));
         command.setNewErrStream(new PrintStream(errContent6));
-        command.runSubcommand("Martin", "USA", "United Kingdom");
+        command.runSubcommand("Martin", "USA", "United Kingdom", "-n3");
         Assert.assertEquals(
                 "Display country name 'Martin' had no exact matches. 3 closest matches are:\n"
                         + "MF   MAF   St. Martin\n" + "SM   SMR   San Marino\n"
@@ -95,7 +101,7 @@ public class IsoCountryCodeCommandTest
         command = new IsoCountryCodeCommand();
         command.setNewOutStream(new PrintStream(outContent7));
         command.setNewErrStream(new PrintStream(errContent7));
-        command.runSubcommand("usA");
+        command.runSubcommand("usA", "-n3");
         Assert.assertEquals(
                 "Display country name 'usA' had no exact matches. 3 closest matches are:\n"
                         + "UM   UMI   U.S. Outlying Islands\n" + "CU   CUB   Cuba\n"
