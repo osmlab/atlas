@@ -30,7 +30,8 @@ public final class IsoCountryFuzzyMatcher
      * @param number
      *            the number of matches to show
      * @param displayCountry
-     *            the display country name, e.g. "united stats"
+     *            the display country name, e.g. "united stats" (which does not match any display
+     *            country)
      * @return an Optional containing the IsoCountry if present
      */
     public static List<IsoCountry> forDisplayCountryTopMatches(final int number,
@@ -64,6 +65,9 @@ public final class IsoCountryFuzzyMatcher
         return new ArrayList<>();
     }
 
+    /*
+     * This algorithm could definitely be improved for cases with multi-word country matching.
+     */
     private static List<String> closestIsoCountries(final int number, final String displayCountry)
     {
         if (number <= 0 || number > IsoCountry.ALL_DISPLAY_COUNTRIES.size())
