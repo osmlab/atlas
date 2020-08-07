@@ -193,6 +193,16 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     }
 
     /**
+     * Get the {@link PrintStream} for this command's err stream.
+     *
+     * @return the {@link PrintStream} for this command's err stream.
+     */
+    public PrintStream getErrStream()
+    {
+        return this.errStream;
+    }
+
+    /**
      * Get the {@link FileSystem} for this command.
      *
      * @return the {@link FileSystem} for this command.
@@ -204,12 +214,22 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
 
     /**
      * Get the {@link InputStream} for this command.
-     * 
+     *
      * @return the {@link InputStream} for this command.
      */
     public InputStream getInStream()
     {
         return this.inStream;
+    }
+
+    /**
+     * Get the {@link PrintStream} for this command's out stream.
+     *
+     * @return the {@link PrintStream} for this command's out stream.
+     */
+    public PrintStream getOutStream()
+    {
+        return this.outStream;
     }
 
     /**
@@ -219,6 +239,26 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      * @return the description
      */
     public abstract String getSimpleDescription();
+
+    /**
+     * Get a {@link TTYStringBuilder} that is configured to respect the color settings of stderr.
+     *
+     * @return the configured {@link TTYStringBuilder}
+     */
+    public TTYStringBuilder getTTYStringBuilderForStderr()
+    {
+        return new TTYStringBuilder(this.useColorStderr);
+    }
+
+    /**
+     * Get a {@link TTYStringBuilder} that is configured to respect the color settings of stdout.
+     *
+     * @return the configured {@link TTYStringBuilder}
+     */
+    public TTYStringBuilder getTTYStringBuilderForStdout()
+    {
+        return new TTYStringBuilder(this.useColorStdout);
+    }
 
     /**
      * Register any desired manual page sections. An OPTIONS section will be automatically
@@ -382,7 +422,7 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      * Set a new {@link InputStream} for this command. Implementations should respect the set
      * {@link InputStream} when reading input from the user. This is particularly useful for
      * unit-testing, where we may want to inject arbitrary input for testing purposes.
-     * 
+     *
      * @param inStream
      *            the new {@link InputStream} to use
      */
@@ -801,16 +841,6 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     int getParserContext()
     {
         return this.parser.getContext();
-    }
-
-    TTYStringBuilder getTTYStringBuilderForStderr()
-    {
-        return new TTYStringBuilder(this.useColorStderr);
-    }
-
-    TTYStringBuilder getTTYStringBuilderForStdout()
-    {
-        return new TTYStringBuilder(this.useColorStdout);
     }
 
     Optional<String> getUnaryArgument(final String hint)
