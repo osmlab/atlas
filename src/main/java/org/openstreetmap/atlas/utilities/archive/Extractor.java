@@ -8,7 +8,6 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Collections;
 
-import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.io.FileUtils;
@@ -88,10 +87,6 @@ public final class Extractor extends AbstractArchiverOrExtractor<Extractor>
      * @param outputDirectory
      *            the destination directory for any extraction operations
      * @return the Extractor instance; useful for chaining method calls
-     * @throws ArchiveException
-     *             if something compression related failed
-     * @throws IOException
-     *             if something I/O related failed
      */
     public static Extractor extractZipArchive(final File outputDirectory)
     {
@@ -227,7 +222,7 @@ public final class Extractor extends AbstractArchiverOrExtractor<Extractor>
         return this;
     }
 
-    public Extractor extract(final Path inputPath) throws ArchiveException, IOException
+    public Extractor extract(final Path inputPath) throws IOException
     {
         if (inputPath == null)
         {
