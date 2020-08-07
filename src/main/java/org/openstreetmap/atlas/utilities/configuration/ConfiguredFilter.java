@@ -37,6 +37,18 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
     public static final ConfiguredFilter NO_FILTER = new ConfiguredFilter();
     public static final String CONFIGURATION_ROOT = CONFIGURATION_GLOBAL + ".filters";
 
+    /*
+     * JSON constants for the toJson method. We should probably handle this better so that we do not
+     * duplicate String literals.
+     */
+    public static final String TYPE_JSON_PROPERTY_VALUE = "_filter";
+    public static final String NAME_JSON_PROPERTY = "name";
+    public static final String PREDICATE_JSON_PROPERTY = "predicate";
+    public static final String UNSAFE_PREDICATE_JSON_PROPERTY = "unsafePredicate";
+    public static final String IMPORTS_JSON_PROPERTY = "imports";
+    public static final String TAGGABLE_FILTER_JSON_PROPERTY = "taggableFilter";
+    public static final String NO_EXPANSION_JSON_PROPERTY = "noExpansion";
+
     private static final long serialVersionUID = 7503301238426719144L;
     private static final Logger logger = LoggerFactory.getLogger(ConfiguredFilter.class);
     private static final String CONFIGURATION_PREDICATE_COMMAND = "predicate.command";
@@ -46,11 +58,9 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
     private static final String CONFIGURATION_WKT_FILTER = "geometry.wkt";
     private static final String CONFIGURATION_WKB_FILTER = "geometry.wkb";
     private static final String CONFIGURATION_HINT_NO_EXPANSION = "hint.noExpansion";
-
     private static final WktMultiPolygonConverter WKT_MULTI_POLYGON_CONVERTER = new WktMultiPolygonConverter();
     private static final WkbMultiPolygonConverter WKB_MULTI_POLYGON_CONVERTER = new WkbMultiPolygonConverter();
     private static final HexStringByteArrayConverter HEX_STRING_BYTE_ARRAY_CONVERTER = new HexStringByteArrayConverter();
-
     private final String name;
     private final String predicate;
     private final String unsafePredicate;
@@ -198,15 +208,15 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
     public JsonObject toJson()
     {
         final JsonObject filterObject = new JsonObject();
-        filterObject.addProperty("type", "_filter");
-        filterObject.addProperty("name", this.name);
+        filterObject.addProperty("type", TYPE_JSON_PROPERTY_VALUE);
+        filterObject.addProperty(NAME_JSON_PROPERTY, this.name);
         if (!this.predicate.isEmpty())
         {
-            filterObject.addProperty("predicate", this.predicate);
+            filterObject.addProperty(PREDICATE_JSON_PROPERTY, this.predicate);
         }
         if (!this.unsafePredicate.isEmpty())
         {
-            filterObject.addProperty("unsafePredicate", this.unsafePredicate);
+            filterObject.addProperty(UNSAFE_PREDICATE_JSON_PROPERTY, this.unsafePredicate);
         }
         final JsonArray importsArray = new JsonArray();
         if (!this.imports.isEmpty())
@@ -215,13 +225,13 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
             {
                 importsArray.add(new JsonPrimitive(importString));
             }
-            filterObject.add("imports", importsArray);
+            filterObject.add(IMPORTS_JSON_PROPERTY, importsArray);
         }
         if (!this.taggableFilter.isEmpty())
         {
-            filterObject.addProperty("taggableFilter", this.taggableFilter); // NOSONAR
+            filterObject.addProperty(TAGGABLE_FILTER_JSON_PROPERTY, this.taggableFilter); // NOSONAR
         }
-        filterObject.addProperty("noExpansion", this.noExpansion);
+        filterObject.addProperty(NO_EXPANSION_JSON_PROPERTY, this.noExpansion);
 
         return filterObject;
     }
