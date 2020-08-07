@@ -186,7 +186,8 @@ public final class Extractor extends AbstractArchiverOrExtractor<Extractor>
 
                 if (current.getName().contains(".."))
                 {
-                    throw new CoreException("Using parent directory unallowed");
+                    throw new CoreException("Using parent directory not allowed: {}",
+                            current.getName());
                 }
 
                 if (shouldSkip(outputFile))
