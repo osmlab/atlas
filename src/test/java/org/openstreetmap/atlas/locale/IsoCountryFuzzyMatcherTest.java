@@ -14,7 +14,7 @@ public class IsoCountryFuzzyMatcherTest
     @Test
     public void testFuzzyMatching()
     {
-        Assert.assertEquals(Arrays.asList("Sweden", "Cambodia", "Yemen"),
+        Assert.assertEquals(Arrays.asList("Sweden", "British Indian Ocean Territory", "Cape Verde"),
                 IsoCountryFuzzyMatcher.forDisplayCountryTopMatches(3, "abcdefg").stream()
                         .map(IsoCountry::getDisplayCountry).collect(Collectors.toList()));
     }
