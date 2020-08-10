@@ -10,18 +10,30 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
+import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.PolyLine;
+import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEntity;
 import org.openstreetmap.atlas.geography.atlas.complete.PrettifyStringFormat;
+import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.geography.atlas.items.LineItem;
+import org.openstreetmap.atlas.geography.atlas.items.LocationItem;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.tags.filters.TaggableFilter;
 import org.openstreetmap.atlas.utilities.collections.Sets;
@@ -355,10 +367,25 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                 entityMatchesAllCriteriaSoFar = false;
             }
 
-            if (entityMatchesAllCriteriaSoFar && !this.wkts.isEmpty()
-                    && !this.wkts.contains(entity.toWkt()))
+            // if (entityMatchesAllCriteriaSoFar && !this.wkts.isEmpty()
+            // && !this.wkts.contains(entity.toWkt()))
+            // {
+            // entityMatchesAllCriteriaSoFar = false;
+            // }
+            if (entityMatchesAllCriteriaSoFar && !this.wkts.isEmpty())
             {
-                entityMatchesAllCriteriaSoFar = false;
+                boolean matchedAtLeastOneWktSnippet = false;
+                for (final String wkt : this.wkts)
+                {
+                    if (entityContainsWktSnippet(entity, wkt))
+                    {
+                        matchedAtLeastOneWktSnippet = true;
+                    }
+                }
+                if (!matchedAtLeastOneWktSnippet)
+                {
+                    entityMatchesAllCriteriaSoFar = false;
+                }
             }
             if (entityMatchesAllCriteriaSoFar && this.predicate != null
                     && !this.predicate.test(entity))
@@ -431,6 +458,96 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                 }
             }
         }
+    }
+
+    private boolean entityContainsWktSnippet(final AtlasEntity entity, final String wkt)
+    {
+        final WKTReader reader = new WKTReader();
+        /*
+         * Auto-false for relations for now. TODO we should loop over members and check those.
+         */
+        if (entity.getType() == ItemType.RELATION)
+        {
+            return false;
+        }
+        final Geometry geometry;
+        try
+        {
+            geometry = reader.read(wkt);
+        }
+        catch (final ParseException exception)
+        {
+            throw new CoreException("Could not parse WKT", exception);
+        }
+        Location inputLocation = null;
+        PolyLine inputPolyline = null;
+        if (geometry instanceof Point)
+        {
+            inputLocation = new JtsPointConverter().backwardConvert((Point) geometry);
+        }
+        else if (geometry instanceof LineString)
+        {
+            inputPolyline = new JtsPolyLineConverter().backwardConvert((LineString) geometry);
+        }
+        else
+        {
+            throw new CoreException("Only supporting points and lines");
+        }
+
+        boolean matchedSomething;
+        if (entity.getType() == ItemType.POINT || entity.getType() == ItemType.NODE)
+        {
+            final Location location = ((LocationItem) entity).getLocation();
+            if (inputLocation != null)
+            {
+                matchedSomething = location.equals(inputLocation);
+                if (matchedSomething)
+                {
+                    return true;
+                }
+            }
+        }
+        else if (entity.getType() == ItemType.LINE || entity.getType() == ItemType.EDGE)
+        {
+            final PolyLine line = ((LineItem) entity).asPolyLine();
+            if (inputLocation != null)
+            {
+                matchedSomething = line.contains(inputLocation);
+                if (matchedSomething)
+                {
+                    return true;
+                }
+            }
+            if (inputPolyline != null)
+            {
+                matchedSomething = line.overlapsShapeOf(inputPolyline);
+                if (matchedSomething)
+                {
+                    return true;
+                }
+            }
+        }
+        else if (entity.getType() == ItemType.AREA)
+        {
+            final Polygon polygon = ((Area) entity).asPolygon();
+            if (inputLocation != null)
+            {
+                matchedSomething = polygon.contains(inputLocation);
+                if (matchedSomething)
+                {
+                    return true;
+                }
+            }
+            if (inputPolyline != null)
+            {
+                matchedSomething = polygon.overlapsShapeOf(inputPolyline);
+                if (matchedSomething)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private Predicate<AtlasEntity> getPredicateFromString(final String string)
