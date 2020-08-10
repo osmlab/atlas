@@ -1,7 +1,7 @@
 package org.openstreetmap.atlas.utilities.command.subcommands;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -98,14 +98,16 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         CountryBoundaryMap countryBoundaryMap = null;
         if (this.optionAndArgumentDelegate.getParserContext() == SHARDING_CONTEXT)
         {
-            sharding = Sharding.forString(
-                    this.optionAndArgumentDelegate.getOptionArgument(SHARDING_OPTION_LONG)
-                            .orElseThrow(AtlasShellToolsException::new));
+            sharding = Sharding
+                    .forString(
+                            this.optionAndArgumentDelegate.getOptionArgument(SHARDING_OPTION_LONG)
+                                    .orElseThrow(AtlasShellToolsException::new),
+                            this.getFileSystem());
         }
         else if (this.optionAndArgumentDelegate.getParserContext() == COUNTRY_BOUNDARY_CONTEXT)
         {
             final Optional<CountryBoundaryMap> mapOptional = loadCountryBoundaryMap();
-            if (!mapOptional.isPresent())
+            if (mapOptional.isEmpty())
             {
                 this.outputDelegate.printlnErrorMessage("failed to load country boundary");
                 return 1;
@@ -174,7 +176,8 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         final Optional<CountryBoundaryMap> countryBoundaryMap;
         final File boundaryMapFile = new File(
                 this.optionAndArgumentDelegate.getOptionArgument(COUNTRY_BOUNDARY_OPTION_LONG)
-                        .orElseThrow(AtlasShellToolsException::new));
+                        .orElseThrow(AtlasShellToolsException::new),
+                this.getFileSystem());
         if (!boundaryMapFile.exists())
         {
             this.outputDelegate.printlnErrorMessage(
@@ -345,13 +348,12 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         {
             throw new AtlasShellToolsException();
         }
-        final Path inputPath = Paths.get(path);
+        final Path inputPath = this.getFileSystem().getPath(path);
         if (inputPath.toString().startsWith("~"))
         {
             this.outputDelegate.printlnWarnMessage("the '~' was not expanded by your shell");
         }
-        if (!inputPath.toAbsolutePath().toFile().canRead()
-                || !inputPath.toAbsolutePath().toFile().isFile())
+        if (!Files.isReadable(inputPath) || !Files.isRegularFile(inputPath))
         {
             this.outputDelegate.printlnErrorMessage(
                     inputPath.toAbsolutePath().toString() + " is not a readable file");
@@ -359,7 +361,7 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         }
         final List<String> wktOrShardList = new ArrayList<>();
         final StringResource resource = new StringResource();
-        resource.copyFrom(new File(inputPath.toAbsolutePath().toString()));
+        resource.copyFrom(new File(inputPath.toAbsolutePath().toString(), this.getFileSystem()));
         final String rawText = resource.all();
 
         final String[] split = rawText.split(System.getProperty("line.separator"));
