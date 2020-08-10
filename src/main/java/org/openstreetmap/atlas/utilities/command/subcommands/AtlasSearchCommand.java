@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.locationtech.jts.io.ParseException;
@@ -30,6 +31,7 @@ import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgume
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.subcommands.templates.AtlasLoaderCommand;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
+import org.openstreetmap.atlas.utilities.conversion.StringToPredicateConverter;
 
 /**
  * Search atlases for some given feature identifiers or properties, with various options and
@@ -82,6 +84,10 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     private static final String ID_OPTION_DESCRIPTION = "A comma separated list of Atlas ids for which to search.";
     private static final String ID_OPTION_HINT = "ids";
 
+    private static final String PREDICATE_OPTION_LONG = "predicate";
+    private static final String PREDICATE_OPTION_DESCRIPTION = "The feature filter predicate for the search. See PREDICATE section for details.";
+    private static final String PREDICATE_OPTION_HINT = "groovy-code";
+
     private static final String OSMID_OPTION_LONG = "osmid";
     private static final String OSMID_OPTION_DESCRIPTION = "A comma separated list of OSM ids for which to search.";
     private static final String OSMID_OPTION_HINT = "osmids";
@@ -94,6 +100,11 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     private static final Integer EDGE_ONLY_CONTEXT = 4;
     private static final Integer NODE_ONLY_CONTEXT = 5;
 
+    private static final List<String> importsWhitelist = Arrays.asList(
+            "org.openstreetmap.atlas.geography.atlas.items",
+            "org.openstreetmap.atlas.tags.annotations.validation", "org.openstreetmap.atlas.tags",
+            "org.openstreetmap.atlas.geography");
+
     private Set<String> wkts;
     private TaggableFilter taggableFilter;
     private Set<Long> startNodeIds;
@@ -101,6 +112,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     private Set<Long> inEdgeIds;
     private Set<Long> outEdgeIds;
     private Set<Long> parentRelations;
+    private Predicate<AtlasEntity> predicate;
 
     private Set<Long> ids;
     private Set<Long> osmIds;
@@ -186,6 +198,8 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                 .getResourceAsStream("AtlasSearchCommandDescriptionSection.txt"));
         addManualPageSection("EXAMPLES", AtlasSearchCommand.class
                 .getResourceAsStream("AtlasSearchCommandExamplesSection.txt"));
+        addManualPageSection("PREDICATE", AtlasSearchCommand.class
+                .getResourceAsStream("AtlasSearchCommandPredicateSection.txt"));
         super.registerManualPageSections();
     }
 
@@ -214,6 +228,8 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                 PARENTRELATIONS_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
                 PARENTRELATIONS_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT,
                 NODE_ONLY_CONTEXT);
+        registerOptionWithRequiredArgument(PREDICATE_OPTION_LONG, PREDICATE_OPTION_DESCRIPTION,
+                OptionOptionality.OPTIONAL, PREDICATE_OPTION_HINT);
 
         registerOptionWithRequiredArgument(ID_OPTION_LONG, ID_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, ID_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT,
@@ -272,6 +288,12 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         this.parentRelations = this.optionAndArgumentDelegate
                 .getOptionArgument(PARENTRELATIONS_OPTION_LONG, this::parseCommaSeparatedLongs)
                 .orElse(new HashSet<>());
+        if (this.optionAndArgumentDelegate.hasOption(PREDICATE_OPTION_LONG))
+        {
+            this.predicate = this.optionAndArgumentDelegate
+                    .getOptionArgument(PREDICATE_OPTION_LONG, this::getPredicateFromString)
+                    .orElse(null);
+        }
 
         /*
          * Handle identifier searches.
@@ -335,6 +357,11 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
 
             if (entityMatchesAllCriteriaSoFar && !this.wkts.isEmpty()
                     && !this.wkts.contains(entity.toWkt()))
+            {
+                entityMatchesAllCriteriaSoFar = false;
+            }
+            if (entityMatchesAllCriteriaSoFar && this.predicate != null
+                    && !this.predicate.test(entity))
             {
                 entityMatchesAllCriteriaSoFar = false;
             }
@@ -404,6 +431,12 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                 }
             }
         }
+    }
+
+    private Predicate<AtlasEntity> getPredicateFromString(final String string)
+    {
+        return new StringToPredicateConverter<AtlasEntity>()
+                .withAddedStarImportPackages(importsWhitelist).convert(string);
     }
 
     private Set<String> parseColonSeparatedWkts(final String wktString)
