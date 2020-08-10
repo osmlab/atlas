@@ -20,7 +20,7 @@ public class WKTShardCommandTest
         final ByteArrayOutputStream outContent1a = new ByteArrayOutputStream();
         WKTShardCommand command = new WKTShardCommand();
         command.setNewOutStream(new PrintStream(outContent1a));
-        command.runSubcommand("--slippy=10", "POINT (0 0)");
+        command.runSubcommand("--sharding=slippy@10", "POINT (0 0)");
         Assert.assertEquals(
                 "POINT (0 0) covered by:\n" + "[SlippyTile: zoom = 10, x = 512, y = 512]\n",
                 outContent1a.toString());
@@ -28,7 +28,7 @@ public class WKTShardCommandTest
         final ByteArrayOutputStream outContent2a = new ByteArrayOutputStream();
         command = new WKTShardCommand();
         command.setNewOutStream(new PrintStream(outContent2a));
-        command.runSubcommand("--slippy=1", "0-0-0");
+        command.runSubcommand("--sharding=slippy@1", "0-0-0");
         Assert.assertEquals(
                 "0-0-0 contains or intersects:\n" + "[SlippyTile: zoom = 1, x = 0, y = 0]\n"
                         + "[SlippyTile: zoom = 1, x = 1, y = 0]\n"
@@ -39,7 +39,7 @@ public class WKTShardCommandTest
         final ByteArrayOutputStream outContent3a = new ByteArrayOutputStream();
         command = new WKTShardCommand();
         command.setNewOutStream(new PrintStream(outContent3a));
-        command.runSubcommand("--slippy=1", "LINESTRING (1 1, 2 2)");
+        command.runSubcommand("--sharding=slippy@1", "LINESTRING (1 1, 2 2)");
         Assert.assertEquals(
                 "LINESTRING (1 1, 2 2) intersects:\n" + "[SlippyTile: zoom = 1, x = 1, y = 0]\n",
                 outContent3a.toString());
@@ -54,7 +54,8 @@ public class WKTShardCommandTest
             final ByteArrayOutputStream outContent2 = new ByteArrayOutputStream();
             command = new WKTShardCommand();
             command.setNewOutStream(new PrintStream(outContent2));
-            command.runSubcommand("--tree=" + shardingTree.getAbsolutePathString(), "POINT (1 1)");
+            command.runSubcommand("--sharding=dynamic@" + shardingTree.getAbsolutePathString(),
+                    "POINT (1 1)");
             Assert.assertEquals(
                     "POINT (1 1) covered by:\n" + "[SlippyTile: zoom = 1, x = 1, y = 0]\n",
                     outContent2.toString());
@@ -107,7 +108,8 @@ public class WKTShardCommandTest
             final ByteArrayOutputStream outContent1a = new ByteArrayOutputStream();
             final WKTShardCommand command = new WKTShardCommand();
             command.setNewOutStream(new PrintStream(outContent1a));
-            command.runSubcommand("--slippy=10", "--input=" + inputText.getAbsolutePathString());
+            command.runSubcommand("--sharding=slippy@10",
+                    "--input=" + inputText.getAbsolutePathString());
             Assert.assertEquals(
                     "POINT (0 0) covered by:\n" + "[SlippyTile: zoom = 10, x = 512, y = 512]\n"
                             + "\n" + "POINT (1 1) covered by:\n"
@@ -126,7 +128,7 @@ public class WKTShardCommandTest
         final ByteArrayOutputStream errContent1a = new ByteArrayOutputStream();
         final WKTShardCommand command = new WKTShardCommand();
         command.setNewErrStream(new PrintStream(errContent1a));
-        command.runSubcommand("--slippy=10", "POINT (((");
+        command.runSubcommand("--sharding=slippy@10", "POINT (((");
         Assert.assertEquals("wkt-shard: error: unable to parse POINT ((( as WKT or shard string\n",
                 errContent1a.toString());
     }

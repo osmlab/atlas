@@ -46,17 +46,9 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
 {
     private static final Logger logger = LoggerFactory.getLogger(WKTShardCommand.class);
 
-    private static final String TREE_OPTION_LONG = "tree";
-    private static final String TREE_OPTION_DESCRIPTION = "The path to the dynamic sharding tree file. E.g. /Users/example/path/to/tree.txt";
-    private static final String TREE_OPTION_HINT = "path";
-
-    private static final String SLIPPY_OPTION_LONG = "slippy";
-    private static final String SLIPPY_OPTION_DESCRIPTION = "The slippy tile zoom level for the sharding.";
-    private static final String SLIPPY_OPTION_HINT = "zoom";
-
-    private static final String GEOHASH_OPTION_LONG = "geohash";
-    private static final String GEOHASH_OPTION_DESCRIPTION = "The geohash precision level for the sharding.";
-    private static final String GEOHASH_OPTION_HINT = "precision";
+    private static final String SHARDING_OPTION_LONG = "sharding";
+    private static final String SHARDING_OPTION_DESCRIPTION = "The sharding to use, e.g. dynamic@/Users/foo/my-tree.txt";
+    private static final String SHARDING_OPTION_HINT = "type@parameter";
 
     private static final String INPUT_FILE_OPTION_LONG = "input";
     private static final String INPUT_FILE_OPTION_DESCRIPTION = "An input file from which to source the WKT entities. See DESCRIPTION section for details.";
@@ -66,10 +58,8 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
     private static final String COUNTRY_BOUNDARY_OPTION_DESCRIPTION = "A boundary file to use for intersection checks. See DESCRIPTION section for details.";
     private static final String COUNTRY_BOUNDARY_OPTION_HINT = "boundary-file";
 
-    private static final Integer TREE_CONTEXT = 3;
-    private static final Integer SLIPPY_CONTEXT = 4;
-    private static final Integer GEOHASH_CONTEXT = 5;
-    private static final Integer COUNTRY_BOUNDARY_CONTEXT = 6;
+    private static final Integer SHARDING_CONTEXT = 3;
+    private static final Integer COUNTRY_BOUNDARY_CONTEXT = 4;
 
     private static final String INPUT_WKT_SHARD = "wkt|shard";
 
@@ -106,22 +96,10 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
 
         Sharding sharding = null;
         CountryBoundaryMap countryBoundaryMap = null;
-        if (this.optionAndArgumentDelegate.getParserContext() == TREE_CONTEXT)
+        if (this.optionAndArgumentDelegate.getParserContext() == SHARDING_CONTEXT)
         {
             sharding = Sharding.forString(
-                    "dynamic@" + this.optionAndArgumentDelegate.getOptionArgument(TREE_OPTION_LONG)
-                            .orElseThrow(AtlasShellToolsException::new));
-        }
-        else if (this.optionAndArgumentDelegate.getParserContext() == SLIPPY_CONTEXT)
-        {
-            sharding = Sharding.forString(
-                    "slippy@" + this.optionAndArgumentDelegate.getOptionArgument(SLIPPY_OPTION_LONG)
-                            .orElseThrow(AtlasShellToolsException::new));
-        }
-        else if (this.optionAndArgumentDelegate.getParserContext() == GEOHASH_CONTEXT)
-        {
-            sharding = Sharding.forString("geohash@"
-                    + this.optionAndArgumentDelegate.getOptionArgument(GEOHASH_OPTION_LONG)
+                    this.optionAndArgumentDelegate.getOptionArgument(SHARDING_OPTION_LONG)
                             .orElseThrow(AtlasShellToolsException::new));
         }
         else if (this.optionAndArgumentDelegate.getParserContext() == COUNTRY_BOUNDARY_CONTEXT)
@@ -179,16 +157,12 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
     public void registerOptionsAndArguments()
     {
         registerArgument(INPUT_WKT_SHARD, ArgumentArity.VARIADIC, ArgumentOptionality.OPTIONAL,
-                TREE_CONTEXT, SLIPPY_CONTEXT, GEOHASH_CONTEXT, COUNTRY_BOUNDARY_CONTEXT);
+                SHARDING_CONTEXT, COUNTRY_BOUNDARY_CONTEXT);
         registerOptionWithRequiredArgument(INPUT_FILE_OPTION_LONG, INPUT_FILE_OPTION_DESCRIPTION,
-                OptionOptionality.OPTIONAL, INPUT_FILE_OPTION_HINT, TREE_CONTEXT, SLIPPY_CONTEXT,
-                GEOHASH_CONTEXT, COUNTRY_BOUNDARY_CONTEXT);
-        registerOptionWithRequiredArgument(TREE_OPTION_LONG, TREE_OPTION_DESCRIPTION,
-                OptionOptionality.REQUIRED, TREE_OPTION_HINT, TREE_CONTEXT);
-        registerOptionWithRequiredArgument(SLIPPY_OPTION_LONG, SLIPPY_OPTION_DESCRIPTION,
-                OptionOptionality.REQUIRED, SLIPPY_OPTION_HINT, SLIPPY_CONTEXT);
-        registerOptionWithRequiredArgument(GEOHASH_OPTION_LONG, GEOHASH_OPTION_DESCRIPTION,
-                OptionOptionality.REQUIRED, GEOHASH_OPTION_HINT, GEOHASH_CONTEXT);
+                OptionOptionality.OPTIONAL, INPUT_FILE_OPTION_HINT, SHARDING_CONTEXT,
+                COUNTRY_BOUNDARY_CONTEXT);
+        registerOptionWithRequiredArgument(SHARDING_OPTION_LONG, SHARDING_OPTION_DESCRIPTION,
+                OptionOptionality.REQUIRED, SHARDING_OPTION_HINT, SHARDING_CONTEXT);
         registerOptionWithRequiredArgument(COUNTRY_BOUNDARY_OPTION_LONG,
                 COUNTRY_BOUNDARY_OPTION_DESCRIPTION, OptionOptionality.REQUIRED,
                 COUNTRY_BOUNDARY_OPTION_HINT, COUNTRY_BOUNDARY_CONTEXT);
