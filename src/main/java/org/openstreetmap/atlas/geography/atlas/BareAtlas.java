@@ -173,6 +173,19 @@ public abstract class BareAtlas implements Atlas
     }
 
     @Override
+    public Iterable<AtlasEntity> entitiesWithin(final GeometricSurface surface)
+    {
+        return new MultiIterable<>(itemsWithin(surface), relationsWithEntitiesWithin(surface));
+    }
+
+    @Override
+    public Iterable<AtlasEntity> entitiesWithin(final GeometricSurface surface,
+            final Predicate<AtlasEntity> matcher)
+    {
+        return Iterables.filter(entitiesWithin(surface), matcher);
+    }
+
+    @Override
     public AtlasEntity entity(final long identifier, final ItemType type)
     {
         switch (type)
