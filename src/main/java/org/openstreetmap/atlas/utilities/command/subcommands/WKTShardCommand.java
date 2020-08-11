@@ -204,7 +204,7 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         if (geometryOptional.isEmpty())
         {
             this.outputDelegate.printlnErrorMessage(
-                    "unable to parse " + wktOrShard + " as WKT or shard string");
+                    "unable to parse '" + wktOrShard + "' as WKT or shard string");
             return;
         }
         final Geometry geometry = geometryOptional.get();

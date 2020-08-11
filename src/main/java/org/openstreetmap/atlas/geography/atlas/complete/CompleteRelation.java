@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -290,12 +292,12 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
         }
         if (this.tags != null)
         {
-            builder.append("tags: " + this.tags + ", ");
+            builder.append("tags: " + new TreeMap<>(this.tags) + ", ");
             builder.append(separator);
         }
         if (this.relationIdentifiers != null)
         {
-            builder.append("parentRelations: " + this.relationIdentifiers + ", ");
+            builder.append("parentRelations: " + new TreeSet<>(this.relationIdentifiers) + ", ");
             builder.append(separator);
         }
         builder.append("]");

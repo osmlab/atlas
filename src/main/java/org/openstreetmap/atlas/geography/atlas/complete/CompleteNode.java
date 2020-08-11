@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
@@ -271,8 +272,8 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         if (this.explicitlyExcludedInEdgeIdentifiers != null
                 && !this.explicitlyExcludedInEdgeIdentifiers.isEmpty())
         {
-            builder.append("explicitlyExcludedInEdges: " + this.explicitlyExcludedInEdgeIdentifiers
-                    + ", ");
+            builder.append("explicitlyExcludedInEdges: "
+                    + new TreeSet<>(this.explicitlyExcludedInEdgeIdentifiers) + ", ");
             builder.append(separator);
         }
         if (this.outEdgeIdentifiers != null)
@@ -284,17 +285,17 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
                 && !this.explicitlyExcludedOutEdgeIdentifiers.isEmpty())
         {
             builder.append("explicitlyExcludedOutEdges: "
-                    + this.explicitlyExcludedOutEdgeIdentifiers + ", ");
+                    + new TreeSet<>(this.explicitlyExcludedOutEdgeIdentifiers) + ", ");
             builder.append(separator);
         }
         if (this.tags != null)
         {
-            builder.append("tags: " + this.tags + ", ");
+            builder.append("tags: " + new TreeMap<>(this.tags) + ", ");
             builder.append(separator);
         }
         if (this.relationIdentifiers != null)
         {
-            builder.append("parentRelations: " + this.relationIdentifiers + ", ");
+            builder.append("parentRelations: " + new TreeSet<>(this.relationIdentifiers) + ", ");
             builder.append(separator);
         }
         builder.append("]");

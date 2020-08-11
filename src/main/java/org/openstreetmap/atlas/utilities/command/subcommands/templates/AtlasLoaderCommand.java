@@ -192,7 +192,7 @@ public abstract class AtlasLoaderCommand extends MultipleOutputCommand
                 .getVariadicArgument(INPUT_HINT);
 
         final AtlasResourceLoader loader = new AtlasResourceLoader();
-        inputAtlasPaths.stream().forEach(path ->
+        inputAtlasPaths.forEach(path ->
         {
             final File file = new File(path, this.getFileSystem(), false);
             if (!file.exists())

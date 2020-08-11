@@ -1,7 +1,6 @@
 package org.openstreetmap.atlas.utilities.command.subcommands;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -15,7 +14,6 @@ import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
-import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
@@ -34,6 +32,7 @@ import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.tags.filters.TaggableFilter;
 import org.openstreetmap.atlas.utilities.collections.Sets;
@@ -65,32 +64,36 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     private static final String TYPES_OPTION_HINT = "types";
 
     private static final String GEOMETRY_OPTION_LONG = "geometry";
-    private static final String GEOMETRY_OPTION_DESCRIPTION = "A colon separated list of geometry WKTs for which to search.";
+    private static final String GEOMETRY_OPTION_DESCRIPTION = "A colon separated list of exact geometry WKTs for which to search.";
     private static final String GEOMETRY_OPTION_HINT = "wkt-geometry";
 
-    private static final String TAGGABLEFILTER_OPTION_LONG = "taggableFilter";
+    private static final String SUB_GEOMETRY_OPTION_LONG = "sub-geometry";
+    private static final String SUB_GEOMETRY_OPTION_DESCRIPTION = "Like --geometry, but can match against contained geometry. E.g. POINT(2 2) would match LINESTRING(1 1, 2 2, 3 3).";
+    private static final String SUB_GEOMETRY_OPTION_HINT = "wkt-geometry";
+
+    private static final String TAGGABLEFILTER_OPTION_LONG = "taggable-filter";
     private static final String TAGGABLEFILTER_OPTION_DESCRIPTION = "A TaggableFilter by which to filter the search space.";
     private static final String TAGGABLEFILTER_OPTION_HINT = "filter";
 
-    private static final String STARTNODE_OPTION_LONG = "startNode";
+    private static final String STARTNODE_OPTION_LONG = "start-node";
     private static final String STARTNODE_OPTION_DESCRIPTION = "A comma separated list of start node identifiers for which to search.";
     private static final String STARTNODE_OPTION_HINT = "ids";
 
-    private static final String ENDNODE_OPTION_LONG = "endNode";
+    private static final String ENDNODE_OPTION_LONG = "end-node";
     private static final String ENDNODE_OPTION_DESCRIPTION = "A comma separated list of end node identifiers for which to search.";
     private static final String ENDNODE_OPTION_HINT = "ids";
 
-    private static final String INEDGE_OPTION_LONG = "inEdge";
+    private static final String INEDGE_OPTION_LONG = "in-edge";
     private static final String INEDGE_OPTION_DESCRIPTION = "A comma separated list of in edge identifiers for which to search.";
     private static final String INEDGE_OPTION_HINT = "ids";
 
-    private static final String OUTEDGE_OPTION_LONG = "outEdge";
+    private static final String OUTEDGE_OPTION_LONG = "out-edge";
     private static final String OUTEDGE_OPTION_DESCRIPTION = "A comma separated list of out edge identifiers for which to search.";
     private static final String OUTEDGE_OPTION_HINT = "ids";
 
-    private static final String PARENTRELATIONS_OPTION_LONG = "parentRelations";
-    private static final String PARENTRELATIONS_OPTION_DESCRIPTION = "A comma separated list of parent relation identifiers for which to search.";
-    private static final String PARENTRELATIONS_OPTION_HINT = "ids";
+    private static final String PARENT_RELATIONS_OPTION_LONG = "parent-relations";
+    private static final String PARENT_RELATIONS_OPTION_DESCRIPTION = "A comma separated list of parent relation identifiers for which to search.";
+    private static final String PARENT_RELATIONS_OPTION_HINT = "ids";
 
     private static final String ID_OPTION_LONG = "id";
     private static final String ID_OPTION_DESCRIPTION = "A comma separated list of Atlas ids for which to search.";
@@ -112,12 +115,15 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     private static final Integer EDGE_ONLY_CONTEXT = 4;
     private static final Integer NODE_ONLY_CONTEXT = 5;
 
+    private static final String COULD_NOT_PARSE = "could not parse %s '%s': skipping...";
+
     private static final List<String> importsWhitelist = Arrays.asList(
             "org.openstreetmap.atlas.geography.atlas.items",
             "org.openstreetmap.atlas.tags.annotations.validation", "org.openstreetmap.atlas.tags",
             "org.openstreetmap.atlas.geography");
 
-    private Set<String> wkts;
+    private Set<String> geometryWkts;
+    private Set<String> subGeometryWkts;
     private TaggableFilter taggableFilter;
     private Set<Long> startNodeIds;
     private Set<Long> endNodeIds;
@@ -134,9 +140,6 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
 
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
-
-    private boolean unitTestMode = false;
-    private final List<AtlasEntity> matchedEntities = new ArrayList<>();
 
     public static void main(final String[] args)
     {
@@ -161,9 +164,10 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         if (this.optionAndArgumentDelegate.hasOption(COLLECT_OPTION_LONG)
                 && !this.matchingAtlases.isEmpty())
         {
-            final Path concatenatedPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
-                    OUTPUT_ATLAS);
-            final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
+            final Path concatenatedPath = this.getFileSystem()
+                    .getPath(getOutputPath().toAbsolutePath().toString(), OUTPUT_ATLAS);
+            final File outputFile = new File(concatenatedPath.toAbsolutePath().toString(),
+                    this.getFileSystem());
             final Atlas outputAtlas;
             if (this.matchingAtlases.size() == 1)
             {
@@ -190,11 +194,6 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     public String getCommandName()
     {
         return "find";
-    }
-
-    public List<AtlasEntity> getMatchedEntities()
-    {
-        return this.matchedEntities;
     }
 
     @Override
@@ -224,6 +223,9 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         registerOptionWithRequiredArgument(GEOMETRY_OPTION_LONG, GEOMETRY_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, GEOMETRY_OPTION_HINT, ALL_TYPES_CONTEXT,
                 EDGE_ONLY_CONTEXT, NODE_ONLY_CONTEXT);
+        registerOptionWithRequiredArgument(SUB_GEOMETRY_OPTION_LONG,
+                SUB_GEOMETRY_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
+                SUB_GEOMETRY_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT, NODE_ONLY_CONTEXT);
         registerOptionWithRequiredArgument(TAGGABLEFILTER_OPTION_LONG,
                 TAGGABLEFILTER_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
                 TAGGABLEFILTER_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT,
@@ -236,12 +238,13 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                 OptionOptionality.OPTIONAL, INEDGE_OPTION_HINT, NODE_ONLY_CONTEXT);
         registerOptionWithRequiredArgument(OUTEDGE_OPTION_LONG, OUTEDGE_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, OUTEDGE_OPTION_HINT, NODE_ONLY_CONTEXT);
-        registerOptionWithRequiredArgument(PARENTRELATIONS_OPTION_LONG,
-                PARENTRELATIONS_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
-                PARENTRELATIONS_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT,
+        registerOptionWithRequiredArgument(PARENT_RELATIONS_OPTION_LONG,
+                PARENT_RELATIONS_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
+                PARENT_RELATIONS_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT,
                 NODE_ONLY_CONTEXT);
         registerOptionWithRequiredArgument(PREDICATE_OPTION_LONG, PREDICATE_OPTION_DESCRIPTION,
-                OptionOptionality.OPTIONAL, PREDICATE_OPTION_HINT);
+                OptionOptionality.OPTIONAL, PREDICATE_OPTION_HINT, ALL_TYPES_CONTEXT,
+                EDGE_ONLY_CONTEXT, NODE_ONLY_CONTEXT);
 
         registerOptionWithRequiredArgument(ID_OPTION_LONG, ID_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, ID_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT,
@@ -271,8 +274,11 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         /*
          * Handle the various search properties.
          */
-        this.wkts = this.optionAndArgumentDelegate
+        this.geometryWkts = this.optionAndArgumentDelegate
                 .getOptionArgument(GEOMETRY_OPTION_LONG, this::parseColonSeparatedWkts)
+                .orElse(new HashSet<>());
+        this.subGeometryWkts = this.optionAndArgumentDelegate
+                .getOptionArgument(SUB_GEOMETRY_OPTION_LONG, this::parseColonSeparatedWkts)
                 .orElse(new HashSet<>());
         this.taggableFilter = this.optionAndArgumentDelegate
                 .getOptionArgument(TAGGABLEFILTER_OPTION_LONG, TaggableFilter::forDefinition)
@@ -298,7 +304,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                     .orElse(new HashSet<>());
         }
         this.parentRelations = this.optionAndArgumentDelegate
-                .getOptionArgument(PARENTRELATIONS_OPTION_LONG, this::parseCommaSeparatedLongs)
+                .getOptionArgument(PARENT_RELATIONS_OPTION_LONG, this::parseCommaSeparatedLongs)
                 .orElse(new HashSet<>());
         if (this.optionAndArgumentDelegate.hasOption(PREDICATE_OPTION_LONG))
         {
@@ -319,22 +325,18 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
 
         this.matchingAtlases = new HashSet<>();
 
-        if (this.typesToCheck.isEmpty() && this.wkts.isEmpty() && this.taggableFilter == null
+        if (this.typesToCheck.isEmpty() && this.geometryWkts.isEmpty()
+                && this.subGeometryWkts.isEmpty() && this.taggableFilter == null
                 && this.startNodeIds.isEmpty() && this.endNodeIds.isEmpty()
-                && this.parentRelations.isEmpty() && this.ids.isEmpty() && this.osmIds.isEmpty())
+                && this.parentRelations.isEmpty() && this.ids.isEmpty() && this.osmIds.isEmpty()
+                && this.predicate == null)
         {
-            this.outputDelegate.printlnErrorMessage(
-                    "no ids, properties, or ItemTypes were successfully parsed");
+            this.outputDelegate
+                    .printlnErrorMessage("no filtering objects were successfully constructed");
             return 1;
         }
 
         return 0;
-    }
-
-    public AtlasSearchCommand withUnitTestMode()
-    {
-        this.unitTestMode = true;
-        return this;
     }
 
     @Override
@@ -367,15 +369,26 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                 entityMatchesAllCriteriaSoFar = false;
             }
 
-            // if (entityMatchesAllCriteriaSoFar && !this.wkts.isEmpty()
-            // && !this.wkts.contains(entity.toWkt()))
-            // {
-            // entityMatchesAllCriteriaSoFar = false;
-            // }
-            if (entityMatchesAllCriteriaSoFar && !this.wkts.isEmpty())
+            if (entityMatchesAllCriteriaSoFar && !this.geometryWkts.isEmpty()
+                    && !this.geometryWkts.contains(entity.toWkt()))
             {
                 boolean matchedAtLeastOneWktSnippet = false;
-                for (final String wkt : this.wkts)
+                for (final String wkt : this.geometryWkts)
+                {
+                    if (entityMatchesWktSnippet(entity, wkt))
+                    {
+                        matchedAtLeastOneWktSnippet = true;
+                    }
+                }
+                if (!matchedAtLeastOneWktSnippet)
+                {
+                    entityMatchesAllCriteriaSoFar = false;
+                }
+            }
+            if (entityMatchesAllCriteriaSoFar && !this.subGeometryWkts.isEmpty())
+            {
+                boolean matchedAtLeastOneWktSnippet = false;
+                for (final String wkt : this.subGeometryWkts)
                 {
                     if (entityContainsWktSnippet(entity, wkt))
                     {
@@ -392,7 +405,8 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             {
                 entityMatchesAllCriteriaSoFar = false;
             }
-            if (this.optionAndArgumentDelegate.getParserContext() == NODE_ONLY_CONTEXT)
+            if (entityMatchesAllCriteriaSoFar
+                    && this.optionAndArgumentDelegate.getParserContext() == NODE_ONLY_CONTEXT)
             {
                 final Node node = (Node) entity;
                 final Set<Long> intersectingInEdgeIdentifiers = com.google.common.collect.Sets
@@ -401,26 +415,25 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                 final Set<Long> intersectingOutEdgeIdentifiers = com.google.common.collect.Sets
                         .intersection(node.outEdges().stream().map(Edge::getIdentifier)
                                 .collect(Collectors.toSet()), this.outEdgeIds);
-                if (entityMatchesAllCriteriaSoFar && !this.inEdgeIds.isEmpty()
-                        && intersectingInEdgeIdentifiers.isEmpty())
+                if (!this.inEdgeIds.isEmpty() && intersectingInEdgeIdentifiers.isEmpty())
                 {
                     entityMatchesAllCriteriaSoFar = false;
                 }
-                if (entityMatchesAllCriteriaSoFar && !this.outEdgeIds.isEmpty()
-                        && intersectingOutEdgeIdentifiers.isEmpty())
+                if (!this.outEdgeIds.isEmpty() && intersectingOutEdgeIdentifiers.isEmpty())
                 {
                     entityMatchesAllCriteriaSoFar = false;
                 }
             }
-            if (this.optionAndArgumentDelegate.getParserContext() == EDGE_ONLY_CONTEXT)
+            if (entityMatchesAllCriteriaSoFar
+                    && this.optionAndArgumentDelegate.getParserContext() == EDGE_ONLY_CONTEXT)
             {
                 final Edge edge = (Edge) entity;
-                if (entityMatchesAllCriteriaSoFar && !this.startNodeIds.isEmpty()
+                if (!this.startNodeIds.isEmpty()
                         && !this.startNodeIds.contains(edge.start().getIdentifier()))
                 {
                     entityMatchesAllCriteriaSoFar = false;
                 }
-                if (entityMatchesAllCriteriaSoFar && !this.endNodeIds.isEmpty()
+                if (!this.endNodeIds.isEmpty()
                         && !this.endNodeIds.contains(edge.end().getIdentifier()))
                 {
                     entityMatchesAllCriteriaSoFar = false;
@@ -452,33 +465,23 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                         TTYAttribute.GREEN);
                 this.outputDelegate.printlnStdout("");
                 this.matchingAtlases.add(atlas);
-                if (this.unitTestMode)
-                {
-                    this.matchedEntities.add(entity);
-                }
             }
         }
     }
 
-    private boolean entityContainsWktSnippet(final AtlasEntity entity, final String wkt)
+    private boolean entityContainsWktSnippet(final AtlasEntity entity, final String wkt) // NOSONAR
     {
-        final WKTReader reader = new WKTReader();
-        /*
-         * Auto-false for relations for now. TODO we should loop over members and check those.
-         */
         if (entity.getType() == ItemType.RELATION)
         {
             return false;
         }
-        final Geometry geometry;
-        try
+
+        final Geometry geometry = parseWkt(wkt);
+        if (geometry == null)
         {
-            geometry = reader.read(wkt);
+            return false;
         }
-        catch (final ParseException exception)
-        {
-            throw new CoreException("Could not parse WKT", exception);
-        }
+
         Location inputLocation = null;
         PolyLine inputPolyline = null;
         if (geometry instanceof Point)
@@ -491,7 +494,9 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         }
         else
         {
-            throw new CoreException("Only supporting points and lines");
+            this.outputDelegate.printlnErrorMessage(
+                    "--" + SUB_GEOMETRY_OPTION_LONG + " only supports POINT and LINESTRING");
+            return false;
         }
 
         boolean matchedSomething;
@@ -501,10 +506,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             if (inputLocation != null)
             {
                 matchedSomething = location.equals(inputLocation);
-                if (matchedSomething)
-                {
-                    return true;
-                }
+                return matchedSomething;
             }
         }
         else if (entity.getType() == ItemType.LINE || entity.getType() == ItemType.EDGE)
@@ -521,10 +523,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             if (inputPolyline != null)
             {
                 matchedSomething = line.overlapsShapeOf(inputPolyline);
-                if (matchedSomething)
-                {
-                    return true;
-                }
+                return matchedSomething;
             }
         }
         else if (entity.getType() == ItemType.AREA)
@@ -541,10 +540,74 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             if (inputPolyline != null)
             {
                 matchedSomething = polygon.overlapsShapeOf(inputPolyline);
-                if (matchedSomething)
-                {
-                    return true;
-                }
+                return matchedSomething;
+            }
+        }
+        return false;
+    }
+
+    private boolean entityMatchesWktSnippet(final AtlasEntity entity, final String wkt) // NOSONAR
+    {
+        if (entity.getType() == ItemType.RELATION)
+        {
+            return false;
+        }
+
+        final Geometry geometry = parseWkt(wkt);
+        if (geometry == null)
+        {
+            return false;
+        }
+
+        Location inputLocation = null;
+        PolyLine inputPolyLine = null;
+        Polygon inputPolygon = null;
+        if (geometry instanceof Point)
+        {
+            inputLocation = new JtsPointConverter().backwardConvert((Point) geometry);
+        }
+        else if (geometry instanceof LineString)
+        {
+            inputPolyLine = new JtsPolyLineConverter().backwardConvert((LineString) geometry);
+        }
+        else if (geometry instanceof org.locationtech.jts.geom.Polygon)
+        {
+            inputPolygon = new JtsPolygonConverter()
+                    .backwardConvert((org.locationtech.jts.geom.Polygon) geometry);
+        }
+        else
+        {
+            this.outputDelegate.printlnErrorMessage(
+                    "--" + GEOMETRY_OPTION_LONG + " only supports POINT, LINESTRING, and POLYGON");
+            return false;
+        }
+
+        final boolean matchedSomething;
+        if (entity.getType() == ItemType.POINT || entity.getType() == ItemType.NODE)
+        {
+            final Location location = ((LocationItem) entity).getLocation();
+            if (inputLocation != null)
+            {
+                matchedSomething = location.equals(inputLocation);
+                return matchedSomething;
+            }
+        }
+        else if (entity.getType() == ItemType.LINE || entity.getType() == ItemType.EDGE)
+        {
+            final PolyLine line = ((LineItem) entity).asPolyLine();
+            if (inputPolyLine != null)
+            {
+                matchedSomething = line.equals(inputPolyLine);
+                return matchedSomething;
+            }
+        }
+        else if (entity.getType() == ItemType.AREA)
+        {
+            final Polygon polygon = ((Area) entity).asPolygon();
+            if (inputPolygon != null)
+            {
+                matchedSomething = polygon.equals(inputPolygon);
+                return matchedSomething;
             }
         }
         return false;
@@ -575,8 +638,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             }
             catch (final ParseException exception)
             {
-                this.outputDelegate
-                        .printlnWarnMessage("could not parse wkt \'" + wkt + "\': skipping...");
+                this.outputDelegate.printlnWarnMessage(String.format(COULD_NOT_PARSE, "wkt", wkt));
             }
         });
         return wktSet;
@@ -603,7 +665,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             catch (final IllegalArgumentException exception)
             {
                 this.outputDelegate.printlnWarnMessage(
-                        "could not parse ItemType \'" + typeElement + "\': skipping...");
+                        String.format(COULD_NOT_PARSE, "ItemType", typeElement));
             }
         }
         return typeSet;
@@ -621,7 +683,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         final String[] idStringSplit = idString.split(",");
         for (final String idElement : idStringSplit)
         {
-            final Long identifier;
+            final long identifier;
             try
             {
                 identifier = Long.parseLong(idElement);
@@ -629,10 +691,26 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             }
             catch (final NumberFormatException exception)
             {
-                this.outputDelegate.printlnWarnMessage(
-                        "could not parse id \'" + idElement + "\': skipping...");
+                this.outputDelegate
+                        .printlnWarnMessage(String.format(COULD_NOT_PARSE, "id", idElement));
             }
         }
         return idSet;
+    }
+
+    private Geometry parseWkt(final String wkt)
+    {
+        final WKTReader reader = new WKTReader();
+        final Geometry geometry;
+        try
+        {
+            geometry = reader.read(wkt);
+            return geometry;
+        }
+        catch (final ParseException exception)
+        {
+            this.outputDelegate.printlnErrorMessage("unable to parse '" + wkt + "' as WKT");
+            return null;
+        }
     }
 }

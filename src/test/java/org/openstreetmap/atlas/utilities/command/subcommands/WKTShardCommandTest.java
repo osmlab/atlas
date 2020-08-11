@@ -121,7 +121,8 @@ public class WKTShardCommandTest
         final WKTShardCommand command = new WKTShardCommand();
         command.setNewErrStream(new PrintStream(errContent1a));
         command.runSubcommand("--sharding=slippy@10", "POINT (((");
-        Assert.assertEquals("wkt-shard: error: unable to parse POINT ((( as WKT or shard string\n",
+        Assert.assertEquals(
+                "wkt-shard: error: unable to parse 'POINT (((' as WKT or shard string\n",
                 errContent1a.toString());
     }
 
