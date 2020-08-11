@@ -126,7 +126,7 @@ public class RelationToMultiPolygonCommand extends AtlasLoaderCommand
                 {
                     this.outputDelegate.printlnErrorMessage(
                             "warning: relation multipolygon is not OSM valid, cannot construct WKT!");
-                    return -1;
+                    return 1;
                 }
             }
             final JtsMultiPolygonToMultiPolygonConverter jtsconverter = new JtsMultiPolygonToMultiPolygonConverter();
@@ -147,7 +147,7 @@ public class RelationToMultiPolygonCommand extends AtlasLoaderCommand
         }
         else
         {
-            this.outputDelegate.printlnCommandMessage("Relation WKT is too large to print!");
+            this.outputDelegate.printlnWarnMessage("Relation WKT is too large to print!");
         }
 
         final Path concatenatedWktPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
@@ -188,7 +188,6 @@ public class RelationToMultiPolygonCommand extends AtlasLoaderCommand
             if (relationSubAtlas.isPresent())
             {
                 this.relationAtlases.add(relationSubAtlas.get());
-
             }
         }
     }
