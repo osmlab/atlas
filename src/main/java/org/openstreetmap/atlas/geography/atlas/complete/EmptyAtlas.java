@@ -191,6 +191,19 @@ public class EmptyAtlas implements Atlas
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public Iterable<AtlasEntity> entitiesWithin(final GeometricSurface surface)
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Iterable<AtlasEntity> entitiesWithin(final GeometricSurface surface,
+            final Predicate<AtlasEntity> matcher)
+    {
+        throw new UnsupportedOperationException();
+    }
+
     /**
      * Note that the {@link AtlasEntity}s returned by this method will technically break the
      * {@link Located} contract, since they have null bounds.

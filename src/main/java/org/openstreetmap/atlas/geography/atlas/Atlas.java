@@ -300,6 +300,27 @@ public interface Atlas
             Predicate<AtlasEntity> matcher);
 
     /**
+     * Return all the {@link AtlasEntity}s fully within some surface.
+     *
+     * @param surface
+     *            The {@link GeometricSurface} to consider
+     * @return All the {@link AtlasEntity}s fully within the {@link GeometricSurface}.
+     */
+    Iterable<AtlasEntity> entitiesWithin(GeometricSurface surface);
+
+    /**
+     * Return all the {@link AtlasEntity}s matching a {@link Predicate}, and fully within some
+     * surface.
+     *
+     * @param matcher
+     *            The matcher to consider
+     * @param surface
+     *            The {@link GeometricSurface} to consider
+     * @return All the {@link AtlasEntity}s fully within the {@link GeometricSurface}.
+     */
+    Iterable<AtlasEntity> entitiesWithin(GeometricSurface surface, Predicate<AtlasEntity> matcher);
+
+    /**
      * Get an entity from identifier and type
      *
      * @param identifier
