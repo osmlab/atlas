@@ -298,6 +298,11 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
             builder.append("parentRelations: " + new TreeSet<>(this.relationIdentifiers) + ", ");
             builder.append(separator);
         }
+        if (this.bounds != null)
+        {
+            builder.append("bounds: " + this.bounds.toWkt() + ", ");
+            builder.append(separator);
+        }
         builder.append("]");
 
         return builder.toString();

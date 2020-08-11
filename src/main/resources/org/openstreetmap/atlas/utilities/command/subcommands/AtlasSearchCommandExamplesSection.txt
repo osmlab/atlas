@@ -12,3 +12,5 @@ Find all features whose geometry matches some WKTs and also contain a 'populatio
 #$ find foo.atlas --geometry='POINT (0 0):POINT (1 1)' --taggableFilter='population->*'
 Find features with OSM ID 123, then collect all containing atlases and save with MultiAtlas:
 #$ find ~/Desktop/*.atlas --osmid 123 --collect-matching
+Find all roads that lie withing a given bounding box:
+#$ find foo.atlas --bounding-polygon='POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))' --taggableFilter='highway->*'

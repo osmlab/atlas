@@ -27,6 +27,43 @@ import com.google.common.jimfs.Jimfs;
 public class AtlasSearchCommandTest
 {
     @Test
+    public void testBoundingPolygonSearch()
+    {
+        try (FileSystem filesystem = Jimfs.newFileSystem(Configuration.osX()))
+        {
+            setupFilesystem1(filesystem);
+            final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+            final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
+            final AtlasSearchCommand command = new AtlasSearchCommand();
+            command.setNewFileSystem(filesystem);
+            command.setNewOutStream(new PrintStream(outContent));
+            command.setNewErrStream(new PrintStream(errContent));
+
+            command.runSubcommand("/Users/foo/test.atlas.txt", "--verbose",
+                    "--bounding-polygon=POLYGON((0 0, 0 10, 10 10, 10 0, 0 0))");
+
+            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
+                    + "CompletePoint [\n" + "identifier: 1000000, \n" + "location: POINT (1 1), \n"
+                    + "tags: {foo=bar}, \n" + "parentRelations: [], \n"
+                    + "bounds: POLYGON ((1 1, 1 1, 1 1, 1 1, 1 1)), \n" + "]\n" + "\n"
+                    + "Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
+                    + "CompletePoint [\n" + "identifier: 2000000, \n" + "location: POINT (2 2), \n"
+                    + "tags: {baz=bat}, \n" + "parentRelations: [], \n"
+                    + "bounds: POLYGON ((2 2, 2 2, 2 2, 2 2, 2 2)), \n" + "]\n" + "\n"
+                    + "Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
+                    + "CompletePoint [\n" + "identifier: 3000000, \n" + "location: POINT (3 3), \n"
+                    + "tags: {baz=bat, foo=bar}, \n" + "parentRelations: [], \n"
+                    + "bounds: POLYGON ((3 3, 3 3, 3 3, 3 3, 3 3)), \n" + "]\n\n",
+                    outContent.toString());
+            Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n", errContent.toString());
+        }
+        catch (final IOException exception)
+        {
+            throw new CoreException("FileSystem operation failed", exception);
+        }
+    }
+
+    @Test
     public void testCollectSearch()
     {
         try (FileSystem filesystem = Jimfs.newFileSystem(Configuration.osX()))
@@ -45,7 +82,8 @@ public class AtlasSearchCommandTest
 
             Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
                     + "CompletePoint [\n" + "identifier: 1000000, \n" + "location: POINT (1 1), \n"
-                    + "tags: {foo=bar}, \n" + "parentRelations: [], \n" + "]\n\n",
+                    + "tags: {foo=bar}, \n" + "parentRelations: [], \n"
+                    + "bounds: POLYGON ((1 1, 1 1, 1 1, 1 1, 1 1)), \n" + "]\n\n",
                     outContent.toString());
             Assert.assertEquals(
                     "find: loading /Users/foo/test.atlas.txt\n"
@@ -105,7 +143,8 @@ public class AtlasSearchCommandTest
 
             Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
                     + "CompletePoint [\n" + "identifier: 1000000, \n" + "location: POINT (1 1), \n"
-                    + "tags: {foo=bar}, \n" + "parentRelations: [], \n" + "]\n\n",
+                    + "tags: {foo=bar}, \n" + "parentRelations: [], \n"
+                    + "bounds: POLYGON ((1 1, 1 1, 1 1, 1 1, 1 1)), \n" + "]\n\n",
                     outContent.toString());
             Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n", errContent.toString());
 
@@ -123,7 +162,8 @@ public class AtlasSearchCommandTest
                     "Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
                             + "CompleteLine [\n" + "identifier: 4000000, \n"
                             + "polyLine: LINESTRING (10 10, 11 11, 12 12), \n"
-                            + "tags: {this_is=a_line}, \n" + "parentRelations: [], \n" + "]\n\n",
+                            + "tags: {this_is=a_line}, \n" + "parentRelations: [], \n"
+                            + "bounds: POLYGON ((10 10, 10 12, 12 12, 12 10, 10 10)), \n" + "]\n\n",
                     outContent2.toString());
             Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n",
                     errContent2.toString());
@@ -142,7 +182,8 @@ public class AtlasSearchCommandTest
                     "Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
                             + "CompleteArea [\n" + "identifier: 7000000, \n"
                             + "polygon: POLYGON ((20 20, 21 20, 21 21, 20 20)), \n"
-                            + "tags: {baz=bat}, \n" + "parentRelations: [], \n" + "]\n\n",
+                            + "tags: {baz=bat}, \n" + "parentRelations: [], \n"
+                            + "bounds: POLYGON ((20 20, 20 21, 21 21, 21 20, 20 20)), \n" + "]\n\n",
                     outContent3.toString());
             Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n",
                     errContent3.toString());
@@ -170,7 +211,8 @@ public class AtlasSearchCommandTest
 
             Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
                     + "CompletePoint [\n" + "identifier: 1000000, \n" + "location: POINT (1 1), \n"
-                    + "tags: {foo=bar}, \n" + "parentRelations: [], \n" + "]\n\n",
+                    + "tags: {foo=bar}, \n" + "parentRelations: [], \n"
+                    + "bounds: POLYGON ((1 1, 1 1, 1 1, 1 1, 1 1)), \n" + "]\n\n",
                     outContent.toString());
             Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n", errContent.toString());
         }
@@ -198,7 +240,9 @@ public class AtlasSearchCommandTest
             Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
                     + "CompleteNode [\n" + "identifier: 9000000, \n" + "location: POINT (32 32), \n"
                     + "inEdges: [11000000], \n" + "outEdges: [11000001], \n" + "tags: {baz=bat}, \n"
-                    + "parentRelations: [], \n" + "]\n\n", outContent.toString());
+                    + "parentRelations: [], \n"
+                    + "bounds: POLYGON ((32 32, 32 32, 32 32, 32 32, 32 32)), \n" + "]\n\n",
+                    outContent.toString());
             Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n", errContent.toString());
 
             final ByteArrayOutputStream outContent2 = new ByteArrayOutputStream();
@@ -213,7 +257,9 @@ public class AtlasSearchCommandTest
             Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
                     + "CompleteNode [\n" + "identifier: 9000000, \n" + "location: POINT (32 32), \n"
                     + "inEdges: [11000000], \n" + "outEdges: [11000001], \n" + "tags: {baz=bat}, \n"
-                    + "parentRelations: [], \n" + "]\n\n", outContent2.toString());
+                    + "parentRelations: [], \n"
+                    + "bounds: POLYGON ((32 32, 32 32, 32 32, 32 32, 32 32)), \n" + "]\n\n",
+                    outContent2.toString());
             Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n",
                     errContent2.toString());
         }
@@ -242,12 +288,15 @@ public class AtlasSearchCommandTest
                     + "CompleteEdge [\n" + "identifier: 11000000, \n"
                     + "polyLine: LINESTRING (30 30, 31 30, 32 32), \n" + "startNode: 8000000, \n"
                     + "endNode: 9000000, \n" + "tags: {foo=bar}, \n"
-                    + "parentRelations: [12000000], \n" + "]\n" + "\n"
+                    + "parentRelations: [12000000], \n"
+                    + "bounds: POLYGON ((30 30, 30 32, 32 32, 32 30, 30 30)), \n" + "]\n" + "\n"
                     + "Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
                     + "CompleteEdge [\n" + "identifier: 11000001, \n"
                     + "polyLine: LINESTRING (32 32, 32 33, 34 34), \n" + "startNode: 9000000, \n"
                     + "endNode: 10000000, \n" + "tags: {baz=bat}, \n"
-                    + "parentRelations: [12000000], \n" + "]\n\n", outContent.toString());
+                    + "parentRelations: [12000000], \n"
+                    + "bounds: POLYGON ((32 32, 32 34, 34 34, 34 32, 32 32)), \n" + "]\n\n",
+                    outContent.toString());
             Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n", errContent.toString());
         }
         catch (final IOException exception)
@@ -276,12 +325,15 @@ public class AtlasSearchCommandTest
                     + "CompleteEdge [\n" + "identifier: 11000000, \n"
                     + "polyLine: LINESTRING (30 30, 31 30, 32 32), \n" + "startNode: 8000000, \n"
                     + "endNode: 9000000, \n" + "tags: {foo=bar}, \n"
-                    + "parentRelations: [12000000], \n" + "]\n" + "\n"
+                    + "parentRelations: [12000000], \n"
+                    + "bounds: POLYGON ((30 30, 30 32, 32 32, 32 30, 30 30)), \n" + "]\n" + "\n"
                     + "Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
                     + "CompleteEdge [\n" + "identifier: 11000001, \n"
                     + "polyLine: LINESTRING (32 32, 32 33, 34 34), \n" + "startNode: 9000000, \n"
                     + "endNode: 10000000, \n" + "tags: {baz=bat}, \n"
-                    + "parentRelations: [12000000], \n" + "]\n\n", outContent.toString());
+                    + "parentRelations: [12000000], \n"
+                    + "bounds: POLYGON ((32 32, 32 34, 34 34, 34 32, 32 32)), \n" + "]\n\n",
+                    outContent.toString());
             Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n", errContent.toString());
         }
         catch (final IOException exception)
@@ -310,12 +362,15 @@ public class AtlasSearchCommandTest
                     + "CompleteEdge [\n" + "identifier: 11000000, \n"
                     + "polyLine: LINESTRING (30 30, 31 30, 32 32), \n" + "startNode: 8000000, \n"
                     + "endNode: 9000000, \n" + "tags: {foo=bar}, \n"
-                    + "parentRelations: [12000000], \n" + "]\n" + "\n"
+                    + "parentRelations: [12000000], \n"
+                    + "bounds: POLYGON ((30 30, 30 32, 32 32, 32 30, 30 30)), \n" + "]\n" + "\n"
                     + "Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
                     + "CompleteEdge [\n" + "identifier: 11000001, \n"
                     + "polyLine: LINESTRING (32 32, 32 33, 34 34), \n" + "startNode: 9000000, \n"
                     + "endNode: 10000000, \n" + "tags: {baz=bat}, \n"
-                    + "parentRelations: [12000000], \n" + "]\n\n", outContent.toString());
+                    + "parentRelations: [12000000], \n"
+                    + "bounds: POLYGON ((32 32, 32 34, 34 34, 34 32, 32 32)), \n" + "]\n\n",
+                    outContent.toString());
             Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n", errContent.toString());
         }
         catch (final IOException exception)
@@ -345,7 +400,8 @@ public class AtlasSearchCommandTest
                             + "CompleteEdge [\n" + "identifier: 11000000, \n"
                             + "polyLine: LINESTRING (30 30, 31 30, 32 32), \n"
                             + "startNode: 8000000, \n" + "endNode: 9000000, \n"
-                            + "tags: {foo=bar}, \n" + "parentRelations: [12000000], \n" + "]\n\n",
+                            + "tags: {foo=bar}, \n" + "parentRelations: [12000000], \n"
+                            + "bounds: POLYGON ((30 30, 30 32, 32 32, 32 30, 30 30)), \n" + "]\n\n",
                     outContent.toString());
             Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n", errContent.toString());
         }
@@ -374,7 +430,8 @@ public class AtlasSearchCommandTest
 
             Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
                     + "CompletePoint [\n" + "identifier: 1000000, \n" + "location: POINT (1 1), \n"
-                    + "tags: {foo=bar}, \n" + "parentRelations: [], \n" + "]\n\n",
+                    + "tags: {foo=bar}, \n" + "parentRelations: [], \n"
+                    + "bounds: POLYGON ((1 1, 1 1, 1 1, 1 1, 1 1)), \n" + "]\n\n",
                     outContent.toString());
             Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n", errContent.toString());
 
@@ -392,7 +449,8 @@ public class AtlasSearchCommandTest
                     "Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
                             + "CompleteLine [\n" + "identifier: 4000000, \n"
                             + "polyLine: LINESTRING (10 10, 11 11, 12 12), \n"
-                            + "tags: {this_is=a_line}, \n" + "parentRelations: [], \n" + "]\n\n",
+                            + "tags: {this_is=a_line}, \n" + "parentRelations: [], \n"
+                            + "bounds: POLYGON ((10 10, 10 12, 12 12, 12 10, 10 10)), \n" + "]\n\n",
                     outContent2.toString());
             Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n",
                     errContent2.toString());
@@ -411,7 +469,8 @@ public class AtlasSearchCommandTest
                     "Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
                             + "CompleteLine [\n" + "identifier: 4000000, \n"
                             + "polyLine: LINESTRING (10 10, 11 11, 12 12), \n"
-                            + "tags: {this_is=a_line}, \n" + "parentRelations: [], \n" + "]\n\n",
+                            + "tags: {this_is=a_line}, \n" + "parentRelations: [], \n"
+                            + "bounds: POLYGON ((10 10, 10 12, 12 12, 12 10, 10 10)), \n" + "]\n\n",
                     outContent3.toString());
             Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n",
                     errContent3.toString());
@@ -441,11 +500,13 @@ public class AtlasSearchCommandTest
             Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
                     + "CompleteNode [\n" + "identifier: 10000000, \n"
                     + "location: POINT (34 34), \n" + "inEdges: [11000001], \n" + "outEdges: [], \n"
-                    + "tags: {another=tag2}, \n" + "parentRelations: [], \n" + "]\n" + "\n"
+                    + "tags: {another=tag2}, \n" + "parentRelations: [], \n"
+                    + "bounds: POLYGON ((34 34, 34 34, 34 34, 34 34, 34 34)), \n" + "]\n" + "\n"
                     + "Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
                     + "CompleteLine [\n" + "identifier: 6000000, \n"
                     + "polyLine: LINESTRING (16 16, 17 17, 18 18), \n"
-                    + "tags: {another=tag1, hello=world}, \n" + "parentRelations: [], \n" + "]\n\n",
+                    + "tags: {another=tag1, hello=world}, \n" + "parentRelations: [], \n"
+                    + "bounds: POLYGON ((16 16, 16 18, 18 18, 18 16, 16 16)), \n" + "]\n\n",
                     outContent.toString());
             Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n", errContent.toString());
         }
@@ -474,7 +535,8 @@ public class AtlasSearchCommandTest
                     + "CompleteRelation [\n" + "identifier: 12000000, \n"
                     + "bounds: POLYGON ((30 30, 30 34, 34 34, 34 30, 30 30)), \n"
                     + "members: RelationBean [[[EDGE, 11000000, role0], [EDGE, 11000001, role1]]], \n"
-                    + "tags: {route=bike}, \n" + "parentRelations: [], \n" + "]\n\n",
+                    + "tags: {route=bike}, \n" + "parentRelations: [], \n"
+                    + "bounds: POLYGON ((30 30, 30 34, 34 34, 34 30, 30 30)), \n" + "]\n\n",
                     outContent.toString());
             Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n", errContent.toString());
         }

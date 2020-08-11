@@ -210,6 +210,11 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
                     + ", ");
             builder.append(separator);
         }
+        if (this.bounds != null)
+        {
+            builder.append("bounds: " + this.bounds.toWkt() + ", ");
+            builder.append(separator);
+        }
         builder.append("]");
 
         return builder.toString();

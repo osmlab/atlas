@@ -63,6 +63,10 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             + ". Defaults to including all values, unless another option (e.g. --startNode) automatically narrows the search space.";
     private static final String TYPES_OPTION_HINT = "types";
 
+    private static final String BOUNDING_POLYGON_OPTION_LONG = "bounding-polygons";
+    private static final String BOUNDING_POLYGON_OPTION_DESCRIPTION = "Match all features within at least one member of a given colon separated list of bounding polygons.";
+    private static final String BOUNDING_POLYGON_OPTION_HINT = "wkt-polygons";
+
     private static final String GEOMETRY_OPTION_LONG = "geometry";
     private static final String GEOMETRY_OPTION_DESCRIPTION = "A colon separated list of exact geometry WKTs for which to search.";
     private static final String GEOMETRY_OPTION_HINT = "wkt-geometry";
@@ -124,6 +128,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
 
     private Set<String> geometryWkts;
     private Set<String> subGeometryWkts;
+    private Set<String> boundingWkts;
     private TaggableFilter taggableFilter;
     private Set<Long> startNodeIds;
     private Set<Long> endNodeIds;
@@ -220,6 +225,10 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         registerOptionWithRequiredArgument(TYPES_OPTION_LONG, TYPES_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, TYPES_OPTION_HINT, ALL_TYPES_CONTEXT);
 
+        registerOptionWithRequiredArgument(BOUNDING_POLYGON_OPTION_LONG,
+                BOUNDING_POLYGON_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
+                BOUNDING_POLYGON_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT,
+                NODE_ONLY_CONTEXT);
         registerOptionWithRequiredArgument(GEOMETRY_OPTION_LONG, GEOMETRY_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, GEOMETRY_OPTION_HINT, ALL_TYPES_CONTEXT,
                 EDGE_ONLY_CONTEXT, NODE_ONLY_CONTEXT);
@@ -274,6 +283,9 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         /*
          * Handle the various search properties.
          */
+        this.boundingWkts = this.optionAndArgumentDelegate
+                .getOptionArgument(BOUNDING_POLYGON_OPTION_LONG, this::parseColonSeparatedWkts)
+                .orElse(new HashSet<>());
         this.geometryWkts = this.optionAndArgumentDelegate
                 .getOptionArgument(GEOMETRY_OPTION_LONG, this::parseColonSeparatedWkts)
                 .orElse(new HashSet<>());
@@ -325,11 +337,11 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
 
         this.matchingAtlases = new HashSet<>();
 
-        if (this.typesToCheck.isEmpty() && this.geometryWkts.isEmpty()
-                && this.subGeometryWkts.isEmpty() && this.taggableFilter == null
-                && this.startNodeIds.isEmpty() && this.endNodeIds.isEmpty()
-                && this.parentRelations.isEmpty() && this.ids.isEmpty() && this.osmIds.isEmpty()
-                && this.predicate == null)
+        if (this.typesToCheck.isEmpty() && this.boundingWkts.isEmpty()
+                && this.geometryWkts.isEmpty() && this.subGeometryWkts.isEmpty()
+                && this.taggableFilter == null && this.startNodeIds.isEmpty()
+                && this.endNodeIds.isEmpty() && this.parentRelations.isEmpty() && this.ids.isEmpty()
+                && this.osmIds.isEmpty() && this.predicate == null)
         {
             this.outputDelegate
                     .printlnErrorMessage("no filtering objects were successfully constructed");
@@ -352,14 +364,16 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             boolean entityMatchesAllCriteriaSoFar = true;
             if (!this.typesToCheck.contains(entity.getType()))
             {
-                continue;
+                entityMatchesAllCriteriaSoFar = false;
             }
-            if (this.taggableFilter != null && !this.taggableFilter.test(entity))
+            if (entityMatchesAllCriteriaSoFar && this.taggableFilter != null
+                    && !this.taggableFilter.test(entity))
             {
-                continue;
+                entityMatchesAllCriteriaSoFar = false;
             }
 
-            if (!this.ids.isEmpty() && !this.ids.contains(entity.getIdentifier()))
+            if (entityMatchesAllCriteriaSoFar && !this.ids.isEmpty()
+                    && !this.ids.contains(entity.getIdentifier()))
             {
                 entityMatchesAllCriteriaSoFar = false;
             }
@@ -369,33 +383,48 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                 entityMatchesAllCriteriaSoFar = false;
             }
 
-            if (entityMatchesAllCriteriaSoFar && !this.geometryWkts.isEmpty()
-                    && !this.geometryWkts.contains(entity.toWkt()))
+            if (entityMatchesAllCriteriaSoFar && !this.boundingWkts.isEmpty())
             {
-                boolean matchedAtLeastOneWktSnippet = false;
-                for (final String wkt : this.geometryWkts)
+                boolean boundedByAtLeastOneWktPolygon = false;
+                for (final String wkt : this.boundingWkts)
                 {
-                    if (entityMatchesWktSnippet(entity, wkt))
+                    if (entityBoundedByWktGeometry(entity, wkt, atlas))
                     {
-                        matchedAtLeastOneWktSnippet = true;
+                        boundedByAtLeastOneWktPolygon = true;
                     }
                 }
-                if (!matchedAtLeastOneWktSnippet)
+                if (!boundedByAtLeastOneWktPolygon)
+                {
+                    entityMatchesAllCriteriaSoFar = false;
+                }
+            }
+
+            if (entityMatchesAllCriteriaSoFar && !this.geometryWkts.isEmpty())
+            {
+                boolean matchedAtLeastOneWktGeometry = false;
+                for (final String wkt : this.geometryWkts)
+                {
+                    if (entityMatchesWktGeometry(entity, wkt))
+                    {
+                        matchedAtLeastOneWktGeometry = true;
+                    }
+                }
+                if (!matchedAtLeastOneWktGeometry)
                 {
                     entityMatchesAllCriteriaSoFar = false;
                 }
             }
             if (entityMatchesAllCriteriaSoFar && !this.subGeometryWkts.isEmpty())
             {
-                boolean matchedAtLeastOneWktSnippet = false;
+                boolean containedAtLeastOneWktGeometry = false;
                 for (final String wkt : this.subGeometryWkts)
                 {
-                    if (entityContainsWktSnippet(entity, wkt))
+                    if (entityContainsWktGeometry(entity, wkt))
                     {
-                        matchedAtLeastOneWktSnippet = true;
+                        containedAtLeastOneWktGeometry = true;
                     }
                 }
-                if (!matchedAtLeastOneWktSnippet)
+                if (!containedAtLeastOneWktGeometry)
                 {
                     entityMatchesAllCriteriaSoFar = false;
                 }
@@ -469,7 +498,41 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         }
     }
 
-    private boolean entityContainsWktSnippet(final AtlasEntity entity, final String wkt) // NOSONAR
+    private boolean entityBoundedByWktGeometry(final AtlasEntity entity, final String wkt,
+            final Atlas atlas) // NOSONAR
+    {
+        final Geometry geometry = parseWkt(wkt);
+        if (geometry == null)
+        {
+            return false;
+        }
+
+        Polygon inputPolygon = null;
+        if (geometry instanceof org.locationtech.jts.geom.Polygon)
+        {
+            inputPolygon = new JtsPolygonConverter()
+                    .backwardConvert((org.locationtech.jts.geom.Polygon) geometry);
+        }
+        else
+        {
+            this.outputDelegate.printlnErrorMessage(
+                    "--" + BOUNDING_POLYGON_OPTION_LONG + " only supports POLYGON");
+            return false;
+        }
+
+        for (final AtlasEntity withinEntity : atlas.entitiesWithin(inputPolygon))
+        {
+            if (withinEntity.getIdentifier() == entity.getIdentifier()
+                    && withinEntity.getType() == entity.getType())
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean entityContainsWktGeometry(final AtlasEntity entity, final String wkt) // NOSONAR
     {
         if (entity.getType() == ItemType.RELATION)
         {
@@ -546,7 +609,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         return false;
     }
 
-    private boolean entityMatchesWktSnippet(final AtlasEntity entity, final String wkt) // NOSONAR
+    private boolean entityMatchesWktGeometry(final AtlasEntity entity, final String wkt) // NOSONAR
     {
         if (entity.getType() == ItemType.RELATION)
         {
