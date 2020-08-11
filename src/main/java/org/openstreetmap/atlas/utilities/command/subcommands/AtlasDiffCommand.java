@@ -1,8 +1,13 @@
 package org.openstreetmap.atlas.utilities.command.subcommands;
 
+import java.nio.file.FileSystem;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.atlas.Atlas;
@@ -15,6 +20,8 @@ import org.openstreetmap.atlas.geography.atlas.change.serializer.ChangeGeoJsonSe
 import org.openstreetmap.atlas.geography.atlas.complete.PrettifyStringFormat;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.streaming.resource.File;
+import org.openstreetmap.atlas.streaming.resource.FileSuffix;
+import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
@@ -23,6 +30,9 @@ import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgume
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
+import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author lcram
@@ -55,6 +65,8 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
     private static final String GEOJSON_OPTION_DESCRIPTION = "Use the pretty geoJSON format for output.";
     private static final String FULL_OPTION_LONG = "full";
     private static final String FULL_OPTION_DESCRIPTION = "Show the full FeatureChange instead of just the ChangeDescription.";
+    private static final String FOLDER_SEARCH_RECURSIVE_OPTION_LONG = "recursive";
+    private static final String FOLDER_SEARCH_RECURSIVE_OPTION_DESCRIPTION = "When comparing Atlas folders, search sub-folders too.";
 
     private static final List<String> ITEM_TYPE_STRINGS = Arrays.stream(ItemType.values())
             .map(ItemType::toString).collect(Collectors.toList());
@@ -73,6 +85,9 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
 
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
+    private boolean unitTestMode = false;
+    private final List<String> stdout = new ArrayList<>();
+    private final List<String> warnings = new ArrayList<>();
 
     public static void main(final String[] args)
     {
@@ -92,13 +107,14 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
                 .getUnaryArgument(BEFORE_ATLAS_ARGUMENT).orElseThrow(AtlasShellToolsException::new);
         final String afterAtlasPath = this.optionAndArgumentDelegate
                 .getUnaryArgument(AFTER_ATLAS_ARGUMENT).orElseThrow(AtlasShellToolsException::new);
-        final File beforeAtlasFile = new File(beforeAtlasPath);
-        final File afterAtlasFile = new File(afterAtlasPath);
+        final File beforeAtlasFile = new File(beforeAtlasPath, this.getFileSystem());
+        final File afterAtlasFile = new File(afterAtlasPath, this.getFileSystem());
         boolean useGeoJson = false;
         boolean useLdGeoJson = false;
         boolean fullText = false;
         Long selectedIdentifier = null;
         ItemType selectedType = null;
+        boolean recursive = false;
 
         if (this.optionAndArgumentDelegate.hasOption(
                 ID_OPTION_LONG) != this.optionAndArgumentDelegate.hasOption(TYPE_OPTION_LONG))
@@ -152,6 +168,11 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
             fullText = true;
         }
 
+        if (this.optionAndArgumentDelegate.hasOption(FOLDER_SEARCH_RECURSIVE_OPTION_LONG))
+        {
+            recursive = true;
+        }
+
         if (!beforeAtlasFile.exists())
         {
             this.outputDelegate.printlnWarnMessage("file not found: " + beforeAtlasPath);
@@ -163,70 +184,27 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
             return 2;
         }
 
-        final Atlas beforeAtlas = new AtlasResourceLoader().load(beforeAtlasFile);
-        final Atlas afterAtlas = new AtlasResourceLoader().load(afterAtlasFile);
+        final AtlasDiffCommandContext context = new AtlasDiffCommandContext(beforeAtlasFile,
+                afterAtlasFile, useGeoJson, useLdGeoJson, fullText, selectedIdentifier,
+                selectedType, recursive);
 
-        final AtlasDiff diff = new AtlasDiff(beforeAtlas, afterAtlas).saveAllGeometries(false);
-        final Optional<Change> changeOptional = diff.generateChange();
-
-        if (changeOptional.isPresent())
+        if (beforeAtlasFile.isDirectory() && afterAtlasFile.isDirectory())
         {
-            Change change = changeOptional.get();
-            if (this.optionAndArgumentDelegate.hasOption(ID_OPTION_LONG)
-                    && this.optionAndArgumentDelegate.hasOption(TYPE_OPTION_LONG))
-            {
-                final Optional<FeatureChange> featureChangeOptional = change.changeFor(selectedType,
-                        selectedIdentifier);
-                if (featureChangeOptional.isPresent())
-                {
-                    change = new ChangeBuilder().add(featureChangeOptional.get()).get();
-                }
-                else
-                {
-                    this.outputDelegate.printlnWarnMessage(
-                            "No change found for " + selectedType + " " + selectedIdentifier);
-                    return 0;
-                }
-            }
-            final String serializedString;
-            if (useGeoJson)
-            {
-                serializedString = new ChangeGeoJsonSerializer().convert(change);
-            }
-            else if (useLdGeoJson)
-            {
-                serializedString = change.toLineDelimitedFeatureChanges();
-            }
-            else if (fullText)
-            {
-                final PrettifyStringFormat featureChangeFormat = this.optionAndArgumentDelegate
-                        .getOptionArgument(FEATURE_CHANGE_FORMAT_OPTION_LONG,
-                                PrettifyStringFormat::valueOf)
-                        .orElse(DEFAULT_PRETTY_FEATURE_CHANGE_FORMAT);
-                final PrettifyStringFormat completeEntityFormat = this.optionAndArgumentDelegate
-                        .getOptionArgument(COMPLETE_ENTITY_FORMAT_OPTION_LONG,
-                                PrettifyStringFormat::valueOf)
-                        .orElse(DEFAULT_PRETTY_COMPLETE_ENTITY_FORMAT);
-                serializedString = change.prettify(featureChangeFormat, completeEntityFormat, false)
-                        + "\n";
-            }
-            else
-            {
-                final StringBuilder builder = new StringBuilder();
-                change.changes().forEach(featureChange ->
-                {
-                    builder.append(featureChange.explain());
-                    builder.append("\n");
-                });
-                serializedString = builder.toString();
-            }
-            this.outputDelegate.printlnStdout(serializedString);
-            return 1;
+            final boolean result = this.compute(context, beforeAtlasFile, afterAtlasFile);
+            return result ? 1 : 0;
+        }
+        else if (!beforeAtlasFile.isDirectory() && !afterAtlasFile.isDirectory())
+        {
+            final Atlas beforeAtlas = load(beforeAtlasFile);
+            final Atlas afterAtlas = load(afterAtlasFile);
+
+            final boolean result = this.compute(context, beforeAtlas, afterAtlas);
+            return result ? 1 : 0;
         }
         else
         {
-            this.outputDelegate.printlnWarnMessage("atlases are effectively identical");
-            return 0;
+            this.outputDelegate.printlnErrorMessage("Cannot compare a file and a directory.");
+            return 1;
         }
     }
 
@@ -272,10 +250,191 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
                 GEOJSON_CONTEXT);
         registerOption(FULL_OPTION_LONG, FULL_OPTION_DESCRIPTION, OptionOptionality.REQUIRED,
                 FULL_CONTEXT);
+        registerOption(FOLDER_SEARCH_RECURSIVE_OPTION_LONG,
+                FOLDER_SEARCH_RECURSIVE_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL);
         registerArgument(BEFORE_ATLAS_ARGUMENT, ArgumentArity.UNARY, ArgumentOptionality.REQUIRED,
                 DEFAULT_CONTEXT, LDGEOJSON_CONTEXT, GEOJSON_CONTEXT, FULL_CONTEXT);
         registerArgument(AFTER_ATLAS_ARGUMENT, ArgumentArity.UNARY, ArgumentOptionality.REQUIRED,
                 DEFAULT_CONTEXT, LDGEOJSON_CONTEXT, GEOJSON_CONTEXT, FULL_CONTEXT);
         super.registerOptionsAndArguments();
+    }
+
+    public AtlasDiffCommand withUnitTestMode(final FileSystem fileSystem)
+    {
+        this.unitTestMode = true;
+        this.setNewFileSystem(fileSystem);
+        return this;
+    }
+
+    boolean compute(final AtlasDiffCommandContext context, final File beforeAtlasFile,
+            final File afterAtlasFile)
+    {
+        boolean result = false;
+        final Map<String, File> beforeNamesToFiles = new HashMap<>();
+        final Map<String, File> afterNamesToFiles = new HashMap<>();
+        final List<File> beforeFilesToConsider = context.isRecursive()
+                ? beforeAtlasFile.listFilesRecursively(false)
+                : beforeAtlasFile.listFiles(false);
+        final List<File> afterFilesToConsider = context.isRecursive()
+                ? afterAtlasFile.listFilesRecursively(false)
+                : afterAtlasFile.listFiles(false);
+        beforeFilesToConsider.stream().filter(FileSuffix.ATLAS::matches)
+                .forEach(file -> beforeNamesToFiles.put(file.getName(), file));
+        afterFilesToConsider.stream().filter(FileSuffix.ATLAS::matches)
+                .forEach(file -> afterNamesToFiles.put(file.getName(), file));
+        final Set<String> filesOnlyInBefore = Sets.difference(beforeNamesToFiles.keySet(),
+                afterNamesToFiles.keySet());
+        final Set<String> filesOnlyInAfter = Sets.difference(afterNamesToFiles.keySet(),
+                beforeNamesToFiles.keySet());
+        final Set<String> filesInBoth = Sets.intersection(beforeNamesToFiles.keySet(),
+                afterNamesToFiles.keySet());
+        if (!filesOnlyInBefore.isEmpty())
+        {
+            final String warnMessage = "Files only in Before Atlas folder:";
+            this.outputDelegate.printlnWarnMessage(warnMessage);
+            filesOnlyInBefore.stream().sorted().forEach(this.outputDelegate::printlnWarnMessage);
+            if (this.unitTestMode)
+            {
+                this.warnings.add(warnMessage);
+                this.warnings
+                        .addAll(filesOnlyInBefore.stream().sorted().collect(Collectors.toList()));
+            }
+            result = true;
+        }
+        if (!filesOnlyInAfter.isEmpty())
+        {
+            final String warnMessage = "Files only in After Atlas folder:";
+            this.outputDelegate.printlnWarnMessage(warnMessage);
+            filesOnlyInAfter.stream().sorted().forEach(this.outputDelegate::printlnWarnMessage);
+            if (this.unitTestMode)
+            {
+                this.warnings.add(warnMessage);
+                this.warnings
+                        .addAll(filesOnlyInAfter.stream().sorted().collect(Collectors.toList()));
+            }
+            result = true;
+        }
+        for (final String name : filesInBoth.stream().sorted().collect(Collectors.toList()))
+        {
+            final Atlas beforeAtlas = load(beforeNamesToFiles.get(name));
+            final Atlas afterAtlas = load(afterNamesToFiles.get(name));
+            this.outputDelegate.printlnStdout(name, TTYAttribute.BOLD, TTYAttribute.GREEN);
+            if (this.unitTestMode)
+            {
+                this.stdout.add(name);
+            }
+            if (compute(context, beforeAtlas, afterAtlas))
+            {
+                result = true;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @param context
+     *            The context to apply
+     * @param beforeAtlas
+     *            The before Atlas to compare
+     * @param afterAtlas
+     *            The after Atlas to compare
+     * @return True if there are differences
+     */
+    boolean compute(final AtlasDiffCommandContext context, final Atlas beforeAtlas,
+            final Atlas afterAtlas)
+    {
+        final AtlasDiff diff = new AtlasDiff(beforeAtlas, afterAtlas).saveAllGeometries(false);
+        final Optional<Change> changeOptional = diff.generateChange();
+
+        if (changeOptional.isPresent())
+        {
+            Change change = changeOptional.get();
+
+            if (this.optionAndArgumentDelegate.hasOption(ID_OPTION_LONG)
+                    && this.optionAndArgumentDelegate.hasOption(TYPE_OPTION_LONG))
+            {
+                final Optional<FeatureChange> featureChangeOptional = change
+                        .changeFor(context.getSelectedType(), context.getSelectedIdentifier());
+                if (featureChangeOptional.isPresent())
+                {
+                    change = new ChangeBuilder().add(featureChangeOptional.get()).get();
+                }
+                else
+                {
+                    final String stdoutMessage = "No change found for " + context.getSelectedType()
+                            + " " + context.getSelectedIdentifier();
+                    this.outputDelegate.printlnWarnMessage(stdoutMessage);
+                    if (this.unitTestMode)
+                    {
+                        this.stdout.add(stdoutMessage);
+                    }
+                    return false;
+                }
+            }
+            final String serializedString;
+            if (context.isUseGeoJson())
+            {
+                serializedString = new ChangeGeoJsonSerializer().convert(change);
+            }
+            else if (context.isUseLdGeoJson())
+            {
+                serializedString = change.toLineDelimitedFeatureChanges();
+            }
+            else if (context.isFullText())
+            {
+                final PrettifyStringFormat featureChangeFormat = this.optionAndArgumentDelegate
+                        .getOptionArgument(FEATURE_CHANGE_FORMAT_OPTION_LONG,
+                                PrettifyStringFormat::valueOf)
+                        .orElse(DEFAULT_PRETTY_FEATURE_CHANGE_FORMAT);
+                final PrettifyStringFormat completeEntityFormat = this.optionAndArgumentDelegate
+                        .getOptionArgument(COMPLETE_ENTITY_FORMAT_OPTION_LONG,
+                                PrettifyStringFormat::valueOf)
+                        .orElse(DEFAULT_PRETTY_COMPLETE_ENTITY_FORMAT);
+                serializedString = change.prettify(featureChangeFormat, completeEntityFormat, false)
+                        + "\n";
+            }
+            else
+            {
+                final StringBuilder builder = new StringBuilder();
+                change.changes().forEach(featureChange ->
+                {
+                    builder.append(featureChange.explain());
+                    builder.append("\n");
+                });
+                serializedString = builder.toString();
+            }
+            this.outputDelegate.printlnStdout(serializedString);
+            if (this.unitTestMode)
+            {
+                this.stdout.add(serializedString);
+            }
+            return true;
+        }
+        else
+        {
+            final String stdoutMessage = "Atlases are effectively identical";
+            this.outputDelegate.printlnStdout(stdoutMessage);
+            if (this.unitTestMode)
+            {
+                this.stdout.add(stdoutMessage);
+            }
+            return false;
+        }
+    }
+
+    List<String> getStdout()
+    {
+        return this.stdout;
+    }
+
+    List<String> getWarnings()
+    {
+        return this.warnings;
+    }
+
+    private Atlas load(final File file)
+    {
+        return new AtlasResourceLoader()
+                .load(new InputStreamResource(file::read).withName(file.getAbsolutePathString()));
     }
 }
