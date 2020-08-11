@@ -39,6 +39,8 @@ import com.google.common.collect.Sets;
  */
 public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
 {
+    static final String NO_CHANGE = "Atlases are effectively identical";
+
     private static final String BEFORE_ATLAS_ARGUMENT = "before-atlas";
     private static final String AFTER_ATLAS_ARGUMENT = "after-atlas";
 
@@ -251,7 +253,8 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
         registerOption(FULL_OPTION_LONG, FULL_OPTION_DESCRIPTION, OptionOptionality.REQUIRED,
                 FULL_CONTEXT);
         registerOption(FOLDER_SEARCH_RECURSIVE_OPTION_LONG,
-                FOLDER_SEARCH_RECURSIVE_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL);
+                FOLDER_SEARCH_RECURSIVE_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
+                FULL_CONTEXT, GEOJSON_CONTEXT, LDGEOJSON_CONTEXT);
         registerArgument(BEFORE_ATLAS_ARGUMENT, ArgumentArity.UNARY, ArgumentOptionality.REQUIRED,
                 DEFAULT_CONTEXT, LDGEOJSON_CONTEXT, GEOJSON_CONTEXT, FULL_CONTEXT);
         registerArgument(AFTER_ATLAS_ARGUMENT, ArgumentArity.UNARY, ArgumentOptionality.REQUIRED,
@@ -278,10 +281,10 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
         final List<File> afterFilesToConsider = context.isRecursive()
                 ? afterAtlasFile.listFilesRecursively(false)
                 : afterAtlasFile.listFiles(false);
-        beforeFilesToConsider.stream().filter(FileSuffix.ATLAS::matches)
-                .forEach(file -> beforeNamesToFiles.put(file.getName(), file));
-        afterFilesToConsider.stream().filter(FileSuffix.ATLAS::matches)
-                .forEach(file -> afterNamesToFiles.put(file.getName(), file));
+        beforeFilesToConsider.stream().filter(FileSuffix.ATLAS::matches).forEach(
+                file -> beforeNamesToFiles.put(getRelativeFileName(beforeAtlasFile, file), file));
+        afterFilesToConsider.stream().filter(FileSuffix.ATLAS::matches).forEach(
+                file -> afterNamesToFiles.put(getRelativeFileName(afterAtlasFile, file), file));
         final Set<String> filesOnlyInBefore = Sets.difference(beforeNamesToFiles.keySet(),
                 afterNamesToFiles.keySet());
         final Set<String> filesOnlyInAfter = Sets.difference(afterNamesToFiles.keySet(),
@@ -412,11 +415,10 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
         }
         else
         {
-            final String stdoutMessage = "Atlases are effectively identical";
-            this.outputDelegate.printlnStdout(stdoutMessage);
+            this.outputDelegate.printlnStdout(NO_CHANGE);
             if (this.unitTestMode)
             {
-                this.stdout.add(stdoutMessage);
+                this.stdout.add(NO_CHANGE);
             }
             return false;
         }
@@ -430,6 +432,11 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
     List<String> getWarnings()
     {
         return this.warnings;
+    }
+
+    private String getRelativeFileName(final File parent, final File file)
+    {
+        return file.getAbsolutePathString().substring(parent.getAbsolutePathString().length() + 1);
     }
 
     private Atlas load(final File file)

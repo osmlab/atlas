@@ -29,8 +29,8 @@ public class AtlasDiffCommandTest
     private static final String ATLAS_BEFORE = "/test/before";
     private static final String ATLAS_BEFORE_A = ATLAS_BEFORE + "/atlasA.atlas";
     private static final String ATLAS_BEFORE_B = ATLAS_BEFORE + "/atlasB.atlas";
-    private static final String ATLAS_BEFORE_C = ATLAS_BEFORE + "/atlasC.atlas";
-    private static final String ATLAS_BEFORE_D = ATLAS_BEFORE + "/atlasD.atlas";
+    private static final String ATLAS_BEFORE_C = ATLAS_BEFORE + "/x/atlasC.atlas";
+    private static final String ATLAS_BEFORE_D = ATLAS_BEFORE + "/x/atlasD.atlas";
 
     private static final String ATLAS_BEFORE2 = "/test/before2";
     private static final String ATLAS_BEFORE2_A = ATLAS_BEFORE2 + "/atlasA.atlas";
@@ -39,8 +39,8 @@ public class AtlasDiffCommandTest
     private static final String ATLAS_AFTER = "/test/after";
     private static final String ATLAS_AFTER_A = ATLAS_AFTER + "/atlasA.atlas";
     private static final String ATLAS_AFTER_B = ATLAS_AFTER + "/atlasB.atlas";
-    private static final String ATLAS_AFTER_C = ATLAS_AFTER + "/atlasC.atlas";
-    private static final String ATLAS_AFTER_D = ATLAS_AFTER + "/atlasD.atlas";
+    private static final String ATLAS_AFTER_C = ATLAS_AFTER + "/x/atlasC.atlas";
+    private static final String ATLAS_AFTER_D = ATLAS_AFTER + "/x/atlasD.atlas";
 
     private static final String ATLAS_AFTER2 = "/test/after2";
     private static final String ATLAS_AFTER2_B = ATLAS_AFTER2 + "/atlasB.atlas";
@@ -122,12 +122,14 @@ public class AtlasDiffCommandTest
     {
         final AtlasDiffCommand command = new AtlasDiffCommand()
                 .withUnitTestMode(this.memoryFileSystem);
-        command.runSubcommand(ATLAS_BEFORE, ATLAS_AFTER, "--ldgeojson");
+        command.runSubcommand(ATLAS_BEFORE, ATLAS_AFTER, "--ldgeojson", "--recursive");
         Assert.assertTrue(command.getWarnings().isEmpty());
         final List<String> stdout = command.getStdout();
         Assert.assertEquals(8, stdout.size());
         Assert.assertEquals("atlasA.atlas", stdout.get(0));
         Assert.assertEquals(this.atlas1to2Diff, stdout.get(1));
+        Assert.assertEquals("x/atlasC.atlas", stdout.get(4));
+        Assert.assertEquals(AtlasDiffCommand.NO_CHANGE, stdout.get(5));
     }
 
     @Test
