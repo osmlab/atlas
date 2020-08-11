@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.builder.text;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -366,7 +367,11 @@ public class TextAtlasBuilder
         final StringList split = StringList.split(line, SEPARATOR);
         final long identifier = Long.parseLong(split.get(0));
         final Polygon geometry = new PolygonStringConverter().convert(split.get(1));
-        final Map<String, String> tags = parseTags(split.get(2));
+        final Map<String, String> tags = new HashMap<>();
+        if (split.size() > 2)
+        {
+            tags.putAll(parseTags(split.get(2)));
+        }
         builder.addArea(identifier, geometry, tags);
     }
 
@@ -375,7 +380,11 @@ public class TextAtlasBuilder
         final StringList split = StringList.split(line, SEPARATOR);
         final long identifier = Long.parseLong(split.get(0));
         final PolyLine geometry = new PolyLineStringConverter().convert(split.get(1));
-        final Map<String, String> tags = parseTags(split.get(2));
+        final Map<String, String> tags = new HashMap<>();
+        if (split.size() > 2)
+        {
+            tags.putAll(parseTags(split.get(2)));
+        }
         builder.addEdge(identifier, geometry, tags);
     }
 
@@ -384,7 +393,11 @@ public class TextAtlasBuilder
         final StringList split = StringList.split(line, SEPARATOR);
         final long identifier = Long.parseLong(split.get(0));
         final PolyLine geometry = new PolyLineStringConverter().convert(split.get(1));
-        final Map<String, String> tags = parseTags(split.get(2));
+        final Map<String, String> tags = new HashMap<>();
+        if (split.size() > 2)
+        {
+            tags.putAll(parseTags(split.get(2)));
+        }
         builder.addLine(identifier, geometry, tags);
     }
 
@@ -393,7 +406,11 @@ public class TextAtlasBuilder
         final StringList split = StringList.split(line, SEPARATOR);
         final long identifier = Long.parseLong(split.get(0));
         final Location geometry = Location.forString(split.get(1));
-        final Map<String, String> tags = parseTags(split.get(2));
+        final Map<String, String> tags = new HashMap<>();
+        if (split.size() > 2)
+        {
+            tags.putAll(parseTags(split.get(2)));
+        }
         builder.addNode(identifier, geometry, tags);
     }
 
@@ -402,7 +419,11 @@ public class TextAtlasBuilder
         final StringList split = StringList.split(line, SEPARATOR);
         final long identifier = Long.parseLong(split.get(0));
         final Location geometry = Location.forString(split.get(1));
-        final Map<String, String> tags = parseTags(split.get(2));
+        final Map<String, String> tags = new HashMap<>();
+        if (split.size() > 2)
+        {
+            tags.putAll(parseTags(split.get(2)));
+        }
         builder.addPoint(identifier, geometry, tags);
     }
 
@@ -411,7 +432,11 @@ public class TextAtlasBuilder
         final StringList split = StringList.split(line, SEPARATOR);
         final long identifier = Long.parseLong(split.get(0));
         final RelationBean structure = parseRelationBean(split.get(1));
-        final Map<String, String> tags = parseTags(split.get(2));
+        final Map<String, String> tags = new HashMap<>();
+        if (split.size() > 2)
+        {
+            tags.putAll(parseTags(split.get(2)));
+        }
         builder.addRelation(identifier, identifier, structure, tags);
     }
 
