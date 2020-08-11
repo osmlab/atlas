@@ -355,11 +355,22 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     protected void processAtlas(final Atlas atlas, final String atlasFileName, // NOSONAR
             final File atlasResource)
     {
+        List<AtlasEntity> boundedEntities = null;
+        if (!this.boundingWkts.isEmpty())
+        {
+            boundedEntities = entitiesBoundedByWktGeometry(this.boundingWkts, atlas);
+        }
+
+        Iterable<AtlasEntity> entitiesWeAreChecking = atlas.entities();
+        if (boundedEntities != null)
+        {
+            entitiesWeAreChecking = boundedEntities;
+        }
         /*
          * This loop is O(N) (where N is the number of atlas entities), assuming the lists of
          * provided evaluation properties are much smaller than the size of the entity set.
          */
-        for (final AtlasEntity entity : atlas.entities()) // NOSONAR
+        for (final AtlasEntity entity : entitiesWeAreChecking) // NOSONAR
         {
             boolean entityMatchesAllCriteriaSoFar = true;
             if (!this.typesToCheck.contains(entity.getType()))
@@ -381,22 +392,6 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                     && !this.osmIds.contains(entity.getOsmIdentifier()))
             {
                 entityMatchesAllCriteriaSoFar = false;
-            }
-
-            if (entityMatchesAllCriteriaSoFar && !this.boundingWkts.isEmpty())
-            {
-                boolean boundedByAtLeastOneWktPolygon = false;
-                for (final String wkt : this.boundingWkts)
-                {
-                    if (entityBoundedByWktGeometry(entity, wkt, atlas))
-                    {
-                        boundedByAtLeastOneWktPolygon = true;
-                    }
-                }
-                if (!boundedByAtLeastOneWktPolygon)
-                {
-                    entityMatchesAllCriteriaSoFar = false;
-                }
             }
 
             if (entityMatchesAllCriteriaSoFar && !this.geometryWkts.isEmpty())
@@ -498,38 +493,38 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         }
     }
 
-    private boolean entityBoundedByWktGeometry(final AtlasEntity entity, final String wkt,
+    private List<AtlasEntity> entitiesBoundedByWktGeometry(final Iterable<String> wkts,
             final Atlas atlas) // NOSONAR
     {
-        final Geometry geometry = parseWkt(wkt);
-        if (geometry == null)
-        {
-            return false;
-        }
+        final List<AtlasEntity> entities = new ArrayList<>();
 
-        Polygon inputPolygon = null;
-        if (geometry instanceof org.locationtech.jts.geom.Polygon)
+        for (final String wkt : wkts) // NOSONAR
         {
-            inputPolygon = new JtsPolygonConverter()
-                    .backwardConvert((org.locationtech.jts.geom.Polygon) geometry);
-        }
-        else
-        {
-            this.outputDelegate.printlnErrorMessage(
-                    "--" + BOUNDING_POLYGON_OPTION_LONG + " only supports POLYGON");
-            return false;
-        }
-
-        for (final AtlasEntity withinEntity : atlas.entitiesWithin(inputPolygon))
-        {
-            if (withinEntity.getIdentifier() == entity.getIdentifier()
-                    && withinEntity.getType() == entity.getType())
+            final Geometry geometry = parseWkt(wkt);
+            if (geometry == null)
             {
-                return true;
+                continue;
+            }
+
+            Polygon inputPolygon = null;
+            if (geometry instanceof org.locationtech.jts.geom.Polygon)
+            {
+                inputPolygon = new JtsPolygonConverter()
+                        .backwardConvert((org.locationtech.jts.geom.Polygon) geometry);
+            }
+            else
+            {
+                this.outputDelegate.printlnErrorMessage("--" + BOUNDING_POLYGON_OPTION_LONG
+                        + " only supports POLYGON, found " + geometry.getClass().getName());
+                continue;
+            }
+
+            for (final AtlasEntity withinEntity : atlas.entitiesWithin(inputPolygon))
+            {
+                entities.add(withinEntity);
             }
         }
-
-        return false;
+        return entities;
     }
 
     private boolean entityContainsWktGeometry(final AtlasEntity entity, final String wkt) // NOSONAR
@@ -558,7 +553,8 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         else
         {
             this.outputDelegate.printlnErrorMessage(
-                    "--" + SUB_GEOMETRY_OPTION_LONG + " only supports POINT and LINESTRING");
+                    "--" + SUB_GEOMETRY_OPTION_LONG + " only supports POINT and LINESTRING, found "
+                            + geometry.getClass().getName());
             return false;
         }
 
@@ -640,8 +636,9 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         }
         else
         {
-            this.outputDelegate.printlnErrorMessage(
-                    "--" + GEOMETRY_OPTION_LONG + " only supports POINT, LINESTRING, and POLYGON");
+            this.outputDelegate.printlnErrorMessage("--" + GEOMETRY_OPTION_LONG
+                    + " only supports POINT, LINESTRING, and POLYGON, found "
+                    + geometry.getClass().getName());
             return false;
         }
 
