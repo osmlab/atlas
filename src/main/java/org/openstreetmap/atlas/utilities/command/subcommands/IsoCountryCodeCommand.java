@@ -21,7 +21,7 @@ import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
  */
 public class IsoCountryCodeCommand extends AbstractAtlasShellToolsCommand
 {
-    private static final int DEFAULT_MATCH_NUMBER = 3;
+    private static final int DEFAULT_MATCH_NUMBER = 10;
 
     private static final char NUMBER_OPTION_SHORT = 'n';
     private static final String NUMBER_OPTION_LONG = "number";
@@ -68,10 +68,9 @@ public class IsoCountryCodeCommand extends AbstractAtlasShellToolsCommand
             final List<IsoCountry> forDisplayNameTopMatches = IsoCountryFuzzyMatcher
                     .forDisplayCountryTopMatches(this.optionAndArgumentDelegate
                             .getOptionArgument(NUMBER_OPTION_LONG, Integer::parseInt)
-                            .orElse(DEFAULT_MATCH_NUMBER), query);
+                            .orElse(DEFAULT_MATCH_NUMBER), query.toLowerCase());
 
-            if (!forIsoCode.isPresent()
-                    && IsoCountry.forCountryCode(query.toUpperCase()).isPresent())
+            if (forIsoCode.isEmpty() && IsoCountry.forCountryCode(query.toUpperCase()).isPresent())
             {
                 this.outputDelegate.printlnWarnMessage(
                         "did you mean case-sensitive ISO code '" + query.toUpperCase() + "'?");
@@ -158,7 +157,7 @@ public class IsoCountryCodeCommand extends AbstractAtlasShellToolsCommand
         for (final String country : countries)
         {
             final Optional<IsoCountry> forCode = IsoCountry.forCountryCode(country);
-            if (!forCode.isPresent())
+            if (forCode.isEmpty())
             {
                 throw new AtlasShellToolsException();
             }
