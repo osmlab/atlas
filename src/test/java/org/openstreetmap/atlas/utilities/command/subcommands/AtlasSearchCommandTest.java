@@ -55,7 +55,10 @@ public class AtlasSearchCommandTest
                     + "tags: {baz=bat, foo=bar}, \n" + "parentRelations: [], \n"
                     + "bounds: POLYGON ((3 3, 3 3, 3 3, 3 3, 3 3)), \n" + "]\n\n",
                     outContent.toString());
-            Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n", errContent.toString());
+            Assert.assertEquals(
+                    "find: loading /Users/foo/test.atlas.txt\n"
+                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    errContent.toString());
         }
         catch (final IOException exception)
         {
@@ -87,6 +90,7 @@ public class AtlasSearchCommandTest
                     outContent.toString());
             Assert.assertEquals(
                     "find: loading /Users/foo/test.atlas.txt\n"
+                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n"
                             + "find: saved to /Users/foo/collected-multi.atlas\n",
                     errContent.toString());
             Assert.assertTrue(new File("/Users/foo/collected-multi.atlas", filesystem).exists());
@@ -146,7 +150,10 @@ public class AtlasSearchCommandTest
                     + "tags: {foo=bar}, \n" + "parentRelations: [], \n"
                     + "bounds: POLYGON ((1 1, 1 1, 1 1, 1 1, 1 1)), \n" + "]\n\n",
                     outContent.toString());
-            Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n", errContent.toString());
+            Assert.assertEquals(
+                    "find: loading /Users/foo/test.atlas.txt\n"
+                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    errContent.toString());
 
             final ByteArrayOutputStream outContent2 = new ByteArrayOutputStream();
             final ByteArrayOutputStream errContent2 = new ByteArrayOutputStream();
@@ -165,7 +172,9 @@ public class AtlasSearchCommandTest
                             + "tags: {this_is=a_line}, \n" + "parentRelations: [], \n"
                             + "bounds: POLYGON ((10 10, 10 12, 12 12, 12 10, 10 10)), \n" + "]\n\n",
                     outContent2.toString());
-            Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n",
+            Assert.assertEquals(
+                    "find: loading /Users/foo/test.atlas.txt\n"
+                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
                     errContent2.toString());
 
             final ByteArrayOutputStream outContent3 = new ByteArrayOutputStream();
@@ -185,7 +194,9 @@ public class AtlasSearchCommandTest
                             + "tags: {baz=bat}, \n" + "parentRelations: [], \n"
                             + "bounds: POLYGON ((20 20, 20 21, 21 21, 21 20, 20 20)), \n" + "]\n\n",
                     outContent3.toString());
-            Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n",
+            Assert.assertEquals(
+                    "find: loading /Users/foo/test.atlas.txt\n"
+                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
                     errContent3.toString());
         }
         catch (final IOException exception)
@@ -214,7 +225,10 @@ public class AtlasSearchCommandTest
                     + "tags: {foo=bar}, \n" + "parentRelations: [], \n"
                     + "bounds: POLYGON ((1 1, 1 1, 1 1, 1 1, 1 1)), \n" + "]\n\n",
                     outContent.toString());
-            Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n", errContent.toString());
+            Assert.assertEquals(
+                    "find: loading /Users/foo/test.atlas.txt\n"
+                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    errContent.toString());
         }
         catch (final IOException exception)
         {
@@ -243,7 +257,10 @@ public class AtlasSearchCommandTest
                     + "parentRelations: [], \n"
                     + "bounds: POLYGON ((32 32, 32 32, 32 32, 32 32, 32 32)), \n" + "]\n\n",
                     outContent.toString());
-            Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n", errContent.toString());
+            Assert.assertEquals(
+                    "find: loading /Users/foo/test.atlas.txt\n"
+                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    errContent.toString());
 
             final ByteArrayOutputStream outContent2 = new ByteArrayOutputStream();
             final ByteArrayOutputStream errContent2 = new ByteArrayOutputStream();
@@ -260,7 +277,9 @@ public class AtlasSearchCommandTest
                     + "parentRelations: [], \n"
                     + "bounds: POLYGON ((32 32, 32 32, 32 32, 32 32, 32 32)), \n" + "]\n\n",
                     outContent2.toString());
-            Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n",
+            Assert.assertEquals(
+                    "find: loading /Users/foo/test.atlas.txt\n"
+                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
                     errContent2.toString());
         }
         catch (final IOException exception)
@@ -297,7 +316,10 @@ public class AtlasSearchCommandTest
                     + "parentRelations: [12000000], \n"
                     + "bounds: POLYGON ((32 32, 32 34, 34 34, 34 32, 32 32)), \n" + "]\n\n",
                     outContent.toString());
-            Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n", errContent.toString());
+            Assert.assertEquals(
+                    "find: loading /Users/foo/test.atlas.txt\n"
+                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    errContent.toString());
         }
         catch (final IOException exception)
         {
@@ -334,7 +356,10 @@ public class AtlasSearchCommandTest
                     + "parentRelations: [12000000], \n"
                     + "bounds: POLYGON ((32 32, 32 34, 34 34, 34 32, 32 32)), \n" + "]\n\n",
                     outContent.toString());
-            Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n", errContent.toString());
+            Assert.assertEquals(
+                    "find: loading /Users/foo/test.atlas.txt\n"
+                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    errContent.toString());
         }
         catch (final IOException exception)
         {
@@ -372,7 +397,10 @@ public class AtlasSearchCommandTest
                     + "parentRelations: [12000000], \n"
                     + "bounds: POLYGON ((32 32, 32 34, 34 34, 34 32, 32 32)), \n" + "]\n\n",
                     outContent.toString());
-            Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n", errContent.toString());
+            Assert.assertEquals(
+                    "find: loading /Users/foo/test.atlas.txt\n"
+                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    errContent.toString());
         }
         catch (final IOException exception)
         {
@@ -404,7 +432,10 @@ public class AtlasSearchCommandTest
                             + "tags: {foo=bar}, \n" + "parentRelations: [12000000], \n"
                             + "bounds: POLYGON ((30 30, 30 32, 32 32, 32 30, 30 30)), \n" + "]\n\n",
                     outContent.toString());
-            Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n", errContent.toString());
+            Assert.assertEquals(
+                    "find: loading /Users/foo/test.atlas.txt\n"
+                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    errContent.toString());
         }
         catch (final IOException exception)
         {
@@ -434,7 +465,10 @@ public class AtlasSearchCommandTest
                     + "tags: {foo=bar}, \n" + "parentRelations: [], \n"
                     + "bounds: POLYGON ((1 1, 1 1, 1 1, 1 1, 1 1)), \n" + "]\n\n",
                     outContent.toString());
-            Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n", errContent.toString());
+            Assert.assertEquals(
+                    "find: loading /Users/foo/test.atlas.txt\n"
+                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    errContent.toString());
 
             final ByteArrayOutputStream outContent2 = new ByteArrayOutputStream();
             final ByteArrayOutputStream errContent2 = new ByteArrayOutputStream();
@@ -453,7 +487,9 @@ public class AtlasSearchCommandTest
                             + "tags: {this_is=a_line}, \n" + "parentRelations: [], \n"
                             + "bounds: POLYGON ((10 10, 10 12, 12 12, 12 10, 10 10)), \n" + "]\n\n",
                     outContent2.toString());
-            Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n",
+            Assert.assertEquals(
+                    "find: loading /Users/foo/test.atlas.txt\n"
+                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
                     errContent2.toString());
 
             final ByteArrayOutputStream outContent3 = new ByteArrayOutputStream();
@@ -473,7 +509,9 @@ public class AtlasSearchCommandTest
                             + "tags: {this_is=a_line}, \n" + "parentRelations: [], \n"
                             + "bounds: POLYGON ((10 10, 10 12, 12 12, 12 10, 10 10)), \n" + "]\n\n",
                     outContent3.toString());
-            Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n",
+            Assert.assertEquals(
+                    "find: loading /Users/foo/test.atlas.txt\n"
+                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
                     errContent3.toString());
         }
         catch (final IOException exception)
@@ -509,7 +547,10 @@ public class AtlasSearchCommandTest
                     + "tags: {another=tag1, hello=world}, \n" + "parentRelations: [], \n"
                     + "bounds: POLYGON ((16 16, 16 18, 18 18, 18 16, 16 16)), \n" + "]\n\n",
                     outContent.toString());
-            Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n", errContent.toString());
+            Assert.assertEquals(
+                    "find: loading /Users/foo/test.atlas.txt\n"
+                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    errContent.toString());
         }
         catch (final IOException exception)
         {
@@ -539,7 +580,10 @@ public class AtlasSearchCommandTest
                     + "tags: {route=bike}, \n" + "parentRelations: [], \n"
                     + "bounds: POLYGON ((30 30, 30 34, 34 34, 34 30, 30 30)), \n" + "]\n\n",
                     outContent.toString());
-            Assert.assertEquals("find: loading /Users/foo/test.atlas.txt\n", errContent.toString());
+            Assert.assertEquals(
+                    "find: loading /Users/foo/test.atlas.txt\n"
+                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    errContent.toString());
         }
         catch (final IOException exception)
         {

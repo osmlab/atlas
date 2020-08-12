@@ -50,6 +50,7 @@ public class SubAtlasCommandTest
             Assert.assertEquals("", outContent.toString());
             Assert.assertEquals(
                     "subatlas: loading /Users/foo/test.atlas.txt\n"
+                            + "subatlas: processing atlas /Users/foo/test.atlas.txt (1/1)\n"
                             + "subatlas: saved to /Users/foo/sub_test.atlas\n",
                     errContent.toString());
 
@@ -88,6 +89,7 @@ public class SubAtlasCommandTest
             Assert.assertEquals("", outContent.toString());
             Assert.assertEquals(
                     "subatlas: loading /Users/foo/test.atlas.txt\n"
+                            + "subatlas: processing atlas /Users/foo/test.atlas.txt (1/1)\n"
                             + "subatlas: saved to /Users/foo/sub_test.atlas\n",
                     errContent.toString());
 
@@ -125,6 +127,7 @@ public class SubAtlasCommandTest
             Assert.assertEquals("", outContent.toString());
             Assert.assertEquals(
                     "subatlas: loading /Users/foo/test.atlas.txt\n"
+                            + "subatlas: processing atlas /Users/foo/test.atlas.txt (1/1)\n"
                             + "subatlas: saved to /Users/foo/sub_test.atlas\n",
                     errContent.toString());
 
