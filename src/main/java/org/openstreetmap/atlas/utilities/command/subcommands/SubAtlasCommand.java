@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +20,7 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.utilities.collections.StringList;
+import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
@@ -42,6 +44,10 @@ public class SubAtlasCommand extends AtlasLoaderCommand
     private static final String PREDICATE_OPTION_DESCRIPTION = "The feature filter predicate for the subatlas. See PREDICATE section for details.";
     private static final String PREDICATE_OPTION_HINT = "groovy-code";
 
+    private static final String PREDICATE_IMPORTS_OPTION_LONG = "imports";
+    private static final String PREDICATE_IMPORTS_OPTION_DESCRIPTION = "A comma separated list of some additional package imports to include for the predicate option, if present.";
+    private static final String PREDICATE_IMPORTS_OPTION_HINT = "packages";
+
     private static final List<String> CUT_TYPE_STRINGS = Arrays.stream(AtlasCutType.values())
             .map(AtlasCutType::toString).collect(Collectors.toList());
     private static final String CUT_TYPE_OPTION_LONG = "cut-type";
@@ -54,8 +60,11 @@ public class SubAtlasCommand extends AtlasLoaderCommand
 
     private static final List<String> importsWhitelist = Arrays.asList(
             "org.openstreetmap.atlas.geography.atlas.items",
-            "org.openstreetmap.atlas.tags.annotations.validation", "org.openstreetmap.atlas.tags",
-            "org.openstreetmap.atlas.geography");
+            "org.openstreetmap.atlas.tags.annotations",
+            "org.openstreetmap.atlas.tags.annotations.validation",
+            "org.openstreetmap.atlas.tags.annotations.extraction", "org.openstreetmap.atlas.tags",
+            "org.openstreetmap.atlas.tags.names", "org.openstreetmap.atlas.geography",
+            "org.openstreetmap.atlas.utilities.collections");
 
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
@@ -110,6 +119,9 @@ public class SubAtlasCommand extends AtlasLoaderCommand
                 OptionOptionality.OPTIONAL, POLYGON_OPTION_HINT);
         this.registerOptionWithRequiredArgument(PREDICATE_OPTION_LONG, PREDICATE_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, PREDICATE_OPTION_HINT);
+        this.registerOptionWithRequiredArgument(PREDICATE_IMPORTS_OPTION_LONG,
+                PREDICATE_IMPORTS_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
+                PREDICATE_IMPORTS_OPTION_HINT);
         this.registerOptionWithRequiredArgument(CUT_TYPE_OPTION_LONG, CUT_TYPE_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, CUT_TYPE_OPTION_HINT);
         this.registerOption(SLICE_FIRST_OPTION_LONG, SLICE_FIRST_OPTION_DESCRIPTION,
@@ -155,12 +167,13 @@ public class SubAtlasCommand extends AtlasLoaderCommand
             final Path concatenatedPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
                     fileName);
             final File outputFile = new File(
-                    concatenatedPath.toAbsolutePath().toString() + FileSuffix.ATLAS);
+                    concatenatedPath.toAbsolutePath().toString() + FileSuffix.ATLAS,
+                    this.getFileSystem());
             subbedAtlas.get().save(outputFile);
             if (this.optionAndArgumentDelegate.hasVerboseOption())
             {
-                this.outputDelegate.printlnCommandMessage(
-                        "saved to " + outputFile.getFile().getAbsolutePath());
+                this.outputDelegate
+                        .printlnCommandMessage("saved to " + outputFile.getAbsolutePathString());
             }
         }
         else
@@ -227,7 +240,7 @@ public class SubAtlasCommand extends AtlasLoaderCommand
         {
             final Optional<Predicate<AtlasEntity>> predicate = getPredicateFromCommandLineExpression(
                     predicateParameter);
-            if (!predicate.isPresent())
+            if (predicate.isEmpty())
             {
                 this.outputDelegate.printlnErrorMessage("could not parse predicate");
                 return 1;
@@ -243,9 +256,20 @@ public class SubAtlasCommand extends AtlasLoaderCommand
     {
         if (predicateParameter.isPresent())
         {
+            List<String> userImports = new ArrayList<>();
+            if (this.optionAndArgumentDelegate.hasOption(PREDICATE_IMPORTS_OPTION_LONG))
+            {
+                userImports = StringList
+                        .split(this.optionAndArgumentDelegate
+                                .getOptionArgument(PREDICATE_IMPORTS_OPTION_LONG)
+                                .orElseThrow(AtlasShellToolsException::new), ",")
+                        .getUnderlyingList();
+            }
+            final List<String> allImports = new ArrayList<>();
+            allImports.addAll(userImports);
+            allImports.addAll(importsWhitelist);
             return Optional.ofNullable(new StringToPredicateConverter<AtlasEntity>()
-                    .withAddedStarImportPackages(importsWhitelist)
-                    .convert(predicateParameter.get()));
+                    .withAddedStarImportPackages(allImports).convert(predicateParameter.get()));
         }
         return Optional.empty();
     }
