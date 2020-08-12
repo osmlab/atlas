@@ -30,6 +30,83 @@ import com.google.common.jimfs.Jimfs;
 public class SubAtlasCommandTest
 {
     @Test
+    public void testOtherOptions()
+    {
+        try (FileSystem filesystem = Jimfs.newFileSystem(Configuration.osX()))
+        {
+            setupFilesystem1(filesystem);
+            final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+            final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
+            final SubAtlasCommand command = new SubAtlasCommand();
+            command.setNewFileSystem(filesystem);
+            command.setNewOutStream(new PrintStream(outContent));
+            command.setNewErrStream(new PrintStream(errContent));
+
+            command.runSubcommand("/Users/foo/test.atlas.txt", "--verbose", "--imports=java.util",
+                    "--predicate=!e.relations().isEmpty()",
+                    "--polygon=POLYGON((33 33, 35 33, 35 35, 33 35, 33 33))", "--slice-first",
+                    "--cut-type=SOFT_CUT", "--output=/Users/foo", "--verbose");
+
+            Assert.assertEquals("", outContent.toString());
+            Assert.assertEquals(
+                    "subatlas: loading /Users/foo/test.atlas.txt\n"
+                            + "subatlas: saved to /Users/foo/sub_test.atlas\n",
+                    errContent.toString());
+
+            final File subAtlasFile = new File("/Users/foo/sub_test.atlas", filesystem);
+            final Atlas subAtlas = new AtlasResourceLoader()
+                    .load(new InputStreamResource(subAtlasFile::read)
+                            .withName(subAtlasFile.getAbsolutePathString()));
+            Assert.assertEquals(3, Iterables.size(subAtlas.entities()));
+            Assert.assertNotNull(subAtlas.node(9000000L));
+            Assert.assertNotNull(subAtlas.node(10000000L));
+            Assert.assertNotNull(subAtlas.edge(11000001L));
+        }
+        catch (final IOException exception)
+        {
+            throw new CoreException("FileSystem operation failed", exception);
+        }
+    }
+
+    @Test
+    public void testPolygon()
+    {
+        try (FileSystem filesystem = Jimfs.newFileSystem(Configuration.osX()))
+        {
+            setupFilesystem1(filesystem);
+            final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+            final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
+            final SubAtlasCommand command = new SubAtlasCommand();
+            command.setNewFileSystem(filesystem);
+            command.setNewOutStream(new PrintStream(outContent));
+            command.setNewErrStream(new PrintStream(errContent));
+
+            command.runSubcommand("/Users/foo/test.atlas.txt", "--verbose",
+                    "--polygon=POLYGON((0 0, 4 0, 4 4, 0 4, 0 0))", "--output=/Users/foo",
+                    "--verbose");
+
+            Assert.assertEquals("", outContent.toString());
+            Assert.assertEquals(
+                    "subatlas: loading /Users/foo/test.atlas.txt\n"
+                            + "subatlas: saved to /Users/foo/sub_test.atlas\n",
+                    errContent.toString());
+
+            final File subAtlasFile = new File("/Users/foo/sub_test.atlas", filesystem);
+            final Atlas subAtlas = new AtlasResourceLoader()
+                    .load(new InputStreamResource(subAtlasFile::read)
+                            .withName(subAtlasFile.getAbsolutePathString()));
+            Assert.assertEquals(3, Iterables.size(subAtlas.entities()));
+            Assert.assertNotNull(subAtlas.point(1000000L));
+            Assert.assertNotNull(subAtlas.point(2000000L));
+            Assert.assertNotNull(subAtlas.point(3000000L));
+        }
+        catch (final IOException exception)
+        {
+            throw new CoreException("FileSystem operation failed", exception);
+        }
+    }
+
+    @Test
     public void testPredicate()
     {
         try (FileSystem filesystem = Jimfs.newFileSystem(Configuration.osX()))
