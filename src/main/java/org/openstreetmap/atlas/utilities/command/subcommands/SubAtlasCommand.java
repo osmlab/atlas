@@ -167,12 +167,13 @@ public class SubAtlasCommand extends AtlasLoaderCommand
             final Path concatenatedPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
                     fileName);
             final File outputFile = new File(
-                    concatenatedPath.toAbsolutePath().toString() + FileSuffix.ATLAS);
+                    concatenatedPath.toAbsolutePath().toString() + FileSuffix.ATLAS,
+                    this.getFileSystem());
             subbedAtlas.get().save(outputFile);
             if (this.optionAndArgumentDelegate.hasVerboseOption())
             {
-                this.outputDelegate.printlnCommandMessage(
-                        "saved to " + outputFile.getFile().getAbsolutePath());
+                this.outputDelegate
+                        .printlnCommandMessage("saved to " + outputFile.getAbsolutePathString());
             }
         }
         else
@@ -239,7 +240,7 @@ public class SubAtlasCommand extends AtlasLoaderCommand
         {
             final Optional<Predicate<AtlasEntity>> predicate = getPredicateFromCommandLineExpression(
                     predicateParameter);
-            if (!predicate.isPresent())
+            if (predicate.isEmpty())
             {
                 this.outputDelegate.printlnErrorMessage("could not parse predicate");
                 return 1;
