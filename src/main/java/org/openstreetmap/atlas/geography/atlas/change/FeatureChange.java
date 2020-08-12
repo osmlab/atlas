@@ -403,7 +403,20 @@ public class FeatureChange implements Located, Taggable, Serializable
     @Override
     public int hashCode()
     {
-        return Objects.hash(this.changeType, this.afterView);
+        if (this.afterView instanceof Relation)
+        {
+            return Objects.hash(this.changeType, this.afterView,
+                    ((Relation) this.afterView).members());
+        }
+        if (this.afterView instanceof Node)
+        {
+            return Objects.hash(this.changeType, this.afterView, ((Node) this.afterView).inEdges(),
+                    ((Node) this.afterView).outEdges());
+        }
+        else
+        {
+            return Objects.hash(this.changeType, this.afterView, this.afterView.getTags());
+        }
     }
 
     /**
