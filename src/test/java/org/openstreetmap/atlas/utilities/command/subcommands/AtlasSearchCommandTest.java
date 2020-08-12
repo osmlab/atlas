@@ -356,7 +356,8 @@ public class AtlasSearchCommandTest
             command.setNewErrStream(new PrintStream(errContent));
 
             command.runSubcommand("/Users/foo/test.atlas.txt", "--verbose",
-                    "--predicate=!e.relations().isEmpty()");
+                    "--predicate=!e.relations().isEmpty() && e.relations().collect { it.getIdentifier() }.containsAll(Sets.hashSet(12000000L))",
+                    "--imports=org.openstreetmap.atlas.utilities.command.parsing");
 
             Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
                     + "CompleteEdge [\n" + "identifier: 11000000, \n"

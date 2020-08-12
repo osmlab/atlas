@@ -37,6 +37,7 @@ import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.tags.filters.TaggableFilter;
 import org.openstreetmap.atlas.utilities.collections.Sets;
 import org.openstreetmap.atlas.utilities.collections.StringList;
+import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
@@ -107,6 +108,10 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     private static final String PREDICATE_OPTION_DESCRIPTION = "The feature filter predicate for the search. See PREDICATE section for details.";
     private static final String PREDICATE_OPTION_HINT = "groovy-code";
 
+    private static final String PREDICATE_IMPORTS_OPTION_LONG = "imports";
+    private static final String PREDICATE_IMPORTS_OPTION_DESCRIPTION = "A comma separated list of some additional package imports to include for the predicate option, if present.";
+    private static final String PREDICATE_IMPORTS_OPTION_HINT = "packages";
+
     private static final String OSMID_OPTION_LONG = "osmid";
     private static final String OSMID_OPTION_DESCRIPTION = "A comma separated list of OSM ids for which to search.";
     private static final String OSMID_OPTION_HINT = "osmids";
@@ -123,8 +128,11 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
 
     private static final List<String> importsWhitelist = Arrays.asList(
             "org.openstreetmap.atlas.geography.atlas.items",
-            "org.openstreetmap.atlas.tags.annotations.validation", "org.openstreetmap.atlas.tags",
-            "org.openstreetmap.atlas.geography");
+            "org.openstreetmap.atlas.tags.annotations",
+            "org.openstreetmap.atlas.tags.annotations.validation",
+            "org.openstreetmap.atlas.tags.annotations.extraction", "org.openstreetmap.atlas.tags",
+            "org.openstreetmap.atlas.tags.names", "org.openstreetmap.atlas.geography",
+            "org.openstreetmap.atlas.utilities.collections");
 
     private Set<String> geometryWkts;
     private Set<String> subGeometryWkts;
@@ -254,6 +262,10 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         registerOptionWithRequiredArgument(PREDICATE_OPTION_LONG, PREDICATE_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, PREDICATE_OPTION_HINT, ALL_TYPES_CONTEXT,
                 EDGE_ONLY_CONTEXT, NODE_ONLY_CONTEXT);
+        registerOptionWithRequiredArgument(PREDICATE_IMPORTS_OPTION_LONG,
+                PREDICATE_IMPORTS_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
+                PREDICATE_IMPORTS_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT,
+                NODE_ONLY_CONTEXT);
 
         registerOptionWithRequiredArgument(ID_OPTION_LONG, ID_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, ID_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT,
@@ -675,8 +687,19 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
 
     private Predicate<AtlasEntity> getPredicateFromString(final String string)
     {
-        return new StringToPredicateConverter<AtlasEntity>()
-                .withAddedStarImportPackages(importsWhitelist).convert(string);
+        List<String> userImports = new ArrayList<>();
+        if (this.optionAndArgumentDelegate.hasOption(PREDICATE_IMPORTS_OPTION_LONG))
+        {
+            userImports = StringList.split(
+                    this.optionAndArgumentDelegate.getOptionArgument(PREDICATE_IMPORTS_OPTION_LONG)
+                            .orElseThrow(AtlasShellToolsException::new),
+                    ",").getUnderlyingList();
+        }
+        final List<String> allImports = new ArrayList<>();
+        allImports.addAll(userImports);
+        allImports.addAll(importsWhitelist);
+        return new StringToPredicateConverter<AtlasEntity>().withAddedStarImportPackages(allImports)
+                .convert(string);
     }
 
     private Set<String> parseColonSeparatedWkts(final String wktString)
