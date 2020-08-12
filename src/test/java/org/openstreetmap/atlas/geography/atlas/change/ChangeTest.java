@@ -119,4 +119,15 @@ public class ChangeTest extends AbstractChangeTest
         Assert.assertNotEquals(changeWithAreaAndLine1, changeWith2Areas1);
         Assert.assertNotEquals(changeWithAreaAndLine1.hashCode(), changeWith2Areas1.hashCode());
     }
+
+    @Test
+    public void testUnequalAndDifferentHashCodeRelations()
+    {
+        final Change changeRelation1 = newChangeWithRelationMemberSet1();
+        final Change changeRelation2 = newChangeWithRelationMemberSet2();
+
+        Assert.assertNotSame(changeRelation1, changeRelation2);
+        Assert.assertNotEquals(changeRelation1, changeRelation2);
+        Assert.assertNotEquals(changeRelation1.hashCode(), changeRelation2.hashCode());
+    }
 }
