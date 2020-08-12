@@ -95,6 +95,11 @@ public abstract class AtlasLoaderCommand extends MultipleOutputCommand
 
         if (this.optionAndArgumentDelegate.hasOption(COMBINE_OPTION_LONG))
         {
+            if (this.optionAndArgumentDelegate.hasVerboseOption())
+            {
+                this.outputDelegate
+                        .printlnCommandMessage("processing all atlases as one multiatlas...");
+            }
             processAtlas(
                     new MultiAtlas(
                             atlasTupleStream.map(Tuple::getSecond).collect(Collectors.toList())),
@@ -102,8 +107,21 @@ public abstract class AtlasLoaderCommand extends MultipleOutputCommand
         }
         else
         {
-            atlasTupleStream.forEach(atlasTuple -> processAtlas(atlasTuple.getSecond(),
-                    atlasTuple.getFirst().getName(), atlasTuple.getFirst()));
+            final int size = atlasTuples.size();
+            final int[] count = new int[1];
+            count[0] = 1;
+            atlasTupleStream.forEach(atlasTuple ->
+            {
+                if (this.optionAndArgumentDelegate.hasVerboseOption())
+                {
+                    this.outputDelegate.printlnCommandMessage(
+                            "processing atlas " + atlasTuple.getFirst().getAbsolutePathString()
+                                    + " (" + count[0] + "/" + size + ")");
+                }
+                processAtlas(atlasTuple.getSecond(), atlasTuple.getFirst().getName(),
+                        atlasTuple.getFirst());
+                count[0]++;
+            });
         }
 
         // return the exit code from the user's finish implementation
@@ -192,7 +210,7 @@ public abstract class AtlasLoaderCommand extends MultipleOutputCommand
                 .getVariadicArgument(INPUT_HINT);
 
         final AtlasResourceLoader loader = new AtlasResourceLoader();
-        inputAtlasPaths.stream().forEach(path ->
+        inputAtlasPaths.forEach(path ->
         {
             final File file = new File(path, this.getFileSystem(), false);
             if (!file.exists())

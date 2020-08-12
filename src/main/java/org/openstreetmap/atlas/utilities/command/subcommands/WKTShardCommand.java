@@ -1,7 +1,7 @@
 package org.openstreetmap.atlas.utilities.command.subcommands;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -46,17 +46,9 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
 {
     private static final Logger logger = LoggerFactory.getLogger(WKTShardCommand.class);
 
-    private static final String TREE_OPTION_LONG = "tree";
-    private static final String TREE_OPTION_DESCRIPTION = "The path to the dynamic sharding tree file. E.g. /Users/example/path/to/tree.txt";
-    private static final String TREE_OPTION_HINT = "path";
-
-    private static final String SLIPPY_OPTION_LONG = "slippy";
-    private static final String SLIPPY_OPTION_DESCRIPTION = "The slippy tile zoom level for the sharding.";
-    private static final String SLIPPY_OPTION_HINT = "zoom";
-
-    private static final String GEOHASH_OPTION_LONG = "geohash";
-    private static final String GEOHASH_OPTION_DESCRIPTION = "The geohash precision level for the sharding.";
-    private static final String GEOHASH_OPTION_HINT = "precision";
+    private static final String SHARDING_OPTION_LONG = "sharding";
+    private static final String SHARDING_OPTION_DESCRIPTION = "The sharding to use, e.g. dynamic@/Users/foo/my-tree.txt";
+    private static final String SHARDING_OPTION_HINT = "type@parameter";
 
     private static final String INPUT_FILE_OPTION_LONG = "input";
     private static final String INPUT_FILE_OPTION_DESCRIPTION = "An input file from which to source the WKT entities. See DESCRIPTION section for details.";
@@ -66,10 +58,8 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
     private static final String COUNTRY_BOUNDARY_OPTION_DESCRIPTION = "A boundary file to use for intersection checks. See DESCRIPTION section for details.";
     private static final String COUNTRY_BOUNDARY_OPTION_HINT = "boundary-file";
 
-    private static final Integer TREE_CONTEXT = 3;
-    private static final Integer SLIPPY_CONTEXT = 4;
-    private static final Integer GEOHASH_CONTEXT = 5;
-    private static final Integer COUNTRY_BOUNDARY_CONTEXT = 6;
+    private static final Integer SHARDING_CONTEXT = 3;
+    private static final Integer COUNTRY_BOUNDARY_CONTEXT = 4;
 
     private static final String INPUT_WKT_SHARD = "wkt|shard";
 
@@ -106,28 +96,18 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
 
         Sharding sharding = null;
         CountryBoundaryMap countryBoundaryMap = null;
-        if (this.optionAndArgumentDelegate.getParserContext() == TREE_CONTEXT)
+        if (this.optionAndArgumentDelegate.getParserContext() == SHARDING_CONTEXT)
         {
-            sharding = Sharding.forString(
-                    "dynamic@" + this.optionAndArgumentDelegate.getOptionArgument(TREE_OPTION_LONG)
-                            .orElseThrow(AtlasShellToolsException::new));
-        }
-        else if (this.optionAndArgumentDelegate.getParserContext() == SLIPPY_CONTEXT)
-        {
-            sharding = Sharding.forString(
-                    "slippy@" + this.optionAndArgumentDelegate.getOptionArgument(SLIPPY_OPTION_LONG)
-                            .orElseThrow(AtlasShellToolsException::new));
-        }
-        else if (this.optionAndArgumentDelegate.getParserContext() == GEOHASH_CONTEXT)
-        {
-            sharding = Sharding.forString("geohash@"
-                    + this.optionAndArgumentDelegate.getOptionArgument(GEOHASH_OPTION_LONG)
-                            .orElseThrow(AtlasShellToolsException::new));
+            sharding = Sharding
+                    .forString(
+                            this.optionAndArgumentDelegate.getOptionArgument(SHARDING_OPTION_LONG)
+                                    .orElseThrow(AtlasShellToolsException::new),
+                            this.getFileSystem());
         }
         else if (this.optionAndArgumentDelegate.getParserContext() == COUNTRY_BOUNDARY_CONTEXT)
         {
             final Optional<CountryBoundaryMap> mapOptional = loadCountryBoundaryMap();
-            if (!mapOptional.isPresent())
+            if (mapOptional.isEmpty())
             {
                 this.outputDelegate.printlnErrorMessage("failed to load country boundary");
                 return 1;
@@ -179,16 +159,12 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
     public void registerOptionsAndArguments()
     {
         registerArgument(INPUT_WKT_SHARD, ArgumentArity.VARIADIC, ArgumentOptionality.OPTIONAL,
-                TREE_CONTEXT, SLIPPY_CONTEXT, GEOHASH_CONTEXT, COUNTRY_BOUNDARY_CONTEXT);
+                SHARDING_CONTEXT, COUNTRY_BOUNDARY_CONTEXT);
         registerOptionWithRequiredArgument(INPUT_FILE_OPTION_LONG, INPUT_FILE_OPTION_DESCRIPTION,
-                OptionOptionality.OPTIONAL, INPUT_FILE_OPTION_HINT, TREE_CONTEXT, SLIPPY_CONTEXT,
-                GEOHASH_CONTEXT, COUNTRY_BOUNDARY_CONTEXT);
-        registerOptionWithRequiredArgument(TREE_OPTION_LONG, TREE_OPTION_DESCRIPTION,
-                OptionOptionality.REQUIRED, TREE_OPTION_HINT, TREE_CONTEXT);
-        registerOptionWithRequiredArgument(SLIPPY_OPTION_LONG, SLIPPY_OPTION_DESCRIPTION,
-                OptionOptionality.REQUIRED, SLIPPY_OPTION_HINT, SLIPPY_CONTEXT);
-        registerOptionWithRequiredArgument(GEOHASH_OPTION_LONG, GEOHASH_OPTION_DESCRIPTION,
-                OptionOptionality.REQUIRED, GEOHASH_OPTION_HINT, GEOHASH_CONTEXT);
+                OptionOptionality.OPTIONAL, INPUT_FILE_OPTION_HINT, SHARDING_CONTEXT,
+                COUNTRY_BOUNDARY_CONTEXT);
+        registerOptionWithRequiredArgument(SHARDING_OPTION_LONG, SHARDING_OPTION_DESCRIPTION,
+                OptionOptionality.REQUIRED, SHARDING_OPTION_HINT, SHARDING_CONTEXT);
         registerOptionWithRequiredArgument(COUNTRY_BOUNDARY_OPTION_LONG,
                 COUNTRY_BOUNDARY_OPTION_DESCRIPTION, OptionOptionality.REQUIRED,
                 COUNTRY_BOUNDARY_OPTION_HINT, COUNTRY_BOUNDARY_CONTEXT);
@@ -200,7 +176,8 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         final Optional<CountryBoundaryMap> countryBoundaryMap;
         final File boundaryMapFile = new File(
                 this.optionAndArgumentDelegate.getOptionArgument(COUNTRY_BOUNDARY_OPTION_LONG)
-                        .orElseThrow(AtlasShellToolsException::new));
+                        .orElseThrow(AtlasShellToolsException::new),
+                this.getFileSystem());
         if (!boundaryMapFile.exists())
         {
             this.outputDelegate.printlnErrorMessage(
@@ -227,7 +204,7 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         if (geometryOptional.isEmpty())
         {
             this.outputDelegate.printlnErrorMessage(
-                    "unable to parse " + wktOrShard + " as WKT or shard string");
+                    "unable to parse '" + wktOrShard + "' as WKT or shard string");
             return;
         }
         final Geometry geometry = geometryOptional.get();
@@ -371,13 +348,12 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         {
             throw new AtlasShellToolsException();
         }
-        final Path inputPath = Paths.get(path);
+        final Path inputPath = this.getFileSystem().getPath(path);
         if (inputPath.toString().startsWith("~"))
         {
             this.outputDelegate.printlnWarnMessage("the '~' was not expanded by your shell");
         }
-        if (!inputPath.toAbsolutePath().toFile().canRead()
-                || !inputPath.toAbsolutePath().toFile().isFile())
+        if (!Files.isReadable(inputPath) || !Files.isRegularFile(inputPath))
         {
             this.outputDelegate.printlnErrorMessage(
                     inputPath.toAbsolutePath().toString() + " is not a readable file");
@@ -385,7 +361,7 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         }
         final List<String> wktOrShardList = new ArrayList<>();
         final StringResource resource = new StringResource();
-        resource.copyFrom(new File(inputPath.toAbsolutePath().toString()));
+        resource.copyFrom(new File(inputPath.toAbsolutePath().toString(), this.getFileSystem()));
         final String rawText = resource.all();
 
         final String[] split = rawText.split(System.getProperty("line.separator"));
