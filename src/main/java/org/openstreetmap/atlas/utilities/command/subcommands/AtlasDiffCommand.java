@@ -351,29 +351,17 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
 
         if (changeOptional.isPresent())
         {
-            Change change = changeOptional.get();
-
-            if (this.optionAndArgumentDelegate.hasOption(ID_OPTION_LONG)
-                    && this.optionAndArgumentDelegate.hasOption(TYPE_OPTION_LONG))
+            final Optional<Change> trimmedChangeOption = trimChange(context, changeOptional.get());
+            final Change change;
+            if (trimmedChangeOption.isPresent())
             {
-                final Optional<FeatureChange> featureChangeOptional = change
-                        .changeFor(context.getSelectedType(), context.getSelectedIdentifier());
-                if (featureChangeOptional.isPresent())
-                {
-                    change = new ChangeBuilder().add(featureChangeOptional.get()).get();
-                }
-                else
-                {
-                    final String stdoutMessage = "No change found for " + context.getSelectedType()
-                            + " " + context.getSelectedIdentifier();
-                    this.outputDelegate.printlnWarnMessage(stdoutMessage);
-                    if (this.unitTestMode)
-                    {
-                        this.stdout.add(stdoutMessage);
-                    }
-                    return false;
-                }
+                change = trimmedChangeOption.get();
             }
+            else
+            {
+                return false;
+            }
+
             final String serializedString;
             if (context.isUseGeoJson())
             {
@@ -443,5 +431,31 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
     {
         return new AtlasResourceLoader()
                 .load(new InputStreamResource(file::read).withName(file.getAbsolutePathString()));
+    }
+
+    private Optional<Change> trimChange(final AtlasDiffCommandContext context, final Change change)
+    {
+        if (this.optionAndArgumentDelegate.hasOption(ID_OPTION_LONG)
+                && this.optionAndArgumentDelegate.hasOption(TYPE_OPTION_LONG))
+        {
+            final Optional<FeatureChange> featureChangeOptional = change
+                    .changeFor(context.getSelectedType(), context.getSelectedIdentifier());
+            if (featureChangeOptional.isPresent())
+            {
+                return Optional.of(new ChangeBuilder().add(featureChangeOptional.get()).get());
+            }
+            else
+            {
+                final String stdoutMessage = "No change found for " + context.getSelectedType()
+                        + " " + context.getSelectedIdentifier();
+                this.outputDelegate.printlnWarnMessage(stdoutMessage);
+                if (this.unitTestMode)
+                {
+                    this.stdout.add(stdoutMessage);
+                }
+                return Optional.empty();
+            }
+        }
+        return Optional.of(change);
     }
 }
