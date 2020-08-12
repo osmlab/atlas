@@ -91,7 +91,9 @@ public class AtlasLoaderCommandTest
             errExpected.append("test: loading /Users/foo/atlas1.atlas.txt\n")
                     .append("test: loading /Users/foo/atlas2.atlas.txt\n")
                     .append("test: warn: skipping directory: /Users/foo\n")
+                    .append("test: processing atlas /Users/foo/atlas1.atlas.txt (1/2)\n")
                     .append("test: POINT (1 1)\n").append("test: POINT (2 2)\n")
+                    .append("test: processing atlas /Users/foo/atlas2.atlas.txt (2/2)\n")
                     .append("test: POINT (1 1)\n").append("test: POINT (2 2)\n");
             Assert.assertEquals(errExpected.toString(), errContent.toString());
         }

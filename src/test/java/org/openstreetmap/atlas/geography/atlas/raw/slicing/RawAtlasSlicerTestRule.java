@@ -304,7 +304,7 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
 
             relations = {
 
-                    @Relation(tags = { "type=multipolygon", "building=yes" }, members = {
+                    @Relation(id = "1", tags = { "type=multipolygon", "building=yes" }, members = {
                             @Member(id = "108768000000", role = "outer", type = "line"),
                             @Member(id = "108769000000", role = "inner", type = "line") })
 
@@ -541,7 +541,7 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
 
             relations = {
 
-                    @Relation(tags = { "type=multipolygon", "leisure=park" }, members = {
+                    @Relation(id = "1", tags = { "type=multipolygon", "leisure=park" }, members = {
                             @Member(id = "214599000000", role = "outer", type = "line"),
                             @Member(id = "214590000000", role = "outer", type = "line"),
                             @Member(id = "214581000000", role = "outer", type = "line") })
@@ -747,7 +747,7 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
 
             relations = {
 
-                    @Relation(tags = { "type=multipolygon", "building=yes" }, members = {
+                    @Relation(id = "1", tags = { "type=multipolygon", "building=yes" }, members = {
                             @Member(id = "108768000000", role = "outer", type = "line"),
                             @Member(id = "108770000000", role = "inner", type = "line"),
                             @Member(id = "108760000000", role = "inner", type = "line") })
