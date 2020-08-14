@@ -1,7 +1,8 @@
 package org.openstreetmap.atlas.utilities.command.subcommands;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.nio.file.FileSystem;
-import java.util.List;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -13,7 +14,6 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.change.diff.AtlasDiff;
 import org.openstreetmap.atlas.streaming.Streams;
 import org.openstreetmap.atlas.streaming.resource.File;
-import org.openstreetmap.atlas.utilities.collections.StringList;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
@@ -75,7 +75,7 @@ public class AtlasDiffCommandTest
 
         this.atlas1to2Diff = new AtlasDiff(this.atlas1, this.atlas2).saveAllGeometries(false)
                 .generateChange().orElseThrow(() -> new CoreException("There is no change"))
-                .toLineDelimitedFeatureChanges();
+                .toLineDelimitedFeatureChanges(true);
 
         this.memoryFileSystem = Jimfs.newFileSystem(Configuration.unix());
 
@@ -103,45 +103,50 @@ public class AtlasDiffCommandTest
     @Test
     public void testFolderDiffDifferentFileList()
     {
-        final AtlasDiffCommand command = new AtlasDiffCommand()
-                .withUnitTestMode(this.memoryFileSystem);
+        final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
+        final AtlasDiffCommand command = new AtlasDiffCommand();
+        command.setNewFileSystem(this.memoryFileSystem);
+        command.setNewOutStream(new PrintStream(outContent));
+        command.setNewErrStream(new PrintStream(errContent));
         command.runSubcommand(ATLAS_BEFORE2, ATLAS_AFTER2, "--ldgeojson");
-        final List<String> warnings = command.getWarnings();
-        Assert.assertEquals(5, warnings.size());
-        Assert.assertEquals("atlasA.atlas", warnings.get(1));
-        Assert.assertEquals("atlasC.atlas", warnings.get(3));
-        Assert.assertEquals("atlasD.atlas", warnings.get(4));
-        final List<String> stdout = command.getStdout();
-        Assert.assertEquals(2, stdout.size());
-        Assert.assertEquals("atlasB.atlas", stdout.get(0));
-        Assert.assertEquals(this.atlas1to2Diff, stdout.get(1));
+        Assert.assertEquals("atlasB.atlas\n" + this.atlas1to2Diff + "\n", outContent.toString());
+        Assert.assertEquals(
+                "atlas-diff: warn: Files only in Before Atlas folder:\n"
+                        + "atlas-diff: warn: atlasA.atlas\n"
+                        + "atlas-diff: warn: Files only in After Atlas folder:\n"
+                        + "atlas-diff: warn: atlasC.atlas\n" + "atlas-diff: warn: atlasD.atlas\n",
+                errContent.toString());
     }
 
     @Test
     public void testFolderDiffSameFileList()
     {
-        final AtlasDiffCommand command = new AtlasDiffCommand()
-                .withUnitTestMode(this.memoryFileSystem);
+        final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
+        final AtlasDiffCommand command = new AtlasDiffCommand();
+        command.setNewFileSystem(this.memoryFileSystem);
+        command.setNewOutStream(new PrintStream(outContent));
+        command.setNewErrStream(new PrintStream(errContent));
         command.runSubcommand(ATLAS_BEFORE, ATLAS_AFTER, "--ldgeojson", "--recursive");
-        Assert.assertTrue(command.getWarnings().isEmpty());
-        final List<String> stdout = command.getStdout();
-        Assert.assertEquals(8, stdout.size());
-        Assert.assertEquals("atlasA.atlas", stdout.get(0));
-        Assert.assertEquals(this.atlas1to2Diff, stdout.get(1));
-        Assert.assertEquals("x/atlasC.atlas", stdout.get(4));
-        Assert.assertEquals(AtlasDiffCommand.NO_CHANGE, stdout.get(5));
+        Assert.assertEquals("atlasA.atlas\n" + this.atlas1to2Diff + "\n" + "atlasB.atlas\n"
+                + AtlasDiffCommand.NO_CHANGE + "\n" + "x/atlasC.atlas\n"
+                + AtlasDiffCommand.NO_CHANGE + "\n" + "x/atlasD.atlas\n"
+                + AtlasDiffCommand.NO_CHANGE + "\n", outContent.toString());
+        Assert.assertEquals("", errContent.toString());
     }
 
     @Test
     public void testSimpleDiff()
     {
-        final AtlasDiffCommand command = new AtlasDiffCommand()
-                .withUnitTestMode(this.memoryFileSystem);
+        final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
+        final AtlasDiffCommand command = new AtlasDiffCommand();
+        command.setNewFileSystem(this.memoryFileSystem);
+        command.setNewOutStream(new PrintStream(outContent));
+        command.setNewErrStream(new PrintStream(errContent));
         command.runSubcommand(ATLAS_A, ATLAS_B, "--ldgeojson");
-        Assert.assertTrue(command.getWarnings().isEmpty());
-        final List<String> stdout = command.getStdout();
-        Assert.assertEquals(1, stdout.size());
-        Assert.assertEquals(3, StringList.split(stdout.get(0), System.lineSeparator()).size());
-        Assert.assertEquals(this.atlas1to2Diff, stdout.get(0));
+        Assert.assertEquals(this.atlas1to2Diff + "\n", outContent.toString());
+        Assert.assertEquals("", errContent.toString());
     }
 }

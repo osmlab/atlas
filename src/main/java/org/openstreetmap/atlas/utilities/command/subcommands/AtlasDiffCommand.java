@@ -1,7 +1,5 @@
 package org.openstreetmap.atlas.utilities.command.subcommands;
 
-import java.nio.file.FileSystem;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -87,9 +85,6 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
 
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
-    private boolean unitTestMode = false;
-    private final List<String> stdout = new ArrayList<>();
-    private final List<String> warnings = new ArrayList<>();
 
     public static void main(final String[] args)
     {
@@ -262,13 +257,6 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
         super.registerOptionsAndArguments();
     }
 
-    public AtlasDiffCommand withUnitTestMode(final FileSystem fileSystem)
-    {
-        this.unitTestMode = true;
-        this.setNewFileSystem(fileSystem);
-        return this;
-    }
-
     boolean compute(final AtlasDiffCommandContext context, final File beforeAtlasFile,
             final File afterAtlasFile)
     {
@@ -296,12 +284,6 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
             final String warnMessage = "Files only in Before Atlas folder:";
             this.outputDelegate.printlnWarnMessage(warnMessage);
             filesOnlyInBefore.stream().sorted().forEach(this.outputDelegate::printlnWarnMessage);
-            if (this.unitTestMode)
-            {
-                this.warnings.add(warnMessage);
-                this.warnings
-                        .addAll(filesOnlyInBefore.stream().sorted().collect(Collectors.toList()));
-            }
             result = true;
         }
         if (!filesOnlyInAfter.isEmpty())
@@ -309,12 +291,6 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
             final String warnMessage = "Files only in After Atlas folder:";
             this.outputDelegate.printlnWarnMessage(warnMessage);
             filesOnlyInAfter.stream().sorted().forEach(this.outputDelegate::printlnWarnMessage);
-            if (this.unitTestMode)
-            {
-                this.warnings.add(warnMessage);
-                this.warnings
-                        .addAll(filesOnlyInAfter.stream().sorted().collect(Collectors.toList()));
-            }
             result = true;
         }
         for (final String name : filesInBoth.stream().sorted().collect(Collectors.toList()))
@@ -322,10 +298,6 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
             final Atlas beforeAtlas = load(beforeNamesToFiles.get(name));
             final Atlas afterAtlas = load(afterNamesToFiles.get(name));
             this.outputDelegate.printlnStdout(name, TTYAttribute.BOLD, TTYAttribute.GREEN);
-            if (this.unitTestMode)
-            {
-                this.stdout.add(name);
-            }
             if (compute(context, beforeAtlas, afterAtlas))
             {
                 result = true;
@@ -369,7 +341,7 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
             }
             else if (context.isUseLdGeoJson())
             {
-                serializedString = change.toLineDelimitedFeatureChanges();
+                serializedString = change.toLineDelimitedFeatureChanges(true);
             }
             else if (context.isFullText())
             {
@@ -395,31 +367,13 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
                 serializedString = builder.toString();
             }
             this.outputDelegate.printlnStdout(serializedString);
-            if (this.unitTestMode)
-            {
-                this.stdout.add(serializedString);
-            }
             return true;
         }
         else
         {
             this.outputDelegate.printlnStdout(NO_CHANGE);
-            if (this.unitTestMode)
-            {
-                this.stdout.add(NO_CHANGE);
-            }
             return false;
         }
-    }
-
-    List<String> getStdout()
-    {
-        return this.stdout;
-    }
-
-    List<String> getWarnings()
-    {
-        return this.warnings;
     }
 
     private String getRelativeFileName(final File parent, final File file)
@@ -449,10 +403,6 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
                 final String stdoutMessage = "No change found for " + context.getSelectedType()
                         + " " + context.getSelectedIdentifier();
                 this.outputDelegate.printlnWarnMessage(stdoutMessage);
-                if (this.unitTestMode)
-                {
-                    this.stdout.add(stdoutMessage);
-                }
                 return Optional.empty();
             }
         }
