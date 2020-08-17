@@ -22,14 +22,65 @@
 
 .SH "NAME"
 .sp
-atlas\-plumbing \-\- Details about how Atlas Shell Tools stores program data
+atlas\-plumbing \-\- Details about how Atlas Shell Tools stores toolkit program data
 
 .SH "SYNOPSIS"
-$HOME/.local/share/atlas-shell-tools
+$HOME/.local/share/atlas-shell-tools/*
 
 .SH "DESCRIPTION"
 .sp
-TODO
+Unless otherwise specified via the \fBXDG_DATA_HOME\fR environment variable,
+\fBatlas\-shell-tools\fR(7) will store data at $HOME/.local/share/atlas-shell-tools.
+This data directory itself contains four other directories, each of which is detailed
+in its own section below. These directories store all user data for the toolkit (the toolkit
+location is specified by the \fBATLAS_SHELL_TOOLS_HOME\fR environment variable).
+
+.SH "LOG DIRECTORY"
+$HOME/.local/share/atlas-shell-tools/log4j
+
+This directory stores the default log4j configuration file for the toolkit. The parameters
+in this file can be edited with \fBatlas\-config\-log\fR(1) \- they should \fBnot\fR be edited
+manually. This directory also stores a backup log4j file that can be restored using the aforementioned
+\fBatlas\-config\-log\fR(1) command should the default file become corrupted.
+
+.SH "MODULE DIRECTORY"
+$HOME/.local/share/atlas-shell-tools/modules
+
+This directory stores modules (fat JARs), module metadata files, and the active module index.
+Any JAR that is not the current active module will have a '.deactivated' file extension. Files with
+a '.metadata' extension store additional information about the JAR file with the same name. The active
+module index file, '.active_module_index', stores data about the commands found in the current activated
+module and is used by \fBatlas\fR(1) to look up command classes and provide the command list for
+the '\-\-list' option. The active module index stores each command name, class, and description
+line\-wise with the fields separated by an ASCII record separator character. This index can
+be refreshed with \fBatlas\-config\-sync\fR(1).
+
+.SH "PRESET DIRECTORY"
+$HOME/.local/share/atlas-shell-tools/presets
+
+This directory stores all preset data for the toolkit. At root it contains a directory
+for each preset namespace, using the 'default' namespace by default. The current active namespace
+is stored in a file called '.current_namespace'. Within each namespace is 1) a directory called '.global'
+which stores the global presets for the namespace and 2) directories
+for any command that has saved presets under that namespace. The actual preset
+data files are found within the '.global' and command directories. Preset data is stored
+line\-wise exactly as each element will appear in ARGV, e.g. the line "--option=argument" will
+become a single ARGV element "--option=argument".
+
+The data in this folder can be managed with \fBatlas\-config\-preset\fR(1).
+
+.SH "REPO DIRECTORY"
+$HOME/.local/share/atlas-shell-tools/repos
+
+This directory stores the repo data for all the registered repos. Each registered repo
+has its own directory that contains the repo data file 'repo_config'. Repo data is stored
+as line\-wise "key = value" pairs.
+
+The data in this folder can be managed with \fBatlas\-config\-repo\fR(1).
+
+.SH "SEE ALSO"
+.sp
+\fBatlas\-environment\fR(7)
 
 .SH "ATLAS SHELL TOOLS"
 .sp
