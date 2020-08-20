@@ -46,14 +46,14 @@ manually. This directory also stores a backup log4j file that can be restored us
 .SH "MODULE DIRECTORY"
 $HOME/.local/share/atlas-shell-tools/modules
 
-This directory stores modules (fat JARs), module metadata files, and the active module index.
-Any JAR that is not the current active module will have a '.deactivated' file extension. Files with
-a '.metadata' extension store additional information about the JAR file with the same name. The active
-module index file, '.active_module_index', stores data about the commands found in the current activated
-module and is used by \fBatlas\fR(1) to look up command classes and provide the command list for
-the '\-\-list' option. The active module index stores each command name, class, and description
-line\-wise with the fields separated by an ASCII record separator character. This index can
-be refreshed with \fBatlas\-config\-sync\fR(1).
+Also known as the module workspace, this directory stores modules (fat JARs), module metadata files,
+and the active module index. Any JAR that is not the current active module will have a '.deactivated'
+file extension. Files with a '.metadata' extension store additional information about the JAR file
+with the same name. The active module index file, '.active_module_index', stores data about the
+commands found in the current activated module and is used by \fBatlas\fR(1) to look up command
+classes and provide the command list for the '\-\-list' option. The active module index stores
+each command name, class, and description line\-wise with the fields separated by an ASCII record
+separator character. This index can be refreshed with \fBatlas\-config\-sync\fR(1).
 
 .SH "PRESET DIRECTORY"
 $HOME/.local/share/atlas-shell-tools/presets

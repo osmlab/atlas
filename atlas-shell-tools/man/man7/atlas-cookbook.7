@@ -30,27 +30,37 @@ atlas\-cookbook \-\- Atlas Shell Tools command cookbook
 .SH "RECIPES"
 
 .sp
-See a list of all commands in the current module:
+\fBUpdate everything from the default installation to latest:\fR
 .RS 4
 .sp
-$ atlas \-\-list
+# First, update the toolkit
 .sp
-# You can also use the abbreviated -l flag
+$ atlas\-config update
 .sp
-$ atlas \-l
+# Now, update the default atlas commands using the atlas repo
+.sp
+$ atlas\-config repo install atlas
+.sp
+# You can also update any other registered repos in a similar way
 .RE
 
 .sp
-See a list of all installed modules and then change the current module:
+\fBSee a list of all installed modules, activate <MODULE>, then list its commands:\fR
 .RS 4
 .sp
 $ atlas\-config list
 .sp
 $ atlas\-config activate <MODULE>
+.sp
+$ atlas \-\-list
+.sp
+# You can also use the abbreviated \-l flag
+.sp
+$ atlas \-l
 .RE
 
 .sp
-Add a new repo, check your registered repos, and then install a module from one:
+\fBAdd a new repo, check your registered repos, and then install a module from it:\fR
 .sp
 .RS 4
 .sp
@@ -58,25 +68,53 @@ $ atlas\-config repo add my\-new\-repo https://github.com/me/my\-repo.git
 .sp
 $ atlas\-config repo list
 .sp
-$ atlas\-config repo install <REPO>
+$ atlas\-config repo install my\-new\-repo
 .RE
 
 .sp
-Build a fat JAR and then symlink install for local testing:
+\fBBuild a fat JAR and then symlink install for local testing:\fR
 .sp
 .RS 4
 .sp
 $ cd /path/to/my/project
 .sp
-$ ./gradlew clean fat -x check
+$ ./gradlew clean fat \-x check
 .sp
-$ atlas\-config install --symlink <path/to/wherever/gradle/puts/jar>
+$ atlas\-config install \-\-symlink <path/to/wherever/gradle/puts/jar>
 .sp
 # Now you can make some changes in your code, then simply rebuild to test them!
 .sp
 $ vim src/MySourceFile.java
 .sp
-$ ./gradlew clean fat -x check
+$ ./gradlew clean fat \-x check
+.RE
+
+.sp
+\fBLower the log level to DEBUG and run a command, then reset everything to default:\fR
+.sp
+.RS 4
+.sp
+$ atlas\-config log set\-level DEBUG
+.sp
+$ atlas my\-command
+.sp
+$ atlas\-config log reset
+.sp
+# Now show the log settings to check that it reset
+.sp
+$ atlas\-config log show
+.RE
+
+.sp
+\fBSave a global preset called 'foo' for some common options, then use it:\fR
+.sp
+.RS 4
+.sp
+$ atlas\-config preset save\-global foo \-\-foo=bar \-\-baz=bat
+.sp
+$ atlas \-\-preset foo my\-command
+.sp
+$ atlas \-\-preset foo another\-command
 .RE
 
 
