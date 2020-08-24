@@ -23,8 +23,6 @@ import com.google.gson.JsonPrimitive;
  */
 public final class Rectangle extends Polygon
 {
-    private static final long serialVersionUID = 6940095569975683891L;
-
     public static final Rectangle MAXIMUM = forCorners(
             new Location(Latitude.MINIMUM, Longitude.MINIMUM),
             new Location(Latitude.MAXIMUM, Longitude.MAXIMUM));
@@ -33,7 +31,7 @@ public final class Rectangle extends Polygon
             "37.328167,-122.031905:37.330394,-122.029051");
     public static final Rectangle TEST_RECTANGLE_2 = forString(
             "37.325194,-122.034281:37.325683,-122.033500");
-
+    private static final long serialVersionUID = 6940095569975683891L;
     // A rectangle stores only two locations, despite being a 4 location Polygon.
     private final Location lowerLeft;
     private final Location upperRight;
@@ -318,11 +316,20 @@ public final class Rectangle extends Polygon
      */
     public Rectangle expand(final Distance distance)
     {
-        final Location newLowerLeft = this.lowerLeft.shiftAlongGreatCircle(Heading.SOUTH, distance)
+        final Location oldLowerLeft = this.lowerLeft;
+        final Location lowerLeftShiftedSouth = oldLowerLeft.shiftAlongGreatCircle(Heading.SOUTH,
+                distance);
+        final Location lowerLeftShiftedSouthAndWest = lowerLeftShiftedSouth
                 .shiftAlongGreatCircle(Heading.WEST, distance);
-        final Location newUpperRight = this.upperRight
-                .shiftAlongGreatCircle(Heading.NORTH, distance)
+        final Location newLowerLeft = lowerLeftShiftedSouthAndWest;
+
+        final Location oldUpperRight = this.upperRight;
+        final Location upperRightShiftedNorth = oldUpperRight.shiftAlongGreatCircle(Heading.NORTH,
+                distance);
+        final Location upperRightShiftedNorthAndEast = upperRightShiftedNorth
                 .shiftAlongGreatCircle(Heading.EAST, distance);
+        final Location newUpperRight = upperRightShiftedNorthAndEast;
+
         return forCorners(newLowerLeft, newUpperRight);
     }
 
