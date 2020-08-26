@@ -3,7 +3,9 @@ package org.openstreetmap.atlas.geography.atlas.items;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.tags.MaxSpeedTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +21,18 @@ public class EdgeTest
 
     @Rule
     public final EdgeTestRule rule = new EdgeTestRule();
+
+    @Test
+    public void testCompare()
+    {
+        // Make sure the compare function does not use a difference which in the case here will
+        // overflow.
+        final Edge left = new CompleteEdge(Long.MAX_VALUE - 2L, PolyLine.TEST_POLYLINE, null, null,
+                null, null);
+        final Edge right = new CompleteEdge(Long.MIN_VALUE + 2L, PolyLine.TEST_POLYLINE, null, null,
+                null, null);
+        Assert.assertTrue(left.compareTo(right) > 0);
+    }
 
     @Test
     public void testConnectedNodes()
