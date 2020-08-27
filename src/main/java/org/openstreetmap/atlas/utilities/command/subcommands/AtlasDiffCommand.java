@@ -37,10 +37,79 @@ import com.google.common.collect.Sets;
  */
 public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
 {
+    /**
+     * @author matthieun
+     */
+    private static class AtlasDiffCommandContext
+    {
+        private final File beforeAtlasFile;
+        private final File afterAtlasFile;
+        private final boolean useGeoJson;
+        private final boolean useLdGeoJson;
+        private final boolean fullText;
+        private final Long selectedIdentifier;
+        private final ItemType selectedType;
+        private final boolean recursive;
+
+        AtlasDiffCommandContext(final File beforeAtlasFile, final File afterAtlasFile, // NOSONAR
+                final boolean useGeoJson, final boolean useLdGeoJson, final boolean fullText,
+                final Long selectedIdentifier, final ItemType selectedType, final boolean recursive)
+        {
+            this.beforeAtlasFile = beforeAtlasFile;
+            this.afterAtlasFile = afterAtlasFile;
+            this.useGeoJson = useGeoJson;
+            this.useLdGeoJson = useLdGeoJson;
+            this.fullText = fullText;
+            this.selectedIdentifier = selectedIdentifier;
+            this.selectedType = selectedType;
+            this.recursive = recursive;
+        }
+
+        public File getAfterAtlasFile()
+        {
+            return this.afterAtlasFile;
+        }
+
+        public File getBeforeAtlasFile()
+        {
+            return this.beforeAtlasFile;
+        }
+
+        public Long getSelectedIdentifier()
+        {
+            return this.selectedIdentifier;
+        }
+
+        public ItemType getSelectedType()
+        {
+            return this.selectedType;
+        }
+
+        public boolean isFullText()
+        {
+            return this.fullText;
+        }
+
+        public boolean isRecursive()
+        {
+            return this.recursive;
+        }
+
+        public boolean isUseGeoJson()
+        {
+            return this.useGeoJson;
+        }
+
+        public boolean isUseLdGeoJson()
+        {
+            return this.useLdGeoJson;
+        }
+    }
+
     static final String NO_CHANGE = "Atlases are effectively identical";
 
-    private static final String BEFORE_ATLAS_ARGUMENT = "before-atlas";
-    private static final String AFTER_ATLAS_ARGUMENT = "after-atlas";
+    private static final String BEFORE_ATLAS_ARGUMENT = "before-atlas(es)";
+    private static final String AFTER_ATLAS_ARGUMENT = "after-atlas(es)";
 
     private static final List<String> FORMAT_TYPE_STRINGS = Arrays
             .stream(PrettifyStringFormat.values()).map(PrettifyStringFormat::toString)
@@ -187,16 +256,16 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
 
         if (beforeAtlasFile.isDirectory() && afterAtlasFile.isDirectory())
         {
-            final boolean result = this.compute(context, beforeAtlasFile, afterAtlasFile);
-            return result ? 1 : 0;
+            final int result = this.compute(context, beforeAtlasFile, afterAtlasFile);
+            return result > 0 ? 1 : 0;
         }
         else if (!beforeAtlasFile.isDirectory() && !afterAtlasFile.isDirectory())
         {
             final Atlas beforeAtlas = load(beforeAtlasFile);
             final Atlas afterAtlas = load(afterAtlasFile);
 
-            final boolean result = this.compute(context, beforeAtlas, afterAtlas);
-            return result ? 1 : 0;
+            final int result = this.compute(context, beforeAtlas, afterAtlas);
+            return result > 0 ? 1 : 0;
         }
         else
         {
@@ -249,7 +318,7 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
                 FULL_CONTEXT);
         registerOption(FOLDER_SEARCH_RECURSIVE_OPTION_LONG,
                 FOLDER_SEARCH_RECURSIVE_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
-                FULL_CONTEXT, GEOJSON_CONTEXT, LDGEOJSON_CONTEXT);
+                DEFAULT_CONTEXT, FULL_CONTEXT, GEOJSON_CONTEXT, LDGEOJSON_CONTEXT);
         registerArgument(BEFORE_ATLAS_ARGUMENT, ArgumentArity.UNARY, ArgumentOptionality.REQUIRED,
                 DEFAULT_CONTEXT, LDGEOJSON_CONTEXT, GEOJSON_CONTEXT, FULL_CONTEXT);
         registerArgument(AFTER_ATLAS_ARGUMENT, ArgumentArity.UNARY, ArgumentOptionality.REQUIRED,
@@ -257,10 +326,10 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
         super.registerOptionsAndArguments();
     }
 
-    boolean compute(final AtlasDiffCommandContext context, final File beforeAtlasFile,
+    int compute(final AtlasDiffCommandContext context, final File beforeAtlasFile,
             final File afterAtlasFile)
     {
-        boolean result = false;
+        int result = 0;
         final Map<String, File> beforeNamesToFiles = new HashMap<>();
         final Map<String, File> afterNamesToFiles = new HashMap<>();
         final List<File> beforeFilesToConsider = context.isRecursive()
@@ -284,24 +353,21 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
             final String warnMessage = "Files only in Before Atlas folder:";
             this.outputDelegate.printlnWarnMessage(warnMessage);
             filesOnlyInBefore.stream().sorted().forEach(this.outputDelegate::printlnWarnMessage);
-            result = true;
+            result += filesOnlyInBefore.size();
         }
         if (!filesOnlyInAfter.isEmpty())
         {
             final String warnMessage = "Files only in After Atlas folder:";
             this.outputDelegate.printlnWarnMessage(warnMessage);
             filesOnlyInAfter.stream().sorted().forEach(this.outputDelegate::printlnWarnMessage);
-            result = true;
+            result += filesOnlyInAfter.size();
         }
         for (final String name : filesInBoth.stream().sorted().collect(Collectors.toList()))
         {
             final Atlas beforeAtlas = load(beforeNamesToFiles.get(name));
             final Atlas afterAtlas = load(afterNamesToFiles.get(name));
             this.outputDelegate.printlnStdout(name, TTYAttribute.BOLD, TTYAttribute.GREEN);
-            if (compute(context, beforeAtlas, afterAtlas))
-            {
-                result = true;
-            }
+            result += compute(context, beforeAtlas, afterAtlas);
         }
         return result;
     }
@@ -313,9 +379,9 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
      *            The before Atlas to compare
      * @param afterAtlas
      *            The after Atlas to compare
-     * @return True if there are differences
+     * @return The number of differences
      */
-    boolean compute(final AtlasDiffCommandContext context, final Atlas beforeAtlas,
+    int compute(final AtlasDiffCommandContext context, final Atlas beforeAtlas,
             final Atlas afterAtlas)
     {
         final AtlasDiff diff = new AtlasDiff(beforeAtlas, afterAtlas).saveAllGeometries(false);
@@ -331,7 +397,7 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
             }
             else
             {
-                return false;
+                return 0;
             }
 
             final String serializedString;
@@ -367,12 +433,12 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
                 serializedString = builder.toString();
             }
             this.outputDelegate.printlnStdout(serializedString);
-            return true;
+            return change.changeCount();
         }
         else
         {
             this.outputDelegate.printlnStdout(NO_CHANGE);
-            return false;
+            return 0;
         }
     }
 
