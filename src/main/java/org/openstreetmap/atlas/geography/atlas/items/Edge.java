@@ -50,19 +50,7 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
     @Override
     public int compareTo(final Edge other) // NOSONAR
     {
-        final long difference = this.getIdentifier() - other.getIdentifier();
-        if (difference > 0)
-        {
-            return 1;
-        }
-        else if (difference < 0)
-        {
-            return -1;
-        }
-        else
-        {
-            return 0;
-        }
+        return Long.compare(this.getIdentifier(), other.getIdentifier());
     }
 
     /**
