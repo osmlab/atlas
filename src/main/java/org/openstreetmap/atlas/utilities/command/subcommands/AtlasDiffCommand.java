@@ -369,7 +369,7 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
             this.outputDelegate.printlnStdout(name, TTYAttribute.BOLD, TTYAttribute.GREEN);
             result += compute(context, beforeAtlas, afterAtlas);
         }
-        return result;
+        return result > 0 ? 1 : 0;
     }
 
     /**
@@ -379,7 +379,7 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
      *            The before Atlas to compare
      * @param afterAtlas
      *            The after Atlas to compare
-     * @return The number of differences
+     * @return 1 if there are differences
      */
     int compute(final AtlasDiffCommandContext context, final Atlas beforeAtlas,
             final Atlas afterAtlas)
@@ -433,7 +433,7 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
                 serializedString = builder.toString();
             }
             this.outputDelegate.printlnStdout(serializedString);
-            return change.changeCount();
+            return change.changeCount() > 0 ? 1 : 0;
         }
         else
         {
