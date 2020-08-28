@@ -143,6 +143,20 @@ public class RectangleTest
     }
 
     @Test
+    public void testExpansionNearPoles()
+    {
+        final long kilometersPerDegreeLatitude = 111L;
+
+        Rectangle closeToSouthPole = Rectangle.forCorners(Location.forWkt("POINT(0 -87)"),
+                Location.forWkt("POINT(1 -84)"));
+        System.err.println(closeToSouthPole.toWkt());
+
+        closeToSouthPole = closeToSouthPole
+                .expand(Distance.kilometers(kilometersPerDegreeLatitude * 3));
+        System.err.println(closeToSouthPole.toWkt());
+    }
+
+    @Test
     public void testIntersection()
     {
         Assert.assertEquals(Rectangle.forLocations(this.location2),

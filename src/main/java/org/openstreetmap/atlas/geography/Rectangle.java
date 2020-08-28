@@ -323,12 +323,20 @@ public final class Rectangle extends Polygon
                 .shiftAlongGreatCircle(Heading.WEST, distance);
         final Location newLowerLeft = lowerLeftShiftedSouthAndWest;
 
+        System.err.println("oldLowerLeft: " + oldLowerLeft.toWkt());
+        System.err.println("lowerLeftShiftedSouth: " + lowerLeftShiftedSouth.toWkt());
+        System.err.println("newLowerLeft: " + newLowerLeft.toWkt());
+
         final Location oldUpperRight = this.upperRight;
         final Location upperRightShiftedNorth = oldUpperRight.shiftAlongGreatCircle(Heading.NORTH,
                 distance);
         final Location upperRightShiftedNorthAndEast = upperRightShiftedNorth
                 .shiftAlongGreatCircle(Heading.EAST, distance);
         final Location newUpperRight = upperRightShiftedNorthAndEast;
+
+        System.err.println("oldUpperRight: " + oldUpperRight.toWkt());
+        System.err.println("upperRightShiftedNorth: " + upperRightShiftedNorth.toWkt());
+        System.err.println("newUpperRight: " + newUpperRight.toWkt());
 
         return forCorners(newLowerLeft, newUpperRight);
     }
