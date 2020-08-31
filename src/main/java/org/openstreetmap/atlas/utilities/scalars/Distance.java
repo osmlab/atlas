@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.utilities.scalars;
 import java.io.Serializable;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Location;
 
 /**
  * A class providing conversion between different length units like feet, kilometers, miles etc.
@@ -11,8 +12,6 @@ import org.openstreetmap.atlas.exception.CoreException;
  */
 public final class Distance implements Serializable
 {
-    private static final long serialVersionUID = 3728783948477892064L;
-
     /**
      * An enum for distance unit abbreviations.
      */
@@ -26,29 +25,37 @@ public final class Distance implements Serializable
 
     public static final String FEET_NOTATION = "'";
     public static final String INCHES_NOTATION = "\"";
+    public static final long INCHES_PER_FOOT = 12L;
+    public static final long FEET_PER_MILE = 5280;
+    public static final double METERS_PER_FOOT = 0.3048;
+    public static final double METERS_PER_KILOMETER = 1000;
+    public static final long MINUTES_PER_DEGREE = 60;
+    public static final long MILLIMETERS_PER_METER = 1000;
+    public static final long METERS_PER_NAUTICAL_MILE = 1852;
 
-    protected static final long INCHES_PER_FOOT = 12L;
-    protected static final long FEET_PER_MILE = 5280;
-    protected static final double METERS_PER_FOOT = 0.3048;
-    protected static final double METERS_PER_KILOMETER = 1000;
-    protected static final long MILLIMETERS_PER_METER = 1000;
-    protected static final long METERS_PER_NAUTICAL_MILE = 1852;
-
-    public static final Distance AVERAGE_EARTH_RADIUS = Distance.kilometers(6371);
     public static final Distance ZERO = Distance.millimeters(0);
+    public static final Distance MAXIMUM = Distance.millimeters(Long.MAX_VALUE);
+    public static final Distance AVERAGE_EARTH_RADIUS = Distance.kilometers(6371);
     public static final Distance TEN_MILES = Distance.miles(10);
     public static final Distance FIFTEEN_HUNDRED_FEET = Distance.feet(1500);
     public static final Distance ONE_METER = Distance.meters(1);
-    public static final Distance MAXIMUM = Distance.millimeters(Long.MAX_VALUE);
-
+    public static final Distance DISTANCE_PER_DEGREE_LONGITUDE_AT_EQUATOR = Distance.meters(111321);
+    public static final Distance DISTANCE_PER_DEGREE_LATITUDE = Distance.meters(111120);
     /**
      * @see "https://en.wikipedia.org/wiki/Territorial_waters"
      */
     public static final Distance SEA_TERRITORY_ZONE = Distance.nauticalMiles(12);
 
+    private static final long serialVersionUID = 3728783948477892064L;
     private static final int DISTANCE_PRINTING_METERS_THRESHOLD = 1000;
 
     private final double millimeters;
+
+    public static Distance distancePerDegreeLongitudeAt(final Location location)
+    {
+        return Distance.meters(DISTANCE_PER_DEGREE_LONGITUDE_AT_EQUATOR.asMeters()
+                * Math.cos(location.getLatitude().asRadians()));
+    }
 
     public static Distance feet(final double feet)
     {

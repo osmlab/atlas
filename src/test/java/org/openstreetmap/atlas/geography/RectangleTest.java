@@ -143,17 +143,27 @@ public class RectangleTest
     }
 
     @Test
-    public void testExpansionNearPoles()
+    public void testExpansionAcrossPoles()
     {
         final long kilometersPerDegreeLatitude = 111L;
 
         Rectangle closeToSouthPole = Rectangle.forCorners(Location.forWkt("POINT(0 -87)"),
                 Location.forWkt("POINT(1 -84)"));
-        System.err.println(closeToSouthPole.toWkt());
-
+        // this should cross the south pole
         closeToSouthPole = closeToSouthPole
-                .expand(Distance.kilometers(kilometersPerDegreeLatitude * 3));
-        System.err.println(closeToSouthPole.toWkt());
+                .expand(Distance.kilometers(kilometersPerDegreeLatitude * 4));
+        Assert.assertEquals(
+                "POLYGON ((-89.9709113 -86.0070115, -89.9709113 -79.2463163, 22.9131203 -79.2463163, 22.9131203 -86.0070115, -89.9709113 -86.0070115))",
+                closeToSouthPole.toWkt());
+
+        Rectangle closeToNorthPole = Rectangle.forCorners(Location.forWkt("POINT(0 84)"),
+                Location.forWkt("POINT(1 87)"));
+        // this should cross the north pole
+        closeToNorthPole = closeToNorthPole
+                .expand(Distance.kilometers(kilometersPerDegreeLatitude * 4));
+        Assert.assertEquals(
+                "POLYGON ((-21.9131203 79.2463163, -21.9131203 86.0070115, 90.9709113 86.0070115, 90.9709113 79.2463163, -21.9131203 79.2463163))",
+                closeToNorthPole.toWkt());
     }
 
     @Test
