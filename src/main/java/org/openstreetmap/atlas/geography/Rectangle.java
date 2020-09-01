@@ -348,7 +348,7 @@ public final class Rectangle extends Polygon
     public Rectangle expandVertically(final Distance distance)
     {
         final double degreesLatitudeToShift = distance.asMeters()
-                / Distance.DISTANCE_PER_DEGREE_LATITUDE.asMeters();
+                / Distance.APPROXIMATE_DISTANCE_PER_DEGREE_AT_EQUATOR.asMeters();
         final long meterBuffer = 1;
 
         final Location oldLowerLeft = this.lowerLeft;
@@ -357,15 +357,15 @@ public final class Rectangle extends Polygon
         if (oldLowerLeft.getLatitude().asDegrees() - degreesLatitudeToShift <= Latitude.MINIMUM
                 .asDegrees())
         {
-            logger.error(
+            logger.warn(
                     "Provided distance {} would have shifted past the South Pole, truncating southward expansion...",
                     distance);
             final double degreesToHitMinimum = -1
                     * (Latitude.MINIMUM.asDegrees() - oldLowerLeft.getLatitude().asDegrees());
             // subtract a small buffer off the distance to just miss the pole.
             southShiftDistance = Distance
-                    .meters((Distance.DISTANCE_PER_DEGREE_LATITUDE.asMeters() * degreesToHitMinimum)
-                            - meterBuffer);
+                    .meters((Distance.APPROXIMATE_DISTANCE_PER_DEGREE_AT_EQUATOR.asMeters()
+                            * degreesToHitMinimum) - meterBuffer);
         }
         final Location lowerLeftShiftedSouth = oldLowerLeft.shiftAlongGreatCircle(Heading.SOUTH,
                 southShiftDistance);
@@ -376,15 +376,15 @@ public final class Rectangle extends Polygon
         if (oldUpperRight.getLatitude().asDegrees() + degreesLatitudeToShift >= Latitude.MAXIMUM
                 .asDegrees())
         {
-            logger.error(
+            logger.warn(
                     "Provided distance {} would have shifted past the North Pole, truncating northward expansion...",
                     distance);
             final double degreesToHitMaximum = Latitude.MAXIMUM.asDegrees()
                     - oldUpperRight.getLatitude().asDegrees();
             // subtract a small buffer off the distance to just miss the pole.
             northShiftDistance = Distance
-                    .meters((Distance.DISTANCE_PER_DEGREE_LATITUDE.asMeters() * degreesToHitMaximum)
-                            - meterBuffer);
+                    .meters((Distance.APPROXIMATE_DISTANCE_PER_DEGREE_AT_EQUATOR.asMeters()
+                            * degreesToHitMaximum) - meterBuffer);
         }
         final Location upperRightShiftedNorth = oldUpperRight.shiftAlongGreatCircle(Heading.NORTH,
                 northShiftDistance);

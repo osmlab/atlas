@@ -29,7 +29,6 @@ public final class Distance implements Serializable
     public static final long FEET_PER_MILE = 5280;
     public static final double METERS_PER_FOOT = 0.3048;
     public static final double METERS_PER_KILOMETER = 1000;
-    public static final long MINUTES_PER_DEGREE = 60;
     public static final long MILLIMETERS_PER_METER = 1000;
     public static final long METERS_PER_NAUTICAL_MILE = 1852;
 
@@ -39,8 +38,15 @@ public final class Distance implements Serializable
     public static final Distance TEN_MILES = Distance.miles(10);
     public static final Distance FIFTEEN_HUNDRED_FEET = Distance.feet(1500);
     public static final Distance ONE_METER = Distance.meters(1);
-    public static final Distance DISTANCE_PER_DEGREE_LONGITUDE_AT_EQUATOR = Distance.meters(111321);
-    public static final Distance DISTANCE_PER_DEGREE_LATITUDE = Distance.meters(111120);
+    /**
+     * This value approximates the distance for 1 degree of latitude or longitude near the equator.
+     * The distance per degree latitude should not change anywhere on the earth, barring slight
+     * variations due to earth's true oblate spheroid shape. To calculate the distance per degree
+     * longitude far from the equator, please see
+     * {@link Distance#distancePerDegreeLongitudeAt(Location)}.
+     */
+    public static final Distance APPROXIMATE_DISTANCE_PER_DEGREE_AT_EQUATOR = Angle.degrees(1)
+            .onEarth();
     /**
      * @see "https://en.wikipedia.org/wiki/Territorial_waters"
      */
@@ -53,7 +59,7 @@ public final class Distance implements Serializable
 
     public static Distance distancePerDegreeLongitudeAt(final Location location)
     {
-        return Distance.meters(DISTANCE_PER_DEGREE_LONGITUDE_AT_EQUATOR.asMeters()
+        return Distance.meters(APPROXIMATE_DISTANCE_PER_DEGREE_AT_EQUATOR.asMeters()
                 * Math.cos(location.getLatitude().asRadians()));
     }
 
