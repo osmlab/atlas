@@ -158,23 +158,23 @@ public class MultiNode extends Node
     private SortedSet<Edge> attachedEdgesFromOverlappingNodes(
             final Function<Node, Set<Edge>> getConnectedEdges)
     {
-        final Set<Long> slaveNodes = multiAtlas().overlappingNodes(getIdentifier());
-        final Optional<Long> masterNode = multiAtlas().masterNode(this.identifier);
-        if (!slaveNodes.isEmpty())
+        final Set<Long> alternateNodes = multiAtlas().overlappingNodes(getIdentifier());
+        final Optional<Long> mainNode = multiAtlas().mainNode(this.identifier);
+        if (!alternateNodes.isEmpty())
         {
-            // This Multi-Node is an overlapping master node. Return all the in/out edges of this
-            // node, plus those of the other slave nodes.
+            // This Multi-Node is an overlapping main node. Return all the in/out edges of this
+            // node, plus those of the other alternate nodes.
             final SortedSet<Edge> result = attachedEdges(getConnectedEdges);
-            slaveNodes.forEach(slaveIdentifier -> result
-                    .addAll(((MultiNode) multiAtlas().node(slaveIdentifier))
+            alternateNodes.forEach(alternateIdentifier -> result
+                    .addAll(((MultiNode) multiAtlas().node(alternateIdentifier))
                             .attachedEdges(getConnectedEdges)));
             return result;
         }
-        else if (masterNode.isPresent())
+        else if (mainNode.isPresent())
         {
-            // This Multi-Node is an overlapping slave node. Return no edges. All its edges will be
-            // directed to the master node. Slaves nodes are then rendered useless (even though they
-            // are still present) to mimic the behavior of the PackedAtlas.
+            // This Multi-Node is an overlapping alternate node. Return no edges. All its edges will
+            // be directed to the main node. Alternate nodes are then rendered useless (even though
+            // they are still present) to mimic the behavior of the PackedAtlas.
             return new TreeSet<>();
         }
         else

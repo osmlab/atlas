@@ -36,11 +36,11 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
     private static final List<String> DEFAULT_IMPORTS = Arrays.asList("java.lang", "groovy.lang",
             "java.util.function");
 
-    private final List<String> additionalWhitelistPackages;
+    private final List<String> additionalAllowListPackages;
 
     public StringToPredicateConverter()
     {
-        this.additionalWhitelistPackages = new ArrayList<>();
+        this.additionalAllowListPackages = new ArrayList<>();
     }
 
     /**
@@ -99,9 +99,9 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
         final GroovyShell shell = new GroovyShell(binding);
 
         final StringBuilder importsBuilder = new StringBuilder();
-        final List<String> importsWhitelist = new ArrayList<>(DEFAULT_IMPORTS);
-        importsWhitelist.addAll(this.additionalWhitelistPackages);
-        for (final String importPackage : importsWhitelist)
+        final List<String> importsAllowList = new ArrayList<>(DEFAULT_IMPORTS);
+        importsAllowList.addAll(this.additionalAllowListPackages);
+        for (final String importPackage : importsAllowList)
         {
             importsBuilder.append("import ");
             importsBuilder.append(importPackage);
@@ -117,34 +117,34 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
     /**
      * Add some imports to execute before the predicate.
      *
-     * @param whitelist
+     * @param allowList
      *            the packages to star import.
      * @return the updated converter
      */
-    public StringToPredicateConverter<T> withAddedStarImportPackages(final List<String> whitelist)
+    public StringToPredicateConverter<T> withAddedStarImportPackages(final List<String> allowList)
     {
-        for (final String importString : whitelist)
+        for (final String importString : allowList)
         {
             checkImportStringFormat(importString);
         }
-        this.additionalWhitelistPackages.addAll(whitelist);
+        this.additionalAllowListPackages.addAll(allowList);
         return this;
     }
 
     /**
      * Add some imports to execute before the predicate.
      *
-     * @param whitelist
+     * @param allowList
      *            the packages to star import.
      * @return the updated converter
      */
-    public StringToPredicateConverter<T> withAddedStarImportPackages(final String... whitelist)
+    public StringToPredicateConverter<T> withAddedStarImportPackages(final String... allowList)
     {
-        for (final String importString : whitelist)
+        for (final String importString : allowList)
         {
             checkImportStringFormat(importString);
         }
-        this.additionalWhitelistPackages.addAll(Arrays.asList(whitelist));
+        this.additionalAllowListPackages.addAll(Arrays.asList(allowList));
         return this;
     }
 
@@ -155,7 +155,7 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
      */
     public StringToPredicateConverter<T> withClearedStarImportPackages()
     {
-        this.additionalWhitelistPackages.clear();
+        this.additionalAllowListPackages.clear();
         return this;
     }
 
@@ -163,16 +163,16 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
     private Class<Script> checkExpressionSafety(final String booleanExpressionString)
     {
         final SecureASTCustomizer securityCustomizer = new SecureASTCustomizer();
-        final List<String> importsWhitelist = new ArrayList<>(DEFAULT_IMPORTS);
-        importsWhitelist.addAll(this.additionalWhitelistPackages);
+        final List<String> importsAllowList = new ArrayList<>(DEFAULT_IMPORTS);
+        importsAllowList.addAll(this.additionalAllowListPackages);
 
-        securityCustomizer.setStarImportsWhitelist(importsWhitelist);
+        securityCustomizer.setStarImportsWhitelist(importsAllowList);
         securityCustomizer.setPackageAllowed(false);
         securityCustomizer.setMethodDefinitionAllowed(false);
         securityCustomizer.setIndirectImportCheckEnabled(true);
 
         final ImportCustomizer importCustomizer = new ImportCustomizer();
-        importCustomizer.addStarImports(importsWhitelist.toArray(new String[0]));
+        importCustomizer.addStarImports(importsAllowList.toArray(new String[0]));
 
         final CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
         compilerConfiguration.addCompilationCustomizers(securityCustomizer);

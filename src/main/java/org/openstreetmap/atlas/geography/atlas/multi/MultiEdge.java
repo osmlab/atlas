@@ -42,7 +42,7 @@ public class MultiEdge extends Edge
     public Node end()
     {
         return new MultiNode(multiAtlas(),
-                masteriseNodeIdentifier(this.getRepresentativeSubEdge().end().getIdentifier()));
+                getMainNodeIdentifier(this.getRepresentativeSubEdge().end().getIdentifier()));
     }
 
     @Override
@@ -75,7 +75,28 @@ public class MultiEdge extends Edge
     public Node start()
     {
         return new MultiNode(multiAtlas(),
-                masteriseNodeIdentifier(this.getRepresentativeSubEdge().start().getIdentifier()));
+                getMainNodeIdentifier(this.getRepresentativeSubEdge().start().getIdentifier()));
+    }
+
+    /**
+     * In case there is another node that overlaps this one, and the other one is the main, get the
+     * other one
+     *
+     * @param identifier
+     *            The node identifier
+     * @return The main node identifier if any, or identity
+     */
+    private Long getMainNodeIdentifier(final long identifier)
+    {
+        final Optional<Long> mainNodeIdentifier = multiAtlas().mainNode(identifier);
+        if (mainNodeIdentifier.isPresent())
+        {
+            return mainNodeIdentifier.get();
+        }
+        else
+        {
+            return identifier;
+        }
     }
 
     private Edge getRepresentativeSubEdge()
@@ -90,27 +111,6 @@ public class MultiEdge extends Edge
             this.subEdgeList = this.multiAtlas().subEdge(this.identifier);
         }
         return this.subEdgeList;
-    }
-
-    /**
-     * In case there is another node that overlaps this one, and the other one is the master, get
-     * the other one
-     *
-     * @param identifier
-     *            The node identifier
-     * @return The master node identifier if any, or identity
-     */
-    private Long masteriseNodeIdentifier(final long identifier)
-    {
-        final Optional<Long> masterNodeIdentifier = multiAtlas().masterNode(identifier);
-        if (masterNodeIdentifier.isPresent())
-        {
-            return masterNodeIdentifier.get();
-        }
-        else
-        {
-            return identifier;
-        }
     }
 
     private MultiAtlas multiAtlas()

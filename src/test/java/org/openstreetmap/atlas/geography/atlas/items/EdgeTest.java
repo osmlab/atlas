@@ -78,21 +78,21 @@ public class EdgeTest
     }
 
     @Test
-    public void testGetMasterEdge()
+    public void testGetMainEdge()
     {
         final Atlas atlas = this.rule.getAtlas();
 
-        // Given the reverse edge, should return the master
+        // Given the reverse edge, should return the main
         final Edge reverseEdge = atlas.edge(-293669785000001L);
-        Assert.assertEquals(atlas.edge(293669785000001L), reverseEdge.getMasterEdge());
+        Assert.assertEquals(atlas.edge(293669785000001L), reverseEdge.getMainEdge());
 
-        // The master edge should just be itself
-        final Edge masterEdge = atlas.edge(293669785000001L);
-        Assert.assertEquals(masterEdge, masterEdge.getMasterEdge());
+        // The main edge should just be itself
+        final Edge mainEdge = atlas.edge(293669785000001L);
+        Assert.assertEquals(mainEdge, mainEdge.getMainEdge());
 
         // Now, let's try with a one-way edge
-        final Edge masterEdge2 = atlas.edge(293669786000001L);
-        Assert.assertEquals(masterEdge2, masterEdge2.getMasterEdge());
+        final Edge mainEdge2 = atlas.edge(293669786000001L);
+        Assert.assertEquals(mainEdge2, mainEdge2.getMainEdge());
     }
 
     @Test
