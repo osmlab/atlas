@@ -175,8 +175,8 @@ public class ComplexRoundabout extends ComplexEntity
             source.getTag(ISOCountryTag.KEY).isPresent()
                     // Make sure that the source is an instances of a roundabout
                     && JunctionTag.isRoundabout(source)
-                    // Make sure that we are looking at a master edge
-                    && (source.isMasterEdge())))
+                    // Make sure that we are looking at a main edge
+                    && (source.isMainEdge())))
             {
                 final ComplexEntityError sourceError = new ComplexEntityError(this,
                         String.format("Invalid source Edge (%s) for a roundabout.",
@@ -205,11 +205,11 @@ public class ComplexRoundabout extends ComplexEntity
                 throw routeError.getException();
             }
 
-            // Invalidate the roundabout if any of the edges are not car navigable or master Edges,
+            // Invalidate the roundabout if any of the edges are not car navigable or main Edges,
             // or the route does not form a closed loop.
             if (this.roundaboutEdgeSet.stream()
                     .anyMatch(roundaboutEdge -> !HighwayTag.isCarNavigableHighway(roundaboutEdge)
-                            || !roundaboutEdge.isMasterEdge())
+                            || !roundaboutEdge.isMainEdge())
                     || !this.roundaboutRoute.start().inEdges().contains(this.roundaboutRoute.end()))
             {
                 this.invalidationReasons.add(new ComplexEntityError(this,

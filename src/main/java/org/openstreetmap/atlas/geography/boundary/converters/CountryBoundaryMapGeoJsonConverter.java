@@ -27,15 +27,15 @@ public class CountryBoundaryMapGeoJsonConverter implements Converter<CountryBoun
 
     private boolean usePolygons;
     private boolean prettyPrint;
-    private Set<String> countryWhitelist;
-    private Set<String> countryBlacklist;
+    private Set<String> countryAllowList;
+    private Set<String> countryDenyList;
 
     public CountryBoundaryMapGeoJsonConverter()
     {
         this.usePolygons = false;
         this.prettyPrint = false;
-        this.countryWhitelist = null;
-        this.countryBlacklist = null;
+        this.countryAllowList = null;
+        this.countryDenyList = null;
     }
 
     @Override
@@ -50,9 +50,9 @@ public class CountryBoundaryMapGeoJsonConverter implements Converter<CountryBoun
         {
             final String countryCode = entry.getKey();
             final List<Polygon> polygons = entry.getValue();
-            if ((this.countryBlacklist != null && this.countryBlacklist.contains(countryCode))
-                    || (this.countryWhitelist != null
-                            && !this.countryWhitelist.contains(countryCode)))
+            if ((this.countryDenyList != null && this.countryDenyList.contains(countryCode))
+                    || (this.countryAllowList != null
+                            && !this.countryAllowList.contains(countryCode)))
             {
                 continue;
             }
@@ -133,32 +133,31 @@ public class CountryBoundaryMapGeoJsonConverter implements Converter<CountryBoun
     }
 
     /**
-     * Specify a blacklist for countries to exclude. If this set is empty, then no countries will be
-     * excluded.
+     * Specify an allowlist for countries to include. If this set is empty, then no countries will
+     * be included.
      *
-     * @param countryBlacklist
-     *            the blacklist
+     * @param countryAllowList
+     *            the allowlist
      * @return a modified instance of {@link CountryBoundaryMapGeoJsonConverter}
      */
-    public CountryBoundaryMapGeoJsonConverter withCountryBlacklist(
-            final Set<String> countryBlacklist)
+    public CountryBoundaryMapGeoJsonConverter withCountryAllowList(
+            final Set<String> countryAllowList)
     {
-        this.countryBlacklist = countryBlacklist;
+        this.countryAllowList = countryAllowList;
         return this;
     }
 
     /**
-     * Specify a whitelist for countries to include. If this set is empty, then no countries will be
-     * included.
-     * 
-     * @param countryWhitelist
-     *            the whitelist
+     * Specify a denylist for countries to exclude. If this set is empty, then no countries will be
+     * excluded.
+     *
+     * @param countryDenyList
+     *            the denylist
      * @return a modified instance of {@link CountryBoundaryMapGeoJsonConverter}
      */
-    public CountryBoundaryMapGeoJsonConverter withCountryWhitelist(
-            final Set<String> countryWhitelist)
+    public CountryBoundaryMapGeoJsonConverter withCountryDenyList(final Set<String> countryDenyList)
     {
-        this.countryWhitelist = countryWhitelist;
+        this.countryDenyList = countryDenyList;
         return this;
     }
 }

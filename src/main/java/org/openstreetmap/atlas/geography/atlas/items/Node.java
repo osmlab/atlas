@@ -120,11 +120,11 @@ public abstract class Node extends LocationItem
     }
 
     /**
-     * @return The valence considering only the master {@link Edge}s
+     * @return The valence considering only the main {@link Edge}s
      */
     public long valence()
     {
-        return this.connectedEdges().stream().filter(Edge::isMasterEdge).count();
+        return this.connectedEdges().stream().filter(Edge::isMainEdge).count();
     }
 
     private SortedSet<Long> connectedEdgesIdentifiers(

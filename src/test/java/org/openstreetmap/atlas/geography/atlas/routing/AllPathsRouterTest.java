@@ -91,17 +91,17 @@ public class AllPathsRouterTest
     public void testRoutingWithFilter()
     {
         final Atlas atlas = this.rule.getBiDirectionalCyclicRouteAtlas();
-        final Predicate<Edge> onlyMasterEdges = edge -> Edge
-                .isMasterEdgeIdentifier(edge.getIdentifier());
+        final Predicate<Edge> onlyMainEdges = edge -> Edge
+                .isMainEdgeIdentifier(edge.getIdentifier());
         final Set<Route> routes = AllPathsRouter.allRoutes(atlas.edge(315932590),
-                atlas.edge(317932590), onlyMasterEdges, Route.ROUTE_COMPARATOR);
+                atlas.edge(317932590), onlyMainEdges, Route.ROUTE_COMPARATOR);
 
         final Set<Route> expectedRoutes = new TreeSet<>(Route.ROUTE_COMPARATOR);
         expectedRoutes.add(Route.forEdges(atlas.edge(315932590), atlas.edge(316932590),
                 atlas.edge(317932590)));
 
         Assert.assertEquals(
-                "Expect a single distinct route between start and end, since we've filtered out all routes that have a non-master edge",
+                "Expect a single distinct route between start and end, since we've filtered out all routes that have a non-main edge",
                 1, routes.size());
         Assert.assertEquals("Expect deterministic results from the router", expectedRoutes, routes);
     }
