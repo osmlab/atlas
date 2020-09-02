@@ -314,6 +314,23 @@ public class MultiAtlas extends AbstractAtlas
      */
     public MultiAtlas(final List<Atlas> atlases, final boolean lotsOfOverlap)
     {
+        this(atlases, lotsOfOverlap, true);
+    }
+
+    public MultiAtlas(final boolean fixNodesOnOppositeAntiMeridians, final Atlas... atlases)
+    {
+        this(Iterables.iterable(atlases), false, fixNodesOnOppositeAntiMeridians);
+    }
+
+    public MultiAtlas(final Iterable<Atlas> atlases, final boolean lotsOfOverlap,
+            final boolean fixNodesOnOppositeAntiMeridians)
+    {
+        this(Iterables.asList(atlases), lotsOfOverlap, fixNodesOnOppositeAntiMeridians);
+    }
+
+    public MultiAtlas(final List<Atlas> atlases, final boolean lotsOfOverlap,
+            final boolean fixNodesOnOppositeAntiMeridians)
+    {
         if (atlases.isEmpty())
         {
             throw new CoreException("An Atlas is Located, and therefore cannot be empty.");
@@ -466,7 +483,8 @@ public class MultiAtlas extends AbstractAtlas
 
         // Find the overlapping nodes. Master to slave has a one to many relationship. A master
         // cannot be a slave and vice versa
-        this.nodesFixer = new MultiAtlasOverlappingNodesFixer(this);
+        this.nodesFixer = new MultiAtlasOverlappingNodesFixer(this,
+                fixNodesOnOppositeAntiMeridians);
         this.nodesFixer.aggregateSameLocationNodes();
 
         // At this point de-duplication has been done already.
