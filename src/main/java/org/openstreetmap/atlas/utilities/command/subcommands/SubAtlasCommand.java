@@ -58,7 +58,7 @@ public class SubAtlasCommand extends AtlasLoaderCommand
     private static final String SLICE_FIRST_OPTION_LONG = "slice-first";
     private static final String SLICE_FIRST_OPTION_DESCRIPTION = "Cut with supplied geometry before applying the predicate.";
 
-    private static final List<String> importsWhitelist = Arrays.asList(
+    private static final List<String> IMPORTS_ALLOW_LIST = Arrays.asList(
             "org.openstreetmap.atlas.geography.atlas.items",
             "org.openstreetmap.atlas.tags.annotations",
             "org.openstreetmap.atlas.tags.annotations.validation",
@@ -267,7 +267,7 @@ public class SubAtlasCommand extends AtlasLoaderCommand
             }
             final List<String> allImports = new ArrayList<>();
             allImports.addAll(userImports);
-            allImports.addAll(importsWhitelist);
+            allImports.addAll(IMPORTS_ALLOW_LIST);
             return Optional.ofNullable(new StringToPredicateConverter<AtlasEntity>()
                     .withAddedStarImportPackages(allImports).convert(predicateParameter.get()));
         }

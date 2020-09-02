@@ -20,9 +20,8 @@ public class AtlasChangeGeneratorRemoveReverseEdges implements AtlasChangeGenera
     @Override
     public Set<FeatureChange> generateWithoutValidation(final Atlas atlas)
     {
-        return Iterables.stream(atlas.edges()).filter(Edge::isMasterEdge)
-                .filter(Edge::hasReverseEdge).map(Edge::reversed).filter(Optional::isPresent)
-                .map(Optional::get)
+        return Iterables.stream(atlas.edges()).filter(Edge::isMainEdge).filter(Edge::hasReverseEdge)
+                .map(Edge::reversed).filter(Optional::isPresent).map(Optional::get)
                 .map(edge -> FeatureChange.remove(CompleteEntity.shallowFrom(edge), atlas))
                 .collectToSet();
     }

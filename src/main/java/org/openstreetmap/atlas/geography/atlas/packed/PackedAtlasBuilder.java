@@ -208,7 +208,7 @@ public final class PackedAtlasBuilder implements AtlasBuilder
                     "An Atlas is Located, and therefore cannot be made of only relations (which cannot be located as there are no other features).");
             return null;
         }
-        verifyNegativeEdgesHaveMasterEdge();
+        verifyNegativeEdgesHaveMainEdge();
         this.atlas.relations().forEach(relation ->
         {
             try
@@ -307,7 +307,7 @@ public final class PackedAtlasBuilder implements AtlasBuilder
         }
     }
 
-    private void verifyNegativeEdgesHaveMasterEdge()
+    private void verifyNegativeEdgesHaveMainEdge()
     {
         this.atlas.edges().forEach(edge ->
         {

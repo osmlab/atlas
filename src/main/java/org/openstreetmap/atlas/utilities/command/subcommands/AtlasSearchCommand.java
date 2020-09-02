@@ -126,7 +126,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
 
     private static final String COULD_NOT_PARSE = "could not parse %s '%s': skipping...";
 
-    private static final List<String> importsWhitelist = Arrays.asList(
+    private static final List<String> IMPORTS_ALLOW_LIST = Arrays.asList(
             "org.openstreetmap.atlas.geography.atlas.items",
             "org.openstreetmap.atlas.tags.annotations",
             "org.openstreetmap.atlas.tags.annotations.validation",
@@ -697,7 +697,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         }
         final List<String> allImports = new ArrayList<>();
         allImports.addAll(userImports);
-        allImports.addAll(importsWhitelist);
+        allImports.addAll(IMPORTS_ALLOW_LIST);
         return new StringToPredicateConverter<AtlasEntity>().withAddedStarImportPackages(allImports)
                 .convert(string);
     }

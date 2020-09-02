@@ -151,7 +151,7 @@ public class ComplexRoundaboutTest
     }
 
     @Test
-    public void nonMasterSourceTest()
+    public void nonMainSourceTest()
     {
         final ComplexRoundabout complexRoundabout = new ComplexRoundabout(
                 this.setup.counterClockwiseRoundaboutRightDrivingOneWayNoAtlas().edge(-1234));
