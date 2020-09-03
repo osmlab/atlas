@@ -758,7 +758,7 @@ sub execute_command_repo {
             return 0;
         }
         unless (defined $repo_ref) {
-            $repo_ref = 'master';
+            $repo_ref = 'main';
         }
         $success = ast_repo_subsystem::create_repo($ast_path, $program_name, $quiet, $repo_name, $repo_url, $repo_ref);
     }
@@ -1033,7 +1033,7 @@ sub execute_command_update {
     my @command = ();
     push @command, "git";
     push @command, "checkout";
-    push @command, "master";
+    push @command, "main";
     my $success = system {$command[0]} @command;
     unless ($success == 0) {
         ast_utilities::error_output($program_name . ": update", "update operation failed");
@@ -1044,7 +1044,7 @@ sub execute_command_update {
     push @command, "git";
     push @command, "pull";
     push @command, "origin";
-    push @command, "master";
+    push @command, "main";
     $success = system {$command[0]} @command;
     unless ($success == 0) {
         ast_utilities::error_output($program_name . ": update", "update operation failed");
