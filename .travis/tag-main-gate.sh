@@ -2,7 +2,7 @@
 
 if [ $TRAVIS_TEST_RESULT -eq 0 ];
 then
-	.travis/tag-master.sh
+	.travis/tag-main.sh
 	RETURN_VALUE=$?
 	if [ "$RETURN_VALUE" != "0" ];
 	then
