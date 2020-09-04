@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 GITHUB_REPO="osmlab/atlas"
-RELEASE_BRANCH=master
+RELEASE_BRANCH=main
 
 FUNCTION_NAME="tag-$RELEASE_BRANCH"
 
