@@ -18,8 +18,8 @@ import org.openstreetmap.atlas.geography.atlas.change.serializer.ChangeGeoJsonSe
 import org.openstreetmap.atlas.geography.atlas.complete.PrettifyStringFormat;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.streaming.resource.File;
-import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
+import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
@@ -338,9 +338,9 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
         final List<File> afterFilesToConsider = context.isRecursive()
                 ? afterAtlasFile.listFilesRecursively(false)
                 : afterAtlasFile.listFiles(false);
-        beforeFilesToConsider.stream().filter(FileSuffix.ATLAS::matches).forEach(
+        beforeFilesToConsider.stream().filter(this::checkAtlas).forEach(
                 file -> beforeNamesToFiles.put(getRelativeFileName(beforeAtlasFile, file), file));
-        afterFilesToConsider.stream().filter(FileSuffix.ATLAS::matches).forEach(
+        afterFilesToConsider.stream().filter(this::checkAtlas).forEach(
                 file -> afterNamesToFiles.put(getRelativeFileName(afterAtlasFile, file), file));
         final Set<String> filesOnlyInBefore = Sets.difference(beforeNamesToFiles.keySet(),
                 afterNamesToFiles.keySet());
@@ -440,6 +440,12 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
             this.outputDelegate.printlnStdout(NO_CHANGE);
             return 0;
         }
+    }
+
+    private boolean checkAtlas(final Resource resource)
+    {
+        return AtlasResourceLoader.HAS_ATLAS_EXTENSION.test(resource)
+                || AtlasResourceLoader.HAS_TEXT_ATLAS_EXTENSION.test(resource);
     }
 
     private String getRelativeFileName(final File parent, final File file)
