@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.change;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -353,16 +354,26 @@ public class Change implements Located, Serializable
         return new ChangeGeoJsonSerializer(true, showDescription).convert(this);
     }
 
-    public String toLineDelimitedFeatureChanges()
+    public String toLineDelimitedFeatureChanges(final boolean sorted)
     {
         final StringBuilder builder = new StringBuilder();
         final FeatureChangeGeoJsonSerializer serializer = new FeatureChangeGeoJsonSerializer(false);
+        final List<FeatureChange> sortedFeatureChanges = new ArrayList<>(this.getFeatureChanges());
+        if (sorted)
+        {
+            Collections.sort(sortedFeatureChanges);
+        }
 
-        for (final FeatureChange featureChange : this.featureChanges)
+        for (final FeatureChange featureChange : sortedFeatureChanges)
         {
             builder.append(serializer.apply(featureChange) + "\n");
         }
         return builder.toString();
+    }
+
+    public String toLineDelimitedFeatureChanges()
+    {
+        return toLineDelimitedFeatureChanges(false);
     }
 
     @Override
