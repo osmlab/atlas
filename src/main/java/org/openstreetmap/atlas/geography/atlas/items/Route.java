@@ -308,7 +308,7 @@ public abstract class Route implements Iterable<Edge>, Located, Serializable
     {
         Route route = null;
         int numberOfConsecutiveFailures = 0;
-        final long maxEdgesToAdd = candidates.stream().map(edge -> edge.getMasterEdgeIdentifier())
+        final long maxEdgesToAdd = candidates.stream().map(edge -> edge.getMainEdgeIdentifier())
                 .distinct().count();
         final Set<Long> idsAdded = new HashSet<>();
         if (maxEdgesToAdd == 0)
@@ -326,7 +326,7 @@ public abstract class Route implements Iterable<Edge>, Located, Serializable
                     if (edge.start().equals(startNode))
                     {
                         route = Route.forEdge(edge);
-                        idsAdded.add(edge.getMasterEdgeIdentifier());
+                        idsAdded.add(edge.getMainEdgeIdentifier());
                         break;
                     }
                 }
@@ -343,7 +343,7 @@ public abstract class Route implements Iterable<Edge>, Located, Serializable
 
                 for (final Edge edge : candidates)
                 {
-                    if (idsAdded.contains(edge.getMasterEdgeIdentifier()))
+                    if (idsAdded.contains(edge.getMainEdgeIdentifier()))
                     {
                         // this edge or reverseEdge is already used, continue
                         continue;
@@ -359,7 +359,7 @@ public abstract class Route implements Iterable<Edge>, Located, Serializable
                         edgeAdded = true;
                         numberOfConsecutiveFailures = 0;
                         route = route.append(edge);
-                        idsAdded.add(edge.getMasterEdgeIdentifier());
+                        idsAdded.add(edge.getMainEdgeIdentifier());
                         break;
                     }
                 }

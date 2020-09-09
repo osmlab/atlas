@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <node id='-101752' action='modify' visible='true' lat='43.10269078969' lon='5.93247948909' />
+  <node id='-101754' action='modify' visible='true' lat='43.10292605895' lon='5.93316597867' />
+  <node id='-101755' action='modify' visible='true' lat='43.10288514262' lon='5.9336142984' />
+  <node id='-101756' action='modify' visible='true' lat='43.10274875466' lon='5.93418403805' />
+  <node id='-101758' action='modify' visible='true' lat='43.10327043695' lon='5.93423073802' />
+  <node id='-101759' action='modify' visible='true' lat='43.10342728173' lon='5.93446890787' />
+  <node id='-101760' action='modify' visible='true' lat='43.1033322667' lon='5.93487059863' />
+  <node id='-101761' action='modify' visible='true' lat='43.10312723049' lon='5.93482849765' />
+  <node id='-101762' action='modify' visible='true' lat='43.10298743339' lon='5.93504331752' />
+  <node id='-101763' action='modify' visible='true' lat='43.10306585619' lon='5.93542625729' />
+  <node id='-101764' action='modify' visible='true' lat='43.10292264925' lon='5.93570178712' />
+  <way id='-101782' action='modify' visible='true'>
+    <nd ref='-101752' />
+    <nd ref='-101754' />
+    <nd ref='-101755' />
+    <nd ref='-101756' />
+    <tag k='highway' v='motorway' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <way id='-101826' action='modify' visible='true'>
+    <nd ref='-101758' />
+    <nd ref='-101759' />
+    <nd ref='-101760' />
+    <nd ref='-101761' />
+    <nd ref='-101758' />
+    <tag k='natural' v='water' />
+    <tag k='water' v='pond' />
+  </way>
+  <way id='-101872' action='modify' visible='true'>
+    <nd ref='-101761' />
+    <nd ref='-101762' />
+    <nd ref='-101763' />
+    <nd ref='-101764' />
+    <tag k='waterway' v='river' />
+  </way>
+</osm>

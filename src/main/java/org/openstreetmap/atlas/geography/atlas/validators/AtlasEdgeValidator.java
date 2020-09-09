@@ -95,8 +95,7 @@ public class AtlasEdgeValidator
 
     protected void validateReverseEdgePolyLineUpdated()
     {
-        for (final Edge edge : this.atlas
-                .edges(edge -> edge.hasReverseEdge() && edge.isMasterEdge()))
+        for (final Edge edge : this.atlas.edges(edge -> edge.hasReverseEdge() && edge.isMainEdge()))
         {
             final Edge reversed = edge.reversed().orElseThrow(() -> new CoreException(
                     "Edge {} should have a reverse, but does not.", edge.getIdentifier()));

@@ -464,8 +464,8 @@ public class MultiAtlas extends AbstractAtlas
             this.relationIdentifierToRelationOsmIdentifier.put(identifier, osmIdentifier);
         });
 
-        // Find the overlapping nodes. Master to slave has a one to many relationship. A master
-        // cannot be a slave and vice versa
+        // Find the overlapping nodes. Main to alternate has a one to many relationship. A main
+        // cannot be an alternate and vice versa
         this.nodesFixer = new MultiAtlasOverlappingNodesFixer(this);
         this.nodesFixer.aggregateSameLocationNodes();
 
@@ -717,15 +717,21 @@ public class MultiAtlas extends AbstractAtlas
     }
 
     /**
-     * In case there is a master node overlapping this node, get the master node.
+     * In case there is a main node overlapping this node, get the main node.
      *
      * @param identifier
      *            The node identifier to query
-     * @return The identifier of the master node that has the exact same location
+     * @return The identifier of the main node that has the exact same location
      */
+    protected Optional<Long> mainNode(final Long identifier)
+    {
+        return this.nodesFixer.mainNode(identifier);
+    }
+
+    @Deprecated
     protected Optional<Long> masterNode(final Long identifier)
     {
-        return this.nodesFixer.masterNode(identifier);
+        return mainNode(identifier);
     }
 
     /**
@@ -748,7 +754,7 @@ public class MultiAtlas extends AbstractAtlas
     }
 
     /**
-     * In case this node is a master, get all the overlapping nodes.
+     * In case this is a main node, get all the overlapping nodes.
      *
      * @param identifier
      *            The node identifier to query

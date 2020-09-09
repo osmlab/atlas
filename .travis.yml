@@ -22,7 +22,7 @@ env:
     - ENCRYPTED_GPG_KEY_LOCATION=".travis/secring.gpg.enc"
 branches:
   only:
-  - master
+  - main
   - dev
 language: java
 dist: xenial
@@ -39,6 +39,6 @@ script:
   - .travis/build.sh
   - .travis/build-pyatlas-gate.sh
   - .travis/sonar-gate.sh
-  - .travis/merge-dev-to-master-gate.sh
+  - .travis/merge-dev-to-main-gate.sh
   - .travis/deploy-gate.sh
-  - .travis/tag-master-gate.sh
+  - .travis/tag-main-gate.sh
