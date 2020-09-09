@@ -19,7 +19,7 @@ and just want to configure your startup files yourself, select 'n' at the approp
 
 #### For `bash` users:
 ```
-$ curl -O https://raw.githubusercontent.com/osmlab/atlas/master/atlas-shell-tools/quick_install_bash.sh
+$ curl -O https://raw.githubusercontent.com/osmlab/atlas/main/atlas-shell-tools/quick_install_bash.sh
 # Inspect the downloaded file and ensure you are satisfied it is safe to run:
 $ vim quick_install_bash.sh
 $ sh quick_install_bash.sh
@@ -28,7 +28,7 @@ $ sh quick_install_bash.sh
 
 #### For `zsh` users:
 ```
-$ curl -O https://raw.githubusercontent.com/osmlab/atlas/master/atlas-shell-tools/quick_install_zsh.sh
+$ curl -O https://raw.githubusercontent.com/osmlab/atlas/main/atlas-shell-tools/quick_install_zsh.sh
 # Inspect the downloaded file and ensure you are satisfied it is safe to run:
 $ vim quick_install_zsh.sh
 $ sh quick_install_zsh.sh
@@ -43,7 +43,7 @@ install `atlas-shell-tools`, please follow the below steps.
 $ cd /path/to/desired/install/location
 $ git clone https://github.com/osmlab/atlas.git atlas-shell-tools
 $ cd atlas-shell-tools
-$ git checkout master
+$ git checkout main
 $ ./gradlew clean shaded -x check -x javadoc
 $ chmod +x ./atlas-shell-tools/scripts/atlas ./atlas-shell-tools/scripts/atlas-config
 $ ./atlas-shell-tools/scripts/atlas-config repo add atlas https://github.com/osmlab/atlas.git
@@ -61,7 +61,7 @@ export ATLAS_SHELL_TOOLS_HOME=/path/to/atlas-shell-tools/atlas-shell-tools
 export PATH="$PATH:$ATLAS_SHELL_TOOLS_HOME/scripts"
 ```
 ##### Autocomplete support
-Additionally, `atlas-shell-tools` supports autocomplete for `bash` and `zsh` through [ast_completions.bash](https://github.com/osmlab/atlas/blob/master/atlas-shell-tools/ast_completions.bash) and [ast_completions.zsh](https://github.com/osmlab/atlas/blob/master/atlas-shell-tools/ast_completions.zsh), respectively. To get these set up, you'll need to source them in your shell's appropriate startup file (`~/.bashrc` for `bash` or `~/.zshrc` for `zsh`).
+Additionally, `atlas-shell-tools` supports autocomplete for `bash` and `zsh` through [ast_completions.bash](https://github.com/osmlab/atlas/blob/main/atlas-shell-tools/ast_completions.bash) and [ast_completions.zsh](https://github.com/osmlab/atlas/blob/main/atlas-shell-tools/ast_completions.zsh), respectively. To get these set up, you'll need to source them in your shell's appropriate startup file (`~/.bashrc` for `bash` or `~/.zshrc` for `zsh`).
 
 An example for `bash`:
 ```
@@ -82,10 +82,10 @@ source "$ATLAS_SHELL_TOOLS_HOME/ast_completions.zsh"
 ```
 
 ## Creating A Command
-To create a new command for `atlas-shell-tools`, simply create a class that `extends` [AbstractAtlasShellToolsCommand](https://github.com/osmlab/atlas/blob/master/src/main/java/org/openstreetmap/atlas/utilities/command/abstractcommand/AbstractAtlasShellToolsCommand.java). Once you fill in the abstract methods appropriately (and add a main method), you should build a fat JAR file containing your command, and install it with: 
+To create a new command for `atlas-shell-tools`, simply create a class that `extends` [AbstractAtlasShellToolsCommand](https://github.com/osmlab/atlas/blob/main/src/main/java/org/openstreetmap/atlas/utilities/command/abstractcommand/AbstractAtlasShellToolsCommand.java). Once you fill in the abstract methods appropriately (and add a main method), you should build a fat JAR file containing your command, and install it with: 
 ```
 $ atlas-config install /path/to/JARfile.jar --symlink
 ```
 This will install the JAR file to the module workspace using a symlink, so iterative changes to the JAR will be automatically picked up by `atlas-shell-tools`.
 
-For a comprehensive example of the `AbstractAtlasShellToolsCommand` API, check out the demo class [DemoSubcommand](https://github.com/osmlab/atlas/blob/master/src/main/java/org/openstreetmap/atlas/utilities/command/subcommands/AtlasShellToolsDemoCommand.java). This class demonstrates how to implement the abstract methods, as well as how to structure the main method.
+For a comprehensive example of the `AbstractAtlasShellToolsCommand` API, check out the demo class [DemoSubcommand](https://github.com/osmlab/atlas/blob/main/src/main/java/org/openstreetmap/atlas/utilities/command/subcommands/AtlasShellToolsDemoCommand.java). This class demonstrates how to implement the abstract methods, as well as how to structure the main method.

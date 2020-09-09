@@ -99,13 +99,13 @@ fi
 
 git clone https://github.com/osmlab/atlas.git "$full_installation_path"
 cd "$full_installation_path"
-git checkout master
+git checkout main
 chmod +x atlas-shell-tools/scripts/atlas atlas-shell-tools/scripts/atlas-config
 export ATLAS_SHELL_TOOLS_HOME="$full_installation_path/atlas-shell-tools"
 export PATH="$PATH:$ATLAS_SHELL_TOOLS_HOME/scripts"
 
 # Install the core Atlas module using a repo
-./atlas-shell-tools/scripts/atlas-config repo add atlas https://github.com/osmlab/atlas.git master
+./atlas-shell-tools/scripts/atlas-config repo add atlas https://github.com/osmlab/atlas.git main
 ./atlas-shell-tools/scripts/atlas-config repo install atlas
 
 # Modify the bash startup files with appropriate settings
