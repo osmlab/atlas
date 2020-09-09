@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <node id='-101756' action='modify' visible='true' lat='43.10274875466' lon='5.93418403805' />
+  <node id='-101758' action='modify' visible='true' lat='43.10327043695' lon='5.93423073802' />
+  <node id='-101759' action='modify' visible='true' lat='43.10342728173' lon='5.93446890787' />
+  <node id='-101760' action='modify' visible='true' lat='43.1033322667' lon='5.93487059863' />
+  <node id='-101761' action='modify' visible='true' lat='43.10312723049' lon='5.93482849765' />
+  <node id='-101762' action='modify' visible='true' lat='43.10298743339' lon='5.93504331752' />
+  <node id='-101763' action='modify' visible='true' lat='43.10306585619' lon='5.93542625729' />
+  <node id='-101764' action='modify' visible='true' lat='43.10292264925' lon='5.93570178712' />
+  <node id='-101765' action='modify' visible='true' lat='43.1023293598' lon='5.93405794813' />
+  <way id='-101826' action='modify' visible='true'>
+    <nd ref='-101758' />
+    <nd ref='-101759' />
+    <nd ref='-101760' />
+    <nd ref='-101761' />
+    <nd ref='-101758' />
+    <tag k='natural' v='water' />
+    <tag k='water' v='pond' />
+  </way>
+  <way id='-101872' action='modify' visible='true'>
+    <nd ref='-101761' />
+    <nd ref='-101762' />
+    <nd ref='-101763' />
+    <nd ref='-101764' />
+    <tag k='waterway' v='river' />
+  </way>
+  <way id='-101910' action='modify' visible='true'>
+    <nd ref='-101765' />
+    <nd ref='-101756' />
+    <tag k='highway' v='trunk' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <relation id='-99752' action='modify' visible='true'>
+    <member type='way' ref='-101872' role='two' />
+    <member type='way' ref='-101826' role='one' />
+    <tag k='type' v='waterway' />
+  </relation>
+</osm>
