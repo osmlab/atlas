@@ -145,8 +145,8 @@ public class MultiAtlasOverlappingNodesFixer implements Serializable
         final Location mainLocation = main.getLocation();
         // This will be true for both the minimum antimeridian and the maximum.
         if (this.fixNodesOnOppositeAntiMeridians
-                && (Longitude.ANTIMERIDIAN_WEST.equals(masterLocation.getLongitude())
-                        || Longitude.ANTIMERIDIAN_EAST.equals(masterLocation.getLongitude())))
+                && (Longitude.ANTIMERIDIAN_WEST.equals(mainLocation.getLongitude())
+                        || Longitude.ANTIMERIDIAN_EAST.equals(mainLocation.getLongitude())))
         {
             final Location antimeridianMinimum = new Location(mainLocation.getLatitude(),
                     Longitude.ANTIMERIDIAN_WEST);
