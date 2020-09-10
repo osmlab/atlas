@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 GITHUB_REPO="osmlab/atlas"
-MERGE_BRANCH=master
+MERGE_BRANCH=main
 SOURCE_BRANCH=dev
 
 FUNCTION_NAME="merge-$SOURCE_BRANCH-to-$MERGE_BRANCH"
@@ -23,7 +23,7 @@ then
 fi
 
 : ${GITHUB_SECRET_TOKEN:?"GITHUB_SECRET_TOKEN needs to be set in .travis.yml!"}
-: ${TRAVIS_COMMIT:?"TRAVIS_COMMIT needs to be available to merge the right commit to master!"}
+: ${TRAVIS_COMMIT:?"TRAVIS_COMMIT needs to be available to merge the right commit to main!"}
 
 TEMPORARY_REPOSITORY=$(mktemp -d)
 git clone "https://github.com/$GITHUB_REPO" "$TEMPORARY_REPOSITORY"

@@ -45,7 +45,7 @@ public abstract class EdgeCoverage extends LinearCoverage<Edge>
 
     public EdgeCoverage(final Logger logger, final Atlas atlas, final Predicate<Edge> filter)
     {
-        super(logger, atlas, filter.and(Edge::isMasterEdge));
+        super(logger, atlas, filter.and(Edge::isMainEdge));
         this.setKeyComparator(KEY_COMPARATOR);
     }
 
