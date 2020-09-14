@@ -154,3 +154,28 @@ Here it is equivalent to:
     ]
 }
 ```
+
+## RegexTaggableFilter
+
+`RegexTaggableFilter` is an extension of `Predicate<Taggable>` that allows filtering certain tag values based on regex patterns. 
+The filter also accepts a map of values that are excepted from the regex patterns. 
+
+In order to create `RegexTaggableFilter` one must provide:
+- a set of String values representing the tag names that need to be checked
+- a set of String values representing the regex used to match the values
+- optionally, a map of tag names and sets of excepted values.
+
+For example: 
+
+```
+final Set<String> tagNames = new HashSet<>(Arrays.asList("source", "highway"));
+final Set<String> regex = new HashSet<>(Arrays.asList(".*(?i)\\bmap\\b.*", ".*(?i)\\bsecondary\\b.*"));
+final HashMap<String, Set<String>> exceptions = new HashMap<>(Map.of(
+        "source", Set.of("personal map", "public map")
+));
+```
+If the `Taggable` object contains a key that is part of the tagNames set, matches at least one of the given regex patterns
+and the tag-value combination is not part of the exceptions map, the test method will return a positive response.
+
+The `RegexTaggableFilter` also offers a `getMatchedTags` method that returns a joined String of all the tag names that passed
+the test.

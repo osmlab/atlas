@@ -59,7 +59,7 @@ public class RegexTaggableFilter implements Predicate<Taggable>, Serializable
     public boolean test(final Taggable taggable)
     {
         final Set<String> matchedTags = findMatches(taggable);
-        return matchedTags.isEmpty();
+        return !matchedTags.isEmpty();
     }
 
     private Set<String> findMatches(final Taggable taggable)
@@ -73,7 +73,8 @@ public class RegexTaggableFilter implements Predicate<Taggable>, Serializable
                 final Optional<Matcher> match = this.regexPatterns.stream()
                         .map(pattern -> pattern.matcher(tagValue.get())).filter(Matcher::find)
                         .findAny();
-                if (match.isPresent() && !this.exceptions.containsKey(tagName))
+                if (match.isPresent() && !(this.exceptions.containsKey(tagName)
+                        && this.exceptions.get(tagName).contains(tagValue.get())))
                 {
                     matchedTags.add(tagName);
                 }
