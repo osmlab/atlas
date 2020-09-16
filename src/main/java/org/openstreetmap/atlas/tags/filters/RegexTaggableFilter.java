@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.tags.filters;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -22,7 +23,7 @@ public class RegexTaggableFilter implements Predicate<Taggable>, Serializable
 
     private final Set<String> tagNames;
     private final Set<Pattern> regexPatterns;
-    private final HashMap<String, Set<String>> exceptions;
+    private final Map<String, Set<String>> exceptions;
 
     /**
      * @param tagNames
@@ -34,7 +35,7 @@ public class RegexTaggableFilter implements Predicate<Taggable>, Serializable
      *            pattern
      */
     public RegexTaggableFilter(final Set<String> tagNames, final Set<String> regex,
-            final HashMap<String, Set<String>> exceptions)
+            final Map<String, Set<String>> exceptions)
     {
         this.tagNames = tagNames;
         this.regexPatterns = regex.stream().map(Pattern::compile).collect(Collectors.toSet());
