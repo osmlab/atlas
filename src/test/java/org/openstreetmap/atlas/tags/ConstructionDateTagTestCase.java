@@ -5,6 +5,9 @@ import org.junit.Test;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.testing.TestTaggable;
 
+/**
+ * Test for @{ConstructionDateTag}
+ */
 public class ConstructionDateTagTestCase
 {
     @Test
