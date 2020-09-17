@@ -8,7 +8,7 @@ import org.openstreetmap.atlas.tags.annotations.TagKey;
  *
  * @author brianjor
  */
-@Tag(taginfo = "https://taginfo.openstreetmap.org/keys/construction:date#values", osm= "https://wiki.openstreetmap.org/wiki/Item:Q9553")
+@Tag(taginfo = "https://taginfo.openstreetmap.org/keys/construction:date#values", osm = "https://wiki.openstreetmap.org/wiki/Item:Q9553")
 public interface ConstructionDateTag
 {
     @TagKey

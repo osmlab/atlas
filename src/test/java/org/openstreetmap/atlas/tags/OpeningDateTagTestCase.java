@@ -6,8 +6,7 @@ import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.testing.TestTaggable;
 
 /**
- * Tests
- * for #{OpeningDateTag}
+ * Test for #{OpeningDateTag}
  *
  * @author brianjor
  */

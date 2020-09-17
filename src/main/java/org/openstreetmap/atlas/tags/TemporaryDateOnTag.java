@@ -8,7 +8,7 @@ import org.openstreetmap.atlas.tags.annotations.TagKey;
  *
  * @author brianjor
  */
-@Tag(taginfo = "https://taginfo.openstreetmap.org/keys/temporary:date_on#values", osm= "https://wiki.openstreetmap.org/wiki/Item:Q15233")
+@Tag(taginfo = "https://taginfo.openstreetmap.org/keys/temporary:date_on#values", osm = "https://wiki.openstreetmap.org/wiki/Item:Q15233")
 public interface TemporaryDateOnTag
 {
     @TagKey
