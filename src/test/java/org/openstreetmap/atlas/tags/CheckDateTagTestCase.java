@@ -7,6 +7,8 @@ import org.openstreetmap.atlas.utilities.testing.TestTaggable;
 
 /**
  * Test for @{CheckDateTag}
+ *
+ * @author brianjor
  */
 public class CheckDateTagTestCase
 {
