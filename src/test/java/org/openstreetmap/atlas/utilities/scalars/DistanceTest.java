@@ -53,9 +53,24 @@ public class DistanceTest
     }
 
     @Test
+    public void testDistancePerDegreeLongitudeAt()
+    {
+        Assert.assertEquals(111195L, Math.round(
+                Distance.distancePerDegreeLongitudeAt(Location.forWkt("POINT(0 0)")).asMeters()));
+        Assert.assertEquals(1941L, Math.round(
+                Distance.distancePerDegreeLongitudeAt(Location.forWkt("POINT(0 -89)")).asMeters()));
+        Assert.assertEquals(1941L, Math.round(
+                Distance.distancePerDegreeLongitudeAt(Location.forWkt("POINT(0 89)")).asMeters()));
+        Assert.assertEquals(0L, Math.round(
+                Distance.distancePerDegreeLongitudeAt(Location.forWkt("POINT(0 -90)")).asMeters()));
+        Assert.assertEquals(0L, Math.round(
+                Distance.distancePerDegreeLongitudeAt(Location.forWkt("POINT(0 90)")).asMeters()));
+    }
+
+    @Test
     public void testEquals()
     {
-        Assert.assertTrue(Distance.meters(1000.001).equals(Distance.meters(1000.001)));
-        Assert.assertFalse(Distance.meters(1000.001).equals(Distance.meters(1000.002)));
+        Assert.assertEquals(Distance.meters(1000.001), Distance.meters(1000.001));
+        Assert.assertNotEquals(Distance.meters(1000.001), Distance.meters(1000.002));
     }
 }
