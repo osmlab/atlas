@@ -81,5 +81,4 @@ public class RegexTaggableFilterTest
         Assert.assertFalse(filter.test(Taggable.with("source", "local knowledge")));
         Assert.assertTrue(filter.test(Taggable.with("source", "illegal map")));
     }
-
 }
