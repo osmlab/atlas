@@ -20,7 +20,6 @@ import org.openstreetmap.atlas.tags.Taggable;
  */
 public class RegexTaggableFilter implements Predicate<Taggable>, Serializable
 {
-
     private final Set<String> tagNames;
     private final Set<Pattern> regexPatterns;
     private final Map<String, Set<String>> exceptions;
