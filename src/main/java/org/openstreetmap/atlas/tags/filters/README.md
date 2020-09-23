@@ -167,7 +167,7 @@ In order to create `RegexTaggableFilter` one must provide:
 
 For example: 
 
-```
+```java
 final Set<String> tagNames = new HashSet<>(Arrays.asList("source", "highway"));
 final Set<String> regex = new HashSet<>(Arrays.asList(".*(?i)\\bmap\\b.*", ".*(?i)\\bsecondary\\b.*"));
 final HashMap<String, Set<String>> exceptions = new HashMap<>(Map.of(
