@@ -82,5 +82,4 @@ public class RegexTaggableFilter implements Predicate<Taggable>, Serializable
         }
         return matchedTags;
     }
-
 }
