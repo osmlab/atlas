@@ -16,7 +16,6 @@ import org.openstreetmap.atlas.tags.Taggable;
  */
 public class RegexTaggableFilterTest
 {
-
     @Test
     public void testException()
     {
