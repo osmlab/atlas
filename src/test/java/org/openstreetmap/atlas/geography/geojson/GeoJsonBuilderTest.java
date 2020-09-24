@@ -409,7 +409,8 @@ public class GeoJsonBuilderTest
         final GeoJsonObject featureCollection = new GeoJsonBuilder()
                 .createFeatureCollectionFromPropertiesLocated(
                         Iterables.from(propertiesLocated1, propertiesLocated2))
-                .withNewParentMembers(parentMembers);
+                // Test both functions
+                .withNewParentMember("test", "value").withNewParentMembers(parentMembers);
 
         final JsonObject propertiesMember = featureCollection.jsonObject()
                 .getAsJsonObject("properties");
@@ -419,7 +420,7 @@ public class GeoJsonBuilderTest
         Assert.assertEquals("This feature is no good",
                 propertiesMember.get("instructions").getAsString());
         Assert.assertEquals("Atlas Checks", propertiesMember.get("generator").getAsString());
-        Assert.assertEquals(4, featureCollection.jsonObject().entrySet().size());
+        Assert.assertEquals(5, featureCollection.jsonObject().entrySet().size());
         Assert.assertEquals(2, propertiesMember.entrySet().size());
         Assert.assertEquals(1, fixSuggestionsMember.entrySet().size());
     }
