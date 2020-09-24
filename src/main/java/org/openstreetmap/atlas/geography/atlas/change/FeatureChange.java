@@ -141,19 +141,6 @@ public class FeatureChange implements Located, Taggable, Serializable, Comparabl
     }
 
     /**
-     * Create a new {@link FeatureChange} with a given type and after view.
-     *
-     * @param changeType
-     *            the type, either ADD or REMOVE.
-     * @param afterView
-     *            the after view of the changed entity
-     */
-    FeatureChange(final ChangeType changeType, final AtlasEntity afterView)
-    {
-        this(changeType, afterView, null);
-    }
-
-    /**
      * Create a new {@link FeatureChange} with a given type, after view, and before view. This
      * constructor is provided for exact control over the before view of a change. It is kept
      * package private, and is used for testing purposes only.
@@ -165,7 +152,7 @@ public class FeatureChange implements Located, Taggable, Serializable, Comparabl
      * @param beforeView
      *            the before entity
      */
-    FeatureChange(final ChangeType changeType, final AtlasEntity afterView,
+    public FeatureChange(final ChangeType changeType, final AtlasEntity afterView,
             final AtlasEntity beforeView)
     {
         if (afterView == null)
@@ -206,6 +193,19 @@ public class FeatureChange implements Located, Taggable, Serializable, Comparabl
 
         this.validateNotShallow();
         this.metaData = new HashMap<>();
+    }
+
+    /**
+     * Create a new {@link FeatureChange} with a given type and after view.
+     *
+     * @param changeType
+     *            the type, either ADD or REMOVE.
+     * @param afterView
+     *            the after view of the changed entity
+     */
+    FeatureChange(final ChangeType changeType, final AtlasEntity afterView)
+    {
+        this(changeType, afterView, null);
     }
 
     /**
