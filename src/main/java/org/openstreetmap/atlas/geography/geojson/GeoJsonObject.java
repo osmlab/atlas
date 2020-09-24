@@ -115,13 +115,13 @@ public class GeoJsonObject
     }
 
     /***
-     * Adds a parent member to a FeatureCollection object. Member will be on the same level as the
-     * "type" and "features" members.
+     * Adds a parent member to a FeatureCollection object. This Member will be on the same level as
+     * the "type" and "features" members.
      * 
      * @param key
-     *            - member key
+     *            member key
      * @param value
-     *            - member value
+     *            member value
      * @return GeoJsonObject
      */
     public GeoJsonObject withNewParentMember(final String key, final Object value)
@@ -132,6 +132,13 @@ public class GeoJsonObject
         return this.withNewParentMembers(properties);
     }
 
+    /***
+     * Adds multiple members to the FeatureCollection object.
+     *
+     * @param properties
+     *            Map of member key and properties
+     * @return GeoJsonObject
+     */
     public GeoJsonObject withNewParentMembers(final Map<String, ? extends Object> properties)
     {
         // Check if jsonObject is a FeatureCollection
