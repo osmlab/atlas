@@ -244,6 +244,44 @@ public class GeoJsonBuilderTest
     }
 
     @Test
+    public void testGeometryWithParentMember()
+    {
+        final JsonObject propertiesObject = new JsonObject();
+        final JsonObject parentProperties = new JsonObject();
+        final JsonObject fixSuggestions = new JsonObject();
+        final Map<String, Object> parentMembers = new HashMap<>();
+        final PropertiesLocated propertiesLocated1 = new PropertiesLocated(PolyLine.TEST_POLYLINE,
+                propertiesObject);
+        final PropertiesLocated propertiesLocated2 = new PropertiesLocated(PolyLine.TEST_POLYLINE,
+                propertiesObject);
+
+        parentProperties.addProperty("instructions", "This feature is no good");
+        parentProperties.addProperty("generator", "Atlas Checks");
+        fixSuggestions.addProperty("Edge12345", "");
+        parentMembers.put("properties", parentProperties);
+        parentMembers.put("fix_suggestions", fixSuggestions);
+
+        // Create the FeatureCollection object with extra "properties" & "fix_suggestions" members
+        final GeoJsonObject featureCollection = new GeoJsonBuilder()
+                .createFeatureCollectionFromPropertiesLocated(
+                        Iterables.from(propertiesLocated1, propertiesLocated2))
+                // Test both functions
+                .withNewParentMember("test", "value").withNewParentMembers(parentMembers);
+
+        final JsonObject propertiesMember = featureCollection.jsonObject()
+                .getAsJsonObject("properties");
+        final JsonObject fixSuggestionsMember = featureCollection.jsonObject()
+                .getAsJsonObject("fix_suggestions");
+
+        Assert.assertEquals("This feature is no good",
+                propertiesMember.get("instructions").getAsString());
+        Assert.assertEquals("Atlas Checks", propertiesMember.get("generator").getAsString());
+        Assert.assertEquals(5, featureCollection.jsonObject().entrySet().size());
+        Assert.assertEquals(2, propertiesMember.entrySet().size());
+        Assert.assertEquals(1, fixSuggestionsMember.entrySet().size());
+    }
+
+    @Test
     public void testLineString()
     {
         final GeoJsonObject object = new GeoJsonBuilder()
