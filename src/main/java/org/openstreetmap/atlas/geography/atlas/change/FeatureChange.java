@@ -148,7 +148,7 @@ public class FeatureChange implements Located, Taggable, Serializable, Comparabl
      * @param afterView
      *            the after view of the changed entity
      */
-    FeatureChange(final ChangeType changeType, final AtlasEntity afterView)
+    public FeatureChange(final ChangeType changeType, final AtlasEntity afterView)
     {
         this(changeType, afterView, null);
     }
@@ -165,7 +165,7 @@ public class FeatureChange implements Located, Taggable, Serializable, Comparabl
      * @param beforeView
      *            the before entity
      */
-    FeatureChange(final ChangeType changeType, final AtlasEntity afterView,
+    public FeatureChange(final ChangeType changeType, final AtlasEntity afterView,
             final AtlasEntity beforeView)
     {
         if (afterView == null)
