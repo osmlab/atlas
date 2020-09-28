@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.io.Serializable;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +61,7 @@ import org.openstreetmap.atlas.tags.Taggable;
  * @author lcram
  * @author Yazad Khambata
  */
-public class FeatureChange implements Located, Taggable, Serializable
+public class FeatureChange implements Located, Taggable, Serializable, Comparable<FeatureChange>
 {
     private static final long serialVersionUID = 9172045162819925515L;
 
@@ -147,7 +148,7 @@ public class FeatureChange implements Located, Taggable, Serializable
      * @param afterView
      *            the after view of the changed entity
      */
-    FeatureChange(final ChangeType changeType, final AtlasEntity afterView)
+    public FeatureChange(final ChangeType changeType, final AtlasEntity afterView)
     {
         this(changeType, afterView, null);
     }
@@ -164,7 +165,7 @@ public class FeatureChange implements Located, Taggable, Serializable
      * @param beforeView
      *            the before entity
      */
-    FeatureChange(final ChangeType changeType, final AtlasEntity afterView,
+    public FeatureChange(final ChangeType changeType, final AtlasEntity afterView,
             final AtlasEntity beforeView)
     {
         if (afterView == null)
@@ -311,6 +312,14 @@ public class FeatureChange implements Located, Taggable, Serializable
             throw new CoreException("Corrupted FeatureChange: beforeView bounds were null");
         }
         return Rectangle.forLocated(this.beforeView.bounds(), updatedBounds);
+    }
+
+    @Override
+    public int compareTo(final FeatureChange otherFeatureChange)
+    {
+        return Comparator.comparing(FeatureChange::getChangeType)
+                .thenComparing(FeatureChange::getItemType)
+                .thenComparing(FeatureChange::getIdentifier).compare(this, otherFeatureChange);
     }
 
     @Override

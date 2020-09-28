@@ -1,11 +1,13 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.function.Supplier;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -19,6 +21,9 @@ import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
 import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescription;
+import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescriptorType;
+import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptor;
+import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.TagChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
@@ -27,6 +32,7 @@ import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.validators.FeatureChangeUsefulnessValidator;
+import org.openstreetmap.atlas.tags.names.NameTag;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
 
@@ -299,6 +305,21 @@ public class FeatureChangeTest
                 + "TAG(REMOVE, key0, value0)\n" + "]";
 
         Assert.assertEquals(goldenString, description.toString());
+    }
+
+    @Test
+    public void testExplicitBeforeView()
+    {
+        final Supplier<CompletePoint> completePointGenerator = () -> new CompletePoint(1000000L,
+                Location.CENTER, Collections.emptyMap(), Collections.emptySet());
+        final List<ChangeDescriptor> changeDescriptors = new FeatureChange(ChangeType.ADD,
+                completePointGenerator.get().withAddedTag(NameTag.KEY, "test"),
+                completePointGenerator.get()).explain().getChangeDescriptors();
+
+        Assert.assertEquals(1, changeDescriptors.size());
+        Assert.assertTrue(changeDescriptors.get(0) instanceof TagChangeDescriptor);
+        Assert.assertEquals(ChangeDescriptorType.ADD,
+                changeDescriptors.get(0).getChangeDescriptorType());
     }
 
     @Test

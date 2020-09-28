@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.multi;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 
 import org.junit.Assert;
@@ -7,6 +9,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -14,9 +17,11 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas.AtlasSerializationFormat;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.openstreetmap.atlas.utilities.collections.Sets;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,6 +107,29 @@ public class MultiAtlasTest
                         && entity.getIdentifier() != 6L && entity.getIdentifier() != 1L
                         && entity.getIdentifier() != 3L);
         logger.info("{}", multiFiltered.numberOfEdges());
+    }
+
+    @Test
+    public void testOverlappingMeridianNodes()
+    {
+        final PackedAtlasBuilder builder = new PackedAtlasBuilder();
+        builder.addNode(1L, Location.forWkt("POINT (180 0)"), new HashMap<>());
+        builder.addNode(2L, Location.forWkt("POINT (-180 0)"), new HashMap<>());
+        builder.addNode(3L, Location.forWkt("POINT (179 1)"), new HashMap<>());
+        builder.addEdge(1L, PolyLine.wkt("LINESTRING(179 1, -180 0)"), new HashMap<>());
+        final Atlas atlas = builder.get();
+
+        final MultiAtlas overlapFixed = new MultiAtlas(atlas);
+        Assert.assertEquals(1L, overlapFixed.edge(1L).end().getIdentifier());
+
+        final MultiAtlas overlapLeftAlone = new MultiAtlas(false, atlas);
+        Assert.assertEquals(2L, overlapLeftAlone.edge(1L).end().getIdentifier());
+
+        final MultiAtlas overlapLeftAlone2 = new MultiAtlas(Arrays.asList(atlas), false, false);
+        Assert.assertEquals(2L, overlapLeftAlone2.edge(1L).end().getIdentifier());
+
+        final MultiAtlas overlapLeftAlone3 = new MultiAtlas(Sets.hashSet(atlas), false, false);
+        Assert.assertEquals(2L, overlapLeftAlone3.edge(1L).end().getIdentifier());
     }
 
     @Test

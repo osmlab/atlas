@@ -85,8 +85,8 @@ public class RelationToMultiPolygonMemberConverter implements Converter<Relation
         else if (entity instanceof LineItem)
         {
             // In case an Edge is an outer/inner, make sure to not double count it by looking at the
-            // master edge only.
-            if (!(entity instanceof Edge) || ((Edge) entity).isMasterEdge())
+            // main edge only.
+            if (!(entity instanceof Edge) || ((Edge) entity).isMainEdge())
             {
                 candidates.add(((LineItem) entity).asPolyLine());
             }

@@ -64,14 +64,14 @@ public class DirectionalizedEdge extends Edge
             {
                 if (MaxSpeedForwardTag.KEY.equals(key))
                 {
-                    if (this.source.isMasterEdge())
+                    if (this.source.isMainEdge())
                     {
                         tags.put(MaxSpeedTag.KEY, value);
                     }
                 }
                 else if (MaxSpeedBackwardTag.KEY.equals(key))
                 {
-                    if (!this.source.isMasterEdge())
+                    if (!this.source.isMainEdge())
                     {
                         tags.put(MaxSpeedTag.KEY, value);
                     }

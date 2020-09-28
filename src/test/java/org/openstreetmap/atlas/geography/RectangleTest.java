@@ -143,6 +143,56 @@ public class RectangleTest
     }
 
     @Test
+    public void testExpansionAcrossMeridians()
+    {
+        final long kilometersPerDegreeLongitudeNearNorthPole = Math.round(Distance
+                .distancePerDegreeLongitudeAt(Location.forWkt("POINT(178 87)")).asKilometers());
+        final long kilometersPerDegreeLongitudeNearSouthPole = Math.round(Distance
+                .distancePerDegreeLongitudeAt(Location.forWkt("POINT(-178 87)")).asKilometers());
+
+        Rectangle closeToNorthPole = Rectangle.forCorners(Location.forWkt("POINT(178 84)"),
+                Location.forWkt("POINT(179 87)"));
+        closeToNorthPole = closeToNorthPole.expandHorizontally(
+                Distance.kilometers(kilometersPerDegreeLongitudeNearNorthPole * 100));
+        Assert.assertEquals(
+                "POLYGON ((135.8977545 81.937154, 135.8977545 83.8283367, 179.9999999 83.8283367, 179.9999999 81.937154, 135.8977545 81.937154))",
+                closeToNorthPole.toWkt());
+
+        Rectangle closeToSouthPole = Rectangle.forCorners(Location.forWkt("POINT(-179 84)"),
+                Location.forWkt("POINT(-178 87)"));
+        closeToSouthPole = closeToSouthPole.expandHorizontally(
+                Distance.kilometers(kilometersPerDegreeLongitudeNearSouthPole * 100));
+        Assert.assertEquals(
+                "POLYGON ((-180 81.937154, -180 83.8283367, -116.9898158 83.8283367, -116.9898158 81.937154, -180 81.937154))",
+                closeToSouthPole.toWkt());
+    }
+
+    @Test
+    public void testExpansionAcrossPoles()
+    {
+        final long kilometersPerDegreeLatitude = Math
+                .round(Distance.APPROXIMATE_DISTANCE_PER_DEGREE_AT_EQUATOR.asKilometers());
+
+        Rectangle closeToSouthPole = Rectangle.forCorners(Location.forWkt("POINT(0 -87)"),
+                Location.forWkt("POINT(1 -84)"));
+        // this should cross the south pole
+        closeToSouthPole = closeToSouthPole
+                .expand(Distance.kilometers(kilometersPerDegreeLatitude * 4));
+        Assert.assertEquals(
+                "POLYGON ((-89.9998709 -86.0070121, -89.9998709 -79.2463163, 22.9131203 -79.2463163, 22.9131203 -86.0070121, -89.9998709 -86.0070121))",
+                closeToSouthPole.toWkt());
+
+        Rectangle closeToNorthPole = Rectangle.forCorners(Location.forWkt("POINT(0 84)"),
+                Location.forWkt("POINT(1 87)"));
+        // this should cross the north pole
+        closeToNorthPole = closeToNorthPole
+                .expand(Distance.kilometers(kilometersPerDegreeLatitude * 4));
+        Assert.assertEquals(
+                "POLYGON ((-21.9131203 79.2463163, -21.9131203 86.0070121, 90.9998709 86.0070121, 90.9998709 79.2463163, -21.9131203 79.2463163))",
+                closeToNorthPole.toWkt());
+    }
+
+    @Test
     public void testIntersection()
     {
         Assert.assertEquals(Rectangle.forLocations(this.location2),

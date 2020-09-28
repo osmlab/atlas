@@ -213,9 +213,9 @@ public class BigNodeFinder implements Finder<BigNode>
     }
 
     /**
-     * Minimum number of master edges involved in dual carriage way intersection
+     * Minimum number of main edges involved in dual carriage way intersection
      */
-    private static final int MIN_MASTER_EDGE_DUAL_CARRIAGEWAY_INTERSECTION = 2;
+    private static final int MIN_MAIN_EDGE_DUAL_CARRIAGEWAY_INTERSECTION = 2;
     /**
      * LEVENSHTEIN limit is used for fuzzy name match
      */
@@ -477,8 +477,8 @@ public class BigNodeFinder implements Finder<BigNode>
         {
             final Set<Edge> expandableEdges = new LinkedHashSet<>();
             candidateJunctionRoute.end().outEdges().stream().filter(this::isCandidateJunctionEdge)
-                    .filter(edge -> edge.getMasterEdgeIdentifier() != candidateJunctionRoute.end()
-                            .getMasterEdgeIdentifier())
+                    .filter(edge -> edge.getMainEdgeIdentifier() != candidateJunctionRoute.end()
+                            .getMainEdgeIdentifier())
                     .filter(edge -> this.edgeDirectionComparator
                             .isSameDirection(candidateJunctionRoute.end(), edge, false))
                     .forEach(expandableEdges::add);
@@ -525,12 +525,12 @@ public class BigNodeFinder implements Finder<BigNode>
         }
 
         /*
-         * A restriction with at least 4 master edges in a dual carriage way intersection, used to
+         * A restriction with at least 4 main edges in a dual carriage way intersection, used to
          * filter out false positives, missed Test case 5 in BigNodeFinderTest. To increase
          * coverage, this is set to 2.
          */
-        if (candidateRoute.connectedEdges().stream().filter(Edge::isMasterEdge)
-                .count() >= MIN_MASTER_EDGE_DUAL_CARRIAGEWAY_INTERSECTION)
+        if (candidateRoute.connectedEdges().stream().filter(Edge::isMainEdge)
+                .count() >= MIN_MAIN_EDGE_DUAL_CARRIAGEWAY_INTERSECTION)
         {
             for (final Edge inEdge : candidateRoute.start().inEdges())
             {
@@ -640,12 +640,12 @@ public class BigNodeFinder implements Finder<BigNode>
         final Set<Edge> mergeCandidates = new TreeSet<>((edge1, edge2) -> ComparisonChain.start()
                 .compare(edge1.getIdentifier(), edge2.getIdentifier()).result());
 
-        final Set<Long> masterEdgeIdentifiers = new HashSet<>();
-        candidateRoute.forEach(edge -> masterEdgeIdentifiers.add(edge.getMasterEdgeIdentifier()));
+        final Set<Long> mainEdgeIdentifiers = new HashSet<>();
+        candidateRoute.forEach(edge -> mainEdgeIdentifiers.add(edge.getMainEdgeIdentifier()));
 
         connectedEdges.stream().filter(edge -> junctionEdgeIds.contains(edge.getIdentifier()))
                 .filter(edge -> !candidateRoute.includes(edge))
-                .filter(edge -> !masterEdgeIdentifiers.contains(edge.getMasterEdgeIdentifier()))
+                .filter(edge -> !mainEdgeIdentifiers.contains(edge.getMainEdgeIdentifier()))
                 .forEach(mergeCandidates::add);
         /*
          * There are some cases where we have a couple of junction edges (instead of all four) that
@@ -654,7 +654,7 @@ public class BigNodeFinder implements Finder<BigNode>
         if (mergeCandidates.isEmpty())
         {
             connectedEdges.stream().filter(edge -> !junctionEdgeIds.contains(edge.getIdentifier()))
-                    .filter(edge -> !masterEdgeIdentifiers.contains(edge.getMasterEdgeIdentifier()))
+                    .filter(edge -> !mainEdgeIdentifiers.contains(edge.getMainEdgeIdentifier()))
                     .filter(edge -> isMergeCandidateEdge(edge, candidateRoute, junctionEdgeIds))
                     .filter(edge -> !candidateRoute.includes(edge)).forEach(mergeCandidates::add);
         }
