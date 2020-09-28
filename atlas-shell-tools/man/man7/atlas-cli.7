@@ -51,7 +51,7 @@ version 4, version 3 can still utilize the full TAB complete feature set.
 
 .SH "OPTIONS"
 .sp
-Atlas Shell Tools has two ways of dealing with options:
+\fBatlas\-shell\-tools\fR(7) has two ways of dealing with options:
 .sp
 1. Perl's Getopt::Long semantics are used when parsing global options suppled to the \fBatlas\fR(1) and
 \fBatlas\-config\fR(1) scripts. In the following command line, the '\-\-debug' option is a global option:
@@ -60,19 +60,31 @@ Atlas Shell Tools has two ways of dealing with options:
 $ atlas \-\-debug my\-command \-\-opt1
 .RE
 .sp
-2. Subcommand options are parsed with the SimpleOptionAndArgumentParser class, found in the Atlas repo <https://github.com/osmlab/atlas>.
-Please check the source of that class for javadoc documentation comments detailing the parsing semantics. They are similar to the GNU
-semantics found here: <https://www.gnu.org/software/libc/manual/html_node/Argument\-Syntax.html>. More links are provided in the class documentation.
-In the following command line, the '\-\-opt1' option is a subcommand option:
+2. Subcommand options are parsed with the SimpleOptionAndArgumentParser class, found in the
+Atlas repo <https://github.com/osmlab/atlas>. Please check the source of that class for
+javadoc documentation comments detailing the parsing semantics. They are similar to the
+GNU semantics found here:
+<https://www.gnu.org/software/libc/manual/html_node/Argument\-Syntax.html>.
+More links are provided in the class documentation. In the following command line,
+the '\-\-opt1' option is a subcommand option:
 .sp
 .RS 4
 $ atlas \-\-debug my\-command \-\-opt1
 .RE
 .sp
+Also note that both the Perl option parsing and the SimpleOptionAndArgumentParser class recognize options
+using a shortest non-ambiguous prefix. For example, suppose 'my\-command' takes two options '\-\-large\-option'
+and '\-\-lazy\-option'. You could specify the '\-\-lazy\-option' by simply
+supplying '\-\-lazy' at the command line. However, supplying '\-\-la' would cause an error since 'la'
+is an ambiguous prefix between those two options.
 
 .SH "TAB COMPLETE"
 .sp
-TODO
+\fBatlas\-shell\-tools\fR(7) supports various TAB completions for the \fBbash\fR(1) and
+\fBzsh\fR(1) shells. \fBatlas\fR(1) will contextually complete subcommand names in the current activated
+module, the '\-\-preset' option with various available presets, and local files. \fBatlas\-config\fR(1)
+will contextually complete subcommands as well as relevant arguments to whatever subcommand is provided
+on the command line.
 
 .SH "ATLAS SHELL TOOLS"
 .sp
