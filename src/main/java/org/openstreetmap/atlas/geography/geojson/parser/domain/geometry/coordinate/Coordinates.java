@@ -36,10 +36,11 @@ public final class Coordinates<V>
         return new Coordinates<>(toPositionList(data));
     }
 
-    public static Coordinates<List<List<Position>>> forMultiPolygon(
-            final List<List<List<Double>>> data)
+    public static Coordinates<List<List<List<Position>>>> forMultiPolygon(
+            final List<List<List<List<Double>>>> data)
     {
-        return forMultiLineString(data);
+        return new Coordinates<>(
+                data.stream().map(Coordinates::toListOfPositionList).collect(Collectors.toList()));
     }
 
     public static Coordinates<Position> forPoint(final List<Double> data)

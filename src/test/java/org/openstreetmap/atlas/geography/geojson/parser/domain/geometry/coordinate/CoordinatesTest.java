@@ -94,31 +94,37 @@ public class CoordinatesTest
     @Test
     public void forMultiPolygon()
     {
-        final Coordinates<List<List<Position>>> coordinates = Coordinates.forMultiPolygon(
-                // Polygons
+        final Coordinates<List<List<List<Position>>>> coordinates = Coordinates.forMultiPolygon(
+                // Multi-Polygon
                 list(
-                        // Polygon1
+                        // Polygons
                         list(
-                                // Points1
-                                list(1d, 2d), list(3d, 4d), list(5d, 6d), list(7d, 8d)),
-                        // Polygon2
-                        list(
-                                // Points2
-                                list(11d, 21d), list(31d, 41d), list(51d, 61d), list(71d, 81d)),
-                        // Polygon3
-                        list(
-                                // Points3
-                                list(12d, 22d), list(32d, 42d), list(52d, 62d), list(72d, 82d)),
-                        // Polygon4
-                        list(
-                                // Points4
-                                list(13d, 23d), list(33d, 43d), list(53d, 63d), list(73d, 83d))));
+                                // Polygon1
+                                list(
+                                        // Points1
+                                        list(1d, 2d), list(3d, 4d), list(5d, 6d), list(7d, 8d)),
+                                // Polygon2
+                                list(
+                                        // Points2
+                                        list(11d, 21d), list(31d, 41d), list(51d, 61d),
+                                        list(71d, 81d)),
+                                // Polygon3
+                                list(
+                                        // Points3
+                                        list(12d, 22d), list(32d, 42d), list(52d, 62d),
+                                        list(72d, 82d)),
+                                // Polygon4
+                                list(
+                                        // Points4
+                                        list(13d, 23d), list(33d, 43d), list(53d, 63d),
+                                        list(73d, 83d)))));
 
         Assert.assertTrue(coordinates.getValue() instanceof List);
-        Assert.assertEquals(4, coordinates.getValue().size());
-        coordinates.getValue().stream().forEach(line -> Assert.assertEquals(4, line.size()));
+        Assert.assertEquals(4, coordinates.getValue().get(0).size());
+        coordinates.getValue().get(0).stream().forEach(line -> Assert.assertEquals(4, line.size()));
 
-        Assert.assertEquals((Double) 42d, coordinates.getValue().get(2).get(1).getCoordinate2());
+        Assert.assertEquals((Double) 42d,
+                coordinates.getValue().get(0).get(2).get(1).getCoordinate2());
     }
 
     @Test
