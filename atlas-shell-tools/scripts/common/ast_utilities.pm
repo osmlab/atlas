@@ -41,7 +41,7 @@ our @EXPORT = qw(
     read_command_output
 );
 
-our $ATLAS_SHELL_TOOLS_VERSION = "atlas-shell-tools version 0.0.1";
+our $ATLAS_SHELL_TOOLS_VERSION = "atlas-shell-tools version 1.0.0";
 
 our $COMMAND_PROGRAM = 'atlas';
 our $CONFIG_PROGRAM = 'atlas-config';
