@@ -79,7 +79,7 @@ public final class Coordinates<V>
         return data.stream().map(coords -> toPosition(coords)).collect(Collectors.toList());
     }
 
-    private Coordinates(final V value)
+    public Coordinates(final V value)
     {
         this.value = value;
     }

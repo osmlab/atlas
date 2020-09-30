@@ -14,23 +14,24 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordina
 @SuppressWarnings("squid:S2160")
 public class Point extends AbstractGeometryWithCoordinateSupport<Position, Location>
 {
-    private Coordinates<Position> coordinates;
+    private Position coordinates;
 
     public Point(final Map<String, Object> map)
     {
         super(map);
-        this.coordinates = Coordinates.forPoint((List<Double>) extractRawCoordinates(map));
+        this.coordinates = Coordinates.forPoint((List<Double>) extractRawCoordinates(map))
+                .getValue();
     }
 
     @Override
     public Coordinates<Position> getCoordinates()
     {
-        return this.coordinates;
+        return new Coordinates<>(this.coordinates);
     }
 
     @Override
     public Location toAtlasGeometry()
     {
-        return Positions.toLocation(this.coordinates.getValue());
+        return Positions.toLocation(this.coordinates);
     }
 }

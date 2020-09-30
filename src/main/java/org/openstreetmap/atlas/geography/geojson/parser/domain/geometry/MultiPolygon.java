@@ -18,26 +18,27 @@ import org.openstreetmap.atlas.utilities.maps.MultiMap;
 public class MultiPolygon extends
         AbstractGeometryWithCoordinateSupport<List<List<List<Position>>>, org.openstreetmap.atlas.geography.MultiPolygon>
 {
-    private Coordinates<List<List<List<Position>>>> coordinates;
+    private List<List<List<Position>>> coordinates;
 
     public MultiPolygon(final Map<String, Object> map)
     {
         super(map, null);
         this.coordinates = Coordinates
-                .forMultiPolygon((List<List<List<List<Double>>>>) extractRawCoordinates(map));
+                .forMultiPolygon((List<List<List<List<Double>>>>) extractRawCoordinates(map))
+                .getValue();
     }
 
     @Override
     public Coordinates<List<List<List<Position>>>> getCoordinates()
     {
-        return this.coordinates;
+        return new Coordinates<>(this.coordinates);
     }
 
     @Override
     public org.openstreetmap.atlas.geography.MultiPolygon toAtlasGeometry()
     {
         final MultiMap<Polygon, Polygon> outersToIneers = new MultiMap<>();
-        this.coordinates.getValue().stream()
+        this.coordinates.stream()
                 .map(geojsonPolygon -> geojsonPolygon.stream().map(
                         geojsonLinearRing -> new Polygon(Positions.toLocations(geojsonLinearRing)))
                         .collect(Collectors.toList()))

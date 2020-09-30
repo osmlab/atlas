@@ -17,26 +17,27 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordina
 public class MultiLineString
         extends AbstractGeometryWithCoordinateSupport<List<List<Position>>, List<PolyLine>>
 {
-    private Coordinates<List<List<Position>>> coordinates;
+    private List<List<Position>> coordinates;
 
     public MultiLineString(final Map<String, Object> map)
     {
         super(map, null);
         this.coordinates = Coordinates
-                .forMultiLineString((List<List<List<Double>>>) extractRawCoordinates(map));
+                .forMultiLineString((List<List<List<Double>>>) extractRawCoordinates(map))
+                .getValue();
     }
 
     @Override
     public Coordinates<List<List<Position>>> getCoordinates()
     {
-        return this.coordinates;
+        return new Coordinates<>(this.coordinates);
     }
 
     @Override
     public List<PolyLine> toAtlasGeometry()
     {
         final List<List<Location>> listsOfLocations = Positions
-                .toCollectionsOfLocations(this.coordinates.getValue());
+                .toCollectionsOfLocations(this.coordinates);
         return listsOfLocations.stream().map(PolyLine::new).collect(Collectors.toList());
     }
 }
