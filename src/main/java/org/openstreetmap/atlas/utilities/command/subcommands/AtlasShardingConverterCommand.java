@@ -64,9 +64,11 @@ public class AtlasShardingConverterCommand extends AbstractAtlasShellToolsComman
     public int execute()
     {
         final File inputFolder = new File(this.optionAndArgumentDelegate.getOptionArgument(INPUT)
-                .orElseThrow(() -> new CoreException(EXCEPTION_MESSAGE, INPUT)));
+                .orElseThrow(() -> new CoreException(EXCEPTION_MESSAGE, INPUT)),
+                this.getFileSystem());
         final File outputFolder = new File(this.optionAndArgumentDelegate.getOptionArgument(OUTPUT)
-                .orElseThrow(() -> new CoreException(EXCEPTION_MESSAGE, OUTPUT)));
+                .orElseThrow(() -> new CoreException(EXCEPTION_MESSAGE, OUTPUT)),
+                this.getFileSystem());
         if (!inputFolder.exists())
         {
             throw new CoreException("{} does not exist.", inputFolder);

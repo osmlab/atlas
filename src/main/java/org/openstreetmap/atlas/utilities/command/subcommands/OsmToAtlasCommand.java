@@ -5,14 +5,11 @@ import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
-import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.testing.TestAtlasHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Convert an .osm file of various types to an atlas.
@@ -21,8 +18,6 @@ import org.slf4j.LoggerFactory;
  */
 public class OsmToAtlasCommand extends AbstractAtlasShellToolsCommand
 {
-    private static final Logger logger = LoggerFactory.getLogger(OsmToAtlasCommand.class);
-
     private static final String INPUT_OSM_FILE_ARGUMENT = "input-osm-file";
     private static final String OUTPUT_ATLAS_FILE_ARGUMENT = "output-atlas-file";
 
@@ -34,7 +29,6 @@ public class OsmToAtlasCommand extends AbstractAtlasShellToolsCommand
     private static final String COUNTRY_OPTION_HINT = "ISO3";
 
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
-    private final CommandOutputDelegate outputDelegate;
 
     public static void main(final String[] args)
     {
@@ -45,7 +39,6 @@ public class OsmToAtlasCommand extends AbstractAtlasShellToolsCommand
     {
         super();
         this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
-        this.outputDelegate = this.getCommandOutputDelegate();
     }
 
     @Override

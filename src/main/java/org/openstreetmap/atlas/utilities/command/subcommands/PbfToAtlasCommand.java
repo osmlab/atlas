@@ -105,7 +105,8 @@ public class PbfToAtlasCommand extends MultipleOutputCommand
                         .toAbsolutePath().toString(), rawAtlasFilename);
             }
             this.outputDelegate.printlnStdout(concatenatedPath.toAbsolutePath().toString());
-            final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
+            final File outputFile = new File(concatenatedPath.toAbsolutePath().toString(),
+                    this.getFileSystem());
             atlas.save(outputFile);
         });
         return 0;
@@ -154,7 +155,7 @@ public class PbfToAtlasCommand extends MultipleOutputCommand
         if (boundsFilePathOption.isPresent())
         {
             final String wktFileName = boundsFilePathOption.get();
-            final File wktFile = new File(wktFileName);
+            final File wktFile = new File(wktFileName, this.getFileSystem());
             if (wktFileName.endsWith(FileSuffix.GZIP.toString()))
             {
                 wktFile.setDecompressor(Decompressor.GZIP);
@@ -187,7 +188,7 @@ public class PbfToAtlasCommand extends MultipleOutputCommand
 
         inputPbfPaths.forEach(path ->
         {
-            final File file = new File(path, false);
+            final File file = new File(path, this.getFileSystem(), false);
             if (!file.exists())
             {
                 this.outputDelegate.printlnWarnMessage("file not found: " + path);
