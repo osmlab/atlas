@@ -29,6 +29,10 @@ public class OsmToAtlasCommand extends AbstractAtlasShellToolsCommand
     private static final String JOSM_OPTION_LONG = "josm";
     private static final String JOSM_OPTION_DESCRIPTION = "Specify if the OSM file is in JOSM format.";
 
+    private static final String COUNTRY_OPTION_LONG = "country";
+    private static final String COUNTRY_OPTION_DESCRIPTION = "Specify an ISO3 country code to use for slicing.";
+    private static final String COUNTRY_OPTION_HINT = "ISO3";
+
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
 
@@ -58,7 +62,8 @@ public class OsmToAtlasCommand extends AbstractAtlasShellToolsCommand
         final boolean useJosmFormat = this.optionAndArgumentDelegate.hasOption(JOSM_OPTION_LONG);
 
         final Atlas atlas = TestAtlasHandler.getAtlasFromJosmOsmResource(useJosmFormat,
-                new InputStreamResource(osmFile::read), osmFile.getName());
+                new InputStreamResource(osmFile::read), osmFile.getName(),
+                this.optionAndArgumentDelegate.getOptionArgument(COUNTRY_OPTION_LONG));
         atlas.save(atlasFile);
 
         return 0;
@@ -73,7 +78,7 @@ public class OsmToAtlasCommand extends AbstractAtlasShellToolsCommand
     @Override
     public String getSimpleDescription()
     {
-        return "Convert a .osm file into an Atlas file";
+        return "convert a .osm file into an Atlas file";
     }
 
     @Override
@@ -93,6 +98,8 @@ public class OsmToAtlasCommand extends AbstractAtlasShellToolsCommand
         registerArgument(OUTPUT_ATLAS_FILE_ARGUMENT, ArgumentArity.UNARY,
                 ArgumentOptionality.REQUIRED);
         registerOption(JOSM_OPTION_LONG, JOSM_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL);
+        registerOptionWithRequiredArgument(COUNTRY_OPTION_LONG, COUNTRY_OPTION_DESCRIPTION,
+                OptionOptionality.OPTIONAL, COUNTRY_OPTION_HINT);
         super.registerOptionsAndArguments();
     }
 }

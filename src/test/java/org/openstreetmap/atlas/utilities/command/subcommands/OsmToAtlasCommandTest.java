@@ -12,6 +12,7 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
+import org.openstreetmap.atlas.tags.ISOCountryTag;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
@@ -35,7 +36,7 @@ public class OsmToAtlasCommandTest
             command.setNewErrStream(new PrintStream(errContent));
 
             command.runSubcommand("--verbose", "/Users/foo/test.josm.osm", "/Users/foo/test.atlas",
-                    "--josm");
+                    "--josm", "--country=DMA");
 
             Assert.assertTrue(outContent.toString().isEmpty());
             Assert.assertTrue(errContent.toString().isEmpty());
@@ -46,6 +47,8 @@ public class OsmToAtlasCommandTest
                             .withName(outputAtlasFile.getAbsolutePathString()));
             Assert.assertEquals(4, outputAtlas.numberOfAreas());
             Assert.assertEquals(1, outputAtlas.numberOfRelations());
+            Assert.assertEquals("DMA",
+                    outputAtlas.area(102506000000L).getTag(ISOCountryTag.KEY).orElse(""));
         }
         catch (final IOException exception)
         {

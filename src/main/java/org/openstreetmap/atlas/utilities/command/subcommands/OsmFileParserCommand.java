@@ -49,7 +49,7 @@ public class OsmFileParserCommand extends AbstractAtlasShellToolsCommand
     @Override
     public String getSimpleDescription()
     {
-        return "Transform a JOSM OSM file into a real OSM file.";
+        return "transform a JOSM OSM file into a real OSM file.";
     }
 
     @Override

@@ -145,7 +145,7 @@ public class AtlasShardingConverterCommand extends AbstractAtlasShellToolsComman
     @Override
     public String getSimpleDescription()
     {
-        return "Translate Atlas files from one Sharding to another";
+        return "translate Atlas files from one Sharding to another";
     }
 
     @Override

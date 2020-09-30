@@ -19,7 +19,7 @@ import org.openstreetmap.atlas.utilities.testing.OsmFileToPbf;
 /**
  * @author matthieun
  */
-public class ShardingConverterCommandTest
+public class AtlasShardingConverterCommandTest
 {
     @Test
     public void testConvert()

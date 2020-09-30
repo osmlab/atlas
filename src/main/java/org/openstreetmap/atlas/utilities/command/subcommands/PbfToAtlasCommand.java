@@ -120,7 +120,7 @@ public class PbfToAtlasCommand extends MultipleOutputCommand
     @Override
     public String getSimpleDescription()
     {
-        return "Generate way-sectioned Atlas file(s) from the given PBF shard(s)";
+        return "generate way-sectioned Atlas file(s) from the given PBF shard(s)";
     }
 
     @Override
