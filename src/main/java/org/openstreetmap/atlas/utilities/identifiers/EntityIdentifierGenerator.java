@@ -109,7 +109,8 @@ public class EntityIdentifierGenerator
             {
                 final RelationBean bean = relation.members().asBean();
                 builder.append("RelationBean[");
-                for (final RelationBean.RelationBeanItem beanItem : bean)
+                // Here use sorted list to ensure determinism
+                for (final RelationBean.RelationBeanItem beanItem : bean.asSortedList())
                 {
                     builder.append("(");
                     builder.append(beanItem.getType());
