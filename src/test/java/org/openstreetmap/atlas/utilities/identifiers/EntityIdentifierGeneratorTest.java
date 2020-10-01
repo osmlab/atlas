@@ -45,16 +45,26 @@ public class EntityIdentifierGeneratorTest
     @Test
     public void testGetTypeSpecificPropertyStringForRelation()
     {
-        final RelationBean bean = new RelationBean();
-        bean.addItem(1L, "role", ItemType.POINT);
-        bean.addItem(10L, "role", ItemType.AREA);
+        final RelationBean bean1 = new RelationBean();
+        bean1.addItem(1L, "role", ItemType.POINT);
+        bean1.addItem(10L, "role", ItemType.AREA);
 
-        final CompleteRelation relation = new CompleteRelation(1L, Maps.hashMap("a", "b", "c", "d"),
-                Rectangle.MINIMUM, bean, null, null, null, Sets.hashSet());
+        final RelationBean bean2 = new RelationBean();
+        bean2.addItem(10L, "role", ItemType.AREA);
+        bean2.addItem(1L, "role", ItemType.POINT);
 
-        final String goldenPropertyString = ";RelationBean[(POINT,1,role)(AREA,10,role)]";
+        final CompleteRelation relation1 = new CompleteRelation(1L,
+                Maps.hashMap("a", "b", "c", "d"), Rectangle.MINIMUM, bean1, null, null, null,
+                Sets.hashSet());
+        final CompleteRelation relation2 = new CompleteRelation(1L,
+                Maps.hashMap("a", "b", "c", "d"), Rectangle.MINIMUM, bean2, null, null, null,
+                Sets.hashSet());
+
+        final String goldenPropertyString = ";RelationBean[(AREA,10,role)(POINT,1,role)]";
         Assert.assertEquals(goldenPropertyString,
-                new EntityIdentifierGenerator().getTypeSpecificPropertyString(relation));
+                new EntityIdentifierGenerator().getTypeSpecificPropertyString(relation1));
+        Assert.assertEquals(goldenPropertyString,
+                new EntityIdentifierGenerator().getTypeSpecificPropertyString(relation2));
     }
 
     @Test
