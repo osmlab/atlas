@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.file.FileSystem;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -170,6 +172,21 @@ public class ZipResourceTest
             logger.info(name2 + " -> " + contents2);
             Assert.assertEquals(NAME_2, name2);
             Assert.assertEquals(CONTENTS_2, contents2);
+            // FIXME right now this fails because the resource has been closed
+            final String contents2Again = entry2.all();
+            Assert.assertEquals(CONTENTS_2, contents2Again);
+
+            final ZipFileWritableResource zipFile2 = new ZipFileWritableResource(
+                    new File("/Users/foo/file.zip", filesystem));
+            final List<Resource> entries = new ArrayList<Resource>();
+            zipFile2.entries().forEach(entries::add);
+            Assert.assertEquals(NAME_1, entries.get(0).getName());
+            Assert.assertEquals(CONTENTS_1, entries.get(0).all());
+            Assert.assertEquals(NAME_2, entries.get(1).getName());
+            Assert.assertEquals(CONTENTS_2, entries.get(1).all());
+            // FIXME right now this fails because the resources have been closed
+            Assert.assertEquals(CONTENTS_1, entries.get(0).all());
+            Assert.assertEquals(CONTENTS_2, entries.get(1).all());
         }
         catch (final IOException exception)
         {

@@ -44,6 +44,10 @@ public class ZipFileWritableResource extends ZipWritableResource
                     // meaningless statement to satisfy checkstyle
                     number++;
                 }
+                /*
+                 * FIXME Here we need to create a new stream within the supplier, so that the
+                 * returned Resource can be read multiple times.
+                 */
                 resources.add(new InputStreamResource(() -> stream).withName(zipEntry.getName()));
             }
             return resources;
@@ -65,6 +69,10 @@ public class ZipFileWritableResource extends ZipWritableResource
             {
                 if (Objects.equals(zipEntry.getName(), name))
                 {
+                    /*
+                     * FIXME Here we need to create a new stream within the supplier, so that the
+                     * returned Resource can be read multiple times.
+                     */
                     return new InputStreamResource(() -> zipStream).withName(name);
                 }
             }
