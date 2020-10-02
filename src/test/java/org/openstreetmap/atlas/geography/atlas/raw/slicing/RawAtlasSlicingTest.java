@@ -1030,13 +1030,11 @@ public class RawAtlasSlicingTest
     public void testMultiPolygonWithOverlappingUnslicedInners()
     {
         final Atlas rawAtlas = this.setup.getMultiPolygonWithOverlappingUnslicedInners();
-        System.out.println(rawAtlas.toStringDetailed());
         final Atlas lbrSlicedAtlas = new RawAtlasSlicer(
                 AtlasLoadingOption.createOptionWithAllEnabled(boundary).setCountryCode("LBR"),
                 rawAtlas).slice();
         lbrSlicedAtlas.relations().forEach(relation ->
         {
-            System.out.println(relation);
             Assert.assertFalse(relation.getTag(SyntheticInvalidGeometryTag.KEY).isPresent());
             Assert.assertTrue(relation.getTag(SyntheticGeometrySlicedTag.KEY).isPresent());
         });

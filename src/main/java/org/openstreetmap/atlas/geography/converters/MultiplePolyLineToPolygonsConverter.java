@@ -392,7 +392,7 @@ public class MultiplePolyLineToPolygonsConverter
         }
     }
 
-    public Iterable<Polygon> convertLegacy(final Iterable<PolyLine> candidates)
+    public Iterable<Polygon> convertLegacy(final Iterable<PolyLine> candidates) // NOSONAR
     {
         // The complete polygons
         final List<PossiblePolygon> completes = new ArrayList<>();
