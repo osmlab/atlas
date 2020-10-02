@@ -40,8 +40,9 @@ public class ZipTestingCommand extends AbstractAtlasShellToolsCommand
                 final Duration timeToRead = now.elapsedSince();
                 this.getCommandOutputDelegate()
                         .printlnCommandMessage("was an atlas, Point 1L is " + point);
-                this.getCommandOutputDelegate().printlnCommandMessage(
-                        "took " + timeToRead.asMilliseconds() + "ms to read point data");
+                this.getCommandOutputDelegate()
+                        .printlnCommandMessage("took " + timeToRead.asMilliseconds()
+                                + "ms to read point data from file of size " + file.length());
             }
             else
             {
@@ -50,8 +51,9 @@ public class ZipTestingCommand extends AbstractAtlasShellToolsCommand
                 final Duration timeToRead = now.elapsedSince();
                 this.getCommandOutputDelegate()
                         .printlnCommandMessage("was a file, contents:\n" + contents);
-                this.getCommandOutputDelegate().printlnCommandMessage(
-                        "took " + timeToRead.asMilliseconds() + "ms to read file data");
+                this.getCommandOutputDelegate()
+                        .printlnCommandMessage("took " + timeToRead.asMilliseconds()
+                                + "ms to read file data from file of size " + file.length());
             }
 
             // sleep for 3 seconds to simulate a slow operation
