@@ -1,1 +1,3 @@
-This command allows you to take .osm files and convert their contents into their Atlas representation which is save out as a serialized PackedAtlas. For .osm files saved from JOSM use the option --josm.
+This command takes an '.osm' or a '.josm.osm' file and converts its contents into a PackedAtlas.
+Use the '--country' option to enable a simple default slicing that applies the given country code
+with a maximum bounding box.

@@ -12,18 +12,15 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
-import org.openstreetmap.atlas.streaming.resource.Resource;
-import org.openstreetmap.atlas.streaming.resource.StringResource;
-import org.openstreetmap.atlas.utilities.testing.OsmFileParser;
-import org.openstreetmap.atlas.utilities.testing.OsmFileToPbf;
+import org.openstreetmap.atlas.tags.ISOCountryTag;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 
 /**
- * @author matthieun
+ * @author lcram
  */
-public class PbfToAtlasCommandTest
+public class OsmToAtlasCommandTest
 {
     @Test
     public void test()
@@ -33,28 +30,25 @@ public class PbfToAtlasCommandTest
             setupFilesystem1(filesystem);
             final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
             final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
-            final PbfToAtlasCommand command = new PbfToAtlasCommand();
+            final OsmToAtlasCommand command = new OsmToAtlasCommand();
             command.setNewFileSystem(filesystem);
             command.setNewOutStream(new PrintStream(outContent));
             command.setNewErrStream(new PrintStream(errContent));
 
-            command.runSubcommand("--verbose", "--output=/Users/foo", "--countryName=FRA",
-                    "/Users/foo/PbfToAtlasCommandTest.pbf");
+            command.runSubcommand("--verbose", "/Users/foo/test.josm.osm", "/Users/foo/test.atlas",
+                    "--josm", "--country=DMA");
 
-            Assert.assertEquals("/Users/foo/FRA_PbfToAtlasCommandTest.atlas\n",
-                    outContent.toString());
-            Assert.assertEquals("pbf2atlas: loading /Users/foo/PbfToAtlasCommandTest.pbf\n",
-                    errContent.toString());
-            final File outputAtlasFile = new File("/Users/foo/FRA_PbfToAtlasCommandTest.atlas",
-                    filesystem);
+            Assert.assertTrue(outContent.toString().isEmpty());
+            Assert.assertTrue(errContent.toString().isEmpty());
+            final File outputAtlasFile = new File("/Users/foo/test.atlas", filesystem);
+            Assert.assertTrue(outputAtlasFile.exists());
             final Atlas outputAtlas = new AtlasResourceLoader()
                     .load(new InputStreamResource(outputAtlasFile::read)
                             .withName(outputAtlasFile.getAbsolutePathString()));
-            Assert.assertEquals(5, outputAtlas.numberOfNodes());
-            Assert.assertEquals(4, outputAtlas.numberOfEdges());
-            Assert.assertEquals(1, outputAtlas.numberOfAreas());
-            Assert.assertEquals(1, outputAtlas.numberOfLines());
+            Assert.assertEquals(4, outputAtlas.numberOfAreas());
             Assert.assertEquals(1, outputAtlas.numberOfRelations());
+            Assert.assertEquals("DMA",
+                    outputAtlas.area(102506000000L).getTag(ISOCountryTag.KEY).orElse(""));
         }
         catch (final IOException exception)
         {
@@ -64,11 +58,8 @@ public class PbfToAtlasCommandTest
 
     private void setupFilesystem1(final FileSystem filesystem) throws IOException
     {
-        final File pbfFile = new File("/Users/foo/PbfToAtlasCommandTest.pbf", filesystem);
-        final Resource resource = new InputStreamResource(
-                () -> PbfToAtlasCommandTest.class.getResourceAsStream("testPbf2Atlas.josm.osm"));
-        final StringResource osmFile = new StringResource();
-        new OsmFileParser().update(resource, osmFile);
-        new OsmFileToPbf().update(osmFile, pbfFile);
+        final File josmOsmFile = new File(filesystem.getPath("/Users/foo", "test.josm.osm"));
+        josmOsmFile.writeAndClose(OsmFileParserCommandTest.class
+                .getResourceAsStream("MultiPolygonTest.josm.osm").readAllBytes());
     }
 }
