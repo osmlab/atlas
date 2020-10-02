@@ -1,14 +1,19 @@
 package org.openstreetmap.atlas.geography.converters;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.operation.polygonize.Polygonizer;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.collections.StringList;
@@ -31,25 +36,27 @@ public class MultiplePolyLineToPolygonsConverter
     {
         private static final long serialVersionUID = -278028096455310936L;
 
+        public static final String OPEN_LOCATIONS_ARE = " Open Locations are: ";
+
         private final List<Location> openLocations;
 
         public OpenPolygonException(final String message, final List<Location> openLocations)
         {
-            super(message + " Open Locations are: " + openLocations.toString());
+            super(message + OPEN_LOCATIONS_ARE + openLocations.toString());
             this.openLocations = openLocations;
         }
 
         public OpenPolygonException(final String message, final List<Location> openLocations,
                 final Object... arguments)
         {
-            super(message + " Open Locations are: " + openLocations.toString(), arguments);
+            super(message + OPEN_LOCATIONS_ARE + openLocations.toString(), arguments);
             this.openLocations = openLocations;
         }
 
         public OpenPolygonException(final String message, final List<Location> openLocations,
                 final Throwable cause, final Object... arguments)
         {
-            super(message + " Open Locations are: " + openLocations.toString(), cause, arguments);
+            super(message + OPEN_LOCATIONS_ARE + openLocations.toString(), cause, arguments);
             this.openLocations = openLocations;
         }
 
@@ -90,8 +97,8 @@ public class MultiplePolyLineToPolygonsConverter
         @Override
         public String toString()
         {
-            return this.connected ? "Connected" + (this.reversed ? " and reversed" : "")
-                    : "Not connected";
+            final String isReversed = this.reversed ? " and reversed" : "";
+            return this.connected ? "Connected" + isReversed : "Not connected";
         }
     }
 
@@ -341,82 +348,50 @@ public class MultiplePolyLineToPolygonsConverter
         }
     }
 
+    private static final JtsPolyLineConverter JTS_POLY_LINE_CONVERTER = new JtsPolyLineConverter();
+    private static final JtsPolygonConverter JTS_POLYGON_CONVERTER = new JtsPolygonConverter();
+
     @Override
     public Iterable<Polygon> convert(final Iterable<PolyLine> candidates)
     {
-        // The complete polygons
-        final List<PossiblePolygon> completes = new ArrayList<>();
-        // The polygons that have been started, but that are incomplete.
-        final List<PossiblePolygon> incompletes = new ArrayList<>();
-        // The polyLines that have not found a match yet
-        final LinkedList<PolyLine> remainingPolyLines = new LinkedList<>();
-        candidates.forEach(remainingPolyLines::add);
-        int iterationsSinceLastPolyLineTaken = 0;
-        while (!remainingPolyLines.isEmpty()
-                && iterationsSinceLastPolyLineTaken <= remainingPolyLines.size())
-        {
-            final PolyLine candidate = remainingPolyLines.removeFirst();
-            boolean added = false;
-            if (!incompletes.isEmpty())
-            {
-                // There are some incompletes. Always try to fill the incompletes to the end until
-                // they are complete before creating new incomplete polygons.
-                boolean completed = false;
-                int index = -1;
-                // Try the candidate polyline with all the incomplete polygons
-                for (final PossiblePolygon incomplete : incompletes)
-                {
-                    index++;
-                    if (incomplete.attach(candidate))
-                    {
-                        added = true;
-                        completed = incomplete.isCompleted();
-                        break;
-                    }
-                }
-                if (completed)
-                {
-                    final PossiblePolygon increased = incompletes.get(index);
-                    incompletes.remove(index);
-                    completes.add(increased);
-                }
-            }
-            else
-            {
-                // There are no incomplete polygons, just create one.
-                final PossiblePolygon incompleteCandidate = new PossiblePolygon(candidate);
-                if (incompleteCandidate.isCompleted())
-                {
-                    completes.add(incompleteCandidate);
-                }
-                else
-                {
-                    incompletes.add(incompleteCandidate);
-                }
-                added = true;
-            }
+        final Polygonizer polygonizer = new Polygonizer();
+        candidates.forEach(polyLine -> polygonizer.add(JTS_POLY_LINE_CONVERTER.convert(polyLine)));
 
-            if (!added)
-            {
-                // Could not add the polyline to any incomplete polygon, so adding it back to the
-                // end of the list. It might get better luck once those incomplete polygons have
-                // grown a bit more.
-                remainingPolyLines.addLast(candidate);
-                iterationsSinceLastPolyLineTaken++;
-            }
-            else
-            {
-                iterationsSinceLastPolyLineTaken = 0;
-            }
-        }
-        if (!incompletes.isEmpty())
+        // Check for missing parts
+        final List<LineString> errors = new ArrayList<>();
+        errors.addAll(polygonizer.getDangles());
+        errors.addAll(polygonizer.getCutEdges());
+        errors.addAll(polygonizer.getInvalidRingLines());
+        if (!errors.isEmpty())
         {
             throw new OpenPolygonException("Unable to close all the polygons!",
-                    Iterables
-                            .stream(incompletes).flatMap(incomplete -> Iterables
-                                    .from(incomplete.firstLocation(), incomplete.lastLocation()))
-                            .collectToList());
+                    errors.stream().map(JTS_POLY_LINE_CONVERTER::backwardConvert)
+                            .flatMap(dangle -> Iterables
+                                    .asList(Iterables.from(dangle.first(), dangle.last())).stream())
+                            .collect(Collectors.toList()));
         }
-        return completes.stream().map(PossiblePolygon::toPolygon).collect(Collectors.toList());
+
+        // Get results
+        final List<org.locationtech.jts.geom.Polygon> result = (List<org.locationtech.jts.geom.Polygon>) polygonizer
+                .getPolygons();
+        return result.stream().map(JTS_POLYGON_CONVERTER::backwardConvert)
+                .collect(Collectors.toList());
+    }
+
+    private Map<Location, Integer> locationCounts(final Iterable<PolyLine> candidates)
+    {
+        final Map<Location, Integer> result = new HashMap<>();
+        Iterables.stream(candidates)
+                .flatMap(polyLine -> new MultiIterable<>(polyLine.first(), polyLine.last()))
+                .forEach(location ->
+                {
+                    int toAdd = 1;
+                    if (result.containsKey(location))
+                    {
+                        toAdd += result.get(location);
+                    }
+                    result.put(location, toAdd);
+                });
+        return result;
     }
 }

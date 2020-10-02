@@ -45,7 +45,7 @@ public class RawAtlasSlicingTest
 {
     private static final CountryBoundaryMap boundary;
     private static final RelationOrAreaToMultiPolygonConverter converter;
-    private static JtsMultiPolygonToMultiPolygonConverter jtsConverter;
+    private static final JtsMultiPolygonToMultiPolygonConverter jtsConverter;
     static
     {
         boundary = CountryBoundaryMap
@@ -1030,11 +1030,13 @@ public class RawAtlasSlicingTest
     public void testMultiPolygonWithOverlappingUnslicedInners()
     {
         final Atlas rawAtlas = this.setup.getMultiPolygonWithOverlappingUnslicedInners();
+        System.out.println(rawAtlas.toStringDetailed());
         final Atlas lbrSlicedAtlas = new RawAtlasSlicer(
                 AtlasLoadingOption.createOptionWithAllEnabled(boundary).setCountryCode("LBR"),
                 rawAtlas).slice();
         lbrSlicedAtlas.relations().forEach(relation ->
         {
+            System.out.println(relation);
             Assert.assertFalse(relation.getTag(SyntheticInvalidGeometryTag.KEY).isPresent());
             Assert.assertTrue(relation.getTag(SyntheticGeometrySlicedTag.KEY).isPresent());
         });

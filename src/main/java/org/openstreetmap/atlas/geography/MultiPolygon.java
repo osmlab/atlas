@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.locationtech.jts.algorithm.match.HausdorffSimilarityMeasure;
 import org.locationtech.jts.operation.valid.IsValidOp;
 import org.locationtech.jts.operation.valid.TopologyValidationError;
 import org.openstreetmap.atlas.geography.clipping.Clip;
@@ -57,6 +58,7 @@ public class MultiPolygon
     private static final Logger logger = LoggerFactory.getLogger(MultiPolygon.class);
     private static final long serialVersionUID = 4198234682870043547L;
     private static final int SIMPLE_STRING_LENGTH = 200;
+    private static final JtsMultiPolygonToMultiPolygonConverter JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER = new JtsMultiPolygonToMultiPolygonConverter();
 
     static
     {
@@ -434,6 +436,14 @@ public class MultiPolygon
         {
             return true;
         }
+    }
+
+    public boolean isSimilarTo(final MultiPolygon other)
+    {
+        final double similarity = new HausdorffSimilarityMeasure().measure(
+                JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER.backwardConvert(this),
+                JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER.backwardConvert(other));
+        return similarity > SIMILARITY_THRESHOLD;
     }
 
     /**
