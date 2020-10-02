@@ -1,9 +1,8 @@
 package org.openstreetmap.atlas.geography.converters;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.locationtech.jts.geom.LineString;
@@ -362,36 +361,112 @@ public class MultiplePolyLineToPolygonsConverter
         errors.addAll(polygonizer.getDangles());
         errors.addAll(polygonizer.getCutEdges());
         errors.addAll(polygonizer.getInvalidRingLines());
-        if (!errors.isEmpty())
+        if (errors.isEmpty())
         {
-            throw new OpenPolygonException("Unable to close all the polygons!",
+            // Get results
+            final List<org.locationtech.jts.geom.Polygon> result = (List<org.locationtech.jts.geom.Polygon>) polygonizer
+                    .getPolygons();
+            return result.stream().map(JTS_POLYGON_CONVERTER::backwardConvert)
+                    .collect(Collectors.toList());
+
+        }
+        else
+        {
+            final OpenPolygonException jtsException = new OpenPolygonException(
+                    "Unable to close all the polygons!",
                     errors.stream().map(JTS_POLY_LINE_CONVERTER::backwardConvert)
                             .flatMap(dangle -> Iterables
                                     .asList(Iterables.from(dangle.first(), dangle.last())).stream())
                             .collect(Collectors.toList()));
+            // Try the legacy convert
+            try
+            {
+                return convertLegacy(candidates);
+            }
+            catch (final Exception e)
+            {
+                throw new OpenPolygonException(
+                        "Failed second legacy attempt. JTS Exception was: \"{}\"",
+                        new ArrayList<>(), jtsException.getMessage(), e);
+            }
         }
-
-        // Get results
-        final List<org.locationtech.jts.geom.Polygon> result = (List<org.locationtech.jts.geom.Polygon>) polygonizer
-                .getPolygons();
-        return result.stream().map(JTS_POLYGON_CONVERTER::backwardConvert)
-                .collect(Collectors.toList());
     }
 
-    private Map<Location, Integer> locationCounts(final Iterable<PolyLine> candidates)
+    public Iterable<Polygon> convertLegacy(final Iterable<PolyLine> candidates)
     {
-        final Map<Location, Integer> result = new HashMap<>();
-        Iterables.stream(candidates)
-                .flatMap(polyLine -> new MultiIterable<>(polyLine.first(), polyLine.last()))
-                .forEach(location ->
+        // The complete polygons
+        final List<PossiblePolygon> completes = new ArrayList<>();
+        // The polygons that have been started, but that are incomplete.
+        final List<PossiblePolygon> incompletes = new ArrayList<>();
+        // The polyLines that have not found a match yet
+        final LinkedList<PolyLine> remainingPolyLines = new LinkedList<>();
+        candidates.forEach(remainingPolyLines::add);
+        int iterationsSinceLastPolyLineTaken = 0;
+        while (!remainingPolyLines.isEmpty()
+                && iterationsSinceLastPolyLineTaken <= remainingPolyLines.size())
+        {
+            final PolyLine candidate = remainingPolyLines.removeFirst();
+            boolean added = false;
+            if (!incompletes.isEmpty())
+            {
+                // There are some incompletes. Always try to fill the incompletes to the end until
+                // they are complete before creating new incomplete polygons.
+                boolean completed = false;
+                int index = -1;
+                // Try the candidate polyline with all the incomplete polygons
+                for (final PossiblePolygon incomplete : incompletes)
                 {
-                    int toAdd = 1;
-                    if (result.containsKey(location))
+                    index++;
+                    if (incomplete.attach(candidate))
                     {
-                        toAdd += result.get(location);
+                        added = true;
+                        completed = incomplete.isCompleted();
+                        break;
                     }
-                    result.put(location, toAdd);
-                });
-        return result;
+                }
+                if (completed)
+                {
+                    final PossiblePolygon increased = incompletes.get(index);
+                    incompletes.remove(index);
+                    completes.add(increased);
+                }
+            }
+            else
+            {
+                // There are no incomplete polygons, just create one.
+                final PossiblePolygon incompleteCandidate = new PossiblePolygon(candidate);
+                if (incompleteCandidate.isCompleted())
+                {
+                    completes.add(incompleteCandidate);
+                }
+                else
+                {
+                    incompletes.add(incompleteCandidate);
+                }
+                added = true;
+            }
+
+            if (!added)
+            {
+                // Could not add the polyline to any incomplete polygon, so adding it back to the
+                // end of the list. It might get better luck once those incomplete polygons have
+                // grown a bit more.
+                remainingPolyLines.addLast(candidate);
+                iterationsSinceLastPolyLineTaken++;
+            }
+            else
+            {
+                iterationsSinceLastPolyLineTaken = 0;
+            }
+        }
+        if (!incompletes.isEmpty())
+        {
+            throw new OpenPolygonException("Unable to close all the polygons!",
+                    Iterables
+                            .stream(incompletes).flatMap(incomplete -> Iterables
+                                    .from(incomplete.firstLocation(), incomplete.lastLocation()))
+                            .collectToList());
+        }
+        return completes.stream().map(PossiblePolygon::toPolygon).collect(Collectors.toList());
     }
 }
