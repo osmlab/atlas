@@ -172,7 +172,7 @@ public class ZipResourceTest
             logger.info(name2 + " -> " + contents2);
             Assert.assertEquals(NAME_2, name2);
             Assert.assertEquals(CONTENTS_2, contents2);
-            // FIXME right now this fails because the resource has been closed
+            // check contents again to test Resource re-read
             final String contents2Again = entry2.all();
             Assert.assertEquals(CONTENTS_2, contents2Again);
 
@@ -184,7 +184,7 @@ public class ZipResourceTest
             Assert.assertEquals(CONTENTS_1, entries.get(0).all());
             Assert.assertEquals(NAME_2, entries.get(1).getName());
             Assert.assertEquals(CONTENTS_2, entries.get(1).all());
-            // FIXME right now this fails because the resources have been closed
+            // check contents again to test Resource re-read
             Assert.assertEquals(CONTENTS_1, entries.get(0).all());
             Assert.assertEquals(CONTENTS_2, entries.get(1).all());
         }

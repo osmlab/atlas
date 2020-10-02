@@ -32,23 +32,17 @@ public class ZipFileWritableResource extends ZipWritableResource
         try
         {
             final ZipInputStream iteratorStream = getZipInputStream();
-            ZipEntry zipEntry;
+            ZipEntry currentZipEntry;
             final List<Resource> resources = new ArrayList<>();
-            while ((zipEntry = iteratorStream.getNextEntry()) != null)
+            while ((currentZipEntry = iteratorStream.getNextEntry()) != null)
             {
-                final ZipInputStream stream = getZipInputStream();
-                int number = 0;
-                // while loop to skip the stream ahead to start at the given ZipEntry
-                while (!stream.getNextEntry().getName().equals(zipEntry.getName()))
+                final String entryName = currentZipEntry.getName();
+                resources.add(new InputStreamResource(() ->
                 {
-                    // meaningless statement to satisfy checkstyle
-                    number++;
-                }
-                /*
-                 * FIXME Here we need to create a new stream within the supplier, so that the
-                 * returned Resource can be read multiple times.
-                 */
-                resources.add(new InputStreamResource(() -> stream).withName(zipEntry.getName()));
+                    final ZipInputStream zipStream = getZipInputStream();
+                    seekStreamAheadToEntry(zipStream, entryName);
+                    return zipStream;
+                }).withName(entryName));
             }
             return resources;
         }
@@ -61,28 +55,12 @@ public class ZipFileWritableResource extends ZipWritableResource
 
     public Resource entryForName(final String name)
     {
-        try
+        return new InputStreamResource(() ->
         {
             final ZipInputStream zipStream = getZipInputStream();
-            ZipEntry zipEntry;
-            while ((zipEntry = zipStream.getNextEntry()) != null)
-            {
-                if (Objects.equals(zipEntry.getName(), name))
-                {
-                    /*
-                     * FIXME Here we need to create a new stream within the supplier, so that the
-                     * returned Resource can be read multiple times.
-                     */
-                    return new InputStreamResource(() -> zipStream).withName(name);
-                }
-            }
-            throw new IOException("Entry " + name + " does not exist.");
-        }
-        catch (final IOException exception)
-        {
-            throw new CoreException("Cannot get the entry {} from the Zipfile {}.", name,
-                    this.getFileSource().getName(), exception);
-        }
+            seekStreamAheadToEntry(zipStream, name);
+            return zipStream;
+        }).withName(name);
     }
 
     @Override
@@ -100,5 +78,41 @@ public class ZipFileWritableResource extends ZipWritableResource
     protected ZipInputStream getZipInputStream()
     {
         return new ZipInputStream(new BufferedInputStream(getFileSource().read()));
+    }
+
+    private void seekStreamAheadToEntry(final ZipInputStream streamToSeekThrough,
+            final String entryNameToSeek)
+    {
+        if (entryNameToSeek == null)
+        {
+            throw new CoreException("Cannot seek for null entry name");
+        }
+
+        String currentEntryName = null;
+        while (!Objects.equals(currentEntryName, entryNameToSeek))
+        {
+            try
+            {
+                final ZipEntry currentEntry = streamToSeekThrough.getNextEntry();
+                if (currentEntry == null)
+                {
+                    break;
+                }
+                currentEntryName = currentEntry.getName();
+            }
+            catch (final IOException exception)
+            {
+                throw new CoreException("IOException while getting next entry", exception);
+            }
+        }
+
+        /*
+         * If we make it here, then we didn't find the entry we were looking for - these aren't the
+         * entries you're looking for.
+         */
+        if (!Objects.equals(currentEntryName, entryNameToSeek))
+        {
+            throw new CoreException("No such entry {} found in stream", entryNameToSeek);
+        }
     }
 }
