@@ -70,7 +70,7 @@ public class ZipWritableResource extends ZipResource
                 {
                     name = "Entry " + counter;
                 }
-                final ZipEntry entry = new ZipEntry(resource.getName());
+                final ZipEntry entry = new ZipEntry(name);
                 output.putNextEntry(entry);
                 try (InputStream input = resource.read())
                 {

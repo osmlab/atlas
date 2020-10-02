@@ -1,16 +1,17 @@
 package org.openstreetmap.atlas.streaming.resource.zip;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.function.Supplier;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.Resource;
-import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
  * Zip wrapper for a {@link File} resource. This enables random lookups which are not available in
@@ -20,22 +21,6 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
  */
 public class ZipFileWritableResource extends ZipWritableResource
 {
-    private static Supplier<InputStream> inputStreamSupplier(final ZipFile file,
-            final ZipEntry entry)
-    {
-        return () ->
-        {
-            try
-            {
-                return file.getInputStream(entry);
-            }
-            catch (final IOException e)
-            {
-                throw new CoreException("Cannot get the entry {}", entry.getName(), e);
-            }
-        };
-    }
-
     public ZipFileWritableResource(final File source)
     {
         super(source);
@@ -44,63 +29,51 @@ public class ZipFileWritableResource extends ZipWritableResource
     @Override
     public Iterable<Resource> entries()
     {
-        try (ZipFile file = new ZipFile(getFileSource().getFile())
+        try
         {
-            @Override
-            public void close()
+            final ZipInputStream iteratorStream = getZipInputStream();
+            ZipEntry zipEntry;
+            final List<Resource> resources = new ArrayList<>();
+            while ((zipEntry = iteratorStream.getNextEntry()) != null)
             {
-                // Do nothing to close the file here, to avoid cutting the legs off the just created
-                // ZipEntry-based resource.
+                final ZipInputStream stream = getZipInputStream();
+                int number = 0;
+                // while loop to skip the stream ahead to start at the given ZipEntry
+                while (!stream.getNextEntry().getName().equals(zipEntry.getName()))
+                {
+                    // meaningless statement to satisfy checkstyle
+                    number++;
+                }
+                resources.add(new InputStreamResource(() -> stream).withName(zipEntry.getName()));
             }
-        })
-        {
-            return Iterables.translate(Iterables.from(file.entries()), entry ->
-            {
-                return new InputStreamResource(inputStreamSupplier(file, entry))
-                        .withName(entry.getName());
-            });
+            return resources;
         }
-        catch (final IOException e)
+        catch (final IOException exception)
         {
-            throw new CoreException("Cannot get entries from the Zipfile {}.",
-                    this.getFileSource().getName(), e);
+            throw new CoreException("Could not read entries for {}",
+                    getFileSource().getAbsolutePathString(), exception);
         }
     }
 
-    /**
-     * Jump to a specific entry.
-     *
-     * @param name
-     *            The name of the entry
-     * @return The entry as a {@link Resource}. Throws a {@link CoreException} if it cannot find the
-     *         entry.
-     */
     public Resource entryForName(final String name)
     {
-        try (ZipFile file = new ZipFile(getFileSource().getFile())
+        try
         {
-            @Override
-            public void close()
+            final ZipInputStream zipStream = getZipInputStream();
+            ZipEntry zipEntry;
+            while ((zipEntry = zipStream.getNextEntry()) != null)
             {
-                // Do nothing to close the file here, to avoid cutting the legs off the just created
-                // ZipEntry-based resource.
+                if (Objects.equals(zipEntry.getName(), name))
+                {
+                    return new InputStreamResource(() -> zipStream).withName(name);
+                }
             }
-        })
-        {
-            final ZipEntry entry = file.getEntry(name);
-            if (entry != null)
-            {
-                return new InputStreamResource(inputStreamSupplier(file, entry)).withName(name);
-            }
-            else
-            {
-                throw new IOException("Entry " + name + " does not exist.");
-            }
+            throw new IOException("Entry " + name + " does not exist.");
         }
-        catch (final IOException e)
+        catch (final IOException exception)
         {
             throw new CoreException("Cannot get the entry {} from the Zipfile {}.", name,
-                    this.getFileSource().getName(), e);
+                    this.getFileSource().getName(), exception);
         }
     }
 
@@ -114,5 +87,10 @@ public class ZipFileWritableResource extends ZipWritableResource
     protected File getFileSource()
     {
         return (File) getWritableSource();
+    }
+
+    protected ZipInputStream getZipInputStream()
+    {
+        return new ZipInputStream(new BufferedInputStream(getFileSource().read()));
     }
 }

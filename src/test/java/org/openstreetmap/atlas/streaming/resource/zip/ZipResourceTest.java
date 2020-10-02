@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.streaming.resource.zip;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.nio.file.FileSystem;
 import java.util.Iterator;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -20,6 +21,9 @@ import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.utilities.random.RandomTextGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
 
 /**
  * @author matthieun
@@ -150,6 +154,27 @@ public class ZipResourceTest
 
         System.out.println(javaOutput.getName() + " " + javaOutput.length());
         System.out.println(zippedOutput.getName() + " " + zippedOutput.length());
+    }
+
+    @Test
+    public void testWithJimfs()
+    {
+        try (FileSystem filesystem = Jimfs.newFileSystem(Configuration.osX()))
+        {
+            setupFilesystem1(filesystem);
+            final ZipFileWritableResource zipFile = new ZipFileWritableResource(
+                    new File("/Users/foo/file.zip", filesystem));
+            final Resource entry2 = zipFile.entryForName(NAME_2);
+            final String name2 = entry2.getName();
+            final String contents2 = entry2.all();
+            logger.info(name2 + " -> " + contents2);
+            Assert.assertEquals(NAME_2, name2);
+            Assert.assertEquals(CONTENTS_2, contents2);
+        }
+        catch (final IOException exception)
+        {
+            throw new CoreException("FileSystem operation failed", exception);
+        }
     }
 
     @Test
@@ -293,5 +318,13 @@ public class ZipResourceTest
             }
             counter++;
         }
+    }
+
+    private void setupFilesystem1(final FileSystem filesystem)
+    {
+        final ZipFileWritableResource zipFile = new ZipFileWritableResource(
+                new File("/Users/foo/file.zip", filesystem));
+        zipFile.writeAndClose(new StringResource(CONTENTS_1).withName(NAME_1),
+                new StringResource(CONTENTS_2).withName(NAME_2));
     }
 }
