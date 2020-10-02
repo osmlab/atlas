@@ -1,0 +1,129 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -180.0,
+            0.0
+          ],
+          [
+            -180.0,
+            85.0511288
+          ],
+          [
+            0.0,
+            85.0511288
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            -180.0,
+            0.0
+          ]
+        ]
+      },
+      "properties": {
+        "shard": "1-0-0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -180.0,
+            -85.0511288
+          ],
+          [
+            -180.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            -85.0511288
+          ],
+          [
+            -180.0,
+            -85.0511288
+          ]
+        ]
+      },
+      "properties": {
+        "shard": "1-0-1"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            85.0511288
+          ],
+          [
+            180.0,
+            85.0511288
+          ],
+          [
+            180.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "properties": {
+        "shard": "1-1-0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            0.0,
+            -85.0511288
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            180.0,
+            0.0
+          ],
+          [
+            180.0,
+            -85.0511288
+          ],
+          [
+            0.0,
+            -85.0511288
+          ]
+        ]
+      },
+      "properties": {
+        "shard": "1-1-1"
+      }
+    }
+  ]
+}

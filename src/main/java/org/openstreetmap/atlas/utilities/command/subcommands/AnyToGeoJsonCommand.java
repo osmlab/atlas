@@ -151,7 +151,8 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
     private int executeAtlasContext()
     {
         final File atlasFile = new File(this.optionAndArgumentDelegate
-                .getOptionArgument(ATLAS_OPTION_LONG).orElseThrow(AtlasShellToolsException::new));
+                .getOptionArgument(ATLAS_OPTION_LONG).orElseThrow(AtlasShellToolsException::new),
+                this.getFileSystem());
         if (!atlasFile.exists())
         {
             this.outputDelegate
@@ -161,7 +162,13 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
         final Atlas atlas = new AtlasResourceLoader().load(atlasFile);
         final Path concatenatedPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
                 ATLAS_FILE);
-        final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
+        final File outputFile = new File(concatenatedPath.toAbsolutePath().toString(),
+                this.getFileSystem());
+        if (this.optionAndArgumentDelegate.hasVerboseOption())
+        {
+            this.outputDelegate.printlnCommandMessage(
+                    "writing the atlas geojson file to " + outputFile.toAbsolutePath().toString());
+        }
         atlas.saveAsLineDelimitedGeoJsonFeatures(outputFile, (entity, json) ->
         {
             // Dummy consumer, we don't need to mutate the JSON
@@ -194,7 +201,8 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
         }
         final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new File(
                 this.optionAndArgumentDelegate.getOptionArgument(COUNTRY_BOUNDARY_OPTION_LONG)
-                        .orElseThrow(AtlasShellToolsException::new)));
+                        .orElseThrow(AtlasShellToolsException::new),
+                this.getFileSystem()));
         final String boundaryJson;
         if (countries.isEmpty())
         {
@@ -213,13 +221,15 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
             this.outputDelegate.printlnCommandMessage("converting boundary file to GeoJSON...");
         }
 
-        if (this.optionAndArgumentDelegate.hasVerboseOption())
-        {
-            this.outputDelegate.printlnCommandMessage("writing the boundary file...");
-        }
         final Path concatenatedPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
                 BOUNDARY_FILE);
-        new File(concatenatedPath.toAbsolutePath().toString()).writeAndClose(boundaryJson);
+        if (this.optionAndArgumentDelegate.hasVerboseOption())
+        {
+            this.outputDelegate.printlnCommandMessage("writing the boundary geojson file to "
+                    + concatenatedPath.toAbsolutePath().toString());
+        }
+        new File(concatenatedPath.toAbsolutePath().toString(), this.getFileSystem())
+                .writeAndClose(boundaryJson);
 
         return 0;
     }
@@ -231,7 +241,7 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
         final Sharding sharding;
         try
         {
-            sharding = Sharding.forString(shardingString);
+            sharding = Sharding.forString(shardingString, this.getFileSystem());
         }
         catch (final Exception exception)
         {
@@ -243,7 +253,13 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
                 .toJson(sharding.asGeoJson());
         final Path concatenatedPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
                 SHARDING_FILE);
-        new File(concatenatedPath.toAbsolutePath().toString()).writeAndClose(shardingJson);
+        if (this.optionAndArgumentDelegate.hasVerboseOption())
+        {
+            this.outputDelegate.printlnCommandMessage("writing the sharding geojson file to "
+                    + concatenatedPath.toAbsolutePath().toString());
+        }
+        new File(concatenatedPath.toAbsolutePath().toString(), this.getFileSystem())
+                .writeAndClose(shardingJson);
         return 0;
     }
 
