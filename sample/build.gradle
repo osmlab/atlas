@@ -1,0 +1,18 @@
+plugins {
+    id 'java'
+}
+
+repositories
+{
+    // For geotools
+    maven { url "http://repo.osgeo.org/repository/release/" }
+    mavenCentral()
+}
+
+dependencies
+{
+    compile 'org.slf4j:slf4j-api:1.7.12'
+    compile 'org.slf4j:slf4j-log4j12:1.7.12'
+    compile 'log4j:log4j:1.2.17'
+    compile 'org.openstreetmap.atlas:atlas:6.3.0'
+}
