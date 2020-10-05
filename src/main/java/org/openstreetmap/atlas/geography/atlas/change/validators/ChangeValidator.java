@@ -53,7 +53,7 @@ public class ChangeValidator
     protected void validateReverseEdgesHaveForwardMatchingCounterpart()
     {
         this.change.changesFor(ItemType.EDGE)
-                .filter(featureChange -> !((Edge) featureChange.getAfterView()).isMasterEdge())
+                .filter(featureChange -> !((Edge) featureChange.getAfterView()).isMainEdge())
                 .filter(featureChange -> featureChange.getChangeType() != ChangeType.REMOVE)
                 .forEach(backwardFeatureChange ->
                 {

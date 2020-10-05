@@ -39,6 +39,10 @@ public class LocatedDeserializer implements JsonDeserializer<Located>
         {
             return new MultiPolygonDeserializer().deserialize(json, typeOfT, context);
         }
+        else if (GeoJsonType.MULTI_LINESTRING == type)
+        {
+            return new MultiPolyLineDeserializer().deserialize(json, typeOfT, context);
+        }
         throw new CoreException("Unknown/unsupported geometry type: " + type);
     }
 }

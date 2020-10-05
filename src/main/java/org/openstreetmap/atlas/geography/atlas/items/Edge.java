@@ -24,16 +24,28 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
 
     /**
      * If the way is bidirectional in OSM, we will put two edges in atlas for two traffic
-     * directions, each of them is one way. The master edge will have positive identifier and same
+     * directions, each of them is one way. The main edge will have positive identifier and same
      * traffic direction as OSM.
      *
      * @param identifier
      *            Edge identifier
      * @return True if the edge identifier is positive
      */
-    public static boolean isMasterEdgeIdentifier(final long identifier)
+    public static boolean isMainEdgeIdentifier(final long identifier)
     {
         return identifier > 0;
+    }
+
+    /**
+     * @param identifier
+     *            Edge identifier
+     * @return True if the edge identifier is positive
+     * @deprecated Use isMainEdgeIdentifier instead.
+     */
+    @Deprecated(since = "")
+    public static boolean isMasterEdgeIdentifier(final long identifier)
+    {
+        return isMainEdgeIdentifier(identifier);
     }
 
     protected Edge(final Atlas atlas)
@@ -50,19 +62,7 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
     @Override
     public int compareTo(final Edge other) // NOSONAR
     {
-        final long difference = this.getIdentifier() - other.getIdentifier();
-        if (difference > 0)
-        {
-            return 1;
-        }
-        else if (difference < 0)
-        {
-            return -1;
-        }
-        else
-        {
-            return 0;
-        }
+        return Long.compare(this.getIdentifier(), other.getIdentifier());
     }
 
     /**
@@ -133,20 +133,40 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
     }
 
     /**
-     * @return the master for this {@link Edge}, which may or may not be the master.
+     * @return the main for this {@link Edge}, which may or may not be the main.
      */
-    public Edge getMasterEdge()
+    public Edge getMainEdge()
     {
-        return this.isMasterEdge() ? this
+        return this.isMainEdge() ? this
                 : this.reversed()
                         .orElseThrow(() -> new CoreException(
                                 "Reverse edge should be available for edge {}",
                                 this.getIdentifier()));
     }
 
-    public long getMasterEdgeIdentifier()
+    public long getMainEdgeIdentifier()
     {
         return Math.abs(this.getIdentifier());
+    }
+
+    /**
+     * @return the main for this {@link Edge}, which may or may not be the main.
+     * @deprecated Use getMainEdge instead.
+     */
+    @Deprecated(since = "")
+    public Edge getMasterEdge()
+    {
+        return getMainEdge();
+    }
+
+    /**
+     * @return The main edge identifier
+     * @deprecated Use getMainEdgeIdentifier instead
+     */
+    @Deprecated(since = "")
+    public long getMasterEdgeIdentifier()
+    {
+        return getMainEdgeIdentifier();
     }
 
     @Override
@@ -235,14 +255,23 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
     }
 
     /**
-     * Checks if edge is a master edge, by verifying that its identifier is a master edge
-     * identifier.
+     * Checks if edge is a main edge, by verifying that its identifier is a main edge identifier.
      *
-     * @return True if the edge's identifier is a master edge identifier
+     * @return True if the edge's identifier is a main edge identifier
      */
+    public boolean isMainEdge()
+    {
+        return isMainEdgeIdentifier(this.getIdentifier());
+    }
+
+    /**
+     * @return True if the edge's identifier is a main edge identifier
+     * @deprecated Use isMainEdge instead.
+     */
+    @Deprecated(since = "")
     public boolean isMasterEdge()
     {
-        return isMasterEdgeIdentifier(this.getIdentifier());
+        return isMainEdge();
     }
 
     /**

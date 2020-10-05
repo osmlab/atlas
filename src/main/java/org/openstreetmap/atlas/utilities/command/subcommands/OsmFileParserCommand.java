@@ -33,9 +33,10 @@ public class OsmFileParserCommand extends AbstractAtlasShellToolsCommand
     {
         final String josmOsmFile = this.optionAndArgumentDelegate.getUnaryArgument(JOSM_OSM_FILE)
                 .orElseThrow(AtlasShellToolsException::new);
-        final String osmFile = this.optionAndArgumentDelegate.getUnaryArgument(JOSM_OSM_FILE)
+        final String osmFile = this.optionAndArgumentDelegate.getUnaryArgument(OSM_FILE)
                 .orElseThrow(AtlasShellToolsException::new);
-        new OsmFileParser().update(new File(josmOsmFile), new File(osmFile));
+        new OsmFileParser().update(new File(josmOsmFile, this.getFileSystem()),
+                new File(osmFile, this.getFileSystem()));
         return 0;
     }
 
@@ -48,7 +49,7 @@ public class OsmFileParserCommand extends AbstractAtlasShellToolsCommand
     @Override
     public String getSimpleDescription()
     {
-        return "Transform a JOSM OSM file into a real OSM file.";
+        return "transform a JOSM OSM file into a real OSM file.";
     }
 
     @Override

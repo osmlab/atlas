@@ -89,6 +89,43 @@ public class GeoJsonObject
         return this.jsonObject.toString();
     }
 
+    /***
+     * Adds a parent member to a FeatureCollection object. This Member will be on the same level as
+     * the "type" and "features" members.
+     *
+     * @param key
+     *            member key
+     * @param value
+     *            member value
+     * @return GeoJsonObject
+     */
+    public GeoJsonObject withNewParentMember(final String key, final Object value)
+    {
+        // Check if jsonObject is a FeatureCollection
+        final Map<String, Object> properties = new HashMap<>();
+        properties.put(key, value);
+        return this.withNewParentMembers(properties);
+    }
+
+    /***
+     * Adds multiple members to the FeatureCollection object.
+     *
+     * @param properties
+     *            Map of member key and properties
+     * @return GeoJsonObject
+     */
+    public GeoJsonObject withNewParentMembers(final Map<String, ? extends Object> properties)
+    {
+        // Check if jsonObject is a FeatureCollection
+        if (this.jsonObject.get(GeoJsonBuilder.TYPE).getAsString()
+                .equals(GeoJsonBuilder.FEATURE_COLLECTION))
+        {
+            final Gson gson = new Gson();
+            properties.forEach((key, value) -> this.jsonObject.add(key, gson.toJsonTree(value)));
+        }
+        return this;
+    }
+
     public GeoJsonObject withNewProperties(final Map<String, ? extends Object> properties)
     {
         final JsonObject propertiesObject;

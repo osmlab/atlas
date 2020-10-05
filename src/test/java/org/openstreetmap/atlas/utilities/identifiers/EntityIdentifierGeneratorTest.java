@@ -7,7 +7,6 @@ import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
-import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
@@ -25,7 +24,7 @@ public class EntityIdentifierGeneratorTest
         final CompleteEdge edge = new CompleteEdge(1L, PolyLine.SIMPLE_POLYLINE,
                 Maps.hashMap("a", "b", "c", "d"), 2L, 3L, Sets.hashSet());
 
-        final String goldenPropertyString = "LINESTRING (1 1, 2 2);a=b,c=d;2;3";
+        final String goldenPropertyString = "LINESTRING (1 1, 2 2);a=b,c=d";
 
         Assert.assertEquals(goldenPropertyString,
                 new EntityIdentifierGenerator().getBasicPropertyString(edge)
@@ -44,41 +43,28 @@ public class EntityIdentifierGeneratorTest
     }
 
     @Test
-    public void testGetTypeSpecificPropertyStringForEdge()
-    {
-        final CompleteEdge edge = new CompleteEdge(1L, PolyLine.SIMPLE_POLYLINE,
-                Maps.hashMap("a", "b", "c", "d"), 2L, 3L, Sets.hashSet());
-
-        final String goldenPropertyString = ";2;3";
-        Assert.assertEquals(goldenPropertyString,
-                new EntityIdentifierGenerator().getTypeSpecificPropertyString(edge));
-    }
-
-    @Test
-    public void testGetTypeSpecificPropertyStringForNode()
-    {
-        final CompleteNode node = new CompleteNode(1L, Location.CENTER,
-                Maps.hashMap("a", "b", "c", "d"), Sets.treeSet(1L, 2L), Sets.treeSet(3L, 4L),
-                Sets.hashSet());
-
-        final String goldenPropertyString = ";1,2,;3,4,";
-        Assert.assertEquals(goldenPropertyString,
-                new EntityIdentifierGenerator().getTypeSpecificPropertyString(node));
-    }
-
-    @Test
     public void testGetTypeSpecificPropertyStringForRelation()
     {
-        final RelationBean bean = new RelationBean();
-        bean.addItem(1L, "role", ItemType.POINT);
-        bean.addItem(10L, "role", ItemType.AREA);
+        final RelationBean bean1 = new RelationBean();
+        bean1.addItem(1L, "role", ItemType.POINT);
+        bean1.addItem(10L, "role", ItemType.AREA);
 
-        final CompleteRelation relation = new CompleteRelation(1L, Maps.hashMap("a", "b", "c", "d"),
-                Rectangle.MINIMUM, bean, null, null, null, Sets.hashSet());
+        final RelationBean bean2 = new RelationBean();
+        bean2.addItem(10L, "role", ItemType.AREA);
+        bean2.addItem(1L, "role", ItemType.POINT);
 
-        final String goldenPropertyString = ";RelationBean[(POINT,1,role)(AREA,10,role)]";
+        final CompleteRelation relation1 = new CompleteRelation(1L,
+                Maps.hashMap("a", "b", "c", "d"), Rectangle.MINIMUM, bean1, null, null, null,
+                Sets.hashSet());
+        final CompleteRelation relation2 = new CompleteRelation(1L,
+                Maps.hashMap("a", "b", "c", "d"), Rectangle.MINIMUM, bean2, null, null, null,
+                Sets.hashSet());
+
+        final String goldenPropertyString = ";RelationBean[(AREA,10,role)(POINT,1,role)]";
         Assert.assertEquals(goldenPropertyString,
-                new EntityIdentifierGenerator().getTypeSpecificPropertyString(relation));
+                new EntityIdentifierGenerator().getTypeSpecificPropertyString(relation1));
+        Assert.assertEquals(goldenPropertyString,
+                new EntityIdentifierGenerator().getTypeSpecificPropertyString(relation2));
     }
 
     @Test
@@ -87,8 +73,8 @@ public class EntityIdentifierGeneratorTest
         final CompleteEdge edge = new CompleteEdge(1L, PolyLine.SIMPLE_POLYLINE,
                 Maps.hashMap("a", "b", "c", "d"), 2L, 3L, Sets.hashSet());
 
-        final long goldenHash = 5515319119996140692L;
-        Assert.assertEquals(5515319119996140692L,
+        final long goldenHash = 6463671242943641314L;
+        Assert.assertEquals(goldenHash,
                 new EntityIdentifierGenerator().generatePositiveIdentifierForEdge(edge));
     }
 }

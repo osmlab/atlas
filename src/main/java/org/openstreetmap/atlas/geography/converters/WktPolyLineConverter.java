@@ -28,7 +28,7 @@ public class WktPolyLineConverter implements TwoWayConverter<PolyLine, String>
         }
         catch (final ParseException | ClassCastException e)
         {
-            throw new CoreException("Cannot parse wkt : {}", wkt);
+            throw new CoreException("Cannot parse wkt : {}", wkt, e);
         }
         return new JtsPolyLineConverter().backwardConvert(geometry);
     }

@@ -29,7 +29,7 @@ public class WkbMultiPolyLineConverter implements TwoWayConverter<MultiPolyLine,
         }
         catch (final ParseException | ClassCastException e)
         {
-            throw new CoreException("Cannot parse wkb : {}", WKBWriter.toHex(wkb));
+            throw new CoreException("Cannot parse wkb : {}", WKBWriter.toHex(wkb), e);
         }
         return new JtsMultiPolyLineConverter().backwardConvert(geometry);
     }

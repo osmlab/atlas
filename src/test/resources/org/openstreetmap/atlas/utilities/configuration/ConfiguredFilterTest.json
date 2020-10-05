@@ -1,0 +1,71 @@
+{
+    "global":
+    {
+        "filters":
+        {
+            "junctionRoundaboutFilter":
+            {
+                "predicate":
+                {
+                    "imports": [
+                        "org.openstreetmap.atlas.geography.atlas.items"
+                    ],
+                    "command": "e instanceof Node || e instanceof Edge"
+                },
+                "taggableFilter": "junction->roundabout"
+            },
+            "dummyFilter":
+            {
+                "predicate":
+                {
+                    "imports": [
+                        "org.openstreetmap.atlas.geography.atlas.items"
+                    ],
+                    "command": "\"yes\".equals(e.getTag(\"dummy\"))"
+                }
+            },
+            "tagFilterOnly":
+            {
+                "taggableFilter": "junction->roundabout"
+            },
+            "nothingGoesThroughFilter":
+            {
+                "predicate":
+                {
+                    "command": "false"
+                },
+                "hint.noExpansion": true
+            },
+            "unsafePredicateFilter":
+            {
+                "predicate":
+                {
+                    "imports": [
+                        "org.openstreetmap.atlas.geography.atlas.items"
+                    ],
+                    "unsafeCommand": "e instanceof Edge"
+                }
+            },
+            "geometryFilter1":
+            {
+                "geometry":
+                {
+                    "wkt": [
+                        "POLYGON ((5.9321289 43.1022153, 5.9332662 43.1029869, 5.9350204 43.1028576, 5.9353154 43.1015533, 5.9329229 43.1013732, 5.9321289 43.1022153), (5.9328725 43.1021904, 5.9342832 43.1027158, 5.9348849 43.1017956, 5.9328725 43.1021904))",
+                        "MULTIPOLYGON (((5.9354283 43.102112, 5.9357891 43.1024922, 5.9364067 43.1021797, 5.936046 43.1017996, 5.9354283 43.102112)), ((5.9321289 43.1022153, 5.9332662 43.1029869, 5.9350204 43.1028576, 5.9353154 43.1015533, 5.9329229 43.1013732, 5.9321289 43.1022153), (5.9328725 43.1021904, 5.9342832 43.1027158, 5.9348849 43.1017956, 5.9328725 43.1021904)))"
+                    ]
+                }
+            },
+            "geometryFilter2":
+            {
+                "geometry":
+                {
+                    "wkb": [
+                        "0103000000020000000600000036A094FF7FBA17404E531564158D45404AD97D22AABB17404DB5BBAC2E8D4540115FDCFC75BD1740911216702A8D4540D8C7F951C3BD17408326D3B2FF8C454007C2042450BB17406E5809CCF98C454036A094FF7FBA17404E531564158D454004000000DE59BBED42BB17408AFB3493148D454015CF34BCB4BC174028E494CA258D4540D0189C7752BD1740387062A3078D4540DE59BBED42BB17408AFB3493148D4540",
+                        "01060000000200000001030000000100000005000000F20291EAE0BD1740BB438A01128D454027D0717F3FBE17402C8CE3761E8D45406905E165E1BE174055E87239148D4540DB34B6D782BE1740795FF0C4078D4540F20291EAE0BD1740BB438A01128D45400103000000020000000600000036A094FF7FBA17404E531564158D45404AD97D22AABB17404DB5BBAC2E8D4540115FDCFC75BD1740911216702A8D4540D8C7F951C3BD17408326D3B2FF8C454007C2042450BB17406E5809CCF98C454036A094FF7FBA17404E531564158D454004000000DE59BBED42BB17408AFB3493148D454015CF34BCB4BC174028E494CA258D4540D0189C7752BD1740387062A3078D4540DE59BBED42BB17408AFB3493148D4540"
+                    ]
+                }
+            }
+        }
+    }
+}

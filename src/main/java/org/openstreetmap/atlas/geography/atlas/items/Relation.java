@@ -330,6 +330,10 @@ public abstract class Relation extends AtlasEntity
      */
     public RelationMemberList membersMatching(final Predicate<RelationMember> predicate)
     {
+        if (this.members() == null)
+        {
+            return new RelationMemberList(new ArrayList<>());
+        }
         return members().stream().filter(predicate).collect(RelationMemberList.collect());
     }
 

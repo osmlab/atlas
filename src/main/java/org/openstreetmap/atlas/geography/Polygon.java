@@ -254,18 +254,23 @@ public class Polygon extends PolyLine implements GeometricSurface
             // The item is not within the bounds of this Polygon
             return false;
         }
-        // The item is within the bounds of this Polygon
-        // if this value overflows, use JTS to correctly calculate covers
+        // The item is within the bounds of this Polygon. if this value overflows
+        // use JTS to correctly calculate covers
         if (awtOverflows())
         {
             final org.locationtech.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
             return polygon.covers(JTS_POLYGON_CONVERTER.convert(rectangle));
         }
-        // for most cases use the faster awt covers
-        else
+
+        // If AWT contains is false, then we want to recheck with JTS as it's less performant
+        // but more accurate-- AWT contains returns false if the calculation is too expensive
+        if (!awtArea().contains(rectangle.asAwtRectangle()))
         {
-            return awtArea().contains(rectangle.asAwtRectangle());
+            final org.locationtech.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
+            return polygon.covers(JTS_POLYGON_CONVERTER.convert(rectangle));
         }
+        return true;
+
     }
 
     /**
@@ -294,7 +299,7 @@ public class Polygon extends PolyLine implements GeometricSurface
      * Tests if this {@link Polygon} fully encloses (geometrically contains) a {@link Location}
      * according to the JTS definition, which includes points touching all boundaries of the
      * polygon.
-     * 
+     *
      * @param location
      *            The location to test
      * @return True if the {@link Polygon} fully encloses (geometrically contains) the

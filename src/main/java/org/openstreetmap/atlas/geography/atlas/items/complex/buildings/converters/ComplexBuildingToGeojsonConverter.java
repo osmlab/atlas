@@ -35,7 +35,7 @@ public class ComplexBuildingToGeojsonConverter extends Command
         final File output = (File) command.get(OUTPUT);
         final Iterable<Polygon> shapes = Iterables.translateMulti(
                 new ComplexBuildingFinder().find(atlas),
-                building -> building.getOutline().outers());
+                building -> building.getOutline().get().outers());
         GeoJsonSaver.save(shapes, output);
         return 0;
     }

@@ -29,7 +29,7 @@ import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
 import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasCountrySlicer;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.AbstractResource;
@@ -65,13 +65,13 @@ import org.openstreetmap.atlas.utilities.testing.TestAtlas.SizeEstimate;
  */
 public class TestAtlasHandler implements FieldHandler
 {
-    public static Atlas getAtlasFromJsomOsmResource(final boolean josmFormat,
+    public static Atlas getAtlasFromJosmOsmResource(final boolean josmFormat,
             final AbstractResource resource, final String fileName)
     {
-        return getAtlasFromJsomOsmResource(josmFormat, resource, fileName, Optional.empty());
+        return getAtlasFromJosmOsmResource(josmFormat, resource, fileName, Optional.empty());
     }
 
-    public static Atlas getAtlasFromJsomOsmResource(final boolean josmFormat,
+    public static Atlas getAtlasFromJosmOsmResource(final boolean josmFormat,
             final AbstractResource resource, final String fileName, final Optional<String> iso)
     {
         FileSuffix.suffixFor(fileName).ifPresent(suffix ->
@@ -122,16 +122,8 @@ public class TestAtlasHandler implements FieldHandler
 
         // Country Slice and Way-Section
         return new WaySectionProcessor(
-                iso.isPresent() ? new RawAtlasCountrySlicer(loadingOption).slice(rawAtlas)
-                        : rawAtlas,
+                iso.isPresent() ? new RawAtlasSlicer(loadingOption, rawAtlas).slice() : rawAtlas,
                 loadingOption).run();
-    }
-
-    private static String[] mergeTags(final String[] firstTags, final String[] secondTags)
-    {
-        final List<String> allTags = new ArrayList<>(Arrays.asList(firstTags));
-        allTags.addAll(Arrays.asList(secondTags));
-        return allTags.toArray(new String[0]);
     }
 
     private static Map<String, String> mergeTags(final Map<String, String> firstTags,
@@ -141,6 +133,13 @@ public class TestAtlasHandler implements FieldHandler
         returnValue.putAll(firstTags);
         returnValue.putAll(secondTags);
         return returnValue;
+    }
+
+    private static String[] mergeTags(final String[] firstTags, final String[] secondTags)
+    {
+        final List<String> allTags = new ArrayList<>(Arrays.asList(firstTags));
+        allTags.addAll(Arrays.asList(secondTags));
+        return allTags.toArray(new String[0]);
     }
 
     private static Map<String, String> parseTags(final Optional<String> iso, final String... tags)
@@ -457,7 +456,7 @@ public class TestAtlasHandler implements FieldHandler
         final String completeName = String.format("%s/%s", packageName, resourcePath);
         try
         {
-            field.set(rule, getAtlasFromJsomOsmResource(josmFormat, new ClassResource(completeName),
+            field.set(rule, getAtlasFromJosmOsmResource(josmFormat, new ClassResource(completeName),
                     Paths.get(completeName).getFileName().toString(),
                     field.getAnnotation(TestAtlas.class).iso().equals(TestAtlas.UNKNOWN_ISO_COUNTRY)
                             ? Optional.empty()

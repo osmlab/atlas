@@ -142,6 +142,12 @@ public final class IsoLanguage implements Comparable<IsoLanguage>, Serializable
         return this.languageCode.compareTo(other.getLanguageCode());
     }
 
+    @Override
+    public boolean equals(final Object other)
+    {
+        return other instanceof IsoLanguage && this.compareTo((IsoLanguage) other) == 0;
+    }
+
     /**
      * Provides the display language for this IsoLanguage
      *
@@ -160,5 +166,11 @@ public final class IsoLanguage implements Comparable<IsoLanguage>, Serializable
     public String getLanguageCode()
     {
         return this.languageCode;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return this.getLanguageCode().hashCode();
     }
 }

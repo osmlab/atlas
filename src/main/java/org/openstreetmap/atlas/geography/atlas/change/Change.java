@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.change;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -52,6 +53,7 @@ public class Change implements Located, Serializable
     private final int identifier;
     private Rectangle bounds;
     private String name;
+    private transient Map<AtlasEntityKey, FeatureChange> allChangesMappedByAtlasEntityKey;
 
     /**
      * Merge {@link FeatureChange}s inside {@link Change} objects and create a
@@ -88,10 +90,14 @@ public class Change implements Located, Serializable
 
     public Map<AtlasEntityKey, FeatureChange> allChangesMappedByAtlasEntityKey()
     {
-        return changes()
-                .map(featureChange -> Tuple.createTuple(AtlasEntityKey.from(featureChange),
-                        featureChange))
-                .collect(Collectors.toMap(Tuple::getFirst, Tuple::getSecond));
+        if (this.allChangesMappedByAtlasEntityKey == null)
+        {
+            this.allChangesMappedByAtlasEntityKey = changes()
+                    .map(featureChange -> Tuple.createTuple(AtlasEntityKey.from(featureChange),
+                            featureChange))
+                    .collect(Collectors.toMap(Tuple::getFirst, Tuple::getSecond));
+        }
+        return this.allChangesMappedByAtlasEntityKey;
     }
 
     @Override
@@ -348,16 +354,26 @@ public class Change implements Located, Serializable
         return new ChangeGeoJsonSerializer(true, showDescription).convert(this);
     }
 
-    public String toLineDelimitedFeatureChanges()
+    public String toLineDelimitedFeatureChanges(final boolean sorted)
     {
         final StringBuilder builder = new StringBuilder();
         final FeatureChangeGeoJsonSerializer serializer = new FeatureChangeGeoJsonSerializer(false);
+        final List<FeatureChange> sortedFeatureChanges = new ArrayList<>(this.getFeatureChanges());
+        if (sorted)
+        {
+            Collections.sort(sortedFeatureChanges);
+        }
 
-        for (final FeatureChange featureChange : this.featureChanges)
+        for (final FeatureChange featureChange : sortedFeatureChanges)
         {
             builder.append(serializer.apply(featureChange) + "\n");
         }
         return builder.toString();
+    }
+
+    public String toLineDelimitedFeatureChanges()
+    {
+        return toLineDelimitedFeatureChanges(false);
     }
 
     @Override

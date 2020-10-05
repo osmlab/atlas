@@ -44,13 +44,13 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
 
     private static final String COUNTRIES_OPTION_LONG = "countries";
     private static final Character COUNTRIES_OPTION_SHORT = 'c';
-    private static final String COUNTRIES_OPTION_DESCRIPTION = "A comma separated list of whitelist country codes to exclusively include. Defaults to all.";
+    private static final String COUNTRIES_OPTION_DESCRIPTION = "A comma separated list of allowlist country codes to exclusively include. Defaults to all.";
     private static final String COUNTRIES_OPTION_HINT = "included-countries";
 
-    private static final String COUNTRIES_BLACKLIST_OPTION_LONG = "countries-blacklist";
-    private static final Character COUNTRIES_BLACKLIST_OPTION_SHORT = 'C';
-    private static final String COUNTRIES_BLACKLIST_OPTION_DESCRIPTION = "A comma separated blacklist of country codes to explicitly exclude. Defaults to none.";
-    private static final String COUNTRIES_BLACKLIST_OPTION_HINT = "excluded-countries";
+    private static final String COUNTRIES_DENY_LIST_OPTION_LONG = "countries-denylist";
+    private static final Character COUNTRIES_DENY_LIST_OPTION_SHORT = 'C';
+    private static final String COUNTRIES_DENY_LIST_OPTION_DESCRIPTION = "A comma separated denylist of country codes to explicitly exclude. Defaults to none.";
+    private static final String COUNTRIES_DENY_LIST_OPTION_HINT = "excluded-countries";
 
     private static final String POLYGONS_OPTION_LONG = "use-polygons";
     private static final Character POLYGONS_OPTION_SHORT = 'p';
@@ -140,9 +140,9 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
         registerOptionWithRequiredArgument(COUNTRIES_OPTION_LONG, COUNTRIES_OPTION_SHORT,
                 COUNTRIES_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL, COUNTRIES_OPTION_HINT,
                 BOUNDARY_CONTEXT);
-        registerOptionWithRequiredArgument(COUNTRIES_BLACKLIST_OPTION_LONG,
-                COUNTRIES_BLACKLIST_OPTION_SHORT, COUNTRIES_BLACKLIST_OPTION_DESCRIPTION,
-                OptionOptionality.OPTIONAL, COUNTRIES_BLACKLIST_OPTION_HINT, BOUNDARY_CONTEXT);
+        registerOptionWithRequiredArgument(COUNTRIES_DENY_LIST_OPTION_LONG,
+                COUNTRIES_DENY_LIST_OPTION_SHORT, COUNTRIES_DENY_LIST_OPTION_DESCRIPTION,
+                OptionOptionality.OPTIONAL, COUNTRIES_DENY_LIST_OPTION_HINT, BOUNDARY_CONTEXT);
         registerOption(POLYGONS_OPTION_LONG, POLYGONS_OPTION_SHORT, POLYGONS_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, BOUNDARY_CONTEXT);
         super.registerOptionsAndArguments();
@@ -151,17 +151,24 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
     private int executeAtlasContext()
     {
         final File atlasFile = new File(this.optionAndArgumentDelegate
-                .getOptionArgument(ATLAS_OPTION_LONG).orElseThrow(AtlasShellToolsException::new));
+                .getOptionArgument(ATLAS_OPTION_LONG).orElseThrow(AtlasShellToolsException::new),
+                this.getFileSystem());
         if (!atlasFile.exists())
         {
             this.outputDelegate
-                    .printlnErrorMessage("file not found: " + atlasFile.getAbsolutePath());
+                    .printlnErrorMessage("file not found: " + atlasFile.getAbsolutePathString());
             return 1;
         }
         final Atlas atlas = new AtlasResourceLoader().load(atlasFile);
         final Path concatenatedPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
                 ATLAS_FILE);
-        final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
+        final File outputFile = new File(concatenatedPath.toAbsolutePath().toString(),
+                this.getFileSystem());
+        if (this.optionAndArgumentDelegate.hasVerboseOption())
+        {
+            this.outputDelegate.printlnCommandMessage(
+                    "writing the atlas geojson file to " + outputFile.toAbsolutePath().toString());
+        }
         atlas.saveAsLineDelimitedGeoJsonFeatures(outputFile, (entity, json) ->
         {
             // Dummy consumer, we don't need to mutate the JSON
@@ -179,11 +186,11 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
                     .orElse(new HashSet<>());
         }
         final boolean usePolygons = this.optionAndArgumentDelegate.hasOption(POLYGONS_OPTION_LONG);
-        Set<String> countriesBlacklist = new HashSet<>();
-        if (this.optionAndArgumentDelegate.hasOption(COUNTRIES_BLACKLIST_OPTION_LONG))
+        Set<String> countriesDenyList = new HashSet<>();
+        if (this.optionAndArgumentDelegate.hasOption(COUNTRIES_DENY_LIST_OPTION_LONG))
         {
-            countriesBlacklist = this.optionAndArgumentDelegate
-                    .getOptionArgument(COUNTRIES_BLACKLIST_OPTION_LONG,
+            countriesDenyList = this.optionAndArgumentDelegate
+                    .getOptionArgument(COUNTRIES_DENY_LIST_OPTION_LONG,
                             this::parseCommaSeparatedCountries)
                     .orElse(new HashSet<>());
         }
@@ -194,18 +201,19 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
         }
         final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new File(
                 this.optionAndArgumentDelegate.getOptionArgument(COUNTRY_BOUNDARY_OPTION_LONG)
-                        .orElseThrow(AtlasShellToolsException::new)));
+                        .orElseThrow(AtlasShellToolsException::new),
+                this.getFileSystem()));
         final String boundaryJson;
         if (countries.isEmpty())
         {
             boundaryJson = new CountryBoundaryMapGeoJsonConverter().prettyPrint(true)
-                    .withCountryBlacklist(countriesBlacklist).usePolygons(usePolygons)
+                    .withCountryDenyList(countriesDenyList).usePolygons(usePolygons)
                     .convertToString(map);
         }
         else
         {
-            boundaryJson = new CountryBoundaryMapGeoJsonConverter().withCountryWhitelist(countries)
-                    .withCountryBlacklist(countriesBlacklist).prettyPrint(true)
+            boundaryJson = new CountryBoundaryMapGeoJsonConverter().withCountryAllowList(countries)
+                    .withCountryDenyList(countriesDenyList).prettyPrint(true)
                     .usePolygons(usePolygons).convertToString(map);
         }
         if (this.optionAndArgumentDelegate.hasVerboseOption())
@@ -213,13 +221,15 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
             this.outputDelegate.printlnCommandMessage("converting boundary file to GeoJSON...");
         }
 
-        if (this.optionAndArgumentDelegate.hasVerboseOption())
-        {
-            this.outputDelegate.printlnCommandMessage("writing the boundary file...");
-        }
         final Path concatenatedPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
                 BOUNDARY_FILE);
-        new File(concatenatedPath.toAbsolutePath().toString()).writeAndClose(boundaryJson);
+        if (this.optionAndArgumentDelegate.hasVerboseOption())
+        {
+            this.outputDelegate.printlnCommandMessage("writing the boundary geojson file to "
+                    + concatenatedPath.toAbsolutePath().toString());
+        }
+        new File(concatenatedPath.toAbsolutePath().toString(), this.getFileSystem())
+                .writeAndClose(boundaryJson);
 
         return 0;
     }
@@ -231,7 +241,7 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
         final Sharding sharding;
         try
         {
-            sharding = Sharding.forString(shardingString);
+            sharding = Sharding.forString(shardingString, this.getFileSystem());
         }
         catch (final Exception exception)
         {
@@ -243,7 +253,13 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
                 .toJson(sharding.asGeoJson());
         final Path concatenatedPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
                 SHARDING_FILE);
-        new File(concatenatedPath.toAbsolutePath().toString()).writeAndClose(shardingJson);
+        if (this.optionAndArgumentDelegate.hasVerboseOption())
+        {
+            this.outputDelegate.printlnCommandMessage("writing the sharding geojson file to "
+                    + concatenatedPath.toAbsolutePath().toString());
+        }
+        new File(concatenatedPath.toAbsolutePath().toString(), this.getFileSystem())
+                .writeAndClose(shardingJson);
         return 0;
     }
 

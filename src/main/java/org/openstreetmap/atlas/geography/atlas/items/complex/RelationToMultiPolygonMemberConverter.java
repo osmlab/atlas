@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.items.complex;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -45,7 +46,10 @@ public class RelationToMultiPolygonMemberConverter implements Converter<Relation
         {
             throw new CoreException("Not a MultiPolygon: {}", relation);
         }
-        for (final RelationMember member : relation.members())
+        final ArrayList<RelationMember> members = new ArrayList<>();
+        relation.members().iterator().forEachRemaining(members::add);
+        Collections.sort(members);
+        for (final RelationMember member : members)
         {
             final AtlasEntity entity = member.getEntity();
             switch (this.ring)
@@ -81,8 +85,8 @@ public class RelationToMultiPolygonMemberConverter implements Converter<Relation
         else if (entity instanceof LineItem)
         {
             // In case an Edge is an outer/inner, make sure to not double count it by looking at the
-            // master edge only.
-            if (!(entity instanceof Edge) || ((Edge) entity).isMasterEdge())
+            // main edge only.
+            if (!(entity instanceof Edge) || ((Edge) entity).isMainEdge())
             {
                 candidates.add(((LineItem) entity).asPolyLine());
             }

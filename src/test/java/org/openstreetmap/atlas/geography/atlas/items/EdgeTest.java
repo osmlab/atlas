@@ -3,7 +3,9 @@ package org.openstreetmap.atlas.geography.atlas.items;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.tags.MaxSpeedTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +21,18 @@ public class EdgeTest
 
     @Rule
     public final EdgeTestRule rule = new EdgeTestRule();
+
+    @Test
+    public void testCompare()
+    {
+        // Make sure the compare function does not use a difference which in the case here will
+        // overflow.
+        final Edge left = new CompleteEdge(Long.MAX_VALUE - 2L, PolyLine.TEST_POLYLINE, null, null,
+                null, null);
+        final Edge right = new CompleteEdge(Long.MIN_VALUE + 2L, PolyLine.TEST_POLYLINE, null, null,
+                null, null);
+        Assert.assertTrue(left.compareTo(right) > 0);
+    }
 
     @Test
     public void testConnectedNodes()
@@ -64,21 +78,21 @@ public class EdgeTest
     }
 
     @Test
-    public void testGetMasterEdge()
+    public void testGetMainEdge()
     {
         final Atlas atlas = this.rule.getAtlas();
 
-        // Given the reverse edge, should return the master
+        // Given the reverse edge, should return the main
         final Edge reverseEdge = atlas.edge(-293669785000001L);
-        Assert.assertEquals(atlas.edge(293669785000001L), reverseEdge.getMasterEdge());
+        Assert.assertEquals(atlas.edge(293669785000001L), reverseEdge.getMainEdge());
 
-        // The master edge should just be itself
-        final Edge masterEdge = atlas.edge(293669785000001L);
-        Assert.assertEquals(masterEdge, masterEdge.getMasterEdge());
+        // The main edge should just be itself
+        final Edge mainEdge = atlas.edge(293669785000001L);
+        Assert.assertEquals(mainEdge, mainEdge.getMainEdge());
 
         // Now, let's try with a one-way edge
-        final Edge masterEdge2 = atlas.edge(293669786000001L);
-        Assert.assertEquals(masterEdge2, masterEdge2.getMasterEdge());
+        final Edge mainEdge2 = atlas.edge(293669786000001L);
+        Assert.assertEquals(mainEdge2, mainEdge2.getMainEdge());
     }
 
     @Test

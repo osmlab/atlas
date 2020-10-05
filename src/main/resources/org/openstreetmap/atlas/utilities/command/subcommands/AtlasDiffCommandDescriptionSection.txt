@@ -1,5 +1,5 @@
-Compute a diff between two atlases using the ChangeAtlas API. The command
-will write a pretty print string serialization of the diff to STDOUT.
+Compute a diff between two atlases or two atlas directories using the ChangeAtlas API.
+ The command will write a pretty print string serialization of the diff to STDOUT.
 The pretty print options include: ChangeDescription (default),
 the full FeatureChange text, as well as different types of GeoJSON serialization.
 

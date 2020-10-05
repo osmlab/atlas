@@ -74,8 +74,6 @@ public class SpatialIndexTest
         this.rectanglesOnBorder = locationToRectangle(this.locationsOnRightBorder);
 
         // build tree
-        buildLocationTree(this.quadTreeLocation, this.locationsInsideLeft,
-                this.locationsInsideRight, this.locationsOnRightBorder);
         buildLocationTree(this.rTreeLocation, this.locationsInsideLeft, this.locationsInsideRight,
                 this.locationsOnRightBorder);
         buildRectangleTree(this.quadTreeRectangle, this.rectanglesInsideLeft,
@@ -83,7 +81,6 @@ public class SpatialIndexTest
         buildRectangleTree(this.rTreeRectangle, this.rectanglesInsideLeft,
                 this.rectanglesInsideRight, this.rectanglesOnBorder);
 
-        assertEquals(9, this.quadTreeLocation.size());
         assertEquals(9, this.quadTreeRectangle.size());
         assertEquals(9, this.rTreeLocation.size());
         assertEquals(9, this.rTreeRectangle.size());
@@ -91,10 +88,6 @@ public class SpatialIndexTest
         // rtree returns exact correct locations
         assertEquals(6, this.rTreeLocation.get(this.right).size());
         assertEquals(4, this.rTreeLocation.get(this.left).size());
-
-        // quad tree returns the one close to border
-        assertEquals(7, this.quadTreeLocation.get(this.right).size());
-        assertEquals(4, this.quadTreeLocation.get(this.left).size());
 
         // rtree returns one more rectangle since rectangle is 1 km larger bounding box than
         // location

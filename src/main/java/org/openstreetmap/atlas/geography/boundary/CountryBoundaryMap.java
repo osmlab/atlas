@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -92,9 +93,7 @@ public class CountryBoundaryMap implements Serializable, GeoJson
     // buffer, we'll just ignore them.
     public static final double LINE_BUFFER = 0.000001;
     public static final double AREA_BUFFER = 0.0000000001;
-    // Slicing constants
-    public static final int MAXIMUM_EXPECTED_COUNTRIES_TO_SLICE_WITH = 3;
-    public static final int PRECISION_MODEL = 100_000_000;
+
     // Boundary file constants
     static final String COUNTRY_BOUNDARY_DELIMITER = "||";
     private static final long serialVersionUID = -1714710346834527699L;
@@ -185,7 +184,7 @@ public class CountryBoundaryMap implements Serializable, GeoJson
      *            A list of {@link Geometry}s to check
      * @return The set of country codes represented
      */
-    public static Set<String> countryCodesIn(final List<? extends Geometry> countryGeometries)
+    public static Set<String> countryCodesIn(final Collection<? extends Geometry> countryGeometries)
     {
         return countryGeometries.stream()
                 .map(geometry -> getGeometryProperty(geometry, ISOCountryTag.KEY))
@@ -294,7 +293,7 @@ public class CountryBoundaryMap implements Serializable, GeoJson
      *            A list of {@link Geometry}s to check
      * @return {@code true} if all given {@link Geometry}s belong to the same country
      */
-    public static boolean isSameCountry(final List<? extends Geometry> countryGeometries)
+    public static boolean isSameCountry(final Collection<? extends Geometry> countryGeometries)
     {
         return numberCountries(countryGeometries) == 1;
     }
@@ -304,7 +303,7 @@ public class CountryBoundaryMap implements Serializable, GeoJson
      *            A list of {@link Geometry}s to check
      * @return The number of distinct countries represented
      */
-    public static long numberCountries(final List<? extends Geometry> countryGeometries)
+    public static long numberCountries(final Collection<? extends Geometry> countryGeometries)
     {
         if (countryGeometries.isEmpty())
         {
@@ -360,11 +359,11 @@ public class CountryBoundaryMap implements Serializable, GeoJson
             else
             {
                 // Trying to override an existing value - this shouldn't happen!
-                if (!Objects.equals(existingValue, value))
+                if (!Objects.equals(existingValue, value) && logger.isDebugEnabled())
                 {
-                    logger.error(
+                    logger.debug(
                             "Trying to override existing '{}' key's value of '{}' with '{}' for geometry {}",
-                            key, existingValue, value, geometry.toString());
+                            key, existingValue, value, geometry);
                 }
             }
         }

@@ -10,9 +10,10 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEntity;
-import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 
 /**
@@ -25,8 +26,8 @@ import org.openstreetmap.atlas.utilities.collections.StringList;
  */
 public class EntityIdentifierGenerator
 {
-    private static final long HIGHEST_ATLAS_ID = 900000000999999L;
-    private static final long LOWEST_ATLAS_ID = -900000000999999L;
+    private static final long HIGHEST_ATLAS_ID = 9999999999999999L;
+    private static final long LOWEST_ATLAS_ID = -9999999999999999L;
 
     /**
      * Generate a 64 bit hash for a given non-{@link Edge} {@link CompleteEntity}. The entity must
@@ -91,8 +92,7 @@ public class EntityIdentifierGenerator
 
     /**
      * Given some {@link CompleteEntity}, compute a string made up of concatenated type specific
-     * entity properties (e.g. for a {@link CompleteNode} this would be the in/out {@link Edge}
-     * identifiers).
+     * entity properties. Currently this is only relevant for {@link Relation}s.
      *
      * @param entity
      *            the {@link CompleteEntity} to string-ify
@@ -102,56 +102,31 @@ public class EntityIdentifierGenerator
     {
         final StringBuilder builder = new StringBuilder();
         builder.append(";");
-        switch (entity.getType())
+        if (entity.getType() == ItemType.RELATION)
         {
-            case EDGE:
-                final CompleteEdge edge = (CompleteEdge) entity;
-                if (edge.start() != null)
+            final CompleteRelation relation = (CompleteRelation) entity;
+            if (relation.members() != null)
+            {
+                final RelationBean bean = relation.members().asBean();
+                builder.append("RelationBean[");
+                // Here use sorted list to ensure determinism
+                for (final RelationBean.RelationBeanItem beanItem : bean.asSortedList())
                 {
-                    builder.append(edge.start().getIdentifier());
+                    builder.append("(");
+                    builder.append(beanItem.getType());
+                    builder.append(",");
+                    builder.append(beanItem.getIdentifier());
+                    builder.append(",");
+                    builder.append(beanItem.getRole());
+                    builder.append(")");
                 }
-                builder.append(";");
-                if (edge.end() != null)
-                {
-                    builder.append(edge.end().getIdentifier());
-                }
-                return builder.toString();
-            case NODE:
-                final CompleteNode node = (CompleteNode) entity;
-                if (node.inEdges() != null)
-                {
-                    node.inEdges().stream().map(Edge::getIdentifier)
-                            .forEach(identifier -> builder.append(identifier + ","));
-                }
-                builder.append(";");
-                if (node.outEdges() != null)
-                {
-                    node.outEdges().stream().map(Edge::getIdentifier)
-                            .forEach(identifier -> builder.append(identifier + ","));
-                }
-                return builder.toString();
-            case RELATION:
-                final CompleteRelation relation = (CompleteRelation) entity;
-                if (relation.members() != null)
-                {
-                    final RelationBean bean = relation.members().asBean();
-                    builder.append("RelationBean[");
-                    for (final RelationBean.RelationBeanItem beanItem : bean)
-                    {
-                        builder.append("(");
-                        builder.append(beanItem.getType());
-                        builder.append(",");
-                        builder.append(beanItem.getIdentifier());
-                        builder.append(",");
-                        builder.append(beanItem.getRole());
-                        builder.append(")");
-                    }
-                    builder.append("]");
-                }
-                return builder.toString();
-            default:
-                return "";
+                builder.append("]");
+            }
+            return builder.toString();
         }
+
+        // Otherwise no extra data
+        return "";
     }
 
     /**
@@ -201,6 +176,6 @@ public class EntityIdentifierGenerator
      */
     private boolean isHashSafeToUse(final long hash)
     {
-        return !(hash < HIGHEST_ATLAS_ID && hash >= LOWEST_ATLAS_ID);
+        return hash > HIGHEST_ATLAS_ID || hash < LOWEST_ATLAS_ID;
     }
 }

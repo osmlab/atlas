@@ -21,7 +21,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
 import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasCountrySlicer;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.clipping.Clip.ClipType;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
@@ -243,8 +243,7 @@ public class OsmPbfIngestIntegrationTest extends AtlasIntegrationTest
 
         final AtlasLoadingOption loadingOption = AtlasLoadingOption.createOptionWithAllEnabled(map);
         Atlas atlas = new RawAtlasGenerator(pbf, loadingOption, loadingArea).build();
-        loadingOption.setAdditionalCountryCodes(map.getLoadedCountries());
-        atlas = new RawAtlasCountrySlicer(loadingOption).slice(atlas);
+        atlas = new RawAtlasSlicer(loadingOption, atlas).slice();
         atlas = new WaySectionProcessor(atlas, loadingOption).run();
         // Make sure that the big bridge over water made it to the Atlas
         Assert.assertNotNull(atlas.edge(308541861000000L));

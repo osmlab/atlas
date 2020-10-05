@@ -112,4 +112,14 @@ public class DynamicTileShardingTest
                         .getResourceAsStream("testDynamicSharding.txt")));
         shardingTreeOriginal.shardForName("7-6-19");
     }
+
+    @Test
+    public void testGetName()
+    {
+        final String root = "0-0-0";
+        final StringResource rootString = new StringResource(root);
+        final DynamicTileSharding dynamicTileSharding = new DynamicTileSharding(rootString);
+        Assert.assertNotNull(dynamicTileSharding.getName());
+        Assert.assertNotEquals("N/A", dynamicTileSharding.getName());
+    }
 }

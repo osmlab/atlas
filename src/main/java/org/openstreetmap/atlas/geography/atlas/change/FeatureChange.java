@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.io.Serializable;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
+import org.openstreetmap.atlas.tags.Taggable;
 
 /**
  * Single feature change, does not include any consistency checks.
@@ -59,7 +61,7 @@ import org.openstreetmap.atlas.streaming.resource.WritableResource;
  * @author lcram
  * @author Yazad Khambata
  */
-public class FeatureChange implements Located, Serializable
+public class FeatureChange implements Located, Taggable, Serializable, Comparable<FeatureChange>
 {
     private static final long serialVersionUID = 9172045162819925515L;
 
@@ -146,7 +148,7 @@ public class FeatureChange implements Located, Serializable
      * @param afterView
      *            the after view of the changed entity
      */
-    FeatureChange(final ChangeType changeType, final AtlasEntity afterView)
+    public FeatureChange(final ChangeType changeType, final AtlasEntity afterView)
     {
         this(changeType, afterView, null);
     }
@@ -163,7 +165,7 @@ public class FeatureChange implements Located, Serializable
      * @param beforeView
      *            the before entity
      */
-    FeatureChange(final ChangeType changeType, final AtlasEntity afterView,
+    public FeatureChange(final ChangeType changeType, final AtlasEntity afterView,
             final AtlasEntity beforeView)
     {
         if (afterView == null)
@@ -313,6 +315,14 @@ public class FeatureChange implements Located, Serializable
     }
 
     @Override
+    public int compareTo(final FeatureChange otherFeatureChange)
+    {
+        return Comparator.comparing(FeatureChange::getChangeType)
+                .thenComparing(FeatureChange::getItemType)
+                .thenComparing(FeatureChange::getIdentifier).compare(this, otherFeatureChange);
+    }
+
+    @Override
     public boolean equals(final Object other)
     {
         if (other instanceof FeatureChange)
@@ -382,6 +392,7 @@ public class FeatureChange implements Located, Serializable
      *            - The tag key to look for.
      * @return - the changed value of the tag, if available.
      */
+    @Override
     public Optional<String> getTag(final String key)
     {
         return this.getAfterView().getTag(key);
@@ -392,6 +403,7 @@ public class FeatureChange implements Located, Serializable
      *
      * @return Map - the changed tags.
      */
+    @Override
     public Map<String, String> getTags()
     {
         return this.getAfterView().getTags();
@@ -400,7 +412,20 @@ public class FeatureChange implements Located, Serializable
     @Override
     public int hashCode()
     {
-        return Objects.hash(this.changeType, this.afterView);
+        if (this.afterView instanceof Relation)
+        {
+            return Objects.hash(this.changeType, this.afterView,
+                    ((Relation) this.afterView).members());
+        }
+        if (this.afterView instanceof Node)
+        {
+            return Objects.hash(this.changeType, this.afterView, ((Node) this.afterView).inEdges(),
+                    ((Node) this.afterView).outEdges());
+        }
+        else
+        {
+            return Objects.hash(this.changeType, this.afterView, this.afterView.getTags());
+        }
     }
 
     /**

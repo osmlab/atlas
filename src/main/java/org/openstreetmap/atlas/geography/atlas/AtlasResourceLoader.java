@@ -138,7 +138,7 @@ public class AtlasResourceLoader
             resultAtlasOptional = loadMultipleAtlasResources(atlasResources);
         }
 
-        if (!resultAtlasOptional.isPresent())
+        if (resultAtlasOptional.isEmpty())
         {
             throw new CoreException(
                     "Unable to load atlas from provided Resources. If you are seeing this you likely found a bug with AtlasResourceLoader. Please report it.");
@@ -222,7 +222,7 @@ public class AtlasResourceLoader
         }
         catch (final Exception exception)
         {
-            logger.warn("Could not load atlas from supplied resources", exception);
+            logger.error("Could not load atlas from supplied resources", exception);
             return Optional.empty();
         }
     }
@@ -260,7 +260,7 @@ public class AtlasResourceLoader
         }
         catch (final Exception exception)
         {
-            logger.warn("Could not load atlas from supplied resources", exception);
+            logger.error("Could not load atlas from supplied resources", exception);
             return Optional.empty();
         }
     }

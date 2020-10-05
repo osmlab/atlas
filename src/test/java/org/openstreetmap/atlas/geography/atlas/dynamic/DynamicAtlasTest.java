@@ -56,6 +56,23 @@ public class DynamicAtlasTest
                 }
             }, new SlippyTileSharding(12), new SlippyTile(1350, 1870, 12), Rectangle.MAXIMUM);
 
+    private final Supplier<DynamicAtlasPolicy> policySupplierWithMissingAtlas = () -> new DynamicAtlasPolicy(
+            shard ->
+            {
+                if (shard.equals(new SlippyTile(1349, 1869, 12)))
+                {
+                    return Optional.empty();
+                }
+                if (this.store.containsKey(shard))
+                {
+                    return Optional.of(this.store.get(shard));
+                }
+                else
+                {
+                    return Optional.empty();
+                }
+            }, new SlippyTileSharding(12), new SlippyTile(1350, 1870, 12), Rectangle.MAXIMUM);
+
     @Before
     public void prepare()
     {
@@ -77,6 +94,7 @@ public class DynamicAtlasTest
     {
         prepare(this.policySupplier.get().withDeferredLoading(true));
         this.dynamicAtlas.preemptiveLoad();
+
         final Set<Atlas> atlases = this.dynamicAtlas.getAtlasesLoaded();
         Assert.assertEquals(4, atlases.size());
     }
@@ -86,6 +104,19 @@ public class DynamicAtlasTest
     {
         Assert.assertEquals(this.policySupplier.get().getInitialShards(),
                 this.dynamicAtlas.getPolicy().getInitialShards());
+    }
+
+    @Test
+    public void testGetShardToAtlasMap()
+    {
+        prepare(this.policySupplierWithMissingAtlas.get().withDeferredLoading(true));
+        this.dynamicAtlas.preemptiveLoad();
+
+        final Map<Shard, Atlas> atlasMap = this.dynamicAtlas.getShardToAtlasMap();
+        Assert.assertEquals(3, atlasMap.size());
+        Assert.assertTrue(atlasMap.containsKey(new SlippyTile(1350, 1870, 12)));
+        Assert.assertTrue(atlasMap.containsKey(new SlippyTile(1350, 1869, 12)));
+        Assert.assertTrue(atlasMap.containsKey(new SlippyTile(1349, 1870, 12)));
     }
 
     @Test

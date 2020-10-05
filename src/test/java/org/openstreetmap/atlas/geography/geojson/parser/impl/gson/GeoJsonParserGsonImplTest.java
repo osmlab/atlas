@@ -219,7 +219,13 @@ public class GeoJsonParserGsonImplTest extends AbstractGeoJsonParserGsonImplTest
     @Test
     public void multiPolygon()
     {
-        Assert.assertTrue(toGeoJsonItem() instanceof MultiPolygon);
+        final GeoJsonItem geoJsonItem = toGeoJsonItem();
+        Assert.assertTrue(geoJsonItem instanceof MultiPolygon);
+        final MultiPolygon multiPolygon = (MultiPolygon) geoJsonItem;
+        final org.openstreetmap.atlas.geography.MultiPolygon atlasPolygons = multiPolygon
+                .toAtlasGeometry();
+        Assert.assertEquals(1, atlasPolygons.outers().size());
+        Assert.assertTrue(atlasPolygons.inners().isEmpty());
     }
 
     @Test
@@ -228,10 +234,12 @@ public class GeoJsonParserGsonImplTest extends AbstractGeoJsonParserGsonImplTest
         final GeoJsonItem geoJsonItem = toGeoJsonItem();
         Assert.assertTrue(geoJsonItem instanceof MultiPolygon);
         final MultiPolygon multiPolygon = (MultiPolygon) geoJsonItem;
-        final List<org.openstreetmap.atlas.geography.Polygon> atlasPolygons = multiPolygon
+        final org.openstreetmap.atlas.geography.MultiPolygon atlasPolygons = multiPolygon
                 .toAtlasGeometry();
         Assert.assertEquals(2, multiPolygon.getCoordinates().getValue().size());
-        Assert.assertEquals(multiPolygon.getCoordinates().getValue().size(), atlasPolygons.size());
+        Assert.assertEquals(multiPolygon.getCoordinates().getValue().size(),
+                atlasPolygons.outers().size());
+        Assert.assertEquals(4, atlasPolygons.inners().size());
     }
 
     @Test
@@ -240,9 +248,9 @@ public class GeoJsonParserGsonImplTest extends AbstractGeoJsonParserGsonImplTest
         final GeoJsonItem geoJsonItem = toGeoJsonItem();
         Assert.assertTrue(geoJsonItem instanceof MultiPolygon);
         final MultiPolygon multiPolygon = (MultiPolygon) geoJsonItem;
-        final List<org.openstreetmap.atlas.geography.Polygon> atlasMultiPolygon = multiPolygon
+        final org.openstreetmap.atlas.geography.MultiPolygon atlasMultiPolygon = multiPolygon
                 .toAtlasGeometry();
-        log.info("SIZE: {}.", atlasMultiPolygon.size());
+        Assert.assertEquals(1, multiPolygon.toAtlasGeometry().inners().size());
     }
 
     @Test

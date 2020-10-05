@@ -94,7 +94,7 @@ public class JavaToProtoSerializationCommand extends AtlasLoaderCommand
         if (this.optionAndArgumentDelegate.getParserContext() == CHECK_CONTEXT)
         {
             this.outputDelegate.printStdout("atlas ");
-            this.outputDelegate.printStdout(atlasResource.getPath(), TTYAttribute.BOLD);
+            this.outputDelegate.printStdout(atlasResource.getPathString(), TTYAttribute.BOLD);
             this.outputDelegate.printStdout(" format: ");
             this.outputDelegate.printlnStdout(outputAtlas.getSerializationFormat().toString(),
                     TTYAttribute.BOLD);
@@ -120,9 +120,10 @@ public class JavaToProtoSerializationCommand extends AtlasLoaderCommand
             else
             {
                 // save atlas in place
-                concatenatedPath = Paths.get(atlasResource.getAbsolutePath());
+                concatenatedPath = Paths.get(atlasResource.getAbsolutePathString());
             }
-            final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
+            final File outputFile = new File(concatenatedPath.toAbsolutePath().toString(),
+                    this.getFileSystem());
             outputAtlas.save(outputFile);
 
             if (this.optionAndArgumentDelegate.hasVerboseOption())

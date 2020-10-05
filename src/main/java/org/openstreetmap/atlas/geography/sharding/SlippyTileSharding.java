@@ -25,6 +25,12 @@ public class SlippyTileSharding implements Sharding
     }
 
     @Override
+    public String getName()
+    {
+        return "slippy@" + this.zoom;
+    }
+
+    @Override
     public Iterable<Shard> neighbors(final Shard shard)
     {
         if (shard instanceof SlippyTile)

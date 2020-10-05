@@ -101,12 +101,12 @@ public class PbfToAtlasCommand extends MultipleOutputCommand
             else
             {
                 // save atlas in place
-                concatenatedPath = Paths.get(
-                        Paths.get(pbf.getAbsolutePath()).getParent().toAbsolutePath().toString(),
-                        rawAtlasFilename);
+                concatenatedPath = Paths.get(Paths.get(pbf.getAbsolutePathString()).getParent()
+                        .toAbsolutePath().toString(), rawAtlasFilename);
             }
             this.outputDelegate.printlnStdout(concatenatedPath.toAbsolutePath().toString());
-            final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
+            final File outputFile = new File(concatenatedPath.toAbsolutePath().toString(),
+                    this.getFileSystem());
             atlas.save(outputFile);
         });
         return 0;
@@ -121,7 +121,7 @@ public class PbfToAtlasCommand extends MultipleOutputCommand
     @Override
     public String getSimpleDescription()
     {
-        return "Generate way-sectioned Atlas file(s) from the given PBF shard(s)";
+        return "generate way-sectioned Atlas file(s) from the given PBF shard(s)";
     }
 
     @Override
@@ -155,7 +155,7 @@ public class PbfToAtlasCommand extends MultipleOutputCommand
         if (boundsFilePathOption.isPresent())
         {
             final String wktFileName = boundsFilePathOption.get();
-            final File wktFile = new File(wktFileName);
+            final File wktFile = new File(wktFileName, this.getFileSystem());
             if (wktFileName.endsWith(FileSuffix.GZIP.toString()))
             {
                 wktFile.setDecompressor(Decompressor.GZIP);
@@ -188,7 +188,7 @@ public class PbfToAtlasCommand extends MultipleOutputCommand
 
         inputPbfPaths.forEach(path ->
         {
-            final File file = new File(path, false);
+            final File file = new File(path, this.getFileSystem(), false);
             if (!file.exists())
             {
                 this.outputDelegate.printlnWarnMessage("file not found: " + path);

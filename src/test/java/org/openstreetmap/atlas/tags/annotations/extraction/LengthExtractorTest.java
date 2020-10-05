@@ -75,6 +75,13 @@ public class LengthExtractorTest
     }
 
     @Test
+    public void validMilesWithCommaDecimalSeparatorTest()
+    {
+        Assert.assertEquals(Optional.of(Distance.miles(20.54)),
+                LengthExtractor.validateAndExtract("20,54 mi"));
+    }
+
+    @Test
     public void validNauticalMilesMixedCapsTest()
     {
         Assert.assertEquals(Optional.of(Distance.nauticalMiles(20.543)),
@@ -93,5 +100,12 @@ public class LengthExtractorTest
     {
         Assert.assertEquals(Optional.of(Distance.meters(20.5)),
                 LengthExtractor.validateAndExtract("20.5"));
+    }
+
+    @Test
+    public void validNumberWithCommaDecimalSeparatorTest()
+    {
+        Assert.assertEquals(Optional.of(Distance.meters(20.5)),
+                LengthExtractor.validateAndExtract("20,5"));
     }
 }

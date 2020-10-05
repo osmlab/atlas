@@ -3,7 +3,6 @@ package org.openstreetmap.atlas.geography.boundary;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -28,19 +27,14 @@ import org.openstreetmap.atlas.geography.atlas.builder.text.TextAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.CountryCodeProperties;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasCountrySlicer;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
-import org.openstreetmap.atlas.tags.SyntheticNearestNeighborCountryCodeTag;
-import org.openstreetmap.atlas.tags.annotations.validation.Validators;
-import org.openstreetmap.atlas.tags.filters.ConfiguredTaggableFilter;
 import org.openstreetmap.atlas.test.TestUtility;
-import org.openstreetmap.atlas.utilities.collections.Iterables;
-import org.openstreetmap.atlas.utilities.configuration.StandardConfiguration;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.openstreetmap.atlas.utilities.threads.Pool;
@@ -80,10 +74,9 @@ public class CountryBoundaryMapTest
                         .getResourceAsStream("MAF_AIA_osm_boundaries_with_grid_index.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
         Assert.assertTrue(mapWithGridIndex.hasGridIndex());
-        final RawAtlasCountrySlicer slicerWithPrebuildIndex = new RawAtlasCountrySlicer(
-                AtlasLoadingOption.createOptionWithAllEnabled(mapWithGridIndex));
 
-        final Atlas slicedAtlas = slicerWithPrebuildIndex.sliceLines(rawAtlas);
+        final Atlas slicedAtlas = new RawAtlasSlicer(
+                AtlasLoadingOption.createOptionWithAllEnabled(mapWithGridIndex), rawAtlas).slice();
         logger.info("It took {} to slice using serialized pre-built grid index",
                 start.elapsedSince());
 
@@ -97,10 +90,8 @@ public class CountryBoundaryMapTest
         mapFromOsmTextFile.initializeGridIndex(mapFromOsmTextFile.getLoadedCountries());
         Assert.assertTrue(mapFromOsmTextFile.hasGridIndex());
 
-        final RawAtlasCountrySlicer slicerWithOnTheFlyIndex = new RawAtlasCountrySlicer(
-                AtlasLoadingOption.createOptionWithAllEnabled(mapWithGridIndex));
-
-        final Atlas reslicedAtlas = slicerWithOnTheFlyIndex.sliceLines(rawAtlas);
+        final Atlas reslicedAtlas = new RawAtlasSlicer(
+                AtlasLoadingOption.createOptionWithAllEnabled(mapWithGridIndex), rawAtlas).slice();
         logger.info("It took {} to slice using constructed grid index", start2.elapsedSince());
 
         // Make sure the slice results are identical
@@ -236,10 +227,9 @@ public class CountryBoundaryMapTest
                 "LINESTRING ( -71.7424191 18.7499411097, -71.730485136 18.749848501, -71.730081575 18.749979671, -71.730142154 18.749575218, -71.730486015 18.7498444, -71.7424191 18.7499411097 )");
         builder.addLine(1L, geometry, new HashMap<String, String>());
         final Atlas rawAtlas = builder.get();
-        final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(
-                AtlasLoadingOption.createOptionWithAllEnabled(map));
-        final Atlas slicedAtlas = slicer.sliceLines(rawAtlas);
-        Assert.assertEquals(2, slicedAtlas.numberOfLines());
+        final Atlas slicedAtlas = new RawAtlasSlicer(
+                AtlasLoadingOption.createOptionWithAllEnabled(map), rawAtlas).slice();
+        Assert.assertEquals(2, slicedAtlas.numberOfAreas());
     }
 
     @Test
@@ -268,9 +258,8 @@ public class CountryBoundaryMapTest
         builder.addLine(2000000L, geometry.reversed(), new HashMap<String, String>());
         final Atlas rawAtlas = builder.get();
 
-        final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(
-                AtlasLoadingOption.createOptionWithAllEnabled(map));
-        final Atlas slicedAtlas = slicer.sliceLines(rawAtlas);
+        final Atlas slicedAtlas = new RawAtlasSlicer(
+                AtlasLoadingOption.createOptionWithAllEnabled(map), rawAtlas).slice();
         Assert.assertEquals(6, slicedAtlas.numberOfLines());
 
         // First piece should be in DOM and rest should be in HTI
@@ -296,42 +285,6 @@ public class CountryBoundaryMapTest
                 slicedAtlas.line(2003000L).asPolyLine().reversed());
         Assert.assertEquals(slicedAtlas.line(1002000L).asPolyLine(),
                 slicedAtlas.line(2002000L).asPolyLine().reversed());
-    }
-
-    @Test
-    public void testForceSlicing()
-    {
-        final CountryBoundaryMap map = CountryBoundaryMap
-                .fromPlainText(new InputStreamResource(() -> CountryBoundaryMapTest.class
-                        .getResourceAsStream("HTI_DOM_osm_boundaries.txt.gz"))
-                                .withDecompressor(Decompressor.GZIP));
-        Assert.assertFalse(map.hasGridIndex());
-        final Set<String> countries = new HashSet<>();
-        countries.add("HTI");
-        countries.add("DOM");
-        map.initializeGridIndex(countries);
-        // Crosses HTI only and falls in the international water on both sides
-        final PolyLine lineString = PolyLine.wkt(
-                "LINESTRING(-72.62310537054378 16.33562831580734,-73.54595693304378 18.890373956748753)");
-
-        final PackedAtlasBuilder builder = new PackedAtlasBuilder();
-        builder.addLine(1000000L, lineString, new HashMap<String, String>());
-        builder.addLine(2000000L, lineString, Collections.singletonMap("IShouldBeSliced", "yes"));
-        builder.addLine(3000000L, lineString, Collections.singletonMap("IShouldBeSliced", "no"));
-        final Atlas rawAtlas = builder.get();
-        final AtlasLoadingOption loading = AtlasLoadingOption.createOptionWithAllEnabled(map);
-        loading.setForceSlicingFilter(new ConfiguredTaggableFilter(
-                new StandardConfiguration(new InputStreamResource(() -> CountryBoundaryMap.class
-                        .getResourceAsStream("slicing-filter.json")))));
-        final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(loading);
-        final Atlas slicedAtlas = slicer.slice(rawAtlas);
-
-        Assert.assertEquals(5, slicedAtlas.numberOfLines());
-        Assert.assertNotNull(slicedAtlas.line(1000000L));
-        Assert.assertNotNull(slicedAtlas.line(2001000L));
-        Assert.assertNotNull(slicedAtlas.line(2002000L));
-        Assert.assertNotNull(slicedAtlas.line(2003000L));
-        Assert.assertNotNull(slicedAtlas.line(3000000L));
     }
 
     @Test
@@ -451,29 +404,6 @@ public class CountryBoundaryMapTest
             Assert.assertTrue(CountryBoundaryMapCompareCommand.areSTRtreesEqual(referenceTree,
                     indices[index]));
         }
-    }
-
-    @Test
-    public void testNearestNeighborCountryCodeOnMultiLineStringOutsideBoundary()
-    {
-        final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new InputStreamResource(
-                () -> CountryBoundaryMapTest.class.getResourceAsStream("DMA_boundary.txt")));
-        final PolyLine polyLine = PolyLine.wkt(new InputStreamResource(
-                () -> CountryBoundaryMapTest.class.getResourceAsStream("DMA_snake_polyline.wkt"))
-                        .firstLine());
-        final PackedAtlasBuilder builder = new PackedAtlasBuilder();
-        builder.addLine(1000000L, polyLine, Collections.singletonMap("IShouldBeSliced", "yes"));
-        final Atlas rawAtlas = builder.get();
-        final AtlasLoadingOption loading = AtlasLoadingOption.createOptionWithAllEnabled(map);
-        loading.setForceSlicingFilter(new ConfiguredTaggableFilter(
-                new StandardConfiguration(new InputStreamResource(() -> CountryBoundaryMap.class
-                        .getResourceAsStream("slicing-filter.json")))));
-        final RawAtlasCountrySlicer slicer = new RawAtlasCountrySlicer(loading);
-        final Atlas slicedAtlas = slicer.slice(rawAtlas);
-        Assert.assertEquals(3,
-                Iterables.size(slicedAtlas.lines(line -> Validators.isOfType(line,
-                        SyntheticNearestNeighborCountryCodeTag.class,
-                        SyntheticNearestNeighborCountryCodeTag.YES))));
     }
 
     @Test

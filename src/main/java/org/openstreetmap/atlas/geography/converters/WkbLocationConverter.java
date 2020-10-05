@@ -28,7 +28,7 @@ public class WkbLocationConverter implements TwoWayConverter<Location, byte[]>
         }
         catch (final ParseException | ClassCastException e)
         {
-            throw new CoreException("Cannot parse wkb : {}", WKBWriter.toHex(wkb));
+            throw new CoreException("Cannot parse wkb : {}", WKBWriter.toHex(wkb), e);
         }
         return new JtsPointConverter().backwardConvert(geometry);
     }

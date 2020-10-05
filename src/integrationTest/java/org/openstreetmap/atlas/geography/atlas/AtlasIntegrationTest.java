@@ -10,7 +10,7 @@ import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.OsmPbfIngestIntegrationTest;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
 import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasCountrySlicer;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
@@ -57,7 +57,7 @@ public class AtlasIntegrationTest
                 MultiPolygon.forPolygon(polygon)).build();
         if (atlasLoadingOption.isCountrySlicing())
         {
-            atlas = new RawAtlasCountrySlicer(atlasLoadingOption).slice(atlas);
+            atlas = new RawAtlasSlicer(atlasLoadingOption, atlas).slice();
         }
         if (atlasLoadingOption.isWaySectioning())
         {

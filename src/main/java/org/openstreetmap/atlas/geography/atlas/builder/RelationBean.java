@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.builder;
 import java.io.Serializable;
 import java.util.AbstractCollection;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -11,6 +12,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -27,7 +30,7 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
     /**
      * @author matthieun
      */
-    public static class RelationBeanItem implements Serializable
+    public static class RelationBeanItem implements Serializable, Comparable<RelationBeanItem>
     {
         private static final long serialVersionUID = 441160361936498695L;
 
@@ -47,6 +50,21 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
             this.identifier = item.identifier;
             this.role = item.role;
             this.type = item.type;
+        }
+
+        @Override
+        public int compareTo(final RelationBeanItem other)
+        {
+            int result = this.getType().compareTo(other.getType());
+            if (result == 0)
+            {
+                result = Long.compare(this.getIdentifier(), other.getIdentifier());
+            }
+            if (result == 0)
+            {
+                result = this.getRole().compareTo(other.getRole());
+            }
+            return result;
         }
 
         @Override
@@ -227,6 +245,30 @@ public class RelationBean extends AbstractCollection<RelationBeanItem> implement
     public Set<RelationBeanItem> asSet()
     {
         return new HashSet<>(this.asMap().keySet());
+    }
+
+    /**
+     * Get this {@link RelationBean} as a sorted {@link List} of its {@link RelationBeanItem}s.
+     *
+     * @return the item list representing this bean
+     */
+    public List<RelationBeanItem> asSortedList()
+    {
+        final List<RelationBeanItem> result = asList();
+        Collections.sort(result);
+        return result;
+    }
+
+    /**
+     * Get this {@link RelationBean} as a {@link SortedSet} from its constituent
+     * {@link RelationBeanItem}s. This will ignore the fact that a {@link RelationBean} can
+     * technically contain duplicate items.
+     *
+     * @return the set representing this bean
+     */
+    public SortedSet<RelationBeanItem> asSortedSet()
+    {
+        return new TreeSet<>(this.asMap().keySet());
     }
 
     /**

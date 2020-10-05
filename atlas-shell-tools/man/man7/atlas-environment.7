@@ -1,0 +1,147 @@
+.\"     Title: atlas-environment
+.\"    Author: Lucas Cram
+.\"    Source: atlas-shell-tools 1.0.0
+.\"  Language: English
+.\"
+.TH "ATLAS-ENVIRONMENT" "7" "28 September 2020" "atlas\-shell\-tools 1\&.0\&.0" "Atlas Shell Tools Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+
+.SH "NAME"
+.sp
+atlas\-environment \-\- Atlas Shell Tools environment variables
+
+.SH "SYNOPSIS"
+*
+
+.SH "DESCRIPTION"
+.sp
+The following are all environment variables utilized in some way by
+\fBatlas\-shell\-tools\fR(7).
+.sp
+
+\fBATLAS_SHELL_TOOLS_EDITOR\fR
+.sp
+.RS 4
+Use the specified editor when performing tasks that require an editor. This value
+must either be a full path to an editor executable or an executable name that is
+found on the system path. \fBatlas\-shell\-tools\fR(7) will split the value of
+this variable on whitespace to create ARGV, thus you can include editor flags
+and options in the standard way.
+
+\fBatlas\-shell\-tools\fR(7) respects this variable first. If it is not set, it
+will try the system\-global \fBEDITOR\fR variable. If that is also not set, it will
+use a default editor.
+.RE
+.sp
+
+\fBATLAS_SHELL_TOOLS_HOME\fR
+.sp
+.RS 4
+This variable should point to the location of the current \fBatlas\-shell\-tools\fR(7)
+installation. Provided you installed \fBatlas\-shell\-tools\fR(7) in the usual way
+(using the setup scripts), this variable should be automatically set for you in
+your shell startup file.
+
+You can temporarily switch to an alternate installation (e.g. for debugging
+purposes) by resetting this variable. You can also specify a new data directory
+by resetting \fBXDG_DATA_HOME\fR.
+.RE
+.sp
+
+\fBATLAS_SHELL_TOOLS_NO_COLOR\fR
+.sp
+.RS 4
+Disable special formatted output for \fBatlas\-shell\-tools\fR(7) only. See info
+on \fBNO_COLOR\fR for contrast.
+.RE
+.sp
+
+\fBATLAS_SHELL_TOOLS_PAGER\fR
+.sp
+.RS 4
+Use the specified pager when performing tasks that require a pager. This value
+must either be a full path to a pager executable or an executable name that is
+found on the system path. \fBatlas\-shell\-tools\fR(7) will split the value of
+this variable on whitespace to create ARGV, thus you can include pager flags
+and options in the standard way.
+
+\fBatlas\-shell\-tools\fR(7) respects this variable first. If it is not set, it
+will try the system\-global \fBPAGER\fR variable. If that is also not set, it will
+use a default pager.
+.RE
+.sp
+
+\fBATLAS_SHELL_TOOLS_USE_COLOR\fR
+.sp
+.RS 4
+Enable special formatted output. Overrides the settings of \fBNO_COLOR\fR and
+\fBATLAS_SHELL_TOOLS_NO_COLOR\fR.
+.RE
+.sp
+
+\fBEDITOR\fR
+.sp
+.RS 4
+Use the specified editor when performing tasks that require an editor. This value
+must either be a full path to an editor executable or an executable name that is
+found on the system path. \fBatlas\-shell\-tools\fR(7) will split the value of
+this variable on whitespace to create ARGV, thus you can include editor flags
+and options in the standard way.
+
+\fBatlas\-shell\-tools\fR(7) respects the system's \fBEDITOR\fR variable in the
+event that \fBATLAS_SHELL_TOOLS_EDITOR\fR is not set. If neither of these are
+set, it will use a default editor.
+.RE
+.sp
+
+\fBNO_COLOR\fR
+.sp
+.RS 4
+Disable all special formatted output. \fBatlas\-shell\-tools\fR(7) respects this
+variable, as do other popular CLI tools. See <https://no\-color.org>.
+.RE
+.sp
+
+\fBPAGER\fR
+.sp
+.RS 4
+Use the specified pager when performing tasks that require a pager. This value
+must either be a full path to a pager executable or an executable name that is
+found on the system path. \fBatlas\-shell\-tools\fR(7) will split the value of
+this variable on whitespace to create ARGV, thus you can include pager flags
+and options in the standard way.
+
+\fBatlas\-shell\-tools\fR(7) respects the system's \fBPAGER\fR variable in the
+event that \fBATLAS_SHELL_TOOLS_PAGER\fR is not set. If neither of these are
+set, it will use a default pager.
+.RE
+.sp
+
+\fBXDG_DATA_HOME\fR
+.sp
+.RS 4
+\fBatlas\-shell\-tools\fR(7) stores program data in compliance with the XDG Base Directory
+specification, i.e. at $HOME/.local/share/atlas\-shell\-tools. Accordingly, it respects the
+\fBXDG_DATA_HOME\fR environment variable \- if set, \fBatlas\-shell\-tools\fR(7) will store program
+data at the base path specified by that variable. See \fBatlas\-plumbing\fR(5) for
+more information.
+.RE
+.sp
+
+.SH "ATLAS SHELL TOOLS"
+.sp
+Part of the \fBatlas\-shell\-tools\fR(7) suite

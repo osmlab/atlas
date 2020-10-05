@@ -32,7 +32,7 @@ public class WktMultiPolygonConverter extends WkMultiPolygonConverter<String>
             }
             catch (final ParseException e)
             {
-                throw new CoreException("Unable to parse WKT");
+                throw new CoreException("Unable to parse WKT", e);
             }
         }
     };

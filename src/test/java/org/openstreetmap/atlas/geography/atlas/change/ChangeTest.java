@@ -1,12 +1,17 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
+import java.util.HashSet;
+import java.util.Map;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
+import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.utilities.collections.Maps;
@@ -49,6 +54,22 @@ public class ChangeTest extends AbstractChangeTest
         final Area area = (Area) merged.getAfterView();
         Assert.assertEquals(Polygon.TEST_BUILDING, area.asPolygon());
         Assert.assertEquals(Maps.hashMap("key", "value"), area.getTags());
+    }
+
+    @Test
+    public void testAllChangesMappedByAtlasEntityKey()
+    {
+        final CompletePoint point = new CompletePoint(123L, Location.COLOSSEUM, Maps.stringMap(),
+                new HashSet<>());
+        final Change change = ChangeBuilder.newInstance().add(FeatureChange.add(point)).get();
+        final Map<AtlasEntityKey, FeatureChange> allChangesMappedByAtlasEntityKey1 = change
+                .allChangesMappedByAtlasEntityKey();
+        final Map<AtlasEntityKey, FeatureChange> allChangesMappedByAtlasEntityKey2 = change
+                .allChangesMappedByAtlasEntityKey();
+        Assert.assertSame(allChangesMappedByAtlasEntityKey1, allChangesMappedByAtlasEntityKey2);
+        Assert.assertEquals(1, allChangesMappedByAtlasEntityKey1.size());
+        Assert.assertNotNull(
+                allChangesMappedByAtlasEntityKey1.get(new AtlasEntityKey(ItemType.POINT, 123L)));
     }
 
     @Test
@@ -97,5 +118,16 @@ public class ChangeTest extends AbstractChangeTest
 
         Assert.assertNotEquals(changeWithAreaAndLine1, changeWith2Areas1);
         Assert.assertNotEquals(changeWithAreaAndLine1.hashCode(), changeWith2Areas1.hashCode());
+    }
+
+    @Test
+    public void testUnequalAndDifferentHashCodeRelations()
+    {
+        final Change changeRelation1 = newChangeWithRelationMemberSet1();
+        final Change changeRelation2 = newChangeWithRelationMemberSet2();
+
+        Assert.assertNotSame(changeRelation1, changeRelation2);
+        Assert.assertNotEquals(changeRelation1, changeRelation2);
+        Assert.assertNotEquals(changeRelation1.hashCode(), changeRelation2.hashCode());
     }
 }

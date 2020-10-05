@@ -108,11 +108,10 @@ public class MultipleChangeAtlasTest
     {
         resetAndChange("removeAllReverseEdges", new AtlasChangeGeneratorRemoveReverseEdges());
         final long changeAtlasReverseEdges = Iterables
-                .size(this.changeAtlas.edges(edge -> !edge.isMasterEdge()));
+                .size(this.changeAtlas.edges(edge -> !edge.isMainEdge()));
         final long subAtlasReverseEdges = Iterables
-                .size(this.subAtlas.edges(edge -> !edge.isMasterEdge()));
-        final long atlasReverseEdges = Iterables
-                .size(this.atlas.edges(edge -> !edge.isMasterEdge()));
+                .size(this.subAtlas.edges(edge -> !edge.isMainEdge()));
+        final long atlasReverseEdges = Iterables.size(this.atlas.edges(edge -> !edge.isMainEdge()));
         Assert.assertEquals(48, changeAtlasReverseEdges);
         Assert.assertEquals(166, subAtlasReverseEdges);
         // The reverse edges from the subAtlas (marked for removal) plus the ones from the

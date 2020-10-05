@@ -8,10 +8,10 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Collections;
 
-import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.io.FileUtils;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.streaming.NotifyingIOUtils;
 import org.openstreetmap.atlas.streaming.NotifyingIOUtils.IOProgressListener;
 
@@ -87,13 +87,8 @@ public final class Extractor extends AbstractArchiverOrExtractor<Extractor>
      * @param outputDirectory
      *            the destination directory for any extraction operations
      * @return the Extractor instance; useful for chaining method calls
-     * @throws ArchiveException
-     *             if something compression related failed
-     * @throws IOException
-     *             if something I/O related failed
      */
     public static Extractor extractZipArchive(final File outputDirectory)
-            throws ArchiveException, IOException
     {
         if (outputDirectory == null)
         {
@@ -103,7 +98,6 @@ public final class Extractor extends AbstractArchiverOrExtractor<Extractor>
     }
 
     public static Extractor extractZipArchive(final Path outputDirectory)
-            throws ArchiveException, IOException
     {
         if (outputDirectory == null)
         {
@@ -122,7 +116,7 @@ public final class Extractor extends AbstractArchiverOrExtractor<Extractor>
     {
         super(Extractor.class);
         this.outputDirectory = output;
-        setVetoDelegate(new DefaultZipVetoDelegate<Extractor>());
+        setVetoDelegate(new DefaultZipVetoDelegate<>());
     }
 
     @Override
@@ -155,12 +149,10 @@ public final class Extractor extends AbstractArchiverOrExtractor<Extractor>
      * @param inputFile
      *            the zip file we want to extract; must not be null
      * @return the Extractor instance; useful for chaining method calls
-     * @throws ArchiveException
-     *             if something compression related failed
      * @throws IOException
      *             if something I/O related failed
      */
-    public Extractor extract(final File inputFile) throws ArchiveException, IOException
+    public Extractor extract(final File inputFile) throws IOException
     {
         if (inputFile == null)
         {
@@ -187,6 +179,12 @@ public final class Extractor extends AbstractArchiverOrExtractor<Extractor>
             {
                 final File outputFile = new File(this.outputDirectory, current.getName());
 
+                if (current.getName().contains(".."))
+                {
+                    throw new CoreException("Using parent directory not allowed: {}",
+                            current.getName());
+                }
+
                 if (shouldSkip(outputFile))
                 {
                     fireItemSkipped(outputFile);
@@ -197,7 +195,7 @@ public final class Extractor extends AbstractArchiverOrExtractor<Extractor>
                 }
                 else if (current.isDirectory())
                 {
-                    continue;
+                    // Continue
                 }
                 else
                 {
@@ -224,7 +222,7 @@ public final class Extractor extends AbstractArchiverOrExtractor<Extractor>
         return this;
     }
 
-    public Extractor extract(final Path inputPath) throws ArchiveException, IOException
+    public Extractor extract(final Path inputPath) throws IOException
     {
         if (inputPath == null)
         {

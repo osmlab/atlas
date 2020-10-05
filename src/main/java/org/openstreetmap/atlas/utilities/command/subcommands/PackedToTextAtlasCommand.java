@@ -20,6 +20,10 @@ public class PackedToTextAtlasCommand extends AtlasLoaderCommand
 {
     private static final String SAVED_TO = "saved to ";
 
+    private static final String REVERSE_OPTION_LONG = "reverse";
+    private static final Character REVERSE_OPTION_SHORT = 'R';
+    private static final String REVERSE_OPTION_DESCRIPTION = "Convert a text atlas in TextAtlas format (i.e. not GeoJSON) back into a PackedAtlas.";
+
     private static final String GEOJSON_OPTION_LONG = "geojson";
     private static final Character GEOJSON_OPTION_SHORT = 'g';
     private static final String GEOJSON_OPTION_DESCRIPTION = "Save atlas as GeoJSON.";
@@ -71,7 +75,8 @@ public class PackedToTextAtlasCommand extends AtlasLoaderCommand
     @Override
     public void registerOptionsAndArguments()
     {
-        registerEmptyContext(AbstractAtlasShellToolsCommand.DEFAULT_CONTEXT);
+        registerOption(REVERSE_OPTION_LONG, REVERSE_OPTION_SHORT, REVERSE_OPTION_DESCRIPTION,
+                OptionOptionality.OPTIONAL);
         registerOption(GEOJSON_OPTION_LONG, GEOJSON_OPTION_SHORT, GEOJSON_OPTION_DESCRIPTION,
                 OptionOptionality.REQUIRED, GEOJSON_CONTEXT);
         registerOption(LDGEOJSON_OPTION_LONG, LDGEOJSON_OPTION_SHORT, LDGEOJSON_OPTION_DESCRIPTION,
@@ -86,7 +91,7 @@ public class PackedToTextAtlasCommand extends AtlasLoaderCommand
         if (this.optionAndArgumentDelegate.hasVerboseOption())
         {
             this.outputDelegate
-                    .printlnCommandMessage("converting " + atlasResource.getPath() + "...");
+                    .printlnCommandMessage("converting " + atlasResource.getPathString() + "...");
         }
         try
         {
@@ -94,8 +99,8 @@ public class PackedToTextAtlasCommand extends AtlasLoaderCommand
         }
         catch (final Exception exception)
         {
-            this.outputDelegate.printlnErrorMessage("failed to save text file for "
-                    + atlasResource.getPath() + ": " + exception.getMessage());
+            this.outputDelegate.printlnErrorMessage("failed to save file for "
+                    + atlasResource.getPathString() + ": " + exception.getMessage());
         }
     }
 
@@ -109,20 +114,32 @@ public class PackedToTextAtlasCommand extends AtlasLoaderCommand
         if (this.optionAndArgumentDelegate
                 .getParserContext() == AbstractAtlasShellToolsCommand.DEFAULT_CONTEXT)
         {
-            outputFile = new File(concatenatedPath.toAbsolutePath().toString() + FileSuffix.ATLAS
-                    + FileSuffix.TEXT);
-            outputAtlas.saveAsText(outputFile);
+            if (this.optionAndArgumentDelegate.hasOption(REVERSE_OPTION_LONG))
+            {
+                outputFile = new File(
+                        concatenatedPath.toAbsolutePath().toString() + FileSuffix.ATLAS,
+                        this.getFileSystem());
+                outputAtlas.save(outputFile);
+            }
+            else
+            {
+                outputFile = new File(concatenatedPath.toAbsolutePath().toString()
+                        + FileSuffix.ATLAS + FileSuffix.TEXT, this.getFileSystem());
+                outputAtlas.saveAsText(outputFile);
+            }
         }
         else if (this.optionAndArgumentDelegate.getParserContext() == GEOJSON_CONTEXT)
         {
             outputFile = new File(
-                    concatenatedPath.toAbsolutePath().toString() + FileSuffix.GEO_JSON);
+                    concatenatedPath.toAbsolutePath().toString() + FileSuffix.GEO_JSON,
+                    this.getFileSystem());
             outputAtlas.saveAsGeoJson(outputFile);
         }
         else if (this.optionAndArgumentDelegate.getParserContext() == LDGEOJSON_CONTEXT)
         {
             outputFile = new File(
-                    concatenatedPath.toAbsolutePath().toString() + FileSuffix.GEO_JSON);
+                    concatenatedPath.toAbsolutePath().toString() + FileSuffix.GEO_JSON,
+                    this.getFileSystem());
             outputAtlas.saveAsLineDelimitedGeoJsonFeatures(outputFile, (entity, json) ->
             {
                 // Dummy consumer, we don't need to mutate the JSON
@@ -137,7 +154,7 @@ public class PackedToTextAtlasCommand extends AtlasLoaderCommand
         if (this.optionAndArgumentDelegate.hasVerboseOption())
         {
             this.outputDelegate
-                    .printlnCommandMessage(SAVED_TO + outputFile.getFile().getAbsolutePath());
+                    .printlnCommandMessage(SAVED_TO + outputFile.toAbsolutePath().toString());
         }
     }
 }

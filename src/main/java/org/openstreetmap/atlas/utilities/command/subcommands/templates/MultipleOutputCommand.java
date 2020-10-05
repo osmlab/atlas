@@ -1,7 +1,7 @@
 package org.openstreetmap.atlas.utilities.command.subcommands.templates;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
 
 import org.openstreetmap.atlas.streaming.resource.File;
@@ -48,7 +48,7 @@ public abstract class MultipleOutputCommand extends AbstractAtlasShellToolsComma
     public int execute()
     {
         final Optional<Path> outputPathOptional = parseOutputPath();
-        if (!outputPathOptional.isPresent())
+        if (outputPathOptional.isEmpty())
         {
             this.outputDelegate.printlnErrorMessage("invalid output path");
             return 1;
@@ -85,11 +85,11 @@ public abstract class MultipleOutputCommand extends AbstractAtlasShellToolsComma
 
     private Optional<Path> parseOutputPath()
     {
-        final Path outputParentPath = Paths.get(this.optionAndArgumentDelegate
+        final Path outputParentPath = this.getFileSystem().getPath(this.optionAndArgumentDelegate
                 .getOptionArgument(OUTPUT_DIRECTORY_OPTION_LONG).orElse(""));
 
         // If output path already exists and is a file, then fail
-        if (outputParentPath.toAbsolutePath().toFile().isFile())
+        if (Files.isRegularFile(outputParentPath))
         {
             this.outputDelegate.printlnErrorMessage(
                     outputParentPath.toString() + " already exists and is a file");
@@ -97,11 +97,12 @@ public abstract class MultipleOutputCommand extends AbstractAtlasShellToolsComma
         }
 
         // If output path does not exist, create it using 'mkdir -p' behaviour
-        if (!outputParentPath.toAbsolutePath().toFile().exists())
+        if (!Files.exists(outputParentPath))
         {
             try
             {
-                new File(outputParentPath.toAbsolutePath().toString()).mkdirs();
+                new File(outputParentPath.toAbsolutePath().toString(), this.getFileSystem())
+                        .mkdirs();
             }
             catch (final Exception exception)
             {
@@ -112,13 +113,13 @@ public abstract class MultipleOutputCommand extends AbstractAtlasShellToolsComma
         }
 
         // If output path is not writable, fail
-        if (!outputParentPath.toAbsolutePath().toFile().canWrite())
+        if (!Files.isWritable(outputParentPath))
         {
             this.outputDelegate
                     .printlnErrorMessage(outputParentPath.toString() + " is not writable");
             return Optional.empty();
         }
 
-        return Optional.ofNullable(outputParentPath);
+        return Optional.of(outputParentPath);
     }
 }

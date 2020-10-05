@@ -1,10 +1,16 @@
 package org.openstreetmap.atlas.geography.clipping;
 
+import java.util.Optional;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.GeometricObject;
 import org.openstreetmap.atlas.geography.GeometricSurface;
+import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.MultiPolygon;
+import org.openstreetmap.atlas.geography.MultiPolygonTest;
+import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 
 /**
@@ -41,6 +47,20 @@ public class GeometryOperationTest
                     + " 55.4521123 -4.6420173, 55.4518462 -4.6417019, 55.4515222 -4.6414934, 55.4516639 -4.6412474,"
                     + " 55.4524503 -4.6415682, 55.4530565 -4.6416484, 55.4534824 -4.6417286, 55.4531906 -4.6421243,"
                     + " 55.4532925 -4.642429, 55.4546121 -4.6423007, 55.4546357 -4.6419264, 55.455052 -4.6419746))"));
+
+    @Test
+    public void testHuggingPolygons()
+    {
+        final MultiPolygon multiPolygon = MultiPolygonTest.getFrom("testHuggingPolygons.josm.osm",
+                GeometryOperationTest.class);
+        final Optional<GeometricObject> resultOption = GeometryOperation
+                .intersection(multiPolygon.outers());
+        Assert.assertTrue(resultOption.isPresent());
+        final GeometricObject result = resultOption.get();
+        Assert.assertTrue(result instanceof PolyLine && !(result instanceof Polygon));
+        Assert.assertEquals("LINESTRING (5.9349989 43.102859, 5.935294 43.1015547)",
+                ((PolyLine) result).toWkt());
+    }
 
     @Test
     public void testMultiplePolygons()
@@ -85,5 +105,49 @@ public class GeometryOperationTest
                         + " 55.4520144 -4.6430778, 55.4519884 -4.642868, 55.4521828 -4.6425984, 55.452295 -4.6424066,"
                         + " 55.4524513 -4.6423687, 55.4527599 -4.6423107))",
                 result.toWkt());
+    }
+
+    @Test
+    public void testOverlappingPolygonsToMultiPolygon()
+    {
+        final MultiPolygon multiPolygon = MultiPolygonTest.getFrom(
+                "testOverlappingPolygonsToMultiPolygon.josm.osm", GeometryOperationTest.class);
+        final Optional<GeometricObject> resultOption = GeometryOperation
+                .intersection(multiPolygon.outers());
+        Assert.assertTrue(resultOption.isPresent());
+        final GeometricObject result = resultOption.get();
+        Assert.assertTrue(result instanceof MultiPolygon);
+        Assert.assertEquals(
+                "MULTIPOLYGON (((5.9351685 43.1021092, 5.9352199 43.1018822, 5.9347228 43.1019763, 5.9351685 43.1021092)), "
+                        + "((5.9350863 43.1024728, 5.9351358 43.1022541, 5.9344967 43.1023663, 5.9350863 43.1024728)))",
+                ((MultiPolygon) result).toWkt());
+    }
+
+    @Test
+    public void testOverlappingPolygonsToPolygon()
+    {
+        final MultiPolygon multiPolygon = MultiPolygonTest
+                .getFrom("testOverlappingPolygonsToPolygon.josm.osm", GeometryOperationTest.class);
+        final Optional<GeometricObject> resultOption = GeometryOperation
+                .intersection(multiPolygon.outers());
+        Assert.assertTrue(resultOption.isPresent());
+        final GeometricObject result = resultOption.get();
+        Assert.assertTrue(result instanceof Polygon);
+        Assert.assertEquals(
+                "POLYGON ((5.9350863 43.1024728, 5.9351896 43.1020163, 5.9344967 43.1023663, 5.9350863 43.1024728))",
+                ((Polygon) result).toWkt());
+    }
+
+    @Test
+    public void testTouchingPolygons()
+    {
+        final MultiPolygon multiPolygon = MultiPolygonTest.getFrom("testTouchingPolygons.josm.osm",
+                GeometryOperationTest.class);
+        final Optional<GeometricObject> resultOption = GeometryOperation
+                .intersection(multiPolygon.outers());
+        Assert.assertTrue(resultOption.isPresent());
+        final GeometricObject result = resultOption.get();
+        Assert.assertTrue(result instanceof Location);
+        Assert.assertEquals("POINT (5.9349989 43.102859)", ((Location) result).toWkt());
     }
 }

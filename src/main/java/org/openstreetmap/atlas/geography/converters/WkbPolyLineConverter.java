@@ -36,7 +36,7 @@ public class WkbPolyLineConverter implements TwoWayConverter<PolyLine, byte[]>
         }
         catch (final ParseException e)
         {
-            throw new CoreException("Cannot parse wkb : {}", WKBWriter.toHex(wkb));
+            throw new CoreException("Cannot parse wkb : {}", WKBWriter.toHex(wkb), e);
         }
 
         final Coordinate[] coordinates = geometry.getCoordinates();

@@ -77,7 +77,7 @@ public class PagerHelper
                 System.arraycopy(pagerFlags, 0, processBuilderArguments, 1, pagerFlags.length);
             }
             processBuilderArguments[processBuilderArguments.length - 1] = temporaryFile
-                    .getAbsolutePath();
+                    .getAbsolutePathString();
             final ProcessBuilder processBuilder = new ProcessBuilder(processBuilderArguments);
             processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
             processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
