@@ -18,6 +18,8 @@ Projects using Atlas:
 
 For build instructions and to contribute, please see the [contributing guidelines](CONTRIBUTING.md).
 
+Start playing with Atlas directly with [this sample project](/sample)!
+
 # APIs
 
 Language|Level
