@@ -1,5 +1,5 @@
-*/build/
-*/bin/
+**/build/
+**/bin/
 .classpath
 .project
 .settings
@@ -20,6 +20,8 @@
 /bin/
 **/ignored/
 src/generated/
+**/gradle/
+gradlew*
 
 # pyatlas stuff
 *_pb2.py
@@ -30,4 +32,3 @@ __*venv__
 pyatlas/protoc
 pyatlas/doc/*.html
 pyatlas/LICENSE
-
