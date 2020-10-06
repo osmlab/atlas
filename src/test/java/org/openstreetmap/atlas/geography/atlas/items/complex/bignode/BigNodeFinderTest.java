@@ -66,7 +66,7 @@ public class BigNodeFinderTest extends AtlasLoadingCommand
         logger.info("Atlas: {}", atlas);
         final List<BigNode> bigNodes = Iterables.asList(new BigNodeFinder().find(atlas));
         bigNodes.forEach(complexEntity -> logger.info("{}", complexEntity.toString()));
-        Assert.assertEquals("Expect to find 18 Big Nodes for overlap atlas", 18, bigNodes.size());
+        Assert.assertEquals("Expect to find 20 Big Nodes for overlap atlas", 20, bigNodes.size());
 
         final Set<BigNode> dualCarriageWayBigNodes = bigNodes.stream()
                 .filter(bigNode -> bigNode.getType().equals(Type.DUAL_CARRIAGEWAY))
@@ -74,10 +74,10 @@ public class BigNodeFinderTest extends AtlasLoadingCommand
         Assert.assertEquals("Number of Dual Carrriage Way Big Nodes", 1,
                 dualCarriageWayBigNodes.size());
 
-        final Long[] expectedDualCarriageWayNodeIdentifiers = { 4886012999000000L,
-                4886012997000000L, 4886012998000000L, 1029583978000000L, 60382597000000L,
-                4878996908000000L, 1029583896000000L, 60382598000000L, 4886062964000000L,
-                4886062965000000L, 4878996907000000L, 4879025626000000L };
+        final Long[] expectedDualCarriageWayNodeIdentifiers = { 4886012997000000L,
+                4886012998000000L, 1029583978000000L, 60382597000000L, 1029583896000000L,
+                60382598000000L, 4886062964000000L, 4886062965000000L, 4878996907000000L,
+                4879025626000000L };
 
         final Set<Long> dualCarriageWayNodes = dualCarriageWayBigNodes.stream()
                 .flatMap(bigNode -> bigNode.nodes().stream()).map(node -> node.getIdentifier())
