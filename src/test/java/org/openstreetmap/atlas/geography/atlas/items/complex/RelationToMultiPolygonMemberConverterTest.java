@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.items.complex;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -83,12 +84,11 @@ public class RelationToMultiPolygonMemberConverterTest
     public void testRings()
     {
         final List<Polygon> outers = Iterables.asList(OUTER.convert(this.atlas.relation(0)));
-        final Location first = outers.get(0).first();
-        final Location last = outers.get(outers.size() - 1).first();
-        Assert.assertEquals("POINT (-122.028932 37.332451)", first.toString());
-        Assert.assertEquals("POINT (-122.033948 37.32544)", last.toString());
-        Assert.assertTrue(outers.contains(OUTER_LOOP));
-        Assert.assertTrue(outers.contains(INNER_LOOP));
-        Assert.assertEquals(INNER_LOOP, INNER.convert(this.atlas.relation(0)).iterator().next());
+        Assert.assertTrue(outers.stream().map(Polygon::length).collect(Collectors.toList())
+                .contains(OUTER_LOOP.length()));
+        Assert.assertTrue(outers.stream().map(Polygon::length).collect(Collectors.toList())
+                .contains(INNER_LOOP.length()));
+        Assert.assertEquals(INNER_LOOP.length(),
+                INNER.convert(this.atlas.relation(0)).iterator().next().length());
     }
 }

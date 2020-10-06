@@ -132,11 +132,11 @@ public class CountryBoundaryMapTest
                 new InputStreamResource(() -> CountryBoundaryMapTest.class
                         .getResourceAsStream("USA_boundary_reduced.txt")));
         // confirm the duplicated border belongs to the USA
-        Assert.assertEquals(boundaryUSA.all(),
-                map.countryBoundary("USA").get(0).getBoundary().toString());
+        Assert.assertTrue(MultiPolygon.wkt(boundaryUSA.all())
+                .isSimilarTo(map.countryBoundary("USA").get(0).getBoundary()));
         // confirm the duplicated border does not belong to HTI
-        Assert.assertEquals(boundaryHTI.all(),
-                map.countryBoundary("HTI").get(0).getBoundary().toString());
+        Assert.assertTrue(MultiPolygon.wkt(boundaryHTI.all())
+                .isSimilarTo(map.countryBoundary("HTI").get(0).getBoundary()));
     }
 
     @Test
