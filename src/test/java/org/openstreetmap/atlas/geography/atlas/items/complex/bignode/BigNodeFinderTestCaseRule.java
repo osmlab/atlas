@@ -555,6 +555,12 @@ public class BigNodeFinderTestCaseRule extends CoreTestRule
     @TestAtlas(loadFromTextResource = "overmerge.atlas.txt.gz")
     private Atlas overMergeAtlas;
 
+    @TestAtlas(loadFromJosmOsmResource = "dnk-link-road-test.osm")
+    private Atlas dnkAtlas;
+
+    @TestAtlas(loadFromJosmOsmResource = "ukr-link-road-test.osm")
+    private Atlas ukrAtlas;
+
     public Atlas getAtlas()
     {
         return this.atlas;
@@ -563,6 +569,11 @@ public class BigNodeFinderTestCaseRule extends CoreTestRule
     public Atlas getComplexJunctionAtlas()
     {
         return this.complexJunctionAtlas;
+    }
+
+    public Atlas getDNKAtlasToTestExcludeLinkRoadAsDualCarriageWay()
+    {
+        return this.dnkAtlas;
     }
 
     public Atlas getExpandBigNodeAtlas()
@@ -578,5 +589,10 @@ public class BigNodeFinderTestCaseRule extends CoreTestRule
     public Atlas getOverlapAtlas()
     {
         return this.overlapAtlas;
+    }
+
+    public Atlas getUKRAtlasToTestExcludeLinkRoadAsDualCarriageWay()
+    {
+        return this.ukrAtlas;
     }
 }
