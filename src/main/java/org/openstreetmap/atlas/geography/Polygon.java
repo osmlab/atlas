@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
 
+import org.locationtech.jts.algorithm.match.HausdorffSimilarityMeasure;
 import org.locationtech.jts.geom.GeometryCollection;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.triangulate.ConformingDelaunayTriangulationBuilder;
@@ -448,6 +449,13 @@ public class Polygon extends PolyLine implements GeometricSurface
         // Instead of area of polygon this method returns the spherical access as multiplying with
         // Earth (radius) ^ 2 is not going to change the sign of the area
         return sphericalExcess <= 0;
+    }
+
+    public boolean isSimilarTo(final Polygon other)
+    {
+        final double similarity = new HausdorffSimilarityMeasure()
+                .measure(JTS_POLYGON_CONVERTER.convert(this), JTS_POLYGON_CONVERTER.convert(other));
+        return similarity > SIMILARITY_THRESHOLD;
     }
 
     public int nextSegmentIndex(final int currentVertexIndex)
