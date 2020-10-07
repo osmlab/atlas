@@ -104,6 +104,7 @@ public class CountryBoundaryMapPrinterCommand extends AbstractAtlasShellToolsCom
     {
         registerOptionWithRequiredArgument(BOUNDARY_OPTION_LONG, 'b', "Path to the boundary file",
                 OptionOptionality.REQUIRED, "boundary-file");
+        super.registerOptionsAndArguments();
     }
 
     private File getBoundaryFile()
