@@ -362,8 +362,8 @@ public class CountryBoundaryMap implements Serializable, GeoJson
                 if (!Objects.equals(existingValue, value) && logger.isDebugEnabled())
                 {
                     logger.debug(
-                            "Trying to override existing '{}' key's value of '{}' with '{}' for geometry {}",
-                            key, existingValue, value, geometry);
+                            "Trying to override existing '{}' key's value of '{}' with '{}' for geometry with values {}",
+                            key, existingValue, value, propertyMap);
                 }
             }
         }
@@ -437,6 +437,17 @@ public class CountryBoundaryMap implements Serializable, GeoJson
         {
             setGeometryProperty(polygon, ISOCountryTag.KEY, country);
             setGeometryProperty(polygon, POLYGON_ID_KEY, "0");
+            this.rawIndex.insert(polygon.getEnvelopeInternal(), polygon);
+        }
+    }
+
+    public void addCountryWithoutPolygonIdKey(final String country, final Polygon polygon)
+    {
+        this.countryNameToBoundaryMap.add(country, polygon);
+
+        if (this.envelope.intersects(polygon.getEnvelopeInternal()))
+        {
+            setGeometryProperty(polygon, ISOCountryTag.KEY, country);
             this.rawIndex.insert(polygon.getEnvelopeInternal(), polygon);
         }
     }
@@ -1030,7 +1041,7 @@ public class CountryBoundaryMap implements Serializable, GeoJson
                                 setGeometryProperty(geometry, POLYGON_ID_KEY,
                                         String.valueOf(identifier + 1));
                             }
-                            this.addCountry(country, (Polygon) geometry);
+                            this.addCountryWithoutPolygonIdKey(country, (Polygon) geometry);
                         }
                         else if (geometry instanceof org.locationtech.jts.geom.MultiPolygon)
                         {
