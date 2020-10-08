@@ -162,10 +162,13 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
                 member.getType());
         if (oldItem.isPresent())
         {
-            this.members.removeItem(oldItem.get());
+            final RelationBeanItem old = oldItem.get();
+            this.members.removeItem(old);
             final RelationBeanItem newItem = new RelationBeanItem(member.getIdentifier(), role,
                     member.getType());
             this.members.addItem(newItem);
+            this.members.addItemExplicitlyExcluded(member.getIdentifier(), old.getRole(),
+                    member.getType());
         }
         return this;
     }

@@ -176,6 +176,24 @@ public class CompleteRelationTest
     }
 
     @Test
+    public void testMemberIsExplicitlyRemovedWhenRoleSwapped()
+    {
+        final String newRole = "newRole";
+        final String originalRole = "originalRole";
+        final RelationBean members = new RelationBean();
+        final RelationBeanItem originalRelationBeanItem = new RelationBeanItem(1L, originalRole,
+                ItemType.AREA);
+        members.add(originalRelationBeanItem);
+        final CompleteRelation completeRelation = new CompleteRelation(123L, null, null, members,
+                null, null, null, null);
+        completeRelation.changeMemberRole(new CompleteArea(1L, null, null, null), newRole);
+        Assert.assertEquals(1, completeRelation.members().size());
+        Assert.assertEquals(newRole, completeRelation.members().get(0).getRole());
+        Assert.assertTrue(completeRelation.members().asBean().getExplicitlyExcluded()
+                .contains(originalRelationBeanItem));
+    }
+
+    @Test
     public void testNonFullRelationCopy()
     {
         this.expectedException.expect(CoreException.class);
