@@ -12,6 +12,7 @@ import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.converters.WkbMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.WktMultiPolygonConverter;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
+import org.openstreetmap.atlas.tags.filters.RegexTaggableFilter;
 import org.openstreetmap.atlas.tags.filters.TaggableFilter;
 import org.openstreetmap.atlas.utilities.conversion.HexStringByteArrayConverter;
 import org.openstreetmap.atlas.utilities.conversion.StringToPredicateConverter;
@@ -47,6 +48,7 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
     public static final String UNSAFE_PREDICATE_JSON_PROPERTY = "unsafePredicate";
     public static final String IMPORTS_JSON_PROPERTY = "imports";
     public static final String TAGGABLE_FILTER_JSON_PROPERTY = "taggableFilter";
+    public static final String REGEX_TAGGABLE_FILTER_JSON_PROPERTY = "regexTaggableFilter";
     public static final String NO_EXPANSION_JSON_PROPERTY = "noExpansion";
 
     private static final long serialVersionUID = 7503301238426719144L;
@@ -55,6 +57,7 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
     private static final String CONFIGURATION_PREDICATE_UNSAFE_COMMAND = "predicate.unsafeCommand";
     private static final String CONFIGURATION_PREDICATE_IMPORTS = "predicate.imports";
     private static final String CONFIGURATION_TAGGABLE_FILTER = "taggableFilter";
+    private static final String CONFIGURATION_REGEX_TAGGABLE_FILTER = "regexTaggableFilter";
     private static final String CONFIGURATION_WKT_FILTER = "geometry.wkt";
     private static final String CONFIGURATION_WKB_FILTER = "geometry.wkb";
     private static final String CONFIGURATION_HINT_NO_EXPANSION = "hint.noExpansion";
@@ -67,6 +70,7 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
     private transient Predicate<AtlasEntity> filter;
     private final List<String> imports;
     private final String taggableFilter;
+    private final String regexTaggableFilter;
     private final boolean noExpansion;
     private final List<MultiPolygon> geometryBasedFilters;
 
@@ -89,7 +93,8 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
      *                 [
      *                     "...", "..."
      *                 ],
-     *                 "taggableFilter": "..."
+     *                 "taggableFilter": "...",
+     *                 "regexTaggableFilter": "..."
      *             }
      *         }
      *     }
@@ -179,6 +184,8 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
                 Lists.newArrayList());
         this.taggableFilter = reader.configurationValue(configuration,
                 CONFIGURATION_TAGGABLE_FILTER, "");
+        this.regexTaggableFilter = reader.configurationValue(configuration,
+                CONFIGURATION_REGEX_TAGGABLE_FILTER, "");
         this.noExpansion = readBoolean(configuration, reader, CONFIGURATION_HINT_NO_EXPANSION,
                 false);
         this.geometryBasedFilters = readGeometries(configuration, reader);
@@ -230,6 +237,10 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
         if (!this.taggableFilter.isEmpty())
         {
             filterObject.addProperty(TAGGABLE_FILTER_JSON_PROPERTY, this.taggableFilter); // NOSONAR
+        }
+        if (!this.regexTaggableFilter.isEmpty())
+        {
+            filterObject.addProperty(REGEX_TAGGABLE_FILTER_JSON_PROPERTY, this.regexTaggableFilter); // NOSONAR
         }
         filterObject.addProperty(NO_EXPANSION_JSON_PROPERTY, this.noExpansion);
 
@@ -286,9 +297,12 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
             final Predicate<AtlasEntity> localPredicate = localTemporaryPredicate;
             final TaggableFilter localTaggablefilter = TaggableFilter
                     .forDefinition(this.taggableFilter);
+            final RegexTaggableFilter localRegexTaggableFilter = new RegexTaggableFilter(
+                    this.regexTaggableFilter);
             final Predicate<AtlasEntity> geometryPredicate = geometryPredicate();
             this.filter = atlasEntity -> localPredicate.test(atlasEntity)
-                    && localTaggablefilter.test(atlasEntity) && geometryPredicate.test(atlasEntity);
+                    && localTaggablefilter.test(atlasEntity) && geometryPredicate.test(atlasEntity)
+                    && localRegexTaggableFilter.test(atlasEntity);
         }
         return this.filter;
     }
