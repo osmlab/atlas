@@ -158,6 +158,11 @@ public class MultiplePolyLineToPolygonsConverterTest
     @Test
     public void testJtsException()
     {
+        // Based on OSM data taken as of 2020-10-08.
+        // - https://www.openstreetmap.org/relation/3990246 - v8
+        // - outer: https://www.openstreetmap.org/way/300069279 - v30
+        // - inner: https://www.openstreetmap.org/way/358209466 - v6
+        // - inner: https://www.openstreetmap.org/way/304650414 - v9
         final List<PolyLine> list = new ArrayList<>();
         list.add(PolyLine.wkt(new InputStreamResource(
                 () -> MultiplePolyLineToPolygonsConverterTest.class.getResourceAsStream(
