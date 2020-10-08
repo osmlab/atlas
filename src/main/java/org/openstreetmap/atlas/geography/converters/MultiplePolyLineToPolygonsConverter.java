@@ -388,7 +388,6 @@ public class MultiplePolyLineToPolygonsConverter
             final String errorMessage = "Unable to close all the polygons!";
             if (potentialException != null)
             {
-                potentialException.printStackTrace();
                 jtsException = new OpenPolygonException(errorMessage, locations,
                         potentialException);
             }
