@@ -122,7 +122,8 @@ public class JavaToProtoSerializationCommand extends AtlasLoaderCommand
                 // save atlas in place
                 concatenatedPath = Paths.get(atlasResource.getAbsolutePathString());
             }
-            final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
+            final File outputFile = new File(concatenatedPath.toAbsolutePath().toString(),
+                    this.getFileSystem());
             outputAtlas.save(outputFile);
 
             if (this.optionAndArgumentDelegate.hasVerboseOption())

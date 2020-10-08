@@ -1,0 +1,1913 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <bounds minlat='49.9695956' minlon='36.3077212' maxlat='49.9701331' maxlon='36.3107808' origin='CGImap 0.8.3 (1179742 spike-08.openstreetmap.org)' />
+  <node id='256361314' timestamp='2015-03-11T19:16:12Z' uid='420193' user='headlong22' visible='true' version='3' changeset='29412742' lat='49.9639241' lon='36.3330899' />
+  <node id='256361315' timestamp='2019-10-06T18:54:42Z' uid='421494' user='Anton Shevchuk' visible='true' version='4' changeset='75348337' lat='49.9652105' lon='36.326213' />
+  <node id='256361316' timestamp='2015-03-05T19:59:29Z' uid='420193' user='headlong22' visible='true' version='4' changeset='29275114' lat='49.9655942' lon='36.3245482' />
+  <node id='256361317' timestamp='2015-03-05T19:59:29Z' uid='420193' user='headlong22' visible='true' version='3' changeset='29275114' lat='49.9661328' lon='36.322417' />
+  <node id='256361318' timestamp='2020-03-22T14:12:06Z' uid='1730741' user='Sergey Harini' visible='true' version='9' changeset='82484399' lat='49.9672014' lon='36.3183316' />
+  <node id='256361319' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='4' changeset='82481698' lat='49.9684598' lon='36.3142301' />
+  <node id='256592834' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='7' changeset='82481698' lat='49.9698528' lon='36.3069231' />
+  <node id='256592835' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='5' changeset='82481698' lat='49.9700969' lon='36.3072268' />
+  <node id='256592836' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='5' changeset='82481698' lat='49.9701489' lon='36.3074412'>
+    <tag k='highway' v='give_way' />
+  </node>
+  <node id='256592837' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='3' changeset='82481698' lat='49.9701331' lon='36.3077212' />
+  <node id='256936806' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='4' changeset='82481698' lat='49.9705045' lon='36.3065454' />
+  <node id='257750807' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='6' changeset='82481698' lat='49.968904' lon='36.3089158' />
+  <node id='267142033' timestamp='2020-09-27T20:53:07Z' uid='1782528' user='deathDEN' visible='true' version='7' changeset='91597445' lat='49.9664849' lon='36.3211588'>
+    <tag k='bicycle' v='yes' />
+    <tag k='highway' v='traffic_signals' />
+    <tag k='traffic_signals:direction' v='both' />
+  </node>
+  <node id='320221610' timestamp='2020-09-27T20:53:07Z' uid='1782528' user='deathDEN' visible='true' version='6' changeset='91597445' lat='49.9636425' lon='36.3345483'>
+    <tag k='highway' v='traffic_signals' />
+    <tag k='traffic_signals' v='signal' />
+    <tag k='traffic_signals:direction' v='both' />
+  </node>
+  <node id='388306202' timestamp='2020-03-22T14:12:06Z' uid='1730741' user='Sergey Harini' visible='true' version='4' changeset='82484399' lat='49.9675793' lon='36.3168992' />
+  <node id='394141233' timestamp='2020-09-27T20:53:07Z' uid='1782528' user='deathDEN' visible='true' version='6' changeset='91597445' lat='49.965335' lon='36.3255449'>
+    <tag k='highway' v='traffic_signals' />
+    <tag k='traffic_signals' v='signal' />
+    <tag k='traffic_signals:direction' v='both' />
+  </node>
+  <node id='394867165' timestamp='2015-05-14T18:27:59Z' uid='420193' user='headlong22' visible='true' version='3' changeset='31150186' lat='49.9717031' lon='36.310207' />
+  <node id='395286068' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='6' changeset='82481698' lat='49.969094' lon='36.3089815'>
+    <tag k='bus' v='yes' />
+    <tag k='highway' v='bus_stop' />
+    <tag k='name' v='Видавництво &quot;Харків&quot;' />
+    <tag k='public_transport' v='platform' />
+    <tag k='share_taxi' v='yes' />
+    <tag k='trolleybus' v='yes' />
+  </node>
+  <node id='907931888' timestamp='2020-09-27T20:53:07Z' uid='1782528' user='deathDEN' visible='true' version='6' changeset='91597445' lat='49.9649972' lon='36.3273198'>
+    <tag k='crossing' v='traffic_signals' />
+    <tag k='highway' v='traffic_signals' />
+    <tag k='traffic_signals:direction' v='both' />
+  </node>
+  <node id='1001247631' timestamp='2015-03-05T20:14:58Z' uid='420193' user='headlong22' visible='true' version='3' changeset='29275449' lat='49.9663672' lon='36.3215855' />
+  <node id='1215941677' timestamp='2018-02-23T16:45:46Z' uid='7651759' user='Toolen' visible='true' version='2' changeset='56614784' lat='49.9699165' lon='36.3109606' />
+  <node id='1215941711' timestamp='2018-02-23T16:45:46Z' uid='7651759' user='Toolen' visible='true' version='2' changeset='56614784' lat='49.9700214' lon='36.3110442' />
+  <node id='1215941743' timestamp='2018-02-23T16:45:46Z' uid='7651759' user='Toolen' visible='true' version='2' changeset='56614784' lat='49.9702016' lon='36.310497' />
+  <node id='1215941802' timestamp='2018-02-23T16:45:46Z' uid='7651759' user='Toolen' visible='true' version='2' changeset='56614784' lat='49.9700966' lon='36.3104135' />
+  <node id='1822129267' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='3' changeset='82481698' lat='49.9700041' lon='36.3070681' />
+  <node id='1875661311' timestamp='2019-10-08T16:06:24Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75422223' lat='49.9692651' lon='36.3125572' />
+  <node id='1875661561' timestamp='2019-10-08T16:06:24Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75422223' lat='49.9694781' lon='36.311722' />
+  <node id='1875661639' timestamp='2019-10-08T16:06:24Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75422223' lat='49.9695211' lon='36.3117631' />
+  <node id='1875661705' timestamp='2019-10-08T16:06:24Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75422223' lat='49.9695601' lon='36.3128162' />
+  <node id='1875661907' timestamp='2019-10-08T16:06:24Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75422223' lat='49.9697862' lon='36.3107542' />
+  <node id='1875661978' timestamp='2019-10-08T16:06:24Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75422223' lat='49.9698352' lon='36.3107961' />
+  <node id='1875662052' timestamp='2019-10-08T16:06:24Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75422223' lat='49.9699281' lon='36.3103391' />
+  <node id='1875662079' timestamp='2019-10-08T16:06:24Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75422223' lat='49.9699661' lon='36.3103771' />
+  <node id='1875662266' timestamp='2019-10-08T16:06:24Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75422223' lat='49.9701597' lon='36.3097222' />
+  <node id='1875662399' timestamp='2019-10-08T16:06:24Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75422223' lat='49.970351' lon='36.310368' />
+  <node id='1875663044' timestamp='2019-10-08T16:06:24Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75422223' lat='49.971175' lon='36.3106702' />
+  <node id='1875663091' timestamp='2019-10-08T16:06:24Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75422223' lat='49.9712442' lon='36.3101802' />
+  <node id='1994136765' timestamp='2020-03-22T14:56:00Z' uid='1730741' user='Sergey Harini' visible='true' version='4' changeset='82485517' lat='49.9695492' lon='36.3085891' />
+  <node id='1994136766' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='3' changeset='82481698' lat='49.9700852' lon='36.307882' />
+  <node id='1994136767' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82481698' lat='49.9697041' lon='36.3085727' />
+  <node id='1994136769' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='3' changeset='82481698' lat='49.9698325' lon='36.30852' />
+  <node id='1994136773' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82481698' lat='49.9699313' lon='36.3083914' />
+  <node id='2278582488' timestamp='2020-03-22T14:56:00Z' uid='1730741' user='Sergey Harini' visible='true' version='4' changeset='82485517' lat='49.9703609' lon='36.3085443' />
+  <node id='2278582517' timestamp='2020-03-22T15:13:50Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82485957' lat='49.9676723' lon='36.3170871' />
+  <node id='2278582592' timestamp='2013-04-23T17:21:20Z' uid='540071' user='bakasana' visible='true' version='1' changeset='15839422' lat='49.9718997' lon='36.3102725' />
+  <node id='2278582598' timestamp='2013-04-23T17:21:20Z' uid='540071' user='bakasana' visible='true' version='1' changeset='15839422' lat='49.9716116' lon='36.3099416' />
+  <node id='2278582609' timestamp='2013-04-23T17:21:20Z' uid='540071' user='bakasana' visible='true' version='1' changeset='15839422' lat='49.9712165' lon='36.3099308' />
+  <node id='2278582611' timestamp='2013-04-23T17:21:20Z' uid='540071' user='bakasana' visible='true' version='1' changeset='15839422' lat='49.9713977' lon='36.310022' />
+  <node id='2278582615' timestamp='2013-04-23T17:21:20Z' uid='540071' user='bakasana' visible='true' version='1' changeset='15839422' lat='49.971496' lon='36.3098638' />
+  <node id='2278582700' timestamp='2020-03-22T14:12:06Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82484399' lat='49.9690129' lon='36.3129296' />
+  <node id='2278582703' timestamp='2015-03-12T19:34:26Z' uid='420193' user='headlong22' visible='true' version='2' changeset='29433471' lat='49.9695692' lon='36.3112914' />
+  <node id='2278582776' timestamp='2020-03-22T14:56:00Z' uid='1730741' user='Sergey Harini' visible='true' version='5' changeset='82485517' lat='49.9703992' lon='36.3088372' />
+  <node id='2278582817' timestamp='2015-03-12T19:13:30Z' uid='420193' user='headlong22' visible='true' version='2' changeset='29432966' lat='49.9716592' lon='36.3100955' />
+  <node id='2278582831' timestamp='2019-10-02T14:06:20Z' uid='421494' user='Anton Shevchuk' visible='true' version='2' changeset='75189911' lat='49.9701049' lon='36.3096318' />
+  <node id='2278582836' timestamp='2013-04-23T17:21:24Z' uid='540071' user='bakasana' visible='true' version='1' changeset='15839422' lat='49.9701418' lon='36.3096626' />
+  <node id='2278582837' timestamp='2013-04-23T17:21:24Z' uid='540071' user='bakasana' visible='true' version='1' changeset='15839422' lat='49.9702435' lon='36.3096653' />
+  <node id='2278582841' timestamp='2013-04-23T17:21:24Z' uid='540071' user='bakasana' visible='true' version='1' changeset='15839422' lat='49.9705316' lon='36.309727' />
+  <node id='2278582853' timestamp='2013-04-23T17:21:24Z' uid='540071' user='bakasana' visible='true' version='1' changeset='15839422' lat='49.9715771' lon='36.3098933' />
+  <node id='2462601889' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='6' changeset='82481698' lat='49.9699742' lon='36.309622'>
+    <tag k='crossing' v='traffic_signals' />
+    <tag k='highway' v='crossing' />
+  </node>
+  <node id='2462601938' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='6' changeset='82481698' lat='49.9700787' lon='36.3097078' />
+  <node id='3297128912' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82481698' lat='49.9701289' lon='36.3073299'>
+    <tag k='crossing' v='marked' />
+    <tag k='highway' v='crossing' />
+  </node>
+  <node id='3384933761' timestamp='2015-03-05T19:59:26Z' uid='420193' user='headlong22' visible='true' version='1' changeset='29275114' lat='49.9659861' lon='36.3230058' />
+  <node id='3391488463' timestamp='2020-03-22T15:13:50Z' uid='1730741' user='Sergey Harini' visible='true' version='3' changeset='82485957' lat='49.9673219' lon='36.3183467' />
+  <node id='3394184260' timestamp='2019-10-06T15:20:06Z' uid='421494' user='Anton Shevchuk' visible='true' version='5' changeset='75343488' lat='49.9636852' lon='36.3343105'>
+    <tag k='crossing' v='marked' />
+    <tag k='highway' v='crossing' />
+  </node>
+  <node id='3395794789' timestamp='2020-03-22T14:12:06Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82484399' lat='49.9716321' lon='36.3099851' />
+  <node id='3395844877' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='3' changeset='82481698' lat='49.9691693' lon='36.3120767'>
+    <tag k='bus' v='yes' />
+    <tag k='name' v='Видавництво &quot;Харків&quot;' />
+    <tag k='public_transport' v='stop_position' />
+    <tag k='share_taxi' v='yes' />
+    <tag k='trolleybus' v='yes' />
+  </node>
+  <node id='3395844882' timestamp='2020-01-17T12:20:12Z' uid='4945863' user='Bodya69' visible='true' version='3' changeset='79696484' lat='49.9692765' lon='36.3121552'>
+    <tag k='bus' v='yes' />
+    <tag k='highway' v='bus_stop' />
+    <tag k='name' v='Видавництво &quot;Харків&quot;' />
+    <tag k='public_transport' v='platform' />
+    <tag k='share_taxi' v='yes' />
+    <tag k='trolleybus' v='yes' />
+  </node>
+  <node id='3395844884' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='5' changeset='82481698' lat='49.9695079' lon='36.3093252' />
+  <node id='3395844886' timestamp='2015-03-12T19:34:22Z' uid='420193' user='headlong22' visible='true' version='1' changeset='29433471' lat='49.9697572' lon='36.3107082' />
+  <node id='5380737766' timestamp='2019-10-02T14:06:20Z' uid='421494' user='Anton Shevchuk' visible='true' version='2' changeset='75189911' lat='49.9728084' lon='36.3002129' />
+  <node id='5380737767' timestamp='2019-10-02T14:06:20Z' uid='421494' user='Anton Shevchuk' visible='true' version='2' changeset='75189911' lat='49.9726587' lon='36.3000773' />
+  <node id='5380737768' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='4' changeset='75422833' lat='49.9699966' lon='36.3083724' />
+  <node id='5380737769' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='4' changeset='75422833' lat='49.9702004' lon='36.3084843' />
+  <node id='5533296016' timestamp='2019-10-02T14:06:20Z' uid='421494' user='Anton Shevchuk' visible='true' version='2' changeset='75189911' lat='49.9727973' lon='36.3000005' />
+  <node id='5533296017' timestamp='2019-10-02T14:06:20Z' uid='421494' user='Anton Shevchuk' visible='true' version='2' changeset='75189911' lat='49.972831' lon='36.3001005' />
+  <node id='5533296018' timestamp='2019-10-02T14:06:20Z' uid='421494' user='Anton Shevchuk' visible='true' version='2' changeset='75189911' lat='49.9727275' lon='36.2999774' />
+  <node id='5533296019' timestamp='2019-10-02T14:06:20Z' uid='421494' user='Anton Shevchuk' visible='true' version='2' changeset='75189911' lat='49.9726885' lon='36.3000204' />
+  <node id='5533296020' timestamp='2019-10-02T14:06:20Z' uid='421494' user='Anton Shevchuk' visible='true' version='2' changeset='75189911' lat='49.9728237' lon='36.3001593' />
+  <node id='5533298821' timestamp='2019-10-02T14:06:20Z' uid='421494' user='Anton Shevchuk' visible='true' version='2' changeset='75189911' lat='49.9728256' lon='36.3000453' />
+  <node id='5533298822' timestamp='2019-10-02T14:06:20Z' uid='421494' user='Anton Shevchuk' visible='true' version='2' changeset='75189911' lat='49.972765' lon='36.2999817' />
+  <node id='5533298846' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75422833' lat='49.9700688' lon='36.3085891' />
+  <node id='5533298847' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75422833' lat='49.9701427' lon='36.308576' />
+  <node id='5533298848' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75422833' lat='49.9700133' lon='36.3085536' />
+  <node id='5533298849' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75422833' lat='49.9699831' lon='36.3084243' />
+  <node id='5533298850' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75422833' lat='49.9700388' lon='36.3085726' />
+  <node id='5533298851' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75422833' lat='49.9701026' lon='36.308595' />
+  <node id='5533298852' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75422833' lat='49.970175' lon='36.3085358' />
+  <node id='6004666902' timestamp='2019-10-06T18:54:42Z' uid='421494' user='Anton Shevchuk' visible='true' version='2' changeset='75348337' lat='49.9650258' lon='36.3271491'>
+    <tag k='crossing' v='marked' />
+    <tag k='highway' v='crossing' />
+  </node>
+  <node id='6004666905' timestamp='2019-10-21T13:20:41Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75998523' lat='49.96496' lon='36.3274977'>
+    <tag k='crossing' v='marked' />
+    <tag k='highway' v='crossing' />
+  </node>
+  <node id='6113014083' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='4' changeset='82481698' lat='49.9699544' lon='36.3085772' />
+  <node id='6113014084' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='4' changeset='82481698' lat='49.9700605' lon='36.3086798' />
+  <node id='6113014885' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='4' changeset='82481698' lat='49.9700929' lon='36.3086844' />
+  <node id='6113014886' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='4' changeset='82481698' lat='49.970198' lon='36.3086723' />
+  <node id='6113014889' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='4' changeset='82481698' lat='49.9696939' lon='36.3091057' />
+  <node id='6113014891' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='4' changeset='82481698' lat='49.9698089' lon='36.3092891' />
+  <node id='6113014893' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='4' changeset='82481698' lat='49.9699095' lon='36.3093237' />
+  <node id='6113014894' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='5' changeset='82481698' lat='49.9701515' lon='36.3091159' />
+  <node id='6113014895' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='4' changeset='82481698' lat='49.9695956' lon='36.3107808' />
+  <node id='6113014897' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='5' changeset='82481698' lat='49.9698494' lon='36.3095583'>
+    <tag k='crossing' v='traffic_signals' />
+    <tag k='highway' v='crossing' />
+  </node>
+  <node id='6113014898' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='6' changeset='82481698' lat='49.9698465' lon='36.3095088' />
+  <node id='6113014901' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='5' changeset='82481698' lat='49.9696074' lon='36.3093897'>
+    <tag k='crossing' v='traffic_signals' />
+    <tag k='highway' v='crossing' />
+  </node>
+  <node id='6113014902' timestamp='2019-10-02T14:06:20Z' uid='421494' user='Anton Shevchuk' visible='true' version='2' changeset='75189911' lat='49.9701209' lon='36.3087915' />
+  <node id='6113014903' timestamp='2019-10-02T14:06:20Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75189911' lat='49.9699978' lon='36.3092036' />
+  <node id='6113014904' timestamp='2019-10-02T14:06:20Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75189911' lat='49.9699425' lon='36.3092291' />
+  <node id='6113014905' timestamp='2019-10-02T14:06:20Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75189911' lat='49.9698932' lon='36.3092313' />
+  <node id='6113014906' timestamp='2019-10-02T14:06:20Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75189911' lat='49.9698412' lon='36.3091792' />
+  <node id='6113014907' timestamp='2019-10-02T14:06:20Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75189911' lat='49.9698093' lon='36.3091402' />
+  <node id='6113014908' timestamp='2019-10-02T14:06:20Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75189911' lat='49.9697931' lon='36.3091018' />
+  <node id='6113014909' timestamp='2019-10-02T14:06:20Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75189911' lat='49.9697837' lon='36.3090205' />
+  <node id='6113014910' timestamp='2019-10-02T14:06:20Z' uid='421494' user='Anton Shevchuk' visible='true' version='2' changeset='75189911' lat='49.9698964' lon='36.3086559' />
+  <node id='6113014911' timestamp='2019-10-02T14:06:20Z' uid='421494' user='Anton Shevchuk' visible='true' version='2' changeset='75189911' lat='49.9699548' lon='36.3087237' />
+  <node id='6113014912' timestamp='2019-10-02T14:06:20Z' uid='421494' user='Anton Shevchuk' visible='true' version='2' changeset='75189911' lat='49.9700002' lon='36.308761' />
+  <node id='6113014913' timestamp='2019-10-02T14:06:20Z' uid='421494' user='Anton Shevchuk' visible='true' version='2' changeset='75189911' lat='49.9700659' lon='36.3087834' />
+  <node id='6113014917' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='3' changeset='82481698' lat='49.9694321' lon='36.309943' />
+  <node id='6113034279' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='4' changeset='82481698' lat='49.9697911' lon='36.3088076'>
+    <tag k='highway' v='traffic_signals' />
+    <tag k='traffic_signals' v='signal' />
+    <tag k='traffic_signals:direction' v='forward' />
+  </node>
+  <node id='6113049174' timestamp='2020-03-23T17:20:20Z' uid='1730741' user='Sergey Harini' visible='true' version='4' changeset='82533843' lat='49.969947' lon='36.3094044' />
+  <node id='6113049176' timestamp='2020-03-23T17:20:20Z' uid='1730741' user='Sergey Harini' visible='true' version='4' changeset='82533843' lat='49.9698668' lon='36.3093777' />
+  <node id='6113049177' timestamp='2020-03-23T17:20:20Z' uid='1730741' user='Sergey Harini' visible='true' version='4' changeset='82533843' lat='49.9698744' lon='36.3095271' />
+  <node id='6844719020' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='4' changeset='82481698' lat='49.9694564' lon='36.3090248' />
+  <node id='6844719021' timestamp='2020-03-22T14:56:00Z' uid='1730741' user='Sergey Harini' visible='true' version='5' changeset='82485517' lat='49.969517' lon='36.308586' />
+  <node id='6844719022' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82481698' lat='49.9696247' lon='36.3075462' />
+  <node id='6844719024' timestamp='2020-03-23T17:20:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82533843' lat='49.9698654' lon='36.309381' />
+  <node id='6844719025' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82481698' lat='49.9698486' lon='36.3096526'>
+    <tag k='highway' v='traffic_signals' />
+    <tag k='traffic_signals' v='signal' />
+    <tag k='traffic_signals:direction' v='forward' />
+  </node>
+  <node id='6844719026' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82481698' lat='49.9699012' lon='36.3095643' />
+  <node id='6844719027' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='3' changeset='82481698' lat='49.9697596' lon='36.3085567'>
+    <tag k='crossing' v='marked' />
+    <tag k='highway' v='crossing' />
+  </node>
+  <node id='6844719028' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='4' changeset='82481698' lat='49.9695911' lon='36.3090623'>
+    <tag k='highway' v='crossing' />
+  </node>
+  <node id='6844719029' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82481698' lat='49.96994' lon='36.3097214'>
+    <tag k='highway' v='traffic_signals' />
+    <tag k='traffic_signals' v='signal' />
+    <tag k='traffic_signals:direction' v='forward' />
+  </node>
+  <node id='6844719031' timestamp='2019-10-02T14:06:20Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75189911' lat='49.9710846' lon='36.3056108' />
+  <node id='6844719032' timestamp='2019-10-02T14:06:20Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75189911' lat='49.9719072' lon='36.3030432' />
+  <node id='6844719033' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82481698' lat='49.9698172' lon='36.3095555' />
+  <node id='6844719034' timestamp='2020-03-23T17:20:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82533843' lat='49.9696472' lon='36.3094556' />
+  <node id='6844822664' timestamp='2019-10-21T13:20:41Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75998523' lat='49.9653733' lon='36.3253984'>
+    <tag k='crossing' v='marked' />
+    <tag k='highway' v='crossing' />
+  </node>
+  <node id='6844822668' timestamp='2019-10-21T13:20:41Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75998523' lat='49.9652938' lon='36.3257659'>
+    <tag k='crossing' v='marked' />
+    <tag k='highway' v='crossing' />
+  </node>
+  <node id='6855551842' timestamp='2020-03-23T17:20:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82533843' lat='49.9698178' lon='36.3095891' />
+  <node id='6855551845' timestamp='2019-10-06T15:42:19Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75344066' lat='49.9675411' lon='36.315941' />
+  <node id='6855551846' timestamp='2019-10-06T15:42:19Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75344066' lat='49.9672875' lon='36.3167698' />
+  <node id='6855551847' timestamp='2019-10-06T15:42:19Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75344066' lat='49.9664024' lon='36.3200609' />
+  <node id='6855551848' timestamp='2019-10-06T15:42:19Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75344066' lat='49.9664024' lon='36.3201896' />
+  <node id='6855551849' timestamp='2019-10-06T15:42:19Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75344066' lat='49.9662541' lon='36.3207395' />
+  <node id='6855551850' timestamp='2019-10-06T15:42:19Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75344066' lat='49.9662489' lon='36.3208253' />
+  <node id='6855551851' timestamp='2019-10-06T15:42:19Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75344066' lat='49.966273' lon='36.3208843' />
+  <node id='6855551852' timestamp='2019-10-06T15:42:19Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75344066' lat='49.9663748' lon='36.320946' />
+  <node id='6855551853' timestamp='2019-10-06T15:42:19Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75344066' lat='49.9664111' lon='36.3209433' />
+  <node id='6855551854' timestamp='2019-10-06T15:42:19Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75344066' lat='49.9664576' lon='36.3208977' />
+  <node id='6855551855' timestamp='2019-10-06T15:42:19Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75344066' lat='49.967517' lon='36.3168878' />
+  <node id='6855551856' timestamp='2019-10-06T15:42:19Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75344066' lat='49.9689178' lon='36.3126178' />
+  <node id='6855551857' timestamp='2019-10-06T15:42:19Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75344066' lat='49.9695682' lon='36.3106302' />
+  <node id='6855551858' timestamp='2019-10-06T15:42:19Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75344066' lat='49.9695941' lon='36.3104318' />
+  <node id='6855551859' timestamp='2019-10-06T15:42:19Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75344066' lat='49.9697356' lon='36.310008' />
+  <node id='6855551860' timestamp='2019-10-06T15:42:19Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75344066' lat='49.9697839' lon='36.3098309' />
+  <node id='6855551861' timestamp='2019-10-06T15:42:19Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75344066' lat='49.9698184' lon='36.3096432' />
+  <node id='6855577788' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82481698' lat='49.9699865' lon='36.30781'>
+    <tag k='crossing' v='marked' />
+    <tag k='highway' v='crossing' />
+  </node>
+  <node id='6855876345' timestamp='2019-10-06T18:54:42Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75348337' lat='49.9641228' lon='36.3320173' />
+  <node id='6855876346' timestamp='2019-10-06T18:54:42Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75348337' lat='49.9645614' lon='36.3296493' />
+  <node id='6855876351' timestamp='2019-10-06T18:54:42Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75348337' lat='49.9643329' lon='36.3308826' />
+  <node id='6860854797' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82481698' lat='49.9696567' lon='36.3092336' />
+  <node id='6860854798' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82481698' lat='49.9697878' lon='36.3092403' />
+  <node id='6860854800' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82481698' lat='49.9699771' lon='36.309329' />
+  <node id='6860854801' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82481698' lat='49.9700268' lon='36.3093035' />
+  <node id='6860854802' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82481698' lat='49.9695483' lon='36.309193'>
+    <tag k='highway' v='crossing' />
+  </node>
+  <node id='6860854804' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82481698' lat='49.9694872' lon='36.3091695'>
+    <tag k='highway' v='traffic_signals' />
+    <tag k='traffic_signals' v='signal' />
+    <tag k='traffic_signals:direction' v='forward' />
+  </node>
+  <node id='6860854805' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82481698' lat='49.9696127' lon='36.3089992' />
+  <node id='6860854806' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82481698' lat='49.9696367' lon='36.309076' />
+  <node id='6860854808' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82481698' lat='49.9699968' lon='36.3086426' />
+  <node id='6860854810' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='3' changeset='82481698' lat='49.9689475' lon='36.3086004' />
+  <node id='6860854811' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='3' changeset='82481698' lat='49.9690989' lon='36.3084464' />
+  <node id='6860854812' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75422833' lat='49.9699832' lon='36.3085245' />
+  <node id='6860854813' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75422833' lat='49.9699766' lon='36.3084785' />
+  <node id='6860854814' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75422833' lat='49.9679894' lon='36.315643' />
+  <node id='6860854815' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75422833' lat='49.9697131' lon='36.3086361' />
+  <node id='6860854816' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75422833' lat='49.9695906' lon='36.3090384' />
+  <node id='6860854817' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75422833' lat='49.9694991' lon='36.3090492' />
+  <node id='6860854818' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75422833' lat='49.9695371' lon='36.3087783' />
+  <node id='6860854819' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75422833' lat='49.9695578' lon='36.3087059' />
+  <node id='6860854820' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75422833' lat='49.9696026' lon='36.3086495' />
+  <node id='6862476864' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82481698' lat='49.9697382' lon='36.3086184' />
+  <node id='6862476865' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82481698' lat='49.9697776' lon='36.3084986' />
+  <node id='6862476866' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528' lat='49.9697919' lon='36.3086194' />
+  <node id='6862476867' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528' lat='49.9696661' lon='36.3090292' />
+  <node id='6862476868' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528' lat='49.9696255' lon='36.3090353' />
+  <node id='6862476869' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528' lat='49.9697543' lon='36.3086286' />
+  <node id='6862476872' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528' lat='49.9697907' lon='36.3084009' />
+  <node id='6862476873' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528' lat='49.9697577' lon='36.3085142' />
+  <node id='6862476874' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528' lat='49.9696553' lon='36.308569' />
+  <node id='6862476875' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528' lat='49.969546' lon='36.3085779' />
+  <node id='6862476876' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528' lat='49.9690258' lon='36.3083532' />
+  <node id='6862476877' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528' lat='49.9689553' lon='36.3083744' />
+  <node id='6862476878' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528' lat='49.9688642' lon='36.3084222' />
+  <node id='6862476879' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528' lat='49.9688278' lon='36.308493' />
+  <node id='6862476880' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528' lat='49.9688073' lon='36.3086097' />
+  <node id='6862476881' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528' lat='49.9688505' lon='36.3086982' />
+  <node id='6862476882' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528' lat='49.9688426' lon='36.3087531' />
+  <node id='6862476883' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528' lat='49.9688107' lon='36.308792' />
+  <node id='6862476884' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528' lat='49.9687583' lon='36.3087442' />
+  <node id='6862497385' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528' lat='49.968706' lon='36.3086257' />
+  <node id='6862497386' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528' lat='49.9686809' lon='36.3085053' />
+  <node id='6862497387' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528' lat='49.9686821' lon='36.3083213' />
+  <node id='6862497388' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528' lat='49.9687504' lon='36.3081567' />
+  <node id='6862497389' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528' lat='49.9688437' lon='36.30807' />
+  <node id='6862497390' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528' lat='49.9689792' lon='36.308047' />
+  <node id='7128002665' timestamp='2020-01-13T09:31:26Z' uid='4464045' user='Anton Melnichuk' visible='true' version='1' changeset='79507850' lat='49.9638232' lon='36.3336055'>
+    <tag k='bus' v='yes' />
+    <tag k='name' v='пр. Московський' />
+    <tag k='public_transport' v='stop_position' />
+    <tag k='trolleybus' v='yes' />
+  </node>
+  <node id='7128002666' timestamp='2020-01-13T09:31:26Z' uid='4464045' user='Anton Melnichuk' visible='true' version='1' changeset='79507850' lat='49.9651107' lon='36.326719'>
+    <tag k='bus' v='yes' />
+    <tag k='name' v='вул. Василя Мельникова' />
+    <tag k='public_transport' v='stop_position' />
+    <tag k='trolleybus' v='yes' />
+  </node>
+  <node id='7128002668' timestamp='2020-01-13T09:31:26Z' uid='4464045' user='Anton Melnichuk' visible='true' version='1' changeset='79507850' lat='49.9669579' lon='36.3192713'>
+    <tag k='bus' v='yes' />
+    <tag k='name' v='ст.метро Палац Спорту' />
+    <tag k='public_transport' v='stop_position' />
+    <tag k='trolleybus' v='yes' />
+  </node>
+  <node id='7319248285' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9698498' lon='36.3096054' />
+  <node id='7319248286' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9698181' lon='36.309819' />
+  <node id='7319248287' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.969731' lon='36.3101221' />
+  <node id='7319248288' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9698298' lon='36.3097725' />
+  <node id='7319248289' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9698375' lon='36.3097383' />
+  <node id='7319248290' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9698421' lon='36.3097119' />
+  <node id='7319248291' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9698458' lon='36.3096795' />
+  <node id='7319248292' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9696729' lon='36.3103018' />
+  <node id='7319248293' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9696466' lon='36.3104017' />
+  <node id='7319248294' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9696233' lon='36.3105288' />
+  <node id='7319248295' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.969614' lon='36.3106038' />
+  <node id='7319248296' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9696066' lon='36.3106656' />
+  <node id='7319248297' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9696331' lon='36.3104681' />
+  <node id='7319248298' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9696579' lon='36.3103518' />
+  <node id='7319248313' timestamp='2020-03-22T14:56:00Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82485517' lat='49.9695924' lon='36.3085883' />
+  <node id='7319248314' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9698041' lon='36.3085383' />
+  <node id='7319248319' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9690779' lon='36.3084421' />
+  <node id='7319248320' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9690415' lon='36.3084447' />
+  <node id='7319248321' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9690198' lon='36.3084531' />
+  <node id='7319248322' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9690032' lon='36.3084662' />
+  <node id='7319248323' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9689891' lon='36.3084822' />
+  <node id='7319248324' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9689749' lon='36.3085053' />
+  <node id='7319248325' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9689612' lon='36.3085386' />
+  <node id='7319248326' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9689534' lon='36.3085652' />
+  <node id='7319248327' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9690588' lon='36.3084424' />
+  <node id='7319248328' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9699538' lon='36.3093314' />
+  <node id='7319248329' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9700503' lon='36.3092797' />
+  <node id='7319248330' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9700773' lon='36.3092436' />
+  <node id='7319248331' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9698432' lon='36.3094615' />
+  <node id='7319248332' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9698371' lon='36.3094068' />
+  <node id='7319248333' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9698307' lon='36.3093698' />
+  <node id='7319248334' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9698216' lon='36.3093323' />
+  <node id='7319248335' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9696542' lon='36.3094258' />
+  <node id='7319248336' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9697634' lon='36.3091894' />
+  <node id='7319248337' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9697392' lon='36.309154' />
+  <node id='7319248338' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9696695' lon='36.3090901' />
+  <node id='7319248339' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9697166' lon='36.3091255' />
+  <node id='7319248396' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9701129' lon='36.3072762' />
+  <node id='7319248397' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9700763' lon='36.3071768' />
+  <node id='7319248398' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9700558' lon='36.3071388' />
+  <node id='7319248399' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9699223' lon='36.3069846' />
+  <node id='7319248400' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9699669' lon='36.3070262' />
+  <node id='7319248401' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9700318' lon='36.3071042' />
+  <node id='7319248402' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.970152' lon='36.3075169' />
+  <node id='7319248403' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9701485' lon='36.307584' />
+  <node id='7319248404' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9701422' lon='36.3076483' />
+  <node id='7319248405' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9701398' lon='36.3073841' />
+  <node id='7319248442' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9701002' lon='36.3092065' />
+  <node id='7319248443' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9700292' lon='36.3086672' />
+  <node id='7319248444' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9699727' lon='36.3086151' />
+  <node id='7319248445' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9699355' lon='36.3084909' />
+  <node id='7319248446' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9699326' lon='36.3084457' />
+  <node id='7319248447' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9699437' lon='36.3085366' />
+  <node id='7319248448' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9698561' lon='36.3084979' />
+  <node id='7319248449' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9698759' lon='36.3084751' />
+  <node id='7319248450' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9698974' lon='36.3084471' />
+  <node id='7319248451' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9699316' lon='36.3093289' />
+  <node id='7319248452' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9699351' lon='36.3095911' />
+  <node id='7319248453' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.969689' lon='36.3103783' />
+  <node id='7319248454' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9696631' lon='36.3104648' />
+  <node id='7319248455' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9696393' lon='36.3105553' />
+  <node id='7319248456' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9696206' lon='36.3106478' />
+  <node id='7319248457' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9700131' lon='36.309316' />
+  <node id='7319248458' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9699951' lon='36.309324' />
+  <node id='7319248459' timestamp='2020-03-22T14:56:00Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82485517' lat='49.9701403' lon='36.3086841' />
+  <node id='7319248460' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698' lat='49.9701143' lon='36.308685' />
+  <node id='7319248461' timestamp='2020-03-22T14:56:00Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82485517' lat='49.9701665' lon='36.3086814' />
+  <node id='7319336774' timestamp='2020-03-22T14:12:06Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82484399' lat='49.9674118' lon='36.3174961' />
+  <node id='7319336775' timestamp='2020-03-22T14:12:06Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82484399' lat='49.9674994' lon='36.3171686' />
+  <node id='7319336776' timestamp='2020-03-22T14:12:06Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82484399' lat='49.9675298' lon='36.3170606' />
+  <node id='7319336782' timestamp='2020-03-22T14:12:06Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82484399' lat='49.9688596' lon='36.3130167' />
+  <node id='7319414085' timestamp='2020-03-22T14:12:06Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82484399' lat='49.968913' lon='36.3128546' />
+  <node id='7319414092' timestamp='2020-03-22T14:12:06Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82484399' lat='49.9689598' lon='36.3130942' />
+  <node id='7319543422' timestamp='2020-03-22T14:56:00Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82485517' lat='49.9702482' lon='36.3092059' />
+  <node id='7319543423' timestamp='2020-03-22T14:56:00Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82485517' lat='49.9700088' lon='36.309704' />
+  <node id='7319543424' timestamp='2020-03-22T14:56:00Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82485517' lat='49.969471' lon='36.3113666' />
+  <node id='7319543425' timestamp='2020-03-22T14:56:00Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82485517' lat='49.9700321' lon='36.30963' />
+  <node id='7319543426' timestamp='2020-03-22T14:56:00Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82485517' lat='49.970153' lon='36.3092563' />
+  <node id='7323185496' timestamp='2020-03-23T17:20:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82533843' lat='49.9699147' lon='36.3095311' />
+  <node id='7323185497' timestamp='2020-03-23T17:20:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82533843' lat='49.9698977' lon='36.3095858' />
+  <node id='7323185498' timestamp='2020-03-23T17:20:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82533843' lat='49.9698817' lon='36.3096518' />
+  <node id='7323185499' timestamp='2020-03-23T17:20:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82533843' lat='49.9698772' lon='36.3095838' />
+  <way id='91323432' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='6' changeset='82481698'>
+    <nd ref='256592834' />
+    <nd ref='7319248399' />
+    <nd ref='7319248400' />
+    <nd ref='1822129267' />
+    <nd ref='7319248401' />
+    <nd ref='7319248398' />
+    <nd ref='7319248397' />
+    <nd ref='256592835' />
+    <nd ref='7319248396' />
+    <nd ref='3297128912' />
+    <nd ref='7319248405' />
+    <nd ref='256592836' />
+    <nd ref='7319248402' />
+    <nd ref='7319248403' />
+    <nd ref='7319248404' />
+    <nd ref='256592837' />
+    <tag k='highway' v='primary_link' />
+    <tag k='lanes' v='2' />
+    <tag k='maxspeed' v='50' />
+    <tag k='oneway' v='yes' />
+    <tag k='surface' v='asphalt' />
+  </way>
+  <way id='105592516' timestamp='2012-01-17T09:27:37Z' uid='174295' user='vigor' visible='true' version='2' changeset='10415764'>
+    <nd ref='1215941802' />
+    <nd ref='1215941743' />
+    <nd ref='1215941711' />
+    <nd ref='1215941677' />
+    <nd ref='1215941802' />
+    <tag k='building' v='yes' />
+    <tag k='office' v='newspaper' />
+  </way>
+  <way id='146173228' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='6' changeset='82481698'>
+    <nd ref='1994136773' />
+    <nd ref='7319248450' />
+    <nd ref='7319248449' />
+    <nd ref='7319248448' />
+    <nd ref='1994136769' />
+    <nd ref='7319248314' />
+    <nd ref='6844719027' />
+    <nd ref='1994136767' />
+    <nd ref='7319248313' />
+    <nd ref='1994136765' />
+    <nd ref='6844719021' />
+    <nd ref='6860854811' />
+    <nd ref='7319248319' />
+    <nd ref='7319248327' />
+    <nd ref='7319248320' />
+    <nd ref='7319248321' />
+    <nd ref='7319248322' />
+    <nd ref='7319248323' />
+    <nd ref='7319248324' />
+    <nd ref='7319248325' />
+    <nd ref='7319248326' />
+    <nd ref='6860854810' />
+    <nd ref='257750807' />
+    <tag k='highway' v='service' />
+    <tag k='maxspeed' v='10' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <way id='177096182' timestamp='2012-09-02T22:37:19Z' uid='356014' user='_sev' visible='true' version='2' changeset='12960315'>
+    <nd ref='1875663044' />
+    <nd ref='1875662399' />
+    <nd ref='1875661705' />
+    <nd ref='1875661311' />
+    <nd ref='1875661639' />
+    <nd ref='1875661561' />
+    <nd ref='1875661907' />
+    <nd ref='1875661978' />
+    <nd ref='1875662079' />
+    <nd ref='1875662052' />
+    <nd ref='1875662266' />
+    <nd ref='1875663091' />
+    <nd ref='1875663044' />
+    <tag k='addr:housenumber' v='247' />
+    <tag k='building' v='yes' />
+    <tag k='building:entrances' v='1' />
+    <tag k='building:levels' v='1' />
+  </way>
+  <way id='188791230' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='6' changeset='82481698'>
+    <nd ref='6113014895' />
+    <nd ref='7319248456' />
+    <nd ref='7319248455' />
+    <nd ref='7319248454' />
+    <nd ref='7319248453' />
+    <nd ref='7319248452' />
+    <tag k='highway' v='primary_link' />
+    <tag k='lanes' v='1' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <way id='208884481' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='8' changeset='82481698'>
+    <nd ref='256592837' />
+    <nd ref='1994136766' />
+    <nd ref='1994136773' />
+    <tag k='highway' v='primary' />
+    <tag k='lanes' v='3' />
+    <tag k='maxheight' v='3.8' />
+    <tag k='maxspeed' v='50' />
+    <tag k='name' v='Московський проспект' />
+    <tag k='name:en' v='Moskovsky Avenue' />
+    <tag k='name:ru' v='Московский проспект' />
+    <tag k='name:uk' v='Московський проспект' />
+    <tag k='oneway' v='yes' />
+    <tag k='surface' v='asphalt' />
+    <tag k='trolley_wire' v='yes' />
+  </way>
+  <way id='218629469' timestamp='2020-03-22T14:56:00Z' uid='1730741' user='Sergey Harini' visible='true' version='4' changeset='82485517'>
+    <nd ref='2278582831' />
+    <nd ref='7319543422' />
+    <nd ref='2278582776' />
+    <tag k='highway' v='footway' />
+  </way>
+  <way id='218629473' timestamp='2020-03-22T14:12:06Z' uid='1730741' user='Sergey Harini' visible='true' version='7' changeset='82484399'>
+    <nd ref='2278582592' />
+    <nd ref='394867165' />
+    <nd ref='2278582817' />
+    <nd ref='3395794789' />
+    <nd ref='2278582598' />
+    <nd ref='2278582853' />
+    <nd ref='2278582615' />
+    <nd ref='2278582611' />
+    <nd ref='2278582609' />
+    <nd ref='2278582841' />
+    <nd ref='2278582837' />
+    <nd ref='2278582836' />
+    <nd ref='2278582831' />
+    <tag k='highway' v='footway' />
+  </way>
+  <way id='329957377' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='6' changeset='82481698'>
+    <nd ref='256936806' />
+    <nd ref='256592837' />
+    <tag k='highway' v='primary' />
+    <tag k='lanes' v='3' />
+    <tag k='maxspeed' v='50' />
+    <tag k='name' v='Московський проспект' />
+    <tag k='name:en' v='Moskovsky Avenue' />
+    <tag k='name:ru' v='Московский проспект' />
+    <tag k='name:uk' v='Московський проспект' />
+    <tag k='oneway' v='yes' />
+    <tag k='surface' v='asphalt' />
+    <tag k='trolley_wire' v='yes' />
+  </way>
+  <way id='557993646' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='4' changeset='75422833'>
+    <nd ref='5380737766' />
+    <nd ref='5533296020' />
+    <nd ref='5533296017' />
+    <nd ref='5533298821' />
+    <nd ref='5533296016' />
+    <nd ref='5533298822' />
+    <nd ref='5533296018' />
+    <nd ref='5533296019' />
+    <nd ref='5380737767' />
+    <nd ref='5380737768' />
+    <nd ref='5533298849' />
+    <nd ref='6860854813' />
+    <nd ref='6860854812' />
+    <nd ref='5533298848' />
+    <nd ref='5533298850' />
+    <nd ref='5533298846' />
+    <nd ref='5533298851' />
+    <nd ref='5533298847' />
+    <nd ref='5533298852' />
+    <nd ref='5380737769' />
+    <nd ref='6844719031' />
+    <nd ref='6844719032' />
+    <nd ref='5380737766' />
+    <tag k='landuse' v='grass' />
+  </way>
+  <way id='637649314' timestamp='2020-03-22T14:12:06Z' uid='1730741' user='Sergey Harini' visible='true' version='14' changeset='82484399'>
+    <nd ref='320221610' />
+    <nd ref='3394184260' />
+    <nd ref='7128002665' />
+    <nd ref='256361314' />
+    <nd ref='6855876345' />
+    <nd ref='6855876351' />
+    <nd ref='6855876346' />
+    <nd ref='6004666905' />
+    <nd ref='907931888' />
+    <nd ref='6004666902' />
+    <nd ref='7128002666' />
+    <nd ref='256361315' />
+    <nd ref='6844822668' />
+    <nd ref='394141233' />
+    <nd ref='6844822664' />
+    <nd ref='256361316' />
+    <nd ref='3384933761' />
+    <nd ref='256361317' />
+    <nd ref='1001247631' />
+    <nd ref='267142033' />
+    <nd ref='7128002668' />
+    <nd ref='256361318' />
+    <nd ref='7319336774' />
+    <nd ref='7319336775' />
+    <nd ref='7319336776' />
+    <nd ref='388306202' />
+    <nd ref='6860854814' />
+    <nd ref='256361319' />
+    <nd ref='7319336782' />
+    <nd ref='7319414085' />
+    <nd ref='3395844877' />
+    <nd ref='6113014895' />
+    <tag k='highway' v='primary' />
+    <tag k='lanes' v='3' />
+    <tag k='maxspeed' v='50' />
+    <tag k='name' v='Московський проспект' />
+    <tag k='name:en' v='Moskovsky Avenue' />
+    <tag k='name:ru' v='Московский проспект' />
+    <tag k='name:uk' v='Московський проспект' />
+    <tag k='oneway' v='yes' />
+    <tag k='surface' v='asphalt' />
+    <tag k='trolley_wire' v='yes' />
+  </way>
+  <way id='651964350' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='4' changeset='82481698'>
+    <nd ref='1994136773' />
+    <nd ref='7319248446' />
+    <nd ref='7319248445' />
+    <nd ref='7319248447' />
+    <nd ref='6113014083' />
+    <nd ref='7319248444' />
+    <nd ref='6860854808' />
+    <nd ref='7319248443' />
+    <nd ref='6113014084' />
+    <nd ref='6113014885' />
+    <nd ref='7319248460' />
+    <nd ref='7319248459' />
+    <nd ref='7319248461' />
+    <nd ref='6113014886' />
+    <tag k='highway' v='primary_link' />
+    <tag k='lanes' v='2' />
+    <tag k='maxspeed' v='50' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <way id='651964352' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='6' changeset='82481698'>
+    <nd ref='6113014895' />
+    <nd ref='7319248296' />
+    <nd ref='7319248295' />
+    <nd ref='7319248294' />
+    <nd ref='7319248297' />
+    <nd ref='7319248293' />
+    <nd ref='7319248298' />
+    <nd ref='7319248292' />
+    <nd ref='7319248287' />
+    <nd ref='7319248286' />
+    <nd ref='7319248288' />
+    <nd ref='7319248289' />
+    <nd ref='7319248290' />
+    <nd ref='7319248291' />
+    <nd ref='6844719025' />
+    <nd ref='7319248285' />
+    <nd ref='6113014897' />
+    <nd ref='6113014898' />
+    <nd ref='7319248331' />
+    <nd ref='7319248332' />
+    <nd ref='7319248333' />
+    <nd ref='7319248334' />
+    <nd ref='6113014891' />
+    <tag k='highway' v='primary_link' />
+    <tag k='lanes' v='1' />
+    <tag k='maxspeed' v='50' />
+    <tag k='oneway' v='yes' />
+    <tag k='surface' v='asphalt' />
+  </way>
+  <way id='651964353' timestamp='2019-10-02T14:06:20Z' uid='421494' user='Anton Shevchuk' visible='true' version='3' changeset='75189911'>
+    <nd ref='6113014902' />
+    <nd ref='6113014903' />
+    <nd ref='6113014904' />
+    <nd ref='6113014905' />
+    <nd ref='6113014906' />
+    <nd ref='6113014907' />
+    <nd ref='6113014908' />
+    <nd ref='6113014909' />
+    <nd ref='6113014910' />
+    <nd ref='6113014911' />
+    <nd ref='6113014912' />
+    <nd ref='6113014913' />
+    <nd ref='6113014902' />
+    <tag k='landuse' v='grass' />
+  </way>
+  <way id='651964354' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='5' changeset='75422833'>
+    <nd ref='6860854797' />
+    <nd ref='6113014891' />
+    <tag k='highway' v='primary_link' />
+    <tag k='lanes' v='2' />
+    <tag k='maxspeed' v='50' />
+    <tag k='oneway' v='yes' />
+    <tag k='surface' v='asphalt' />
+  </way>
+  <way id='651964355' timestamp='2020-01-13T09:31:26Z' uid='4464045' user='Anton Melnichuk' visible='true' version='3' changeset='79507850'>
+    <nd ref='6113014889' />
+    <nd ref='6860854797' />
+    <tag k='highway' v='primary' />
+    <tag k='lanes' v='3' />
+    <tag k='maxspeed' v='50' />
+    <tag k='name' v='Московський проспект' />
+    <tag k='name:en' v='Moskovsky Avenue' />
+    <tag k='name:ru' v='Московский проспект' />
+    <tag k='name:uk' v='Московський проспект' />
+    <tag k='oneway' v='yes' />
+    <tag k='surface' v='asphalt' />
+    <tag k='trolley_wire' v='yes' />
+  </way>
+  <way id='651969736' timestamp='2020-01-13T09:31:26Z' uid='4464045' user='Anton Melnichuk' visible='true' version='4' changeset='79507850'>
+    <nd ref='1994136773' />
+    <nd ref='6113034279' />
+    <nd ref='6113014889' />
+    <tag k='highway' v='primary' />
+    <tag k='lanes' v='3' />
+    <tag k='maxspeed' v='50' />
+    <tag k='name' v='Московський проспект' />
+    <tag k='name:en' v='Moskovsky Avenue' />
+    <tag k='name:ru' v='Московский проспект' />
+    <tag k='name:uk' v='Московський проспект' />
+    <tag k='oneway' v='yes' />
+    <tag k='surface' v='asphalt' />
+    <tag k='trolley_wire' v='yes' />
+  </way>
+  <way id='651969739' timestamp='2020-03-23T17:20:20Z' uid='1730741' user='Sergey Harini' visible='true' version='3' changeset='82533843'>
+    <nd ref='6113049174' />
+    <nd ref='6113049176' />
+    <nd ref='6844719024' />
+    <nd ref='6113049177' />
+    <nd ref='7323185496' />
+    <nd ref='6113049174' />
+    <tag k='landuse' v='grass' />
+  </way>
+  <way id='730783904' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='4' changeset='82481698'>
+    <nd ref='6113014889' />
+    <nd ref='7319248338' />
+    <nd ref='6860854806' />
+    <nd ref='6844719028' />
+    <nd ref='6844719020' />
+    <nd ref='395286068' />
+    <tag k='highway' v='primary_link' />
+    <tag k='lanes' v='2' />
+    <tag k='maxspeed' v='50' />
+    <tag k='oneway' v='yes' />
+    <tag k='surface' v='asphalt' />
+  </way>
+  <way id='730783905' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='2' changeset='75422833'>
+    <nd ref='3395844884' />
+    <nd ref='6860854802' />
+    <nd ref='6844719028' />
+    <nd ref='6860854805' />
+    <tag k='crossing' v='marked' />
+    <tag k='footway' v='crossing' />
+    <tag k='highway' v='footway' />
+  </way>
+  <way id='730783906' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='3' changeset='82481698'>
+    <nd ref='3395844884' />
+    <nd ref='6113014901' />
+    <nd ref='7319248335' />
+    <tag k='crossing' v='marked' />
+    <tag k='footway' v='crossing' />
+    <tag k='highway' v='footway' />
+  </way>
+  <way id='730783907' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='3' changeset='82481698'>
+    <nd ref='6844719033' />
+    <nd ref='6113014897' />
+    <nd ref='6844719026' />
+    <nd ref='7319248452' />
+    <nd ref='2462601889' />
+    <nd ref='2462601938' />
+    <tag k='crossing' v='marked' />
+    <tag k='footway' v='crossing' />
+    <tag k='highway' v='footway' />
+  </way>
+  <way id='730783908' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82481698'>
+    <nd ref='7319248335' />
+    <nd ref='6844719033' />
+    <tag k='highway' v='footway' />
+  </way>
+  <way id='732139555' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='2' changeset='75443528'>
+    <nd ref='3297128912' />
+    <nd ref='6855577788' />
+    <nd ref='6862476865' />
+    <tag k='highway' v='footway' />
+  </way>
+  <way id='732139858' timestamp='2020-03-23T17:20:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82533843'>
+    <nd ref='6855551842' />
+    <nd ref='6844719034' />
+    <nd ref='6855551845' />
+    <nd ref='6855551846' />
+    <nd ref='6855551847' />
+    <nd ref='6855551848' />
+    <nd ref='6855551849' />
+    <nd ref='6855551850' />
+    <nd ref='6855551851' />
+    <nd ref='6855551852' />
+    <nd ref='6855551853' />
+    <nd ref='6855551854' />
+    <nd ref='6855551855' />
+    <nd ref='6855551856' />
+    <nd ref='6855551857' />
+    <nd ref='6855551858' />
+    <nd ref='6855551859' />
+    <nd ref='6855551860' />
+    <nd ref='6855551861' />
+    <nd ref='6855551842' />
+    <tag k='landuse' v='grass' />
+  </way>
+  <way id='732681511' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82481698'>
+    <nd ref='6113014891' />
+    <nd ref='6113014893' />
+    <nd ref='7319248451' />
+    <nd ref='7319248328' />
+    <nd ref='6860854800' />
+    <nd ref='7319248458' />
+    <nd ref='7319248457' />
+    <nd ref='6860854801' />
+    <nd ref='7319248329' />
+    <nd ref='7319248330' />
+    <nd ref='7319248442' />
+    <nd ref='6113014894' />
+    <tag k='highway' v='primary_link' />
+    <tag k='lanes' v='2' />
+    <tag k='maxspeed' v='50' />
+    <tag k='oneway' v='yes' />
+    <tag k='surface' v='asphalt' />
+  </way>
+  <way id='732681512' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='2' changeset='82481698'>
+    <nd ref='6113014891' />
+    <nd ref='6860854798' />
+    <nd ref='7319248336' />
+    <nd ref='7319248337' />
+    <nd ref='7319248339' />
+    <nd ref='6113014889' />
+    <tag k='highway' v='primary_link' />
+    <tag k='lanes' v='1' />
+    <tag k='maxspeed' v='50' />
+    <tag k='oneway' v='yes' />
+    <tag k='surface' v='asphalt' />
+  </way>
+  <way id='732681514' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75422833'>
+    <nd ref='395286068' />
+    <nd ref='6860854804' />
+    <nd ref='6860854802' />
+    <nd ref='6860854797' />
+    <tag k='highway' v='primary_link' />
+    <tag k='lanes' v='2' />
+    <tag k='maxspeed' v='50' />
+    <tag k='oneway' v='yes' />
+    <tag k='surface' v='asphalt' />
+  </way>
+  <way id='732681515' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='2' changeset='75443528'>
+    <nd ref='6860854805' />
+    <nd ref='6862476864' />
+    <tag k='highway' v='footway' />
+  </way>
+  <way id='732681519' timestamp='2020-01-13T09:31:26Z' uid='4464045' user='Anton Melnichuk' visible='true' version='2' changeset='79507850'>
+    <nd ref='6860854797' />
+    <nd ref='6113014901' />
+    <nd ref='6113014917' />
+    <tag k='highway' v='primary' />
+    <tag k='lanes' v='3' />
+    <tag k='maxspeed' v='50' />
+    <tag k='name' v='Московський проспект' />
+    <tag k='name:en' v='Moskovsky Avenue' />
+    <tag k='name:ru' v='Московский проспект' />
+    <tag k='name:uk' v='Московський проспект' />
+    <tag k='oneway' v='yes' />
+    <tag k='surface' v='asphalt' />
+    <tag k='trolley_wire' v='yes' />
+  </way>
+  <way id='732681522' timestamp='2020-03-22T15:13:50Z' uid='1730741' user='Sergey Harini' visible='true' version='5' changeset='82485957'>
+    <nd ref='2278582831' />
+    <nd ref='2462601938' />
+    <nd ref='3395844886' />
+    <nd ref='2278582703' />
+    <nd ref='3395844882' />
+    <nd ref='2278582700' />
+    <nd ref='7319414092' />
+    <nd ref='2278582517' />
+    <nd ref='3391488463' />
+    <tag k='highway' v='footway' />
+  </way>
+  <way id='732681523' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75422833'>
+    <nd ref='6860854815' />
+    <nd ref='6860854816' />
+    <nd ref='6860854817' />
+    <nd ref='6860854818' />
+    <nd ref='6860854819' />
+    <nd ref='6860854820' />
+    <nd ref='6860854815' />
+    <tag k='natural' v='wood' />
+  </way>
+  <way id='732854268' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528'>
+    <nd ref='6862476864' />
+    <nd ref='6844719027' />
+    <nd ref='6862476865' />
+    <tag k='crossing' v='marked' />
+    <tag k='footway' v='crossing' />
+    <tag k='highway' v='footway' />
+  </way>
+  <way id='732854269' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528'>
+    <nd ref='6862476866' />
+    <nd ref='6862476867' />
+    <nd ref='6862476868' />
+    <nd ref='6862476869' />
+    <nd ref='6862476866' />
+    <tag k='landuse' v='grass' />
+  </way>
+  <way id='732854271' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528'>
+    <nd ref='6862476872' />
+    <nd ref='6862476873' />
+    <nd ref='6862476874' />
+    <nd ref='6862476875' />
+    <nd ref='6862476876' />
+    <nd ref='6862476877' />
+    <nd ref='6862476878' />
+    <nd ref='6862476879' />
+    <nd ref='6862476880' />
+    <nd ref='6862476881' />
+    <nd ref='6862476882' />
+    <nd ref='6862476883' />
+    <nd ref='6862476884' />
+    <nd ref='6862497385' />
+    <nd ref='6862497386' />
+    <nd ref='6862497387' />
+    <nd ref='6862497388' />
+    <nd ref='6862497389' />
+    <nd ref='6862497390' />
+    <nd ref='6862476872' />
+    <tag k='landuse' v='grass' />
+  </way>
+  <way id='783612026' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698'>
+    <nd ref='256592834' />
+    <nd ref='6844719022' />
+    <nd ref='6855577788' />
+    <nd ref='1994136766' />
+    <tag k='covered' v='yes' />
+    <tag k='highway' v='service' />
+    <tag k='maxspeed' v='5' />
+    <tag k='oneway' v='no' />
+  </way>
+  <way id='783612027' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698'>
+    <nd ref='6113014895' />
+    <nd ref='6844719029' />
+    <nd ref='2462601889' />
+    <nd ref='6113014894' />
+    <nd ref='2278582488' />
+    <tag k='highway' v='primary' />
+    <tag k='lanes' v='2' />
+    <tag k='maxspeed' v='50' />
+    <tag k='name' v='Московський проспект' />
+    <tag k='name:en' v='Moskovsky Avenue' />
+    <tag k='name:ru' v='Московский проспект' />
+    <tag k='name:uk' v='Московський проспект' />
+    <tag k='oneway' v='yes' />
+    <tag k='surface' v='asphalt' />
+    <tag k='trolley_wire' v='yes' />
+  </way>
+  <way id='783612028' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82481698'>
+    <nd ref='7319248452' />
+    <nd ref='7319248457' />
+    <nd ref='6113014886' />
+    <tag k='highway' v='primary_link' />
+    <tag k='lanes' v='1' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <way id='783643907' timestamp='2020-03-22T14:56:00Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82485517'>
+    <nd ref='7319543423' />
+    <nd ref='7319543424' />
+    <tag k='barrier' v='fence' />
+    <tag k='height' v='1' />
+  </way>
+  <way id='783643908' timestamp='2020-03-22T14:56:00Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82485517'>
+    <nd ref='7319543425' />
+    <nd ref='7319543426' />
+    <tag k='barrier' v='fence' />
+    <tag k='height' v='1' />
+  </way>
+  <way id='783975708' timestamp='2020-03-23T17:20:20Z' uid='1730741' user='Sergey Harini' visible='true' version='1' changeset='82533843'>
+    <nd ref='7323185497' />
+    <nd ref='7323185498' />
+    <nd ref='7323185499' />
+    <nd ref='7323185497' />
+    <tag k='landuse' v='grass' />
+  </way>
+  <relation id='1295889' timestamp='2020-09-17T18:41:52Z' uid='9518695' user='taxxxi' visible='true' version='151' changeset='91065156'>
+    <member type='way' ref='183413233' role='house' />
+    <member type='way' ref='183403590' role='house' />
+    <member type='way' ref='183403583' role='house' />
+    <member type='way' ref='129237439' role='house' />
+    <member type='way' ref='137873610' role='house' />
+    <member type='way' ref='181582054' role='house' />
+    <member type='way' ref='137873602' role='house' />
+    <member type='way' ref='181582117' role='house' />
+    <member type='way' ref='181582188' role='house' />
+    <member type='way' ref='183403587' role='house' />
+    <member type='way' ref='181582221' role='house' />
+    <member type='way' ref='182037814' role='house' />
+    <member type='way' ref='182018643' role='house' />
+    <member type='way' ref='181582230' role='house' />
+    <member type='way' ref='148975405' role='house' />
+    <member type='way' ref='182018665' role='house' />
+    <member type='way' ref='130742366' role='house' />
+    <member type='way' ref='183484726' role='house' />
+    <member type='way' ref='182018672' role='house' />
+    <member type='way' ref='182018676' role='house' />
+    <member type='way' ref='583340159' role='house' />
+    <member type='way' ref='182018684' role='house' />
+    <member type='way' ref='182018687' role='house' />
+    <member type='way' ref='177520790' role='house' />
+    <member type='way' ref='183494850' role='house' />
+    <member type='way' ref='150928441' role='house' />
+    <member type='way' ref='177520803' role='house' />
+    <member type='way' ref='183494856' role='house' />
+    <member type='way' ref='177520807' role='house' />
+    <member type='way' ref='183494858' role='house' />
+    <member type='way' ref='182018704' role='house' />
+    <member type='way' ref='177520811' role='house' />
+    <member type='way' ref='177520812' role='house' />
+    <member type='way' ref='177520813' role='house' />
+    <member type='way' ref='700434854' role='house' />
+    <member type='way' ref='700434853' role='house' />
+    <member type='way' ref='89527699' role='house' />
+    <member type='way' ref='183484778' role='house' />
+    <member type='way' ref='183484780' role='house' />
+    <member type='way' ref='183484782' role='house' />
+    <member type='way' ref='182018705' role='house' />
+    <member type='way' ref='177520821' role='house' />
+    <member type='way' ref='177520823' role='house' />
+    <member type='way' ref='182018710' role='house' />
+    <member type='way' ref='154837808' role='house' />
+    <member type='way' ref='163223506' role='house' />
+    <member type='way' ref='154837809' role='house' />
+    <member type='way' ref='177520839' role='house' />
+    <member type='way' ref='182018724' role='house' />
+    <member type='way' ref='150928446' role='house' />
+    <member type='way' ref='182018725' role='house' />
+    <member type='way' ref='183484805' role='house' />
+    <member type='way' ref='177520844' role='house' />
+    <member type='way' ref='181770172' role='house' />
+    <member type='way' ref='150928439' role='house' />
+    <member type='way' ref='177520857' role='house' />
+    <member type='way' ref='177520858' role='house' />
+    <member type='way' ref='177520859' role='house' />
+    <member type='way' ref='177520860' role='house' />
+    <member type='way' ref='182018732' role='house' />
+    <member type='way' ref='177519058' role='house' />
+    <member type='way' ref='177520862' role='house' />
+    <member type='way' ref='218594085' role='house' />
+    <member type='way' ref='177520863' role='house' />
+    <member type='way' ref='182018733' role='house' />
+    <member type='way' ref='182018734' role='house' />
+    <member type='way' ref='177519060' role='house' />
+    <member type='way' ref='177520865' role='house' />
+    <member type='way' ref='177519073' role='house' />
+    <member type='way' ref='177519074' role='house' />
+    <member type='way' ref='183484824' role='house' />
+    <member type='way' ref='177519076' role='house' />
+    <member type='way' ref='183484826' role='house' />
+    <member type='way' ref='181770209' role='house' />
+    <member type='way' ref='177519079' role='house' />
+    <member type='way' ref='177519080' role='house' />
+    <member type='way' ref='177519096' role='house' />
+    <member type='way' ref='181770223' role='house' />
+    <member type='way' ref='177519098' role='house' />
+    <member type='way' ref='177519099' role='house' />
+    <member type='way' ref='177519101' role='house' />
+    <member type='way' ref='177519102' role='house' />
+    <member type='way' ref='183484843' role='house' />
+    <member type='way' ref='177519104' role='house' />
+    <member type='way' ref='177519106' role='house' />
+    <member type='way' ref='177519107' role='house' />
+    <member type='way' ref='177519109' role='house' />
+    <member type='way' ref='183484844' role='house' />
+    <member type='way' ref='183484845' role='house' />
+    <member type='way' ref='183484846' role='house' />
+    <member type='way' ref='183484847' role='house' />
+    <member type='way' ref='183484848' role='house' />
+    <member type='way' ref='183484849' role='house' />
+    <member type='way' ref='181770237' role='house' />
+    <member type='way' ref='183484850' role='house' />
+    <member type='way' ref='151068681' role='house' />
+    <member type='way' ref='151068674' role='house' />
+    <member type='way' ref='151068666' role='house' />
+    <member type='way' ref='120445305' role='house' />
+    <member type='way' ref='183484852' role='house' />
+    <member type='way' ref='151068667' role='house' />
+    <member type='way' ref='181770053' role='house' />
+    <member type='way' ref='181770059' role='house' />
+    <member type='way' ref='177518859' role='house' />
+    <member type='way' ref='181791995' role='house' />
+    <member type='way' ref='183484664' role='house' />
+    <member type='way' ref='183484663' role='house' />
+    <member type='way' ref='182008850' role='house' />
+    <member type='way' ref='181792008' role='house' />
+    <member type='way' ref='385157599' role='house' />
+    <member type='way' ref='181792002' role='house' />
+    <member type='way' ref='181792007' role='house' />
+    <member type='way' ref='385157598' role='house' />
+    <member type='way' ref='85311525' role='house' />
+    <member type='way' ref='85311833' role='house' />
+    <member type='way' ref='183484666' role='house' />
+    <member type='way' ref='182013970' role='house' />
+    <member type='way' ref='152099586' role='house' />
+    <member type='way' ref='294658273' role='house' />
+    <member type='way' ref='152099589' role='house' />
+    <member type='way' ref='152099587' role='house' />
+    <member type='way' ref='181770071' role='house' />
+    <member type='way' ref='177518879' role='house' />
+    <member type='way' ref='177518880' role='house' />
+    <member type='way' ref='177518881' role='house' />
+    <member type='way' ref='131391937' role='house' />
+    <member type='way' ref='208879835' role='house' />
+    <member type='way' ref='183864523' role='house' />
+    <member type='way' ref='181734402' role='house' />
+    <member type='way' ref='182192969' role='house' />
+    <member type='way' ref='146173241' role='house' />
+    <member type='way' ref='181770073' role='house' />
+    <member type='way' ref='177095355' role='house' />
+    <member type='way' ref='177095356' role='house' />
+    <member type='way' ref='294664781' role='house' />
+    <member type='way' ref='177095350' role='house' />
+    <member type='way' ref='177095357' role='house' />
+    <member type='way' ref='177095358' role='house' />
+    <member type='way' ref='177095359' role='house' />
+    <member type='way' ref='177095360' role='house' />
+    <member type='way' ref='177095361' role='house' />
+    <member type='way' ref='177095362' role='house' />
+    <member type='way' ref='177095363' role='house' />
+    <member type='way' ref='181770081' role='house' />
+    <member type='way' ref='86538065' role='house' />
+    <member type='way' ref='181734403' role='house' />
+    <member type='way' ref='176953927' role='house' />
+    <member type='way' ref='176953936' role='house' />
+    <member type='way' ref='130922354' role='house' />
+    <member type='way' ref='181770094' role='house' />
+    <member type='way' ref='176954027' role='house' />
+    <member type='way' ref='176954031' role='house' />
+    <member type='way' ref='176954033' role='house' />
+    <member type='way' ref='176954112' role='house' />
+    <member type='way' ref='627316489' role='house' />
+    <member type='way' ref='621247909' role='house' />
+    <member type='way' ref='87676288' role='house' />
+    <member type='way' ref='176954405' role='house' />
+    <member type='way' ref='85311512' role='house' />
+    <member type='way' ref='263639046' role='house' />
+    <member type='way' ref='85311786' role='house' />
+    <member type='way' ref='182008878' role='house' />
+    <member type='way' ref='86538048' role='house' />
+    <member type='way' ref='183484686' role='house' />
+    <member type='way' ref='304057863' role='house' />
+    <member type='way' ref='86538053' role='house' />
+    <member type='way' ref='86538087' role='house' />
+    <member type='way' ref='86538026' role='house' />
+    <member type='way' ref='183484690' role='house' />
+    <member type='way' ref='678493187' role='house' />
+    <member type='way' ref='177289463' role='house' />
+    <member type='way' ref='358002926' role='house' />
+    <member type='way' ref='85311723' role='house' />
+    <member type='way' ref='85311461' role='house' />
+    <member type='way' ref='86538039' role='house' />
+    <member type='way' ref='86538044' role='house' />
+    <member type='way' ref='86538157' role='house' />
+    <member type='way' ref='183781732' role='house' />
+    <member type='way' ref='181792050' role='house' />
+    <member type='way' ref='86538024' role='house' />
+    <member type='way' ref='86538066' role='house' />
+    <member type='way' ref='86538167' role='house' />
+    <member type='way' ref='177095703' role='house' />
+    <member type='way' ref='150737984' role='house' />
+    <member type='way' ref='183781733' role='house' />
+    <member type='way' ref='146173232' role='house' />
+    <member type='way' ref='146173222' role='house' />
+    <member type='way' ref='181792063' role='house' />
+    <member type='way' ref='150737939' role='house' />
+    <member type='way' ref='563673893' role='house' />
+    <member type='way' ref='177095825' role='house' />
+    <member type='way' ref='86538047' role='house' />
+    <member type='way' ref='86538031' role='house' />
+    <member type='way' ref='150737964' role='house' />
+    <member type='way' ref='86538000' role='house' />
+    <member type='way' ref='86538109' role='house' />
+    <member type='way' ref='86538019' role='house' />
+    <member type='way' ref='86538054' role='house' />
+    <member type='way' ref='183864399' role='house' />
+    <member type='way' ref='177095851' role='house' />
+    <member type='way' ref='181734428' role='house' />
+    <member type='way' ref='86222315' role='house' />
+    <member type='way' ref='86222382' role='house' />
+    <member type='way' ref='181734429' role='house' />
+    <member type='way' ref='86222359' role='house' />
+    <member type='way' ref='86222294' role='house' />
+    <member type='way' ref='86222426' role='house' />
+    <member type='way' ref='86222335' role='house' />
+    <member type='way' ref='86222371' role='house' />
+    <member type='way' ref='86222306' role='house' />
+    <member type='way' ref='181735407' role='house' />
+    <member type='way' ref='86222434' role='house' />
+    <member type='way' ref='86222299' role='house' />
+    <member type='way' ref='177095973' role='house' />
+    <member type='way' ref='157149576' role='house' />
+    <member type='way' ref='183864400' role='house' />
+    <member type='way' ref='86222393' role='house' />
+    <member type='way' ref='208879821' role='house' />
+    <member type='way' ref='86222300' role='house' />
+    <member type='way' ref='150610581' role='house' />
+    <member type='way' ref='150610582' role='house' />
+    <member type='way' ref='86222292' role='house' />
+    <member type='way' ref='150610583' role='house' />
+    <member type='way' ref='150610584' role='house' />
+    <member type='way' ref='86222395' role='house' />
+    <member type='way' ref='181735412' role='house' />
+    <member type='way' ref='150610585' role='house' />
+    <member type='way' ref='150610586' role='house' />
+    <member type='way' ref='150610587' role='house' />
+    <member type='way' ref='181789314' role='house' />
+    <member type='way' ref='86222422' role='house' />
+    <member type='way' ref='150610589' role='house' />
+    <member type='way' ref='150610590' role='house' />
+    <member type='way' ref='86222414' role='house' />
+    <member type='way' ref='86222353' role='house' />
+    <member type='way' ref='129008659' role='house' />
+    <member type='way' ref='182201318' role='house' />
+    <member type='way' ref='182006648' role='house' />
+    <member type='way' ref='177096182' role='house' />
+    <member type='way' ref='86256708' role='house' />
+    <member type='way' ref='86256717' role='house' />
+    <member type='way' ref='86256715' role='house' />
+    <member type='way' ref='86256721' role='house' />
+    <member type='way' ref='86256774' role='house' />
+    <member type='way' ref='86256779' role='house' />
+    <member type='way' ref='86256762' role='house' />
+    <member type='way' ref='181735418' role='house' />
+    <member type='way' ref='86256804' role='house' />
+    <member type='way' ref='177096214' role='house' />
+    <member type='way' ref='86256745' role='house' />
+    <member type='way' ref='86256765' role='house' />
+    <member type='way' ref='145259428' role='house' />
+    <member type='way' ref='183864190' role='house' />
+    <member type='way' ref='151462850' role='house' />
+    <member type='way' ref='150637314' role='house' />
+    <member type='way' ref='105400589' role='house' />
+    <member type='way' ref='85078567' role='house' />
+    <member type='way' ref='86256813' role='house' />
+    <member type='way' ref='86256756' role='house' />
+    <member type='way' ref='177096221' role='house' />
+    <member type='way' ref='105400601' role='house' />
+    <member type='way' ref='673235967' role='house' />
+    <member type='way' ref='85311650' role='house' />
+    <member type='way' ref='177096254' role='house' />
+    <member type='way' ref='146997089' role='house' />
+    <member type='way' ref='146997094' role='house' />
+    <member type='way' ref='177096256' role='house' />
+    <member type='way' ref='577100669' role='house' />
+    <member type='way' ref='577100666' role='house' />
+    <member type='way' ref='627316492' role='house' />
+    <member type='way' ref='146997104' role='house' />
+    <member type='way' ref='577100681' role='house' />
+    <member type='way' ref='577100672' role='house' />
+    <member type='way' ref='146997143' role='house' />
+    <member type='way' ref='182008256' role='house' />
+    <member type='way' ref='146997157' role='house' />
+    <member type='way' ref='84934260' role='house' />
+    <member type='way' ref='84911748' role='house' />
+    <member type='way' ref='182006651' role='house' />
+    <member type='way' ref='182006652' role='house' />
+    <member type='way' ref='320026499' role='house' />
+    <member type='way' ref='182006653' role='house' />
+    <member type='way' ref='181750947' role='house' />
+    <member type='way' ref='235119939' role='house' />
+    <member type='way' ref='182006654' role='house' />
+    <member type='way' ref='53836224' role='house' />
+    <member type='way' ref='53836223' role='house' />
+    <member type='way' ref='182006656' role='house' />
+    <member type='way' ref='53836225' role='house' />
+    <member type='way' ref='53836226' role='house' />
+    <member type='way' ref='84912524' role='house' />
+    <member type='way' ref='53836212' role='house' />
+    <member type='way' ref='182006657' role='house' />
+    <member type='way' ref='281408834' role='house' />
+    <member type='way' ref='84707719' role='house' />
+    <member type='way' ref='181752500' role='house' />
+    <member type='way' ref='182006658' role='house' />
+    <member type='way' ref='320024431' role='house' />
+    <member type='way' ref='84755164' role='house' />
+    <member type='way' ref='181752501' role='house' />
+    <member type='way' ref='377981586' role='house' />
+    <member type='way' ref='317627799' role='house' />
+    <member type='way' ref='217811871' role='house' />
+    <member type='way' ref='377996815' role='house' />
+    <member type='way' ref='84755227' role='house' />
+    <member type='way' ref='182006667' role='house' />
+    <member type='way' ref='84755106' role='house' />
+    <member type='way' ref='84755223' role='house' />
+    <member type='way' ref='323993097' role='house' />
+    <member type='way' ref='182006671' role='house' />
+    <member type='way' ref='182006669' role='house' />
+    <member type='way' ref='82297014' role='house' />
+    <member type='way' ref='82297012' role='house' />
+    <member type='way' ref='158800482' role='house' />
+    <member type='way' ref='53836228' role='house' />
+    <member type='way' ref='53836208' role='house' />
+    <member type='way' ref='53836218' role='house' />
+    <member type='way' ref='181752507' role='house' />
+    <member type='way' ref='53836219' role='house' />
+    <member type='way' ref='53836220' role='house' />
+    <member type='way' ref='53836213' role='house' />
+    <member type='way' ref='53836211' role='house' />
+    <member type='way' ref='182200150' role='house' />
+    <member type='way' ref='486424733' role='street' />
+    <member type='way' ref='486424726' role='street' />
+    <member type='way' ref='486424729' role='street' />
+    <member type='way' ref='486424732' role='street' />
+    <member type='way' ref='29595763' role='street' />
+    <member type='way' ref='830704598' role='street' />
+    <member type='way' ref='29595762' role='street' />
+    <member type='way' ref='158800476' role='street' />
+    <member type='way' ref='158800477' role='street' />
+    <member type='way' ref='158800474' role='street' />
+    <member type='way' ref='158800479' role='street' />
+    <member type='way' ref='830704599' role='street' />
+    <member type='way' ref='486424731' role='street' />
+    <member type='way' ref='84603722' role='street' />
+    <member type='way' ref='29386169' role='street' />
+    <member type='way' ref='783680573' role='street' />
+    <member type='way' ref='783680571' role='street' />
+    <member type='way' ref='329957376' role='street' />
+    <member type='way' ref='108193925' role='street' />
+    <member type='way' ref='108193928' role='street' />
+    <member type='way' ref='208884482' role='street' />
+    <member type='way' ref='651969738' role='street' />
+    <member type='way' ref='783612027' role='street' />
+    <member type='way' ref='637649314' role='street' />
+    <member type='way' ref='848573771' role='street' />
+    <member type='way' ref='160212692' role='street' />
+    <member type='way' ref='23663624' role='street' />
+    <member type='way' ref='23663506' role='street' />
+    <member type='way' ref='29112848' role='street' />
+    <member type='way' ref='732334806' role='street' />
+    <member type='way' ref='732334801' role='street' />
+    <member type='way' ref='637649316' role='street' />
+    <member type='way' ref='783654878' role='street' />
+    <member type='way' ref='651964356' role='street' />
+    <member type='way' ref='732681519' role='street' />
+    <member type='way' ref='651964355' role='street' />
+    <member type='way' ref='651969736' role='street' />
+    <member type='way' ref='208884481' role='street' />
+    <member type='way' ref='329957377' role='street' />
+    <member type='way' ref='255803308' role='street' />
+    <member type='way' ref='108194335' role='street' />
+    <member type='way' ref='329957375' role='street' />
+    <member type='way' ref='783680574' role='street' />
+    <member type='way' ref='217811834' role='street' />
+    <member type='way' ref='783654876' role='street' />
+    <member type='way' ref='34392084' role='street' />
+    <member type='way' ref='845779418' role='street' />
+    <member type='way' ref='845779417' role='street' />
+    <member type='way' ref='502403426' role='street' />
+    <member type='way' ref='845779416' role='street' />
+    <member type='way' ref='255096297' role='street' />
+    <member type='way' ref='845770200' role='street' />
+    <member type='way' ref='637649317' role='street' />
+    <member type='way' ref='762819056' role='street' />
+    <member type='way' ref='255096296' role='street' />
+    <member type='way' ref='23663507' role='street' />
+    <member type='way' ref='57942075' role='street' />
+    <member type='way' ref='567517799' role='street' />
+    <member type='way' ref='531246179' role='street' />
+    <member type='way' ref='805505717' role='street' />
+    <member type='way' ref='805505715' role='street' />
+    <member type='way' ref='531246178' role='street' />
+    <member type='way' ref='38454163' role='street' />
+    <member type='way' ref='501471091' role='street' />
+    <member type='way' ref='673815656' role='street' />
+    <member type='way' ref='87082080' role='street' />
+    <member type='way' ref='537903776' role='street' />
+    <member type='way' ref='685200511' role='street' />
+    <member type='way' ref='23697347' role='street' />
+    <member type='way' ref='273442815' role='street' />
+    <member type='way' ref='286557490' role='street' />
+    <member type='way' ref='685200513' role='street' />
+    <member type='way' ref='531256799' role='street' />
+    <member type='way' ref='673815658' role='street' />
+    <member type='way' ref='531256803' role='street' />
+    <member type='way' ref='531256801' role='street' />
+    <member type='way' ref='805505716' role='street' />
+    <member type='way' ref='806453724' role='street' />
+    <member type='way' ref='805505719' role='street' />
+    <member type='way' ref='531256805' role='street' />
+    <member type='way' ref='567517800' role='street' />
+    <member type='way' ref='531256807' role='street' />
+    <member type='way' ref='255096298' role='street' />
+    <member type='way' ref='637649313' role='street' />
+    <member type='way' ref='762819052' role='street' />
+    <member type='way' ref='217811833' role='street' />
+    <member type='way' ref='217811835' role='street' />
+    <member type='way' ref='646355729' role='street' />
+    <member type='way' ref='217811836' role='street' />
+    <member type='way' ref='210437422' role='street' />
+    <member type='way' ref='259740561' role='street' />
+    <member type='way' ref='42750822' role='street' />
+    <member type='way' ref='218006713' role='street' />
+    <member type='way' ref='320649760' role='street' />
+    <member type='way' ref='637986244' role='street' />
+    <member type='way' ref='637847389' role='street' />
+    <member type='way' ref='198212063' role='street' />
+    <member type='way' ref='650735645' role='street' />
+    <member type='way' ref='158801227' role='street' />
+    <member type='way' ref='158801228' role='street' />
+    <member type='way' ref='198211509' role='street' />
+    <member type='way' ref='734585144' role='street' />
+    <member type='way' ref='105937035' role='street' />
+    <member type='way' ref='29386174' role='street' />
+    <member type='way' ref='657255775' role='house' />
+    <member type='way' ref='146786672' role='house' />
+    <member type='way' ref='151693842' role='house' />
+    <member type='way' ref='669009013' role='house' />
+    <member type='way' ref='670571136' role='house' />
+    <member type='way' ref='672538776' role='house' />
+    <member type='way' ref='680854123' role='house' />
+    <member type='way' ref='680854124' role='house' />
+    <member type='way' ref='680854125' role='house' />
+    <member type='way' ref='680867321' role='house' />
+    <member type='way' ref='680867323' role='house' />
+    <member type='way' ref='680867325' role='house' />
+    <member type='way' ref='699236692' role='' />
+    <member type='way' ref='799811768' role='street' />
+    <member type='way' ref='799811769' role='street' />
+    <tag k='name' v='Московський проспект' />
+    <tag k='name:ru' v='Московский проспект' />
+    <tag k='name:uk' v='Московський проспект' />
+    <tag k='street:id' v='1156' />
+    <tag k='type' v='associatedStreet' />
+  </relation>
+  <relation id='1537513' timestamp='2020-07-28T05:08:28Z' uid='9518695' user='taxxxi' visible='true' version='35' changeset='88596215'>
+    <member type='node' ref='1240877369' role='stop' />
+    <member type='node' ref='7083058541' role='platform' />
+    <member type='node' ref='7073941394' role='platform' />
+    <member type='node' ref='1240897121' role='stop' />
+    <member type='node' ref='388311629' role='stop' />
+    <member type='node' ref='3395794791' role='stop_exit_only' />
+    <member type='node' ref='2191392189' role='stop_entry_only' />
+    <member type='node' ref='395286068' role='' />
+    <member type='way' ref='132975218' role='' />
+    <member type='way' ref='757459062' role='' />
+    <member type='way' ref='152444324' role='' />
+    <member type='way' ref='758428561' role='' />
+    <member type='way' ref='108105463' role='' />
+    <member type='way' ref='830019631' role='' />
+    <member type='way' ref='154480462' role='' />
+    <member type='way' ref='108193927' role='' />
+    <member type='way' ref='154480460' role='' />
+    <member type='way' ref='830019629' role='' />
+    <member type='way' ref='764243524' role='' />
+    <member type='way' ref='33891641' role='' />
+    <member type='way' ref='85965180' role='' />
+    <member type='way' ref='85965208' role='' />
+    <member type='way' ref='87451168' role='' />
+    <member type='way' ref='203344300' role='' />
+    <member type='way' ref='203344302' role='' />
+    <member type='way' ref='132509608' role='' />
+    <member type='way' ref='23788523' role='' />
+    <member type='way' ref='91323401' role='' />
+    <member type='way' ref='732681513' role='' />
+    <member type='way' ref='730783904' role='' />
+    <member type='way' ref='651969736' role='' />
+    <member type='way' ref='23862335' role='' />
+    <member type='way' ref='91323386' role='' />
+    <member type='way' ref='91323538' role='' />
+    <member type='way' ref='30101517' role='' />
+    <member type='way' ref='203344301' role='' />
+    <member type='way' ref='203344299' role='' />
+    <member type='way' ref='329957377' role='' />
+    <member type='way' ref='255803308' role='' />
+    <member type='way' ref='208884481' role='' />
+    <member type='way' ref='108193928' role='' />
+    <member type='way' ref='23663763' role='' />
+    <member type='way' ref='108194335' role='' />
+    <tag k='name' v='Тролейбус №20' />
+    <tag k='ref' v='20' />
+    <tag k='route' v='trolleybus' />
+    <tag k='type' v='route' />
+  </relation>
+  <relation id='1537528' timestamp='2012-03-13T09:24:42Z' uid='401294' user='azure' visible='true' version='2' changeset='10964470'>
+    <member type='relation' ref='1777784' role='' />
+    <member type='relation' ref='1777785' role='' />
+    <member type='relation' ref='1537513' role='' />
+    <member type='relation' ref='1536609' role='' />
+    <member type='relation' ref='1786308' role='' />
+    <member type='relation' ref='2077914' role='' />
+    <member type='relation' ref='2080928' role='' />
+    <member type='relation' ref='2055197' role='' />
+    <tag k='name' v='Тролейбуси' />
+    <tag k='type' v='network' />
+  </relation>
+  <relation id='2077914' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='26' changeset='82481698'>
+    <member type='node' ref='1457514517' role='stop' />
+    <member type='node' ref='3395794791' role='stop_exit_only' />
+    <member type='node' ref='2191392189' role='stop_entry_only' />
+    <member type='node' ref='2578454065' role='platform' />
+    <member type='node' ref='395286068' role='platform' />
+    <member type='way' ref='30101517' role='' />
+    <member type='way' ref='203344301' role='' />
+    <member type='way' ref='203344299' role='' />
+    <member type='way' ref='23862335' role='' />
+    <member type='way' ref='91323386' role='' />
+    <member type='way' ref='91323538' role='' />
+    <member type='way' ref='108193928' role='' />
+    <member type='way' ref='23663763' role='' />
+    <member type='way' ref='108194335' role='' />
+    <member type='way' ref='255803308' role='' />
+    <member type='way' ref='329957377' role='' />
+    <member type='way' ref='208884481' role='' />
+    <member type='way' ref='651969736' role='' />
+    <member type='way' ref='730783904' role='' />
+    <member type='way' ref='732681513' role='' />
+    <member type='way' ref='91323401' role='' />
+    <member type='way' ref='23788523' role='' />
+    <member type='way' ref='132509608' role='' />
+    <member type='way' ref='203344302' role='' />
+    <member type='way' ref='203344300' role='' />
+    <member type='way' ref='251662719' role='' />
+    <member type='way' ref='89677467' role='' />
+    <member type='way' ref='152191982' role='' />
+    <member type='way' ref='251662718' role='' />
+    <member type='way' ref='251662720' role='' />
+    <member type='way' ref='127737049' role='' />
+    <member type='way' ref='127734698' role='' />
+    <member type='way' ref='89610208' role='' />
+    <member type='way' ref='329957369' role='' />
+    <member type='way' ref='89610181' role='' />
+    <member type='way' ref='329957368' role='' />
+    <member type='way' ref='89610055' role='' />
+    <member type='way' ref='132509601' role='' />
+    <member type='way' ref='132509604' role='' />
+    <member type='way' ref='132509602' role='' />
+    <member type='way' ref='132509597' role='' />
+    <member type='way' ref='626106907' role='' />
+    <member type='way' ref='151325251' role='' />
+    <member type='way' ref='481009514' role='' />
+    <member type='way' ref='481009534' role='' />
+    <member type='way' ref='481009535' role='' />
+    <member type='way' ref='481009519' role='' />
+    <member type='way' ref='481009523' role='' />
+    <member type='way' ref='152191983' role='' />
+    <member type='way' ref='88759723' role='' />
+    <member type='way' ref='696886210' role='' />
+    <member type='way' ref='88759725' role='' />
+    <member type='way' ref='421285149' role='' />
+    <member type='way' ref='154480459' role='' />
+    <member type='way' ref='108193927' role='' />
+    <member type='way' ref='85965180' role='' />
+    <member type='way' ref='87451168' role='' />
+    <member type='way' ref='108193927' role='' />
+    <member type='way' ref='154480459' role='' />
+    <member type='way' ref='154480462' role='' />
+    <member type='way' ref='764243524' role='' />
+    <member type='way' ref='33891641' role='' />
+    <member type='way' ref='85965208' role='' />
+    <tag k='name' v='Тролейбус №31' />
+    <tag k='public_transport:version' v='2' />
+    <tag k='ref' v='31' />
+    <tag k='route' v='trolleybus' />
+    <tag k='type' v='route' />
+  </relation>
+  <relation id='3425722' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='17' changeset='82481698'>
+    <member type='node' ref='1457514517' role='stop' />
+    <member type='node' ref='7083077595' role='stop' />
+    <member type='node' ref='7083077594' role='stop' />
+    <member type='node' ref='1821309956' role='stop' />
+    <member type='node' ref='7073941394' role='platform' />
+    <member type='node' ref='2191392189' role='stop' />
+    <member type='node' ref='1457299727' role='stop' />
+    <member type='node' ref='1457299668' role='stop' />
+    <member type='node' ref='1457299708' role='stop' />
+    <member type='node' ref='1240897121' role='stop' />
+    <member type='node' ref='2578454054' role='platform' />
+    <member type='node' ref='2578454061' role='platform' />
+    <member type='node' ref='2578454064' role='platform' />
+    <member type='node' ref='2578454053' role='platform' />
+    <member type='node' ref='2578454079' role='platform' />
+    <member type='node' ref='2578454057' role='platform' />
+    <member type='node' ref='2578454074' role='platform' />
+    <member type='node' ref='2578454058' role='platform' />
+    <member type='node' ref='2391558034' role='platform' />
+    <member type='node' ref='2150346085' role='platform' />
+    <member type='node' ref='2150346094' role='platform' />
+    <member type='node' ref='2150346097' role='platform' />
+    <member type='node' ref='395286068' role='platform' />
+    <member type='way' ref='255803308' role='' />
+    <member type='way' ref='329957377' role='' />
+    <member type='way' ref='208884481' role='' />
+    <member type='way' ref='651969736' role='' />
+    <member type='way' ref='730783904' role='' />
+    <member type='way' ref='732681513' role='' />
+    <member type='way' ref='91323401' role='' />
+    <member type='way' ref='23788523' role='' />
+    <member type='way' ref='132509608' role='' />
+    <member type='way' ref='203344302' role='' />
+    <member type='way' ref='203344300' role='' />
+    <member type='way' ref='87451168' role='' />
+    <member type='way' ref='85965180' role='' />
+    <member type='way' ref='108193927' role='' />
+    <member type='way' ref='154480459' role='' />
+    <member type='way' ref='421285149' role='' />
+    <member type='way' ref='88759725' role='' />
+    <member type='way' ref='696886210' role='' />
+    <member type='way' ref='88759723' role='' />
+    <member type='way' ref='152191983' role='' />
+    <member type='way' ref='481009523' role='' />
+    <member type='way' ref='481009519' role='' />
+    <member type='way' ref='481009535' role='' />
+    <member type='way' ref='481009534' role='' />
+    <member type='way' ref='481009514' role='' />
+    <member type='way' ref='151325251' role='' />
+    <member type='way' ref='626106907' role='' />
+    <member type='way' ref='132509597' role='' />
+    <member type='way' ref='132509602' role='' />
+    <member type='way' ref='132509604' role='' />
+    <member type='way' ref='132509601' role='' />
+    <member type='way' ref='89610055' role='' />
+    <member type='way' ref='89610181' role='' />
+    <member type='way' ref='329957368' role='' />
+    <member type='way' ref='127734698' role='' />
+    <member type='way' ref='127737049' role='' />
+    <member type='way' ref='251662720' role='' />
+    <member type='way' ref='251662718' role='' />
+    <tag k='from' v='Московський проспект' />
+    <tag k='name' v='Автобус 294e: Московський проспект - Наталії Ужвій' />
+    <tag k='public_transport:version' v='2' />
+    <tag k='ref' v='294е' />
+    <tag k='route' v='bus' />
+    <tag k='to' v='Наталії Ужвій вулиця' />
+    <tag k='type' v='route' />
+  </relation>
+  <relation id='4622830' timestamp='2020-03-22T12:23:20Z' uid='1730741' user='Sergey Harini' visible='true' version='19' changeset='82481698'>
+    <member type='node' ref='7083077592' role='stop' />
+    <member type='node' ref='1457514517' role='stop' />
+    <member type='node' ref='1821309956' role='stop' />
+    <member type='node' ref='7073941394' role='platform' />
+    <member type='node' ref='2093960049' role='platform' />
+    <member type='node' ref='1457299695' role='stop' />
+    <member type='node' ref='1457299743' role='platform' />
+    <member type='node' ref='3369072488' role='stop' />
+    <member type='node' ref='3369072482' role='stop' />
+    <member type='node' ref='3369072484' role='stop' />
+    <member type='node' ref='3369072487' role='stop' />
+    <member type='node' ref='3369072481' role='stop' />
+    <member type='node' ref='3369072491' role='stop' />
+    <member type='node' ref='7151570522' role='platform' />
+    <member type='node' ref='3369072489' role='stop' />
+    <member type='node' ref='2191392189' role='stop' />
+    <member type='node' ref='1457299727' role='stop' />
+    <member type='node' ref='1457299668' role='stop' />
+    <member type='node' ref='1457299708' role='stop' />
+    <member type='node' ref='1240897121' role='stop' />
+    <member type='node' ref='2578454054' role='platform' />
+    <member type='node' ref='2578454061' role='platform' />
+    <member type='node' ref='2578454064' role='platform' />
+    <member type='node' ref='2578454053' role='platform' />
+    <member type='node' ref='2578454079' role='platform' />
+    <member type='node' ref='2578454074' role='platform' />
+    <member type='node' ref='2578454058' role='platform' />
+    <member type='node' ref='2391558034' role='platform' />
+    <member type='node' ref='1932246587' role='platform' />
+    <member type='node' ref='2367194876' role='stop' />
+    <member type='node' ref='395286068' role='platform' />
+    <member type='way' ref='329957378' role='' />
+    <member type='way' ref='132507965' role='' />
+    <member type='way' ref='355618695' role='' />
+    <member type='way' ref='329957372' role='' />
+    <member type='way' ref='329957371' role='' />
+    <member type='way' ref='503738318' role='' />
+    <member type='way' ref='503738317' role='' />
+    <member type='way' ref='131620049' role='' />
+    <member type='way' ref='329957375' role='' />
+    <member type='way' ref='108194335' role='' />
+    <member type='way' ref='255803308' role='' />
+    <member type='way' ref='329957377' role='' />
+    <member type='way' ref='208884481' role='' />
+    <member type='way' ref='651969736' role='' />
+    <member type='way' ref='730783904' role='' />
+    <member type='way' ref='732681513' role='' />
+    <member type='way' ref='91323401' role='' />
+    <member type='way' ref='23788523' role='' />
+    <member type='way' ref='132509608' role='' />
+    <member type='way' ref='203344302' role='' />
+    <member type='way' ref='203344300' role='' />
+    <member type='way' ref='87451168' role='' />
+    <member type='way' ref='85965180' role='' />
+    <member type='way' ref='108193927' role='' />
+    <member type='way' ref='154480459' role='' />
+    <member type='way' ref='421285149' role='' />
+    <member type='way' ref='88759725' role='' />
+    <member type='way' ref='696886210' role='' />
+    <member type='way' ref='88759723' role='' />
+    <member type='way' ref='152191983' role='' />
+    <member type='way' ref='481009523' role='' />
+    <member type='way' ref='481009519' role='' />
+    <member type='way' ref='481009535' role='' />
+    <member type='way' ref='481009534' role='' />
+    <member type='way' ref='481009514' role='' />
+    <member type='way' ref='151325251' role='' />
+    <member type='way' ref='626106907' role='' />
+    <member type='way' ref='132509597' role='' />
+    <member type='way' ref='132509602' role='' />
+    <member type='way' ref='132509604' role='' />
+    <member type='way' ref='132509601' role='' />
+    <member type='way' ref='89610055' role='' />
+    <member type='way' ref='89610181' role='' />
+    <member type='way' ref='329957374' role='' />
+    <member type='way' ref='89610079' role='' />
+    <tag k='from' v='Одеська вулиця' />
+    <tag k='name' v='Автобус 259е: Одеська - Дружби народів' />
+    <tag k='public_transport:version' v='2' />
+    <tag k='ref' v='259е' />
+    <tag k='route' v='bus' />
+    <tag k='to' v='Дружби народів вулиця' />
+    <tag k='type' v='route' />
+  </relation>
+  <relation id='8846268' timestamp='2020-06-05T12:20:48Z' uid='9518695' user='taxxxi' visible='true' version='15' changeset='86244667'>
+    <member type='node' ref='7128002649' role='stop_entry_only' />
+    <member type='node' ref='7128002648' role='platform_entry_only' />
+    <member type='node' ref='7128002655' role='stop' />
+    <member type='node' ref='7128002654' role='platform' />
+    <member type='node' ref='7128002659' role='stop' />
+    <member type='node' ref='7128002658' role='platform' />
+    <member type='node' ref='7128002663' role='stop' />
+    <member type='node' ref='7128002662' role='platform' />
+    <member type='node' ref='7128002665' role='stop' />
+    <member type='node' ref='6004666893' role='platform' />
+    <member type='node' ref='7128002666' role='stop' />
+    <member type='node' ref='1328503603' role='platform' />
+    <member type='node' ref='7128002668' role='stop' />
+    <member type='node' ref='3384998170' role='platform' />
+    <member type='node' ref='3395844877' role='stop' />
+    <member type='node' ref='2278582703' role='platform' />
+    <member type='node' ref='3395794775' role='stop' />
+    <member type='node' ref='3395794791' role='platform' />
+    <member type='node' ref='7128002672' role='stop' />
+    <member type='node' ref='3369072490' role='platform' />
+    <member type='node' ref='7128002677' role='stop' />
+    <member type='node' ref='7128002676' role='platform' />
+    <member type='node' ref='7128002678' role='stop' />
+    <member type='node' ref='2094827387' role='platform' />
+    <member type='node' ref='5447777185' role='stop_exit_only' />
+    <member type='node' ref='7128002680' role='platform_exit_only' />
+    <member type='way' ref='732356860' role='' />
+    <member type='way' ref='29111755' role='' />
+    <member type='way' ref='762819054' role='' />
+    <member type='way' ref='637649314' role='' />
+    <member type='way' ref='783612027' role='' />
+    <member type='way' ref='651969738' role='' />
+    <member type='way' ref='208884482' role='' />
+    <member type='way' ref='108193928' role='' />
+    <member type='way' ref='108193925' role='' />
+    <member type='way' ref='329957376' role='' />
+    <member type='way' ref='783680571' role='' />
+    <member type='way' ref='783680573' role='' />
+    <member type='way' ref='210437422' role='' />
+    <member type='way' ref='217811836' role='' />
+    <member type='way' ref='646355729' role='' />
+    <member type='way' ref='217811835' role='' />
+    <member type='way' ref='217811833' role='' />
+    <member type='way' ref='762819052' role='' />
+    <member type='way' ref='762819055' role='' />
+    <member type='way' ref='24714709' role='' />
+    <member type='way' ref='813154283' role='' />
+    <member type='way' ref='813154282' role='' />
+    <member type='way' ref='762819050' role='' />
+    <tag k='from' v='Парк &quot;Зустріч&quot;' />
+    <tag k='name' v='Тролейбус №13 Парк &quot;Зустріч&quot; - ст. м. Захисникiв України' />
+    <tag k='operator' v='Тролейбусне депо №3' />
+    <tag k='public_transport:version' v='2' />
+    <tag k='ref' v='13' />
+    <tag k='route' v='trolleybus' />
+    <tag k='to' v='ст. м. Захисникiв України' />
+    <tag k='type' v='route' />
+  </relation>
+  <relation id='10105729' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='2' changeset='75422833'>
+    <member type='node' ref='6844719020' role='via' />
+    <tag k='restriction' v='no_u_turn' />
+    <tag k='type' v='restriction' />
+  </relation>
+  <relation id='10105731' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='2' changeset='75422833'>
+    <member type='node' ref='6844719020' role='via' />
+    <tag k='restriction' v='no_u_turn' />
+    <tag k='type' v='restriction' />
+  </relation>
+  <relation id='10128674' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75422833'>
+    <member type='way' ref='651964352' role='from' />
+    <member type='node' ref='6113014891' role='via' />
+    <member type='way' ref='732681511' role='to' />
+    <tag k='restriction' v='no_right_turn' />
+    <tag k='type' v='restriction' />
+  </relation>
+  <relation id='10128675' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75422833'>
+    <member type='way' ref='651964354' role='from' />
+    <member type='node' ref='6113014891' role='via' />
+    <member type='way' ref='732681512' role='to' />
+    <tag k='restriction' v='no_left_turn' />
+    <tag k='type' v='restriction' />
+  </relation>
+  <relation id='10128676' timestamp='2019-11-01T13:27:03Z' uid='421494' user='Anton Shevchuk' visible='true' version='2' changeset='76496779'>
+    <member type='way' ref='730783904' role='from' />
+    <member type='node' ref='395286068' role='via' />
+    <member type='way' ref='91323578' role='to' />
+    <tag k='restriction' v='no_u_turn' />
+    <tag k='type' v='restriction' />
+  </relation>
+  <relation id='10128677' timestamp='2019-11-01T13:27:03Z' uid='421494' user='Anton Shevchuk' visible='true' version='2' changeset='76496779'>
+    <member type='way' ref='730783904' role='from' />
+    <member type='node' ref='395286068' role='via' />
+    <member type='way' ref='732681514' role='to' />
+    <tag k='restriction' v='no_u_turn' />
+    <tag k='type' v='restriction' />
+  </relation>
+  <relation id='10128678' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75422833'>
+    <member type='way' ref='651964355' role='from' />
+    <member type='node' ref='6860854797' role='via' />
+    <member type='way' ref='651964354' role='to' />
+    <tag k='restriction' v='no_left_turn' />
+    <tag k='type' v='restriction' />
+  </relation>
+  <relation id='10128679' timestamp='2019-10-08T16:25:27Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75422833'>
+    <member type='way' ref='732681514' role='from' />
+    <member type='node' ref='6860854797' role='via' />
+    <member type='way' ref='732681519' role='to' />
+    <tag k='restriction' v='no_right_turn' />
+    <tag k='type' v='restriction' />
+  </relation>
+  <relation id='10130579' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528'>
+    <member type='way' ref='91323401' role='from' />
+    <member type='node' ref='257750807' role='via' />
+    <member type='way' ref='91323401' role='to' />
+    <tag k='restriction' v='no_u_turn' />
+    <tag k='type' v='restriction' />
+  </relation>
+  <relation id='10130580' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528'>
+    <member type='way' ref='732681513' role='from' />
+    <member type='node' ref='257750807' role='via' />
+    <member type='way' ref='732681513' role='to' />
+    <tag k='restriction' v='no_u_turn' />
+    <tag k='type' v='restriction' />
+  </relation>
+  <relation id='10130581' timestamp='2019-10-09T07:40:26Z' uid='421494' user='Anton Shevchuk' visible='true' version='1' changeset='75443528'>
+    <member type='way' ref='732681513' role='from' />
+    <member type='node' ref='395286068' role='via' />
+    <member type='way' ref='732681513' role='to' />
+    <tag k='restriction' v='no_u_turn' />
+    <tag k='type' v='restriction' />
+  </relation>
+  <relation id='10581730' timestamp='2020-09-09T15:50:26Z' uid='9518695' user='taxxxi' visible='true' version='9' changeset='90655525'>
+    <member type='node' ref='2594228613' role='stop_entry_only' />
+    <member type='node' ref='2594228534' role='platform_entry_only' />
+    <member type='node' ref='7128002679' role='stop' />
+    <member type='node' ref='7128002674' role='stop' />
+    <member type='node' ref='7128002673' role='platform' />
+    <member type='node' ref='7128002671' role='stop' />
+    <member type='node' ref='3369072489' role='platform' />
+    <member type='node' ref='2191392189' role='stop' />
+    <member type='node' ref='7083685219' role='platform' />
+    <member type='node' ref='7128002670' role='stop' />
+    <member type='node' ref='3391446317' role='stop' />
+    <member type='node' ref='1330704422' role='platform' />
+    <member type='node' ref='7128002667' role='stop' />
+    <member type='node' ref='3391446303' role='platform' />
+    <member type='node' ref='7128002664' role='stop' />
+    <member type='node' ref='3827745728' role='platform' />
+    <member type='node' ref='7128002661' role='stop' />
+    <member type='node' ref='7128002660' role='platform' />
+    <member type='node' ref='7128002656' role='stop' />
+    <member type='node' ref='7128002657' role='platform' />
+    <member type='node' ref='7128002653' role='stop' />
+    <member type='node' ref='7128002652' role='platform' />
+    <member type='node' ref='7128002650' role='stop_exit_only' />
+    <member type='node' ref='7128002651' role='platform_exit_only' />
+    <member type='way' ref='762819049' role='' />
+    <member type='way' ref='762819057' role='' />
+    <member type='way' ref='813154282' role='' />
+    <member type='way' ref='813154283' role='' />
+    <member type='way' ref='24714709' role='' />
+    <member type='way' ref='762819056' role='' />
+    <member type='way' ref='637649317' role='' />
+    <member type='way' ref='845770200' role='' />
+    <member type='way' ref='255096297' role='' />
+    <member type='way' ref='845779416' role='' />
+    <member type='way' ref='502403426' role='' />
+    <member type='way' ref='845779417' role='' />
+    <member type='way' ref='845779418' role='' />
+    <member type='way' ref='34392084' role='' />
+    <member type='way' ref='217811834' role='' />
+    <member type='way' ref='783680574' role='' />
+    <member type='way' ref='329957375' role='' />
+    <member type='way' ref='108194335' role='' />
+    <member type='way' ref='255803308' role='' />
+    <member type='way' ref='329957377' role='' />
+    <member type='way' ref='208884481' role='' />
+    <member type='way' ref='651969736' role='' />
+    <member type='way' ref='651964355' role='' />
+    <member type='way' ref='732681519' role='' />
+    <member type='way' ref='651964356' role='' />
+    <member type='way' ref='783654876' role='' />
+    <member type='way' ref='783654878' role='' />
+    <member type='way' ref='29111755' role='' />
+    <member type='way' ref='732356860' role='' />
+    <member type='way' ref='762819051' role='' />
+    <tag k='from' v='ст. м. Захисникiв України' />
+    <tag k='name' v='Тролейбус №13 ст. м. Захисникiв України - Парк &quot;Зустріч&quot;' />
+    <tag k='operator' v='Тролейбусне депо №3' />
+    <tag k='public_transport:version' v='2' />
+    <tag k='ref' v='13' />
+    <tag k='route' v='trolleybus' />
+    <tag k='to' v='Парк &quot;Зустріч&quot;' />
+    <tag k='type' v='route' />
+  </relation>
+  <relation id='10581731' timestamp='2020-01-15T09:26:26Z' uid='4464045' user='Anton Melnichuk' visible='true' version='2' changeset='79600235'>
+    <member type='relation' ref='10581730' role='' />
+    <member type='relation' ref='8846268' role='' />
+    <tag k='name' v='Тролейбус №13' />
+    <tag k='operator' v='operator=Тролейбусне депо №3' />
+    <tag k='ref' v='13' />
+    <tag k='route_master' v='trolleybus' />
+    <tag k='type' v='route_master' />
+  </relation>
+</osm>

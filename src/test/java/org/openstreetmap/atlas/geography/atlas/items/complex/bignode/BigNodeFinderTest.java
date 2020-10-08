@@ -66,7 +66,7 @@ public class BigNodeFinderTest extends AtlasLoadingCommand
         logger.info("Atlas: {}", atlas);
         final List<BigNode> bigNodes = Iterables.asList(new BigNodeFinder().find(atlas));
         bigNodes.forEach(complexEntity -> logger.info("{}", complexEntity.toString()));
-        Assert.assertEquals("Expect to find 18 Big Nodes for overlap atlas", 18, bigNodes.size());
+        Assert.assertEquals("Expect to find 20 Big Nodes for overlap atlas", 20, bigNodes.size());
 
         final Set<BigNode> dualCarriageWayBigNodes = bigNodes.stream()
                 .filter(bigNode -> bigNode.getType().equals(Type.DUAL_CARRIAGEWAY))
@@ -74,10 +74,10 @@ public class BigNodeFinderTest extends AtlasLoadingCommand
         Assert.assertEquals("Number of Dual Carrriage Way Big Nodes", 1,
                 dualCarriageWayBigNodes.size());
 
-        final Long[] expectedDualCarriageWayNodeIdentifiers = { 4886012999000000L,
-                4886012997000000L, 4886012998000000L, 1029583978000000L, 60382597000000L,
-                4878996908000000L, 1029583896000000L, 60382598000000L, 4886062964000000L,
-                4886062965000000L, 4878996907000000L, 4879025626000000L };
+        final Long[] expectedDualCarriageWayNodeIdentifiers = { 4886012997000000L,
+                4886012998000000L, 1029583978000000L, 60382597000000L, 1029583896000000L,
+                60382598000000L, 4886062964000000L, 4886062965000000L, 4878996907000000L,
+                4879025626000000L };
 
         final Set<Long> dualCarriageWayNodes = dualCarriageWayBigNodes.stream()
                 .flatMap(bigNode -> bigNode.nodes().stream()).map(node -> node.getIdentifier())
@@ -130,6 +130,44 @@ public class BigNodeFinderTest extends AtlasLoadingCommand
                 .assertFalse(expectedPierNodeIdentifiersSet.contains(node.getIdentifier()))));
         simpleNodes.forEach(bigNode -> bigNode.nodes().forEach(node -> Assert
                 .assertFalse(expectedPierNodeIdentifiersSet.contains(node.getIdentifier()))));
+    }
+
+    @Test
+    public void testExcludeLinkRoadAsDualCarriageWayDNK()
+    {
+        final Atlas atlas = this.setup.getDNKAtlasToTestExcludeLinkRoadAsDualCarriageWay();
+        logger.info("Atlas: {}", atlas);
+        final List<BigNode> bigNodes = Iterables.asList(new BigNodeFinder().find(atlas));
+        final Set<BigNode> dualCarriageWayBigNodes = bigNodes.stream()
+                .filter(bigNode -> bigNode.getType().equals(Type.DUAL_CARRIAGEWAY))
+                .collect(Collectors.toSet());
+        dualCarriageWayBigNodes.forEach(bigNode -> logger.info("{}", bigNode.toString()));
+        Assert.assertEquals("Expect to find 1 Dual Carriageway Big Node for this atlas", 1,
+                dualCarriageWayBigNodes.size());
+        final Set<Long> dualCarriageWayNodes = dualCarriageWayBigNodes.stream()
+                .flatMap(bigNode -> bigNode.nodes().stream()).map(node -> node.getIdentifier())
+                .collect(Collectors.toSet());
+        Assert.assertEquals("Expect to find 6 Dual Carriageway Sub Nodes", 6,
+                dualCarriageWayNodes.size());
+        final long[] nodeIdentfiers = { 29971835000000L, 29971833000000L, 6378459073000000L,
+                6378459072000000L, 6378459074000000L, 6378459067000000L };
+        Arrays.asList(nodeIdentfiers).forEach(nodeIdentifier -> Assert
+                .assertFalse(dualCarriageWayNodes.contains(nodeIdentifier)));
+    }
+
+    @Test
+    public void testExcludeLinkRoadAsDualCarriageWayUKR()
+    {
+        final Atlas atlas = this.setup.getUKRAtlasToTestExcludeLinkRoadAsDualCarriageWay();
+        logger.info("Atlas: {}", atlas);
+        final List<BigNode> bigNodes = Iterables.asList(new BigNodeFinder().find(atlas));
+        final Set<BigNode> dualCarriageWayBigNodes = bigNodes.stream()
+                .filter(bigNode -> bigNode.getType().equals(Type.DUAL_CARRIAGEWAY))
+                .collect(Collectors.toSet());
+        dualCarriageWayBigNodes.forEach(bigNode -> logger.info("{}", bigNode.toString()));
+        Assert.assertEquals("Expect to find 0 Dual Carriageway Big Node for this atlas", 0,
+                dualCarriageWayBigNodes.size());
+        Assert.assertEquals("Expect to find 31 simple big nodes", 31, bigNodes.size());
     }
 
     @Test
@@ -201,6 +239,7 @@ public class BigNodeFinderTest extends AtlasLoadingCommand
     {
         final File folder = (File) command.get(INPUT_FOLDER);
         final Atlas atlas = loadAtlas(command);
+
         final File bigNodesFile = folder.child("improved.bigNodes.geojson");
         final JsonWriter writer = new JsonWriter(bigNodesFile);
         writer.write(new GeoJsonBuilder().create(

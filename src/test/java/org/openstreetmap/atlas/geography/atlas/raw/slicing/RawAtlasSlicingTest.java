@@ -45,7 +45,7 @@ public class RawAtlasSlicingTest
 {
     private static final CountryBoundaryMap boundary;
     private static final RelationOrAreaToMultiPolygonConverter converter;
-    private static JtsMultiPolygonToMultiPolygonConverter jtsConverter;
+    private static final JtsMultiPolygonToMultiPolygonConverter jtsConverter;
     static
     {
         boundary = CountryBoundaryMap

@@ -36,14 +36,17 @@ public class MultiAtlasOverlappingNodesFixer implements Serializable
             .getLogger(MultiAtlasOverlappingNodesFixer.class);
 
     private final MultiAtlas parent;
+    private final boolean fixNodesOnOppositeAntiMeridians;
 
     // The overlapping nodes... Those maps should be tiny
     private final Map<Long, Long> overlappingNodeIdentifierToMainNodeIdentifier = new HashMap<>();
     private final MultiMapWithSet<Long, Long> mainNodeIdentifierToOverlappingNodeIdentifier = new MultiMapWithSet<>();
 
-    protected MultiAtlasOverlappingNodesFixer(final MultiAtlas parent)
+    protected MultiAtlasOverlappingNodesFixer(final MultiAtlas parent,
+            final boolean fixNodesOnOppositeAntiMeridians)
     {
         this.parent = parent;
+        this.fixNodesOnOppositeAntiMeridians = fixNodesOnOppositeAntiMeridians;
     }
 
     /**
@@ -140,9 +143,10 @@ public class MultiAtlasOverlappingNodesFixer implements Serializable
         final List<Rectangle> bounds = new ArrayList<>();
         // Make sure that the AntiMeridian case is taken care of
         final Location mainLocation = main.getLocation();
-        // This will be true for both the minimum antimeridian and the maximum
-        if (Longitude.ANTIMERIDIAN_WEST.equals(mainLocation.getLongitude())
-                || Longitude.ANTIMERIDIAN_EAST.equals(mainLocation.getLongitude()))
+        // This will be true for both the minimum antimeridian and the maximum.
+        if (this.fixNodesOnOppositeAntiMeridians
+                && (Longitude.ANTIMERIDIAN_WEST.equals(mainLocation.getLongitude())
+                        || Longitude.ANTIMERIDIAN_EAST.equals(mainLocation.getLongitude())))
         {
             final Location antimeridianMinimum = new Location(mainLocation.getLatitude(),
                     Longitude.ANTIMERIDIAN_WEST);

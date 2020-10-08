@@ -117,26 +117,29 @@ public class PackedToTextAtlasCommand extends AtlasLoaderCommand
             if (this.optionAndArgumentDelegate.hasOption(REVERSE_OPTION_LONG))
             {
                 outputFile = new File(
-                        concatenatedPath.toAbsolutePath().toString() + FileSuffix.ATLAS);
+                        concatenatedPath.toAbsolutePath().toString() + FileSuffix.ATLAS,
+                        this.getFileSystem());
                 outputAtlas.save(outputFile);
             }
             else
             {
                 outputFile = new File(concatenatedPath.toAbsolutePath().toString()
-                        + FileSuffix.ATLAS + FileSuffix.TEXT);
+                        + FileSuffix.ATLAS + FileSuffix.TEXT, this.getFileSystem());
                 outputAtlas.saveAsText(outputFile);
             }
         }
         else if (this.optionAndArgumentDelegate.getParserContext() == GEOJSON_CONTEXT)
         {
             outputFile = new File(
-                    concatenatedPath.toAbsolutePath().toString() + FileSuffix.GEO_JSON);
+                    concatenatedPath.toAbsolutePath().toString() + FileSuffix.GEO_JSON,
+                    this.getFileSystem());
             outputAtlas.saveAsGeoJson(outputFile);
         }
         else if (this.optionAndArgumentDelegate.getParserContext() == LDGEOJSON_CONTEXT)
         {
             outputFile = new File(
-                    concatenatedPath.toAbsolutePath().toString() + FileSuffix.GEO_JSON);
+                    concatenatedPath.toAbsolutePath().toString() + FileSuffix.GEO_JSON,
+                    this.getFileSystem());
             outputAtlas.saveAsLineDelimitedGeoJsonFeatures(outputFile, (entity, json) ->
             {
                 // Dummy consumer, we don't need to mutate the JSON
@@ -151,7 +154,7 @@ public class PackedToTextAtlasCommand extends AtlasLoaderCommand
         if (this.optionAndArgumentDelegate.hasVerboseOption())
         {
             this.outputDelegate
-                    .printlnCommandMessage(SAVED_TO + outputFile.getFile().getAbsolutePath());
+                    .printlnCommandMessage(SAVED_TO + outputFile.toAbsolutePath().toString());
         }
     }
 }

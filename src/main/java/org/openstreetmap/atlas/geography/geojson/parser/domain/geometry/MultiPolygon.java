@@ -1,53 +1,50 @@
 package org.openstreetmap.atlas.geography.geojson.parser.domain.geometry;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.Validate;
 import org.openstreetmap.atlas.geography.Polygon;
-import org.openstreetmap.atlas.geography.geojson.parser.domain.bbox.Bbox;
-import org.openstreetmap.atlas.geography.geojson.parser.domain.foreign.ForeignFields;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordinate.Coordinates;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordinate.Position;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordinate.Positions;
+import org.openstreetmap.atlas.utilities.maps.MultiMap;
 
 /**
  * @author Yazad Khambata
  */
 @SuppressWarnings("squid:S2160")
-public class MultiPolygon
-        extends AbstractGeometryWithCoordinateSupport<List<List<Position>>, List<Polygon>>
+public class MultiPolygon extends
+        AbstractGeometryWithCoordinateSupport<List<List<List<Position>>>, org.openstreetmap.atlas.geography.MultiPolygon>
 {
-    private MultiLineString value;
+    private List<List<List<Position>>> coordinates;
 
     public MultiPolygon(final Map<String, Object> map)
     {
         super(map, null);
-        this.value = new MultiLineString(map);
+        this.coordinates = Coordinates
+                .forMultiPolygon((List<List<List<List<Double>>>>) extractRawCoordinates(map))
+                .getValue();
     }
 
     @Override
-    public Bbox getBbox()
+    public Coordinates<List<List<List<Position>>>> getCoordinates()
     {
-        return this.value.getBbox();
+        return new Coordinates<>(this.coordinates);
     }
 
     @Override
-    public Coordinates<List<List<Position>>> getCoordinates()
+    public org.openstreetmap.atlas.geography.MultiPolygon toAtlasGeometry()
     {
-        return this.value.getCoordinates();
-    }
-
-    @Override
-    public ForeignFields getForeignFields()
-    {
-        return this.value.getForeignFields();
-    }
-
-    @Override
-    public List<Polygon> toAtlasGeometry()
-    {
-        Validate.notEmpty(Positions.toListOfAtlasPolygonsFromMultiLineString(this.value));
-        return Positions.toListOfAtlasPolygonsFromMultiLineString(this.value);
+        final MultiMap<Polygon, Polygon> outersToIneers = new MultiMap<>();
+        this.coordinates.stream()
+                .map(geojsonPolygon -> geojsonPolygon.stream().map(
+                        geojsonLinearRing -> new Polygon(Positions.toLocations(geojsonLinearRing)))
+                        .collect(Collectors.toList()))
+                .forEach(polygonList -> outersToIneers.put(polygonList.get(0),
+                        polygonList.size() > 1 ? polygonList.subList(1, polygonList.size())
+                                : Collections.emptyList()));
+        return new org.openstreetmap.atlas.geography.MultiPolygon(outersToIneers);
     }
 }

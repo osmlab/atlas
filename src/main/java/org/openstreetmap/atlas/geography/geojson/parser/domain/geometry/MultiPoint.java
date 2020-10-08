@@ -15,24 +15,24 @@ import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordina
 public class MultiPoint
         extends AbstractGeometryWithCoordinateSupport<List<Position>, List<Location>>
 {
-    private Coordinates<List<Position>> coordinates;
+    private List<Position> coordinates;
 
     public MultiPoint(final Map<String, Object> map)
     {
         super(map, null);
         this.coordinates = Coordinates
-                .forMultiPoint((List<List<Double>>) extractRawCoordinates(map));
+                .forMultiPoint((List<List<Double>>) extractRawCoordinates(map)).getValue();
     }
 
     @Override
     public Coordinates<List<Position>> getCoordinates()
     {
-        return this.coordinates;
+        return new Coordinates<>(this.coordinates);
     }
 
     @Override
     public List<Location> toAtlasGeometry()
     {
-        return Positions.toLocations(this.coordinates.getValue());
+        return Positions.toLocations(this.coordinates);
     }
 }

@@ -78,7 +78,8 @@ public class ConcatenateAtlasCommand extends AtlasLoaderCommand
         final PackedAtlas outputAtlas = new PackedAtlasCloner().cloneFrom(atlas);
         final Path concatenatedPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
                 OUTPUT_ATLAS);
-        final File outputFile = new File(concatenatedPath.toAbsolutePath().toString());
+        final File outputFile = new File(concatenatedPath.toAbsolutePath().toString(),
+                this.getFileSystem());
         outputAtlas.save(outputFile);
 
         if (this.optionAndArgumentDelegate.hasVerboseOption())

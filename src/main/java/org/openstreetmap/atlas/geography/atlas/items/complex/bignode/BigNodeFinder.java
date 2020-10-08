@@ -278,8 +278,8 @@ public class BigNodeFinder implements Finder<BigNode>
                 }
                 else
                 {
-                    // Expand Junction Edge to Junction Route before checking for Dual Carriage way
-                    // intersection
+                    // Expand Junction Edge to Junction Route before checking for Dual Carriage
+                    // way intersection
                     final Optional<Route> junctionRoute = isDualCarriageWayJunctionRoute(
                             Route.forEdge(candidateEdge));
 
@@ -437,9 +437,9 @@ public class BigNodeFinder implements Finder<BigNode>
     private boolean isCandidateJunctionEdge(final Edge edge)
     {
         final HighwayTag highwayTag = edge.highwayTag();
-        return isShortEnough(edge)
-                && highwayTag.isMoreImportantThanOrEqualTo(HighwayTag.RESIDENTIAL)
+        return isShortEnough(edge) && highwayTag.isMoreImportantThanOrEqualTo(HighwayTag.SERVICE)
                 && !JunctionTag.isRoundabout(edge);
+
     }
 
     private boolean isDualCarriageWayJunctionEdge(final Edge candidateEdge)
@@ -552,6 +552,9 @@ public class BigNodeFinder implements Finder<BigNode>
                      * increases false positive cases.
                      */
                     if (outEdge.highwayTag().isMoreImportantThanOrEqualTo(HighwayTag.UNCLASSIFIED)
+                            // if an edge is considered as a junction edge, the dual carriage way
+                            // it connects to can not be link road
+                            && (!inEdge.highwayTag().isLink() && !outEdge.highwayTag().isLink())
                             && this.edgeDirectionComparator.isOppositeDirection(inEdge, outEdge,
                                     false)
                             && !outEdge.hasReverseEdge() && !inEdge.hasReverseEdge()
