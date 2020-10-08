@@ -156,6 +156,22 @@ public class MultiplePolyLineToPolygonsConverterTest
     }
 
     @Test
+    public void testJtsException()
+    {
+        final List<PolyLine> list = new ArrayList<>();
+        list.add(PolyLine.wkt(new InputStreamResource(
+                () -> MultiplePolyLineToPolygonsConverterTest.class.getResourceAsStream(
+                        "MultiplePolyLineToPolygonsConverterTest_jtsErrorOuter.wkt")).all()));
+        list.add(PolyLine.wkt(new InputStreamResource(
+                () -> MultiplePolyLineToPolygonsConverterTest.class.getResourceAsStream(
+                        "MultiplePolyLineToPolygonsConverterTest_jtsErrorInner1.wkt")).all()));
+        list.add(PolyLine.wkt(new InputStreamResource(
+                () -> MultiplePolyLineToPolygonsConverterTest.class.getResourceAsStream(
+                        "MultiplePolyLineToPolygonsConverterTest_jtsErrorInner2.wkt")).all()));
+        Assert.assertEquals(3, Iterables.size(CONVERTER.convert(list)));
+    }
+
+    @Test
     public void testPolyLinesWithOneSelfIntersection()
     {
         final List<PolyLine> list = new ArrayList<>();
