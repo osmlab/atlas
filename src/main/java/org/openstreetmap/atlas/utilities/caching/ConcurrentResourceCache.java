@@ -59,7 +59,7 @@ public class ConcurrentResourceCache implements ResourceCache
             cachedResource = this.cachingStrategy.attemptFetch(resourceURI, this.fetcher);
         }
 
-        if (!cachedResource.isPresent())
+        if (cachedResource.isEmpty())
         {
             logger.warn("CacheID {}: cache fetch of {} failed, falling back to default fetcher...",
                     this.cacheID, resourceURI);

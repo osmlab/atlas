@@ -2,9 +2,10 @@ package org.openstreetmap.atlas.utilities.caching.strategies;
 
 import java.net.URI;
 import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 import java.util.UUID;
@@ -47,8 +48,14 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
 
     private final String namespace;
     private boolean preserveFileExtension;
+    private final FileSystem fileSystem;
 
     public NamespaceCachingStrategy(final String namespace)
+    {
+        this(namespace, FileSystems.getDefault());
+    }
+
+    public NamespaceCachingStrategy(final String namespace, final FileSystem fileSystem)
     {
         super();
         if (namespace.contains("/") || namespace.contains("\\"))
@@ -59,6 +66,7 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
         this.namespace = "NamespaceCachingStrategy_" + namespace + "_"
                 + UUID.nameUUIDFromBytes(namespace.getBytes()).toString();
         this.preserveFileExtension = true;
+        this.fileSystem = fileSystem;
     }
 
     @Override
@@ -107,12 +115,12 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
         final Path storageDirectory = this.getStorageDirectory();
         try
         {
-            new File(storageDirectory.toString()).deleteRecursively();
+            new File(storageDirectory.toString(), this.fileSystem).deleteRecursively();
         }
         catch (final Exception exception)
         {
             logger.warn("StrategyID {}: invalidate failed due to {}", this.getStrategyID(),
-                    exception);
+                    exception.getClass().getName(), exception);
         }
     }
 
@@ -126,7 +134,7 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
         catch (final Exception exception)
         {
             logger.warn("StrategyID {}: invalidate of resource {} failed due to {}",
-                    this.getStrategyID(), resourceURI, exception);
+                    this.getStrategyID(), resourceURI, exception.getClass().getName(), exception);
         }
     }
 
@@ -151,7 +159,7 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
                     this.getStrategyID(), resourceURI, cachedFile);
 
             final Optional<Resource> resourceFromDefaultFetcher = defaultFetcher.apply(resourceURI);
-            if (!resourceFromDefaultFetcher.isPresent())
+            if (resourceFromDefaultFetcher.isEmpty())
             {
                 logger.warn(
                         "StrategyID {}: application of default fetcher for {} returned empty Optional!",
@@ -159,7 +167,7 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
                 return;
             }
 
-            final File temporaryLocalFile = File.temporary();
+            final File temporaryLocalFile = File.temporary(this.fileSystem);
             RETRY.run(() ->
             {
                 try
@@ -194,9 +202,9 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
             {
                 try
                 {
-                    final Path temporaryLocalFilePath = Paths
-                            .get(temporaryLocalFile.getPathString());
-                    final Path cachedFilePath = Paths.get(cachedFile.getPathString());
+                    final Path temporaryLocalFilePath = this.fileSystem
+                            .getPath(temporaryLocalFile.getPathString());
+                    final Path cachedFilePath = this.fileSystem.getPath(cachedFile.getPathString());
                     Files.move(temporaryLocalFilePath, cachedFilePath,
                             StandardCopyOption.ATOMIC_MOVE);
                     validateLocalFile(cachedFile);
@@ -229,9 +237,10 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
         {
             cachedFileName = this.getUUIDForResourceURI(resourceURI).toString();
         }
-        final Path cachedFilePath = Paths.get(storageDirectory.toString(), cachedFileName);
+        final Path cachedFilePath = this.fileSystem.getPath(storageDirectory.toString(),
+                cachedFileName);
 
-        return new File(cachedFilePath.toString());
+        return new File(cachedFilePath.toString(), this.fileSystem);
     }
 
     private Optional<String> getFileExtensionFromURI(final URI resourceURI)
@@ -262,6 +271,6 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
 
     private Path getStorageDirectory()
     {
-        return Paths.get(TEMPORARY_DIRECTORY_STRING, this.namespace);
+        return this.fileSystem.getPath(TEMPORARY_DIRECTORY_STRING, this.namespace);
     }
 }
