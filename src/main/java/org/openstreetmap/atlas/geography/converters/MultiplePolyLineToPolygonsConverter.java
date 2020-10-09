@@ -358,26 +358,43 @@ public class MultiplePolyLineToPolygonsConverter
 
         // Check for missing parts
         final List<LineString> errors = new ArrayList<>();
-        errors.addAll(polygonizer.getDangles());
-        errors.addAll(polygonizer.getCutEdges());
-        errors.addAll(polygonizer.getInvalidRingLines());
-        if (errors.isEmpty())
+        Exception potentialException = null;
+        try
+        {
+            errors.addAll(polygonizer.getDangles());
+            errors.addAll(polygonizer.getCutEdges());
+            errors.addAll(polygonizer.getInvalidRingLines());
+        }
+        catch (final Exception e)
+        {
+            potentialException = e;
+        }
+        if (errors.isEmpty() && potentialException == null)
         {
             // Get results
             final List<org.locationtech.jts.geom.Polygon> result = (List<org.locationtech.jts.geom.Polygon>) polygonizer
                     .getPolygons();
             return result.stream().map(JTS_POLYGON_CONVERTER::backwardConvert)
                     .collect(Collectors.toList());
-
         }
         else
         {
-            final OpenPolygonException jtsException = new OpenPolygonException(
-                    "Unable to close all the polygons!",
-                    errors.stream().map(JTS_POLY_LINE_CONVERTER::backwardConvert)
-                            .flatMap(dangle -> Iterables
-                                    .asList(Iterables.from(dangle.first(), dangle.last())).stream())
-                            .collect(Collectors.toList()));
+            final List<Location> locations = errors.stream()
+                    .map(JTS_POLY_LINE_CONVERTER::backwardConvert)
+                    .flatMap(dangle -> Iterables
+                            .asList(Iterables.from(dangle.first(), dangle.last())).stream())
+                    .collect(Collectors.toList());
+            final OpenPolygonException jtsException;
+            final String errorMessage = "Unable to close all the polygons!";
+            if (potentialException != null)
+            {
+                jtsException = new OpenPolygonException(errorMessage, locations,
+                        potentialException);
+            }
+            else
+            {
+                jtsException = new OpenPolygonException(errorMessage, locations);
+            }
             // Try the legacy convert
             try
             {
