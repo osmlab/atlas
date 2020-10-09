@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
  *             <p>
  *             {@code atlas boundary-itemizer --boundary=/path/to/boundary.txt.gz}
  */
-@Deprecated
+@Deprecated(since = "6.3.1")
 public class CountryBoundaryMapPrinter extends Command
 {
     private static final Logger logger = LoggerFactory.getLogger(CountryBoundaryMapPrinter.class);

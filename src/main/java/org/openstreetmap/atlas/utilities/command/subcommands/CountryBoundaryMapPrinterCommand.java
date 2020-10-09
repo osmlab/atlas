@@ -26,7 +26,7 @@ import org.openstreetmap.atlas.utilities.time.Time;
  */
 public class CountryBoundaryMapPrinterCommand extends AbstractAtlasShellToolsCommand
 {
-    private static final String BOUNDARY_OPTION_LONG = "boundary";
+    private static final String BOUNDARY_OPTION_LONG = "country-boundary";
 
     public static void main(final String[] args)
     {
@@ -93,9 +93,9 @@ public class CountryBoundaryMapPrinterCommand extends AbstractAtlasShellToolsCom
     @Override
     public void registerManualPageSections()
     {
-        addManualPageSection("DESCRIPTION", WKTShardCommand.class
+        addManualPageSection("DESCRIPTION", CountryBoundaryMapPrinterCommand.class
                 .getResourceAsStream("CountryBoundaryMapPrinterCommandDescriptionSection.txt"));
-        addManualPageSection("EXAMPLES", WKTShardCommand.class
+        addManualPageSection("EXAMPLES", CountryBoundaryMapPrinterCommand.class
                 .getResourceAsStream("CountryBoundaryMapPrinterCommandExamplesSection.txt"));
     }
 

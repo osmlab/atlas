@@ -1,1 +1,1 @@
-#$ boundary-itemizer --boundary=/Users/example/path/to/boundary.txt.gz
+#$ boundary-itemizer --country-boundary=/Users/example/path/to/boundary.txt.gz
