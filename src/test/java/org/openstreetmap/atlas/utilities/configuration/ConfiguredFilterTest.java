@@ -6,7 +6,9 @@ import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.MultiPolygonTest;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.tags.HighwayTag;
@@ -44,6 +46,8 @@ public class ConfiguredFilterTest
         final Edge edge = new CompleteEdge(123L, null,
                 Maps.hashMap("junction", "roundabout", "source", "illegal source"), null, null,
                 null);
+        final Node node = new CompleteNode(124L, null, Maps.hashMap("source", "local knowledge"),
+                null, null, null);
 
         Assert.assertTrue(junctionRoundaboutFilter.test(edge));
         Assert.assertFalse(dummyFilter.test(edge));
@@ -51,6 +55,7 @@ public class ConfiguredFilterTest
         Assert.assertTrue(defaultFilter.test(edge));
         Assert.assertFalse(nothingGoesThroughFilter.test(edge));
         Assert.assertTrue(regexFilterOnly.test(edge));
+        Assert.assertFalse(regexFilterOnly.test(node));
         Assert.assertTrue(unsafePredicateFilter.test(edge));
     }
 
