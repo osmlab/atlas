@@ -123,4 +123,9 @@ public class ByteArrayCachingStrategy extends AbstractCachingStrategy
         this.initialArraySize = initialSize;
         return this;
     }
+
+    Map<UUID, ByteArrayResource> getResourceCache()
+    {
+        return this.resourceCache;
+    }
 }
