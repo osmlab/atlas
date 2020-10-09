@@ -1,0 +1,1 @@
+Read a country boundary map and print all the country boundaries in it to geojson and wkt.

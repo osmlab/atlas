@@ -24,7 +24,11 @@ import org.slf4j.LoggerFactory;
 /**
  * @author matthieun
  * @author tony
+ * @deprecated Use CountryBoundaryMapPrinterCommand within the atlas-shell-tools utility instead:
+ *             <p>
+ *             {@code atlas boundary-itemizer --boundary=/path/to/boundary.txt.gz}
  */
+@Deprecated(since = "6.3.1")
 public class CountryBoundaryMapPrinter extends Command
 {
     private static final Logger logger = LoggerFactory.getLogger(CountryBoundaryMapPrinter.class);
