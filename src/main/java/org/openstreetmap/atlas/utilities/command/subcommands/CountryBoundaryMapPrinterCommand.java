@@ -26,7 +26,7 @@ import org.openstreetmap.atlas.utilities.time.Time;
  */
 public class CountryBoundaryMapPrinterCommand extends AbstractAtlasShellToolsCommand
 {
-    private static final String BOUNDARY_OPTION_LONG = "country-boundary";
+    public static final String BOUNDARY_OPTION_LONG = "country-boundary";
 
     public static void main(final String[] args)
     {

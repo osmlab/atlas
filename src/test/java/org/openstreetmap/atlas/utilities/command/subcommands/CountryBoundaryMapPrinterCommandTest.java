@@ -34,7 +34,8 @@ public class CountryBoundaryMapPrinterCommandTest
             final CountryBoundaryMapPrinterCommand command = new CountryBoundaryMapPrinterCommand();
             command.setNewFileSystem(filesystem);
             command.setNewErrStream(new PrintStream(outContent));
-            command.runSubcommand("--boundary=/Users/foo/boundary.txt.gz", "--verbose");
+            command.runSubcommand("--" + CountryBoundaryMapPrinterCommand.BOUNDARY_OPTION_LONG
+                    + "=/Users/foo/boundary.txt.gz", "--verbose");
             Assert.assertTrue(outContent.toString().contains("boundary-itemizer: Saved XYZ in"));
             final File outputFolder = new File("/Users/foo", filesystem);
             final File outputWkt = outputFolder.child("boundary-wkt");
