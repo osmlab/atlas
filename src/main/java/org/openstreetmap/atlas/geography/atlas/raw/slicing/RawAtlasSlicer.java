@@ -1194,7 +1194,7 @@ public class RawAtlasSlicer
         {
             numSlices += sliceSet.size();
         }
-        logger.warn("Way {} was sliced into {} slices", line.getOsmIdentifier(), numSlices);
+        logger.info("Way {} was sliced into {} slices", line.getOsmIdentifier(), numSlices);
 
         if (!checkSlices(slices.keySet(), numSlices, line))
         {
@@ -1370,11 +1370,11 @@ public class RawAtlasSlicer
         }
         if (this.isAtlasEdge.test(line))
         {
-            logger.warn("Edge {} was sliced into {} slices", line.getOsmIdentifier(), numSlices);
+            logger.info("Edge {} was sliced into {} slices", line.getOsmIdentifier(), numSlices);
         }
         else
         {
-            logger.warn("Way {} was sliced into {} slices", line.getOsmIdentifier(), numSlices);
+            logger.info("Way {} was sliced into {} slices", line.getOsmIdentifier(), numSlices);
         }
 
         if (!checkSlices(slices.keySet(), numSlices, line))
