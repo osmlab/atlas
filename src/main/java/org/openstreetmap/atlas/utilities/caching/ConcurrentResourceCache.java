@@ -7,18 +7,22 @@ import java.util.function.Function;
 
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.utilities.caching.strategies.CachingStrategy;
+import org.openstreetmap.atlas.utilities.caching.strategies.NamespaceCachingStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The threadsafe (with caveat) {@link ResourceCache} implementation (The caveat is related to the
- * fact that some caching strategies utilize system-wide global state ie. the filesystem. In doing
- * so it becomes impossible to guarantee concurrency safety from within the
- * {@link ConcurrentResourceCache} alone). The cache needs a specified {@link CachingStrategy} and
- * default fetching {@link Function} at creation time. The cache then loads a resource using a given
- * {@link URI}. Since using raw URIs can often be cumbersome, users of this class are encouraged to
+ * <p>
+ * The threadsafe {@link ResourceCache} implementation. There is a caveat, related to the fact that
+ * some caching strategies utilize system-wide global state e.g. {@link NamespaceCachingStrategy}
+ * uses the tmp filesystem. In doing so it becomes impossible to guarantee concurrency safety from
+ * within the {@link ConcurrentResourceCache} alone.<br>
+ * {@link ConcurrentResourceCache} needs a specified {@link CachingStrategy} and default fetching
+ * {@link Function} at creation time. The cache then loads a resource using a given {@link URI}.
+ * Since using {@link URI} objects can often be cumbersome, users of this class are encouraged to
  * extend it and overload the {@link ConcurrentResourceCache#get} method to take more convenient
  * parameters.
+ * </p>
  *
  * @author lcram
  */
