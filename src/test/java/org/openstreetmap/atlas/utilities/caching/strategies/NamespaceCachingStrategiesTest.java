@@ -32,8 +32,6 @@ import com.google.common.jimfs.Jimfs;
  */
 public class NamespaceCachingStrategiesTest
 {
-    private static final String CACHE_DIRECTORY = "/var/folders/q5/h09jgyjs6hqc433z67j0q17m0000gn/T/%s";
-
     @Rule
     public final ExpectedException expectedException = ExpectedException.none();
 
@@ -54,8 +52,7 @@ public class NamespaceCachingStrategiesTest
             final GlobalNamespaceCachingStrategy strategy = new GlobalNamespaceCachingStrategy(
                     filesystem);
             final File atlasFile = new File("/Users/foo/test.atlas.txt", filesystem);
-            final File cacheDirectory = new File(
-                    String.format(CACHE_DIRECTORY, strategy.getNamespace()), filesystem);
+            final File cacheDirectory = new File(strategy.getStorageDirectory());
 
             // the cache directory should be empty here, with no fetcher calls
             Assert.assertTrue(cacheDirectory.listFiles().isEmpty());
@@ -102,8 +99,7 @@ public class NamespaceCachingStrategiesTest
                     filesystem);
             final File atlasFile = new File("/Users/foo/test.atlas.txt", filesystem);
             final File textFile = new File("/Users/foo/text.txt", filesystem);
-            final File cacheDirectory = new File(
-                    String.format(CACHE_DIRECTORY, strategy.getNamespace()), filesystem);
+            final File cacheDirectory = new File(strategy.getStorageDirectory());
 
             // the cache directory should be empty here
             Assert.assertTrue(cacheDirectory.listFiles().isEmpty());
@@ -148,8 +144,7 @@ public class NamespaceCachingStrategiesTest
             final GlobalNamespaceCachingStrategy strategy = new GlobalNamespaceCachingStrategy(
                     filesystem);
             final File gzippedFile = new File("/Users/foo/hello.txt.gz", filesystem);
-            final File cacheDirectory = new File(
-                    String.format(CACHE_DIRECTORY, strategy.getNamespace()), filesystem);
+            final File cacheDirectory = new File(strategy.getStorageDirectory());
 
             Assert.assertTrue(cacheDirectory.listFiles().isEmpty());
             final Optional<Resource> gzippedResource = strategy
@@ -207,8 +202,7 @@ public class NamespaceCachingStrategiesTest
             final NamespaceCachingStrategy strategy = new NamespaceCachingStrategy("foo",
                     filesystem).withFileExtensionPreservation(false);
             final File textFile = new File("/Users/foo/text.txt", filesystem);
-            final File cacheDirectory = new File(
-                    String.format(CACHE_DIRECTORY, strategy.getNamespace()), filesystem);
+            final File cacheDirectory = new File(strategy.getStorageDirectory());
 
             // the cache directory should be empty here with no fetcher calls
             Assert.assertEquals(0, fetcherCount[0]);

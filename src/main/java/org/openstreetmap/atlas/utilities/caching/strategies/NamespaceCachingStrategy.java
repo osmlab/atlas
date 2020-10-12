@@ -161,9 +161,12 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
         // Do nothing here, leave to extensions to decide.
     }
 
-    String getNamespace()
+    /*
+     * Package-private for unit testing
+     */
+    Path getStorageDirectory()
     {
-        return this.namespace;
+        return this.fileSystem.getPath(TEMPORARY_DIRECTORY_STRING, this.namespace);
     }
 
     private void attemptToCacheFileLocally(final File cachedFile,
@@ -278,10 +281,5 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
         {
             return Optional.of(extension);
         }
-    }
-
-    private Path getStorageDirectory()
-    {
-        return this.fileSystem.getPath(TEMPORARY_DIRECTORY_STRING, this.namespace);
     }
 }
