@@ -13,6 +13,9 @@ import org.openstreetmap.atlas.streaming.resource.StringResource;
  */
 public class ResourceCacheTest
 {
+    /**
+     * @author lcram
+     */
     private static class TestCache implements ResourceCache
     {
         @Override

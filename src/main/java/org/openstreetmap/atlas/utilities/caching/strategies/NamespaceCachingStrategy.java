@@ -61,9 +61,9 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
         if (namespace.contains("/") || namespace.contains("\\"))
         {
             throw new IllegalArgumentException(
-                    "The namespace cannot contain characters \'\\\' or \'/\'");
+                    "The namespace cannot contain characters '\\' or '/'");
         }
-        this.namespace = "NamespaceCachingStrategy_" + namespace + "_"
+        this.namespace = this.getName() + "_" + namespace + "_"
                 + UUID.nameUUIDFromBytes(namespace.getBytes()).toString();
         this.preserveFileExtension = true;
         this.fileSystem = fileSystem;
@@ -138,6 +138,17 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
         }
     }
 
+    /**
+     * Preserve the file extension of the cached URI when saving it as a file to the temporary
+     * location. For example, if the URI of the resource was "hdfs://foo/bar/baz.txt", then after
+     * computing the hash of the URI, {@link NamespaceCachingStrategy} will append a '.txt'
+     * extension to the filename. This is useful for e.g. in cases where resource loading code may
+     * be looking for specific file extensions in order to decide between various load strategies.
+     * 
+     * @param preserveFileExtension
+     *            if true, preserve the original extension
+     * @return this instance for chaining
+     */
     public NamespaceCachingStrategy withFileExtensionPreservation(
             final boolean preserveFileExtension)
     {
@@ -148,6 +159,11 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
     protected void validateLocalFile(final File localFile)
     {
         // Do nothing here, leave to extensions to decide.
+    }
+
+    String getNamespace()
+    {
+        return this.namespace;
     }
 
     private void attemptToCacheFileLocally(final File cachedFile,
@@ -226,17 +242,12 @@ public class NamespaceCachingStrategy extends AbstractCachingStrategy
     private File getCachedFile(final URI resourceURI)
     {
         final Path storageDirectory = getStorageDirectory();
-        final Optional<String> resourceExtension = getFileExtensionFromURI(resourceURI);
+        final Optional<String> resourceExtensionOptional = getFileExtensionFromURI(resourceURI);
         final String cachedFileName;
-        if (resourceExtension.isPresent())
-        {
-            cachedFileName = this.getUUIDForResourceURI(resourceURI).toString() + FILE_EXTENSION_DOT
-                    + resourceExtension.get();
-        }
-        else
-        {
-            cachedFileName = this.getUUIDForResourceURI(resourceURI).toString();
-        }
+        cachedFileName = resourceExtensionOptional
+                .map(extension -> this.getUUIDForResourceURI(resourceURI).toString()
+                        + FILE_EXTENSION_DOT + extension)
+                .orElseGet(() -> this.getUUIDForResourceURI(resourceURI).toString());
         final Path cachedFilePath = this.fileSystem.getPath(storageDirectory.toString(),
                 cachedFileName);
 

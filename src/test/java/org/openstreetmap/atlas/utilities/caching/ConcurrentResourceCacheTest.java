@@ -18,6 +18,9 @@ import org.openstreetmap.atlas.utilities.caching.strategies.CachingStrategy;
  */
 public class ConcurrentResourceCacheTest
 {
+    /**
+     * @author lcram
+     */
     private static class DebugCachingStrategy implements CachingStrategy
     {
         static final String NAME = "DebugCachingStrategy";
@@ -73,6 +76,7 @@ public class ConcurrentResourceCacheTest
         Assert.assertEquals(DebugCachingStrategy.NAME, strategy.getName());
         final ConcurrentResourceCache cache = new ConcurrentResourceCache(strategy, fetcher);
         Assert.assertEquals(cache.getStrategyName(), strategy.getName());
+        Assert.assertNotNull(cache.getCacheID());
 
         final URI foo = URI.create("scheme://foo");
         Assert.assertFalse(strategy.cacheContains(foo));
