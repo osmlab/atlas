@@ -534,7 +534,7 @@ public class RawAtlasSlicer
             }
             return false;
         }
-        else if (totalSlicesCount > AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT)
+        else if (totalSlicesCount >= AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT)
         {
             // this should be rare, but we can't slice the line if we don't have the identifier
             // space for the slices
@@ -893,7 +893,9 @@ public class RawAtlasSlicer
         {
             for (final Geometry geometry : geometries)
             {
-                if (geometry.equals(comparisonGeometry) || geometry.covers(comparisonGeometry))
+                if (geometry.equals(comparisonGeometry) || geometry.covers(comparisonGeometry)
+                        || geometry.intersects(comparisonGeometry)
+                                && geometry.intersection(comparisonGeometry).getDimension() > 0)
                 {
                     return true;
                 }
@@ -1120,8 +1122,7 @@ public class RawAtlasSlicer
                 }
             }
             modifiedPolygons[i] = new org.locationtech.jts.geom.Polygon(
-                    (LinearRing) currentPolygon.getExteriorRing(),
-                    holes.toArray(new LinearRing[holes.size()]),
+                    currentPolygon.getExteriorRing(), holes.toArray(new LinearRing[holes.size()]),
                     JtsPrecisionManager.getGeometryFactory());
         }
         return new org.locationtech.jts.geom.MultiPolygon(modifiedPolygons,
@@ -1188,7 +1189,14 @@ public class RawAtlasSlicer
             return;
         }
 
-        if (!checkSlices(slices.keySet(), slices.values().size(), line))
+        long numSlices = 0;
+        for (final Set<org.locationtech.jts.geom.Polygon> sliceSet : slices.values())
+        {
+            numSlices += sliceSet.size();
+        }
+        logger.info("Way {} was sliced into {} slices", line.getOsmIdentifier(), numSlices);
+
+        if (!checkSlices(slices.keySet(), numSlices, line))
         {
             return;
         }
@@ -1224,8 +1232,10 @@ public class RawAtlasSlicer
      */
     private Map<String, Set<org.locationtech.jts.geom.Geometry>> sliceGeometry(
             final Geometry geometry,
-            final Set<org.locationtech.jts.geom.Polygon> countryBoundaryPolygons)
+            final Set<org.locationtech.jts.geom.Polygon> countryBoundaryPolygons,
+            final long identifier)
     {
+        final Set<Geometry> filteredPieces = new HashSet<>();
         final Map<String, Set<org.locationtech.jts.geom.Geometry>> results = new HashMap<>();
         for (final org.locationtech.jts.geom.Polygon boundaryPolygon : countryBoundaryPolygons)
         {
@@ -1261,13 +1271,46 @@ public class RawAtlasSlicer
                                         countryCode);
                                 results.get(countryCode).add(result);
                             });
+                    filteredPieces
+                            .addAll(CountryBoundaryMap.geometries((GeometryCollection) clipped)
+                                    .filter(result -> !isSignificantGeometry(geometry, result))
+                                    .collect(Collectors.toSet()));
                 }
                 else if (isSignificantGeometry(geometry, clipped))
                 {
                     CountryBoundaryMap.setGeometryProperty(clipped, ISOCountryTag.KEY, countryCode);
                     results.get(countryCode).add(clipped);
                 }
+                else
+                {
+                    filteredPieces.add(clipped);
+                }
             }
+        }
+        if (!filteredPieces.isEmpty())
+        {
+            if (geometry.getDimension() == 1)
+            {
+                long length = 0;
+                for (final Geometry filtered : filteredPieces)
+                {
+                    length += filtered.getLength();
+                }
+                logger.warn("Removed {} slices from way {} for being trivial, summing to {} length",
+                        filteredPieces.size(), identifier, length);
+            }
+            else if (geometry.getDimension() == 2)
+            {
+                long area = 0;
+                for (final Geometry filtered : filteredPieces)
+                {
+                    area += filtered.getArea();
+                }
+                logger.warn(
+                        "Removed {} slices from OSM entity {} for being trivial, summing to {} area",
+                        filteredPieces.size(), identifier, area);
+            }
+
         }
         return results;
     }
@@ -1318,9 +1361,23 @@ public class RawAtlasSlicer
             return;
         }
         final SortedMap<String, Set<LineString>> slices = sliceLineStringGeometry(jtsLine,
-                intersectingBoundaryPolygons);
+                intersectingBoundaryPolygons, line.getOsmIdentifier());
 
-        if (!checkSlices(slices.keySet(), slices.values().size(), line))
+        long numSlices = 0;
+        for (final Set<LineString> sliceSet : slices.values())
+        {
+            numSlices += sliceSet.size();
+        }
+        if (this.isAtlasEdge.test(line))
+        {
+            logger.info("Edge {} was sliced into {} slices", line.getOsmIdentifier(), numSlices);
+        }
+        else
+        {
+            logger.info("Way {} was sliced into {} slices", line.getOsmIdentifier(), numSlices);
+        }
+
+        if (!checkSlices(slices.keySet(), numSlices, line))
         {
             return;
         }
@@ -1347,10 +1404,11 @@ public class RawAtlasSlicer
      */
     @SuppressWarnings("unchecked")
     private SortedMap<String, Set<LineString>> sliceLineStringGeometry(final LineString line,
-            final Set<org.locationtech.jts.geom.Polygon> intersectingBoundaryPolygons)
+            final Set<org.locationtech.jts.geom.Polygon> intersectingBoundaryPolygons,
+            final long identifier)
     {
         final Map<String, Set<Geometry>> currentResults = sliceGeometry(line,
-                intersectingBoundaryPolygons);
+                intersectingBoundaryPolygons, identifier);
         final SortedMap<String, Set<org.locationtech.jts.geom.LineString>> results = new TreeMap<>();
         for (final Map.Entry<String, Set<org.locationtech.jts.geom.Geometry>> entry : currentResults
                 .entrySet())
@@ -1392,7 +1450,7 @@ public class RawAtlasSlicer
             final Set<org.locationtech.jts.geom.Polygon> intersectingBoundaryPolygons)
     {
         final Map<String, Set<org.locationtech.jts.geom.Geometry>> currentResults = sliceGeometry(
-                geometry, intersectingBoundaryPolygons);
+                geometry, intersectingBoundaryPolygons, identifier);
         final SortedMap<String, org.locationtech.jts.geom.MultiPolygon> results = new TreeMap<>();
         for (final Map.Entry<String, Set<org.locationtech.jts.geom.Geometry>> entry : currentResults
                 .entrySet())
@@ -1623,7 +1681,7 @@ public class RawAtlasSlicer
             final Set<org.locationtech.jts.geom.Polygon> intersectingBoundaryPolygon)
     {
         final Map<String, Set<Geometry>> currentResults = sliceGeometry(polygon,
-                intersectingBoundaryPolygon);
+                intersectingBoundaryPolygon, identifier);
 
         final SortedMap<String, Set<org.locationtech.jts.geom.Polygon>> results = new TreeMap<>();
         for (final Map.Entry<String, Set<Geometry>> entry : currentResults.entrySet())
