@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.utilities.caching;
 
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Paths;
 import java.util.Optional;
 
@@ -21,11 +23,26 @@ public class LocalFileInMemoryCache extends ConcurrentResourceCache
 {
     private static final Logger logger = LoggerFactory.getLogger(LocalFileInMemoryCache.class);
 
+    /**
+     * Create a new {@link LocalFileInMemoryCache} with the default {@link FileSystem}. See
+     * {@link FileSystems#getDefault()} for more information.
+     */
     public LocalFileInMemoryCache()
+    {
+        this(FileSystems.getDefault());
+    }
+
+    /**
+     * Create a new {@link LocalFileInMemoryCache} with the given {@link FileSystem}.
+     * 
+     * @param fileSystem
+     *            the {@link FileSystem} to use for file loading
+     */
+    public LocalFileInMemoryCache(final FileSystem fileSystem)
     {
         super(new ByteArrayCachingStrategy(), uri ->
         {
-            final File file = new File(uri.getPath());
+            final File file = new File(uri.getPath(), fileSystem);
             if (!file.exists())
             {
                 logger.warn("File {} does not exist!", file);
