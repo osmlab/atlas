@@ -5,6 +5,7 @@ import static org.openstreetmap.atlas.tags.names.NameFinder.STANDARD_TAGS;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -53,6 +54,64 @@ import com.google.common.collect.Sets;
 public class BigNodeFinder implements Finder<BigNode>
 {
     /**
+     * This comparator is used to compare atlas node based on their identifier value
+     */
+    public static final class NodeComparator implements Comparator<Node>, Serializable
+    {
+        private static final long serialVersionUID = 816401695743423872L;
+
+        @Override
+        public int compare(final Node node1, final Node node2)
+        {
+            return new CompareToBuilder().append(node1.getIdentifier(), node2.getIdentifier())
+                    .toComparison();
+        }
+    }
+
+    /**
+     * This comparator is used to compare a sorted set of node identifier
+     */
+    public static final class NodeIdentifiersComparator
+            implements Comparator<Set<Long>>, Serializable
+    {
+        private static final long serialVersionUID = 6115005718435894927L;
+
+        @Override
+        public int compare(final Set<Long> node1, final Set<Long> node2)
+        {
+            if (!(node1 instanceof TreeSet) || !(node2 instanceof TreeSet))
+            {
+                throw new CoreException("Node identifier set of big node should be tree set!");
+            }
+            final TreeSet<Long> set1 = (TreeSet<Long>) node1;
+            final TreeSet<Long> set2 = (TreeSet<Long>) node2;
+            final Iterator<Long> iterator2 = set2.iterator();
+            for (final Long identifier : set1)
+            {
+                // Shorter sets sort first.
+                if (!iterator2.hasNext())
+                {
+                    return 1;
+                }
+                final int comparison = identifier.compareTo(iterator2.next());
+                if (comparison != 0)
+                {
+                    return comparison;
+                }
+            }
+            // Shorter sets sort first
+            if (iterator2.hasNext())
+            {
+                return -1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+    }
+
+    /**
      * An intermediate {@link BigNode} candidate that is easily merged with other {@link BigNode}s
      *
      * @author Sid
@@ -60,6 +119,7 @@ public class BigNodeFinder implements Finder<BigNode>
     public static final class BigNodeCandidate implements Comparable<BigNodeCandidate>, Serializable
     {
         private static final long serialVersionUID = 7225634482602225746L;
+        private static final NodeIdentifiersComparator comparator = new NodeIdentifiersComparator();
 
         private final Set<Long> nodeIdentifiers;
 
@@ -82,8 +142,29 @@ public class BigNodeFinder implements Finder<BigNode>
         @Override
         public int compareTo(final BigNodeCandidate bigNodeCandidate)
         {
-            return new CompareToBuilder()
-                    .append(this.nodeIdentifiers, bigNodeCandidate.nodeIdentifiers).toComparison();
+            final Iterator<Long> iterator2 = bigNodeCandidate.nodeIdentifiers.iterator();
+            for (final Long identifier : this.nodeIdentifiers)
+            {
+                // Shorter sets sort first.
+                if (!iterator2.hasNext())
+                {
+                    return 1;
+                }
+                final int comparison = identifier.compareTo(iterator2.next());
+                if (comparison != 0)
+                {
+                    return comparison;
+                }
+            }
+            // Shorter sets sort first
+            if (iterator2.hasNext())
+            {
+                return -1;
+            }
+            else
+            {
+                return 0;
+            }
         }
 
         @Override
@@ -178,10 +259,7 @@ public class BigNodeFinder implements Finder<BigNode>
                 final BigNodeCandidate bigNodeCandidate = this.bigNodeCandidateIterator.next();
 
                 // Sorting to ensure deterministic id
-                final Set<Node> nodes = new TreeSet<>(
-                        (final Node node1, final Node node2) -> new CompareToBuilder()
-                                .append(node1.getIdentifier(), node2.getIdentifier())
-                                .toComparison());
+                final Set<Node> nodes = new TreeSet<>(new NodeComparator());
                 bigNodeCandidate.nodeIdentifiers
                         .forEach(nodeIdentifier -> nodes.add(this.atlas.node(nodeIdentifier)));
                 if (!nodes.isEmpty())
