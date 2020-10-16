@@ -404,7 +404,7 @@ public class MultiplePolyLineToPolygonsConverter
             {
                 throw new OpenPolygonException(
                         "Failed second legacy attempt. JTS Exception was: \"{}\"",
-                        new ArrayList<>(), jtsException.getMessage(), e);
+                        jtsException.getOpenLocations(), jtsException.getMessage(), e);
             }
         }
     }
