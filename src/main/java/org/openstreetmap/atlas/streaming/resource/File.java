@@ -788,7 +788,7 @@ public class File extends AbstractWritableResource implements Comparable<File>
      */
     public File parent()
     {
-        return new File(this.path.getParent());
+        return new File(this.toAbsolutePath().getParent());
     }
 
     /**
