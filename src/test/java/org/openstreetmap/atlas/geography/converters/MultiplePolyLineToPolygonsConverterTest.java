@@ -258,11 +258,18 @@ public class MultiplePolyLineToPolygonsConverterTest
         Assert.assertEquals(1, Iterables.size(CONVERTER.convert(list)));
     }
 
-    @Test(expected = OpenPolygonException.class)
+    @Test
     public void testSingleOpenPolyLine()
     {
         final List<PolyLine> list = new ArrayList<>();
         list.add(new PolyLine(ONE, TWO));
-        CONVERTER.convert(list);
+        try
+        {
+            CONVERTER.convert(list);
+        }
+        catch (final OpenPolygonException openPolygonException)
+        {
+            Assert.assertEquals(2, openPolygonException.getOpenLocations().size());
+        }
     }
 }

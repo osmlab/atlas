@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.utilities.caching.strategies;
 
 import java.net.URI;
+import java.nio.file.FileSystem;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -23,6 +24,11 @@ public class GlobalNamespaceCachingStrategy extends NamespaceCachingStrategy
      * to the 256 bits of entropy).
      */
     private static final String GLOBAL_NAMESPACE = "3707740A818531237051A0F1E086CF701E2C38483675FCD1AAD8F5C5C33F19BC";
+
+    public GlobalNamespaceCachingStrategy(final FileSystem fileSystem)
+    {
+        super(GLOBAL_NAMESPACE, fileSystem);
+    }
 
     public GlobalNamespaceCachingStrategy()
     {
