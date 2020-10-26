@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
@@ -11,6 +12,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasLoadingCommand;
+import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Route;
 import org.openstreetmap.atlas.geography.atlas.items.complex.bignode.BigNode.Type;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
@@ -36,6 +38,31 @@ public class BigNodeFinderTest extends AtlasLoadingCommand
     public static void main(final String[] args)
     {
         new BigNodeFinderTest().run(args);
+    }
+
+    @Test
+    public void testBigNodeCandidateComaprator()
+    {
+        final Atlas atlas = this.setup.getAtlas();
+        final BigNodeFinder.NodeComparator comparator = new BigNodeFinder.NodeComparator();
+        final Node node1 = atlas.node(1);
+        final Node node2 = atlas.node(2);
+        final Node node3 = atlas.node(3);
+        final Set<Node> set1 = new TreeSet<>(comparator);
+        set1.add(node1);
+        set1.add(node2);
+        final Set<Node> set2 = new TreeSet<>(comparator);
+        set2.add(node2);
+        set2.add(node1);
+        final Set<Node> set3 = new TreeSet<>(comparator);
+        set3.add(node3);
+        set3.add(node1);
+        final BigNodeFinder.BigNodeCandidate candidate1 = BigNodeFinder.BigNodeCandidate.from(set1);
+        final BigNodeFinder.BigNodeCandidate candidate2 = BigNodeFinder.BigNodeCandidate.from(set2);
+        final BigNodeFinder.BigNodeCandidate candidate3 = BigNodeFinder.BigNodeCandidate.from(set3);
+        Assert.assertEquals(0, candidate1.compareTo(candidate2));
+        Assert.assertEquals(-1, candidate2.compareTo(candidate3));
+        Assert.assertEquals(1, candidate3.compareTo(candidate1));
     }
 
     @Test

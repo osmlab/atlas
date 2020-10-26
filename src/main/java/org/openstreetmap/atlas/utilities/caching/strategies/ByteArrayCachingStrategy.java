@@ -46,10 +46,10 @@ public class ByteArrayCachingStrategy extends AbstractCachingStrategy
         {
             logger.trace(
                     "StrategyID {}: attempting to cache resource {} in byte array keyed on UUID {}",
-                    this.getStrategyID(), resourceURI, resourceUUID.toString());
+                    this.getStrategyID(), resourceURI, resourceUUID);
 
             final Optional<Resource> resource = defaultFetcher.apply(resourceURI);
-            if (!resource.isPresent())
+            if (resource.isEmpty())
             {
                 logger.warn(
                         "StrategyID {}: application of default fetcher for {} returned empty Optional!",
@@ -61,7 +61,7 @@ public class ByteArrayCachingStrategy extends AbstractCachingStrategy
             if (this.useExactResourceSize)
             {
                 final long resourceLength = resource.get().length();
-                logger.trace("StrategyID {}: using extact resource length {}", this.getStrategyID(),
+                logger.trace("StrategyID {}: using exact resource length {}", this.getStrategyID(),
                         resourceLength);
                 resourceBytes = new ByteArrayResource(resourceLength);
             }
@@ -74,9 +74,9 @@ public class ByteArrayCachingStrategy extends AbstractCachingStrategy
             resourceBytes.writeAndClose(resource.get().readBytesAndClose());
             this.resourceCache.put(resourceUUID, resourceBytes);
         }
-
         logger.trace("StrategyID {}: returning cached resource {} from byte array keyed on UUID {}",
-                this.getStrategyID(), resourceURI, resourceUUID.toString());
+                this.getStrategyID(), resourceURI, resourceUUID);
+
         return Optional.of(this.resourceCache.get(resourceUUID));
     }
 
@@ -122,5 +122,10 @@ public class ByteArrayCachingStrategy extends AbstractCachingStrategy
     {
         this.initialArraySize = initialSize;
         return this;
+    }
+
+    Map<UUID, ByteArrayResource> getResourceCache()
+    {
+        return this.resourceCache;
     }
 }

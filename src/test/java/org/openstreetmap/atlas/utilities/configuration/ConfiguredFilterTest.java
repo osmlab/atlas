@@ -6,7 +6,9 @@ import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.MultiPolygonTest;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.tags.HighwayTag;
@@ -38,16 +40,22 @@ public class ConfiguredFilterTest
         final ConfiguredFilter tagFilterOnly = get("tagFilterOnly");
         final ConfiguredFilter defaultFilter = get("I am not there");
         final ConfiguredFilter nothingGoesThroughFilter = get("nothingGoesThroughFilter");
+        final ConfiguredFilter regexFilterOnly = get("regexFilterOnly");
         final ConfiguredFilter unsafePredicateFilter = get("unsafePredicateFilter");
 
-        final Edge edge = new CompleteEdge(123L, null, Maps.hashMap("junction", "roundabout"), null,
-                null, null);
+        final Edge edge = new CompleteEdge(123L, null,
+                Maps.hashMap("junction", "roundabout", "source", "illegal source"), null, null,
+                null);
+        final Node node = new CompleteNode(124L, null, Maps.hashMap("source", "local knowledge"),
+                null, null, null);
 
         Assert.assertTrue(junctionRoundaboutFilter.test(edge));
         Assert.assertFalse(dummyFilter.test(edge));
         Assert.assertTrue(tagFilterOnly.test(edge));
         Assert.assertTrue(defaultFilter.test(edge));
         Assert.assertFalse(nothingGoesThroughFilter.test(edge));
+        Assert.assertTrue(regexFilterOnly.test(edge));
+        Assert.assertFalse(regexFilterOnly.test(node));
         Assert.assertTrue(unsafePredicateFilter.test(edge));
     }
 
@@ -149,6 +157,13 @@ public class ConfiguredFilterTest
         Assert.assertEquals(
                 "{\"type\":\"_filter\",\"name\":\"dummyFilter\",\"predicate\":\"\\\"yes\\\".equals(e.getTag(\\\"dummy\\\"))\",\"imports\":[\"org.openstreetmap.atlas.geography.atlas.items\"],\"noExpansion\":false}",
                 jsonString3);
+
+        final ConfiguredFilter regexFilterOnly = get("regexFilterOnly");
+        final String jsonString4 = new GsonBuilder().disableHtmlEscaping().create()
+                .toJson(regexFilterOnly.toJson());
+        Assert.assertEquals(
+                "{\"type\":\"_filter\",\"name\":\"regexFilterOnly\",\"regexTaggableFilter\":\"source,highway|.*illegal.*,.*secondary.*\",\"noExpansion\":false}",
+                jsonString4);
     }
 
     private ConfiguredFilter get(final String name)

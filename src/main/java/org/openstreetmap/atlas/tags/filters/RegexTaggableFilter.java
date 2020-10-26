@@ -10,6 +10,7 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.openstreetmap.atlas.tags.Taggable;
 
@@ -20,6 +21,9 @@ import org.openstreetmap.atlas.tags.Taggable;
  */
 public class RegexTaggableFilter implements Predicate<Taggable>, Serializable
 {
+    private static final String FILTER_DELIMITER = "\\|";
+    private static final String COMMA = ",";
+
     private final Set<String> tagNames;
     private final Set<Pattern> regexPatterns;
     private final Map<String, Set<String>> exceptions;
@@ -42,6 +46,30 @@ public class RegexTaggableFilter implements Predicate<Taggable>, Serializable
     }
 
     /**
+     * Useful constructor for inline configuration. This option does not support passing exceptions.
+     *
+     * @param definition
+     *            - The {@link String} definition of the filter example:
+     *            "tagName1,tagName2|regex1,regex2,regex3"
+     */
+    public RegexTaggableFilter(final String definition)
+    {
+        this.exceptions = new HashMap<>();
+        final String[] filter = definition.split(FILTER_DELIMITER);
+        if (filter.length == 2)
+        {
+            this.tagNames = Set.of(filter[0].split(COMMA));
+            this.regexPatterns = Stream.of(filter[1].split(COMMA)).map(Pattern::compile)
+                    .collect(Collectors.toSet());
+        }
+        else
+        {
+            this.tagNames = new HashSet<>();
+            this.regexPatterns = new HashSet<>();
+        }
+    }
+
+    /**
      * Returns a joined String containing the names of the tags that match at least one of the regex
      * patterns and are not an exception
      * 
@@ -58,6 +86,10 @@ public class RegexTaggableFilter implements Predicate<Taggable>, Serializable
     @Override
     public boolean test(final Taggable taggable)
     {
+        if (this.tagNames.isEmpty())
+        {
+            return true;
+        }
         final Set<String> matchedTags = findMatches(taggable);
         return !matchedTags.isEmpty();
     }
