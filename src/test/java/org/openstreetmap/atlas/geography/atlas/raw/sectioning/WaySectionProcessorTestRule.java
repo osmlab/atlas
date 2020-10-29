@@ -41,6 +41,9 @@ public class WaySectionProcessorTestRule extends CoreTestRule
     @TestAtlas(loadFromTextResource = "lineWithBarrier.atlas.txt")
     private Atlas lineWithBarrier;
 
+    @TestAtlas(loadFromTextResource = "lineWithInvalidOverlappingGeometry.atlas.txt")
+    private Atlas lineWithInvalidOverlappingGeometry;
+
     @TestAtlas(loadFromTextResource = "simpleBiDirectionalLine.atlas.txt")
     private Atlas simpleBiDirectionalLine;
 
@@ -82,6 +85,11 @@ public class WaySectionProcessorTestRule extends CoreTestRule
     public Atlas getLineWithBarrierAtlas()
     {
         return this.lineWithBarrier;
+    }
+
+    public Atlas getLineWithInvalidOverlappingGeometry()
+    {
+        return this.lineWithInvalidOverlappingGeometry;
     }
 
     public Atlas getLineWithLoopAtEndAtlas()

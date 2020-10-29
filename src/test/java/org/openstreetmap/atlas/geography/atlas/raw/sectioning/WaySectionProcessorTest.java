@@ -89,6 +89,24 @@ public class WaySectionProcessorTest
     }
 
     @Test
+    public void testLineWithInvalidOverlappingGeometry()
+    {
+        // Based on https://www.openstreetmap.org/way/858888726
+        final Atlas slicedRawAtlas = this.setup.getLineWithInvalidOverlappingGeometry();
+        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+                AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
+
+        Assert.assertEquals("Two edges, each having a reverse counterpart", 4,
+                finalAtlas.numberOfEdges());
+
+        // Explicit check for expected identifiers
+        Assert.assertTrue(finalAtlas.edge(858888719000001L) != null);
+        Assert.assertTrue(finalAtlas.edge(-858888719000001L) != null);
+        Assert.assertTrue(finalAtlas.edge(858888719000002L) != null);
+        Assert.assertTrue(finalAtlas.edge(-858888719000002L) != null);
+    }
+
+    @Test
     public void testLineWithLoopAtEnd()
     {
         // Based on https://www.openstreetmap.org/way/461101743
