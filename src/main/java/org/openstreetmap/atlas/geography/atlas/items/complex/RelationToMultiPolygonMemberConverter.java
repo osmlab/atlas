@@ -28,13 +28,19 @@ import org.openstreetmap.atlas.utilities.conversion.Converter;
  */
 public class RelationToMultiPolygonMemberConverter implements Converter<Relation, Iterable<Polygon>>
 {
-    private static final MultiplePolyLineToPolygonsConverter MULTIPLE_POLY_LINE_TO_POLYGONS_CONVERTER = new MultiplePolyLineToPolygonsConverter();
-
+    private final MultiplePolyLineToPolygonsConverter multiplePolyLineToPolygonsConverter;
     private final Ring ring;
 
     public RelationToMultiPolygonMemberConverter(final Ring ring)
     {
+        this(ring, false);
+    }
+
+    public RelationToMultiPolygonMemberConverter(final Ring ring, final boolean usePolygonizer)
+    {
         this.ring = ring;
+        this.multiplePolyLineToPolygonsConverter = new MultiplePolyLineToPolygonsConverter(
+                usePolygonizer);
     }
 
     @Override
@@ -71,7 +77,7 @@ public class RelationToMultiPolygonMemberConverter implements Converter<Relation
             }
         }
         return new MultiIterable<>(alreadyFormed,
-                MULTIPLE_POLY_LINE_TO_POLYGONS_CONVERTER.convert(candidates));
+                this.multiplePolyLineToPolygonsConverter.convert(candidates));
     }
 
     private void processEntity(final AtlasEntity entity, final List<PolyLine> candidates,

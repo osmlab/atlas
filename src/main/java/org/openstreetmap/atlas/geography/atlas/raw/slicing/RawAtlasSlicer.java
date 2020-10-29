@@ -93,7 +93,8 @@ public class RawAtlasSlicer
     private static final JtsPolygonConverter JTS_POLYGON_CONVERTER = new JtsPolygonConverter();
     private static final JtsPolyLineConverter JTS_POLYLINE_CONVERTER = new JtsPolyLineConverter();
     private static final JtsMultiPolygonToMultiPolygonConverter JTS_MULTIPOLYGON_CONVERTER = new JtsMultiPolygonToMultiPolygonConverter();
-    private static final RelationOrAreaToMultiPolygonConverter RELATION_TO_MULTIPOLYGON_CONVERTER = new RelationOrAreaToMultiPolygonConverter();
+    private static final RelationOrAreaToMultiPolygonConverter RELATION_TO_MULTIPOLYGON_CONVERTER = new RelationOrAreaToMultiPolygonConverter(
+            true);
     private static final Logger logger = LoggerFactory.getLogger(RawAtlasSlicer.class);
 
     private static final long SLICING_DURATION_WARN = 10;

@@ -21,10 +21,19 @@ import org.openstreetmap.atlas.utilities.maps.MultiMap;
  */
 public class RelationOrAreaToMultiPolygonConverter implements Converter<AtlasEntity, MultiPolygon>
 {
-    private static final RelationToMultiPolygonMemberConverter OUTER_CONVERTER = new RelationToMultiPolygonMemberConverter(
-            Ring.OUTER);
-    private static final RelationToMultiPolygonMemberConverter INNER_CONVERTER = new RelationToMultiPolygonMemberConverter(
-            Ring.INNER);
+    private final RelationToMultiPolygonMemberConverter outerConverter;
+    private final RelationToMultiPolygonMemberConverter innerConverter;
+
+    public RelationOrAreaToMultiPolygonConverter()
+    {
+        this(false);
+    }
+
+    public RelationOrAreaToMultiPolygonConverter(final boolean usePolygonizer)
+    {
+        this.outerConverter = new RelationToMultiPolygonMemberConverter(Ring.OUTER, usePolygonizer);
+        this.innerConverter = new RelationToMultiPolygonMemberConverter(Ring.INNER, usePolygonizer);
+    }
 
     @Override
     public MultiPolygon convert(final AtlasEntity entity)
@@ -37,7 +46,7 @@ public class RelationOrAreaToMultiPolygonConverter implements Converter<AtlasEnt
                 // Loop through the relation members, extract the inners and outers, and create the
                 // outline.
                 final MultiMap<Polygon, Polygon> outerToInners = new MultiMap<>();
-                for (final Polygon outer : OUTER_CONVERTER.convert(relation))
+                for (final Polygon outer : this.outerConverter.convert(relation))
                 {
                     outerToInners.put(outer, new ArrayList<>());
                 }
@@ -45,7 +54,7 @@ public class RelationOrAreaToMultiPolygonConverter implements Converter<AtlasEnt
                 {
                     throw new CoreException("Unable to find outer polygon.");
                 }
-                for (final Polygon inner : INNER_CONVERTER.convert(relation))
+                for (final Polygon inner : this.innerConverter.convert(relation))
                 {
                     boolean added = false;
                     for (final Polygon outer : outerToInners.keySet())
