@@ -1,0 +1,23 @@
+# Nodes
+# Edges
+# Areas
+# Lines
+858888719000000 && 14.9039776,49.992244:14.9046362,49.9925557:14.9051264,49.9927792:14.9054263,49.9929567:14.9058701,49.9930323 && last_edit_user_name -> حبيشان || last_edit_changeset -> 92471276 || last_edit_time -> 1602676511000 || last_edit_user_id -> 1147414 || iso_country_code -> YEM || highway -> living_street || last_edit_version -> 1
+858888726000000 && 14.9056073,49.9933986:14.9053719,49.9933775:14.9054263,49.9929567:14.9053719,49.9933775:14.9056073,49.9933986:14.9053719,49.9933775:14.9056073,49.9933986 && last_edit_user_name -> حبيشان || last_edit_changeset -> 92471276 || surface -> ground || last_edit_time -> 1602676511000 || last_edit_user_id -> 1147414 || iso_country_code -> YEM || highway -> living_street || last_edit_version -> 1
+# Points
+8006501246000000 && 14.9039776,49.992244 && last_edit_user_name -> حبيشان || last_edit_changeset -> 92471276 || last_edit_time -> 1602676511000 || last_edit_user_id -> 1147414 || iso_country_code -> YEM || last_edit_version -> 1
+5540849673000000 && 14.9040683,49.9924772 && last_edit_user_name -> حبيشان || last_edit_changeset -> 73438683 || last_edit_time -> 1566060322000 || last_edit_user_id -> 1147414 || iso_country_code -> YEM || amenity -> place_of_worship || name -> مسجد الفتح || last_edit_version -> 2 || building -> mosque || religion -> muslim
+8006501224000000 && 14.9042206,49.9927927 && last_edit_user_name -> حبيشان || last_edit_changeset -> 92471276 || last_edit_time -> 1602676511000 || last_edit_user_id -> 1147414 || iso_country_code -> YEM || last_edit_version -> 1
+1301207571000000 && 14.9044997,49.9928754 && last_edit_user_name -> حبيشان || last_edit_changeset -> 87219479 || last_edit_time -> 1593267072000 || last_edit_user_id -> 1147414 || iso_country_code -> YEM || last_edit_version -> 2
+8006501226000000 && 14.9046362,49.9925557 && last_edit_user_name -> حبيشان || last_edit_changeset -> 92471276 || last_edit_time -> 1602676511000 || last_edit_user_id -> 1147414 || iso_country_code -> YEM || last_edit_version -> 1
+1301206445000000 && 14.9047924,49.9921897 && last_edit_user_name -> حبيشان || last_edit_changeset -> 87219479 || last_edit_time -> 1593267072000 || last_edit_user_id -> 1147414 || iso_country_code -> YEM || last_edit_version -> 3
+8006501234000000 && 14.9049684,49.9931234 && last_edit_user_name -> حبيشان || last_edit_changeset -> 92471276 || last_edit_time -> 1602676511000 || last_edit_user_id -> 1147414 || iso_country_code -> YEM || last_edit_version -> 1
+8006501238000000 && 14.9051264,49.9927792 && last_edit_user_name -> حبيشان || last_edit_changeset -> 92471276 || last_edit_time -> 1602676511000 || last_edit_user_id -> 1147414 || iso_country_code -> YEM || last_edit_version -> 1
+8006501218000000 && 14.9053719,49.9933775 && last_edit_user_name -> حبيشان || last_edit_changeset -> 92471276 || last_edit_time -> 1602676511000 || last_edit_user_id -> 1147414 || iso_country_code -> YEM || last_edit_version -> 1
+8006501219000000 && 14.9054263,49.9929567 && last_edit_user_name -> حبيشان || last_edit_changeset -> 92471276 || synthetic_duplicate_osm_node -> YES || last_edit_time -> 1602676511000 || last_edit_user_id -> 1147414 || iso_country_code -> YEM || last_edit_version -> 1
+1301203138000000 && 14.905509,49.9925236 && last_edit_user_name -> brogo || last_edit_changeset -> 23380038 || last_edit_time -> 1404154677000 || last_edit_user_id -> 63107 || iso_country_code -> YEM || last_edit_version -> 2
+8006501230000000 && 14.9056073,49.9933986 && last_edit_user_name -> حبيشان || last_edit_changeset -> 92471276 || last_edit_time -> 1602676511000 || last_edit_user_id -> 1147414 || iso_country_code -> YEM || last_edit_version -> 1
+1301204598000000 && 14.9056374,49.9922284 && last_edit_user_name -> Nautic || last_edit_changeset -> 8257313 || last_edit_time -> 1306443298000 || last_edit_user_id -> 449569 || iso_country_code -> YEM || last_edit_version -> 1
+7575126277000000 && 14.9056697,49.9921604 && last_edit_user_name -> حبيشان || last_edit_changeset -> 86008411 || last_edit_time -> 1590955714000 || last_edit_user_id -> 1147414 || iso_country_code -> YEM || last_edit_version -> 1
+8006501235000000 && 14.9058701,49.9930323 && last_edit_user_name -> حبيشان || last_edit_changeset -> 92471276 || last_edit_time -> 1602676511000 || last_edit_user_id -> 1147414 || iso_country_code -> YEM || last_edit_version -> 1
+# Relations

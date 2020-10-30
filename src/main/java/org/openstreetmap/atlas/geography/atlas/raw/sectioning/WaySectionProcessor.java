@@ -939,14 +939,21 @@ public class WaySectionProcessor
         changeSet.getLinesThatBecomeEdges().forEach(lineIdentifier ->
         {
             final Line line = this.rawAtlas.line(lineIdentifier);
-            final List<TemporaryEdge> edges;
-            if (line.isClosed())
+            List<TemporaryEdge> edges = new ArrayList<>();
+            try
             {
-                edges = splitRingLineIntoEdges(changeSet, line);
+                if (line.isClosed())
+                {
+                    edges = splitRingLineIntoEdges(changeSet, line);
+                }
+                else
+                {
+                    edges = splitNonRingLineIntoEdges(changeSet, line);
+                }
             }
-            else
+            catch (final CoreException e)
             {
-                edges = splitNonRingLineIntoEdges(changeSet, line);
+                logger.error("Could not way-section Line {}. Dropping...", line.getIdentifier(), e);
             }
             changeSet.createLineToEdgeMapping(line, edges);
         });
@@ -1101,7 +1108,8 @@ public class WaySectionProcessor
         }
         catch (final Exception e)
         {
-            throw new CoreException("Failed to way-section line {}", line.getIdentifier(), e);
+            throw new CoreException("Failed to way-section non-ring line {}", line.getIdentifier(),
+                    e);
         }
         return newEdgesForLine;
     }
@@ -1129,7 +1137,7 @@ public class WaySectionProcessor
         final PolyLine polyline = line.asPolyLine();
         if (polyline.size() < MINIMUM_POINTS_TO_QUALIFY_AS_A_LINE)
         {
-            logger.error("Line {} hass less than {} points, cannot be sectioned!",
+            logger.error("Line {} has less than {} points, cannot be sectioned!",
                     line.getIdentifier(), MINIMUM_POINTS_TO_QUALIFY_AS_A_LINE);
             return newEdgesForLine;
         }
@@ -1294,7 +1302,7 @@ public class WaySectionProcessor
         }
         catch (final Exception e)
         {
-            throw new CoreException("Failed to way-section line {}", line.getIdentifier(), e);
+            throw new CoreException("Failed to way-section ring line {}", line.getIdentifier(), e);
         }
         return newEdgesForLine;
     }
