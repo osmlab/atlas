@@ -1,10 +1,8 @@
 package org.openstreetmap.atlas.geography.atlas.raw.sectioning;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -58,10 +56,10 @@ public class WaySectionProcessorTest
         Assert.assertEquals("Two nodes", 2, finalAtlas.numberOfNodes());
 
         // Explicit check for expected identifiers
-        Assert.assertTrue(finalAtlas.edge(317579533000001L) != null);
-        Assert.assertTrue(finalAtlas.edge(-317579533000001L) != null);
-        Assert.assertTrue(finalAtlas.edge(317579533000002L) != null);
-        Assert.assertTrue(finalAtlas.edge(-317579533000002L) != null);
+        Assert.assertNotNull(finalAtlas.edge(317579533000001L));
+        Assert.assertNotNull(finalAtlas.edge(-317579533000001L));
+        Assert.assertNotNull(finalAtlas.edge(317579533000002L));
+        Assert.assertNotNull(finalAtlas.edge(-317579533000002L));
     }
 
     @Test
@@ -100,10 +98,10 @@ public class WaySectionProcessorTest
                 finalAtlas.numberOfEdges());
 
         // Explicit check for expected identifiers
-        Assert.assertTrue(finalAtlas.edge(858888719000001L) != null);
-        Assert.assertTrue(finalAtlas.edge(-858888719000001L) != null);
-        Assert.assertTrue(finalAtlas.edge(858888719000002L) != null);
-        Assert.assertTrue(finalAtlas.edge(-858888719000002L) != null);
+        Assert.assertNotNull(finalAtlas.edge(858888719000001L));
+        Assert.assertNotNull(finalAtlas.edge(-858888719000001L));
+        Assert.assertNotNull(finalAtlas.edge(858888719000002L));
+        Assert.assertNotNull(finalAtlas.edge(-858888719000002L));
     }
 
     @Test
@@ -121,10 +119,10 @@ public class WaySectionProcessorTest
         Assert.assertEquals(2, finalAtlas.node(4566499619000000L).connectedEdges().size());
 
         // Explicit check for expected identifiers
-        Assert.assertTrue(finalAtlas.edge(461101743000001L) != null);
-        Assert.assertTrue(finalAtlas.edge(-461101743000001L) != null);
-        Assert.assertTrue(finalAtlas.edge(461101743000002L) != null);
-        Assert.assertTrue(finalAtlas.edge(-461101743000002L) != null);
+        Assert.assertNotNull(finalAtlas.edge(461101743000001L));
+        Assert.assertNotNull(finalAtlas.edge(-461101743000001L));
+        Assert.assertNotNull(finalAtlas.edge(461101743000002L));
+        Assert.assertNotNull(finalAtlas.edge(-461101743000002L));
     }
 
     @Test
@@ -143,12 +141,12 @@ public class WaySectionProcessorTest
         Assert.assertEquals(4, finalAtlas.node(4560902693000000L).connectedEdges().size());
 
         // Explicit check for expected identifiers
-        Assert.assertTrue(finalAtlas.edge(460419987000001L) != null);
-        Assert.assertTrue(finalAtlas.edge(-460419987000001L) != null);
-        Assert.assertTrue(finalAtlas.edge(460419987000002L) != null);
-        Assert.assertTrue(finalAtlas.edge(-460419987000002L) != null);
-        Assert.assertTrue(finalAtlas.edge(460419987000003L) != null);
-        Assert.assertTrue(finalAtlas.edge(-460419987000003L) != null);
+        Assert.assertNotNull(finalAtlas.edge(460419987000001L));
+        Assert.assertNotNull(finalAtlas.edge(-460419987000001L));
+        Assert.assertNotNull(finalAtlas.edge(460419987000002L));
+        Assert.assertNotNull(finalAtlas.edge(-460419987000002L));
+        Assert.assertNotNull(finalAtlas.edge(460419987000003L));
+        Assert.assertNotNull(finalAtlas.edge(-460419987000003L));
     }
 
     @Test
@@ -169,14 +167,14 @@ public class WaySectionProcessorTest
         Assert.assertEquals(6, finalAtlas.node(4560902689000000L).connectedEdges().size());
 
         // Explicit check for expected identifiers
-        Assert.assertTrue(finalAtlas.edge(460419987000001L) != null);
-        Assert.assertTrue(finalAtlas.edge(-460419987000001L) != null);
-        Assert.assertTrue(finalAtlas.edge(460419987000002L) != null);
-        Assert.assertTrue(finalAtlas.edge(-460419987000003L) != null);
-        Assert.assertTrue(finalAtlas.edge(460419987000003L) != null);
-        Assert.assertTrue(finalAtlas.edge(-460419987000003L) != null);
-        Assert.assertTrue(finalAtlas.edge(460419987000004L) != null);
-        Assert.assertTrue(finalAtlas.edge(-460419987000004L) != null);
+        Assert.assertNotNull(finalAtlas.edge(460419987000001L));
+        Assert.assertNotNull(finalAtlas.edge(-460419987000001L));
+        Assert.assertNotNull(finalAtlas.edge(460419987000002L));
+        Assert.assertNotNull(finalAtlas.edge(-460419987000003L));
+        Assert.assertNotNull(finalAtlas.edge(460419987000003L));
+        Assert.assertNotNull(finalAtlas.edge(-460419987000003L));
+        Assert.assertNotNull(finalAtlas.edge(460419987000004L));
+        Assert.assertNotNull(finalAtlas.edge(-460419987000004L));
     }
 
     @Test
@@ -190,8 +188,8 @@ public class WaySectionProcessorTest
         Assert.assertEquals("Four edges, each having a reverse counterpart", 4,
                 finalAtlas.numberOfEdges());
         Assert.assertEquals("Two nodes", 2, finalAtlas.numberOfNodes());
-        Assert.assertTrue("This way got sectioned 4 times, with reverse edges", Iterables
-                .size(finalAtlas.edges(edge -> edge.getOsmIdentifier() == 488453376L)) == 4);
+        Assert.assertEquals("This way got sectioned 4 times, with reverse edges", 4,
+                Iterables.size(finalAtlas.edges(edge -> edge.getOsmIdentifier() == 488453376L)));
     }
 
     @Test
@@ -206,10 +204,10 @@ public class WaySectionProcessorTest
         Assert.assertEquals("Four edges, each having a reverse counterpart", 8,
                 finalAtlas.numberOfEdges());
         Assert.assertEquals("Four nodes", 4, finalAtlas.numberOfNodes());
-        Assert.assertTrue("This way got sectioned 3 times, with reverse edges", Iterables
-                .size(finalAtlas.edges(edge -> edge.getOsmIdentifier() == 310540517L)) == 6);
-        Assert.assertTrue("This edge got sectioned once, with reverse edges", Iterables
-                .size(finalAtlas.edges(edge -> edge.getOsmIdentifier() == 310540519L)) == 2);
+        Assert.assertEquals("This way got sectioned 3 times, with reverse edges", 6,
+                Iterables.size(finalAtlas.edges(edge -> edge.getOsmIdentifier() == 310540517L)));
+        Assert.assertEquals("This edge got sectioned once, with reverse edges", 2,
+                Iterables.size(finalAtlas.edges(edge -> edge.getOsmIdentifier() == 310540519L)));
     }
 
     @Test
@@ -224,8 +222,8 @@ public class WaySectionProcessorTest
         Assert.assertEquals("Four edges, each having a reverse counterpart", 4,
                 finalAtlas.numberOfEdges());
         Assert.assertEquals("Two nodes", 2, finalAtlas.numberOfNodes());
-        Assert.assertTrue("This way got sectioned once, with a reverse edge", Iterables
-                .size(finalAtlas.edges(edge -> edge.getOsmIdentifier() == 488453376L)) == 2);
+        Assert.assertEquals("This way got sectioned once, with a reverse edge", 2,
+                Iterables.size(finalAtlas.edges(edge -> edge.getOsmIdentifier() == 488453376L)));
     }
 
     @Test
@@ -412,9 +410,7 @@ public class WaySectionProcessorTest
         final Atlas slicedRawAtlas = this.setup.getWayExceedingSectioningLimitAtlas();
 
         // Create a dummy country boundary map that contains these ways and call it Afghanistan
-        final Set<String> countries = new HashSet<>();
         final String afghanistan = "AFG";
-        countries.add(afghanistan);
         final Map<String, MultiPolygon> boundaries = new HashMap<>();
         final Polygon fakePolygon = new Polygon(Location.forString("34.15102284294,66.22764518738"),
                 Location.forString("34.1515910819,66.53388908386"),
