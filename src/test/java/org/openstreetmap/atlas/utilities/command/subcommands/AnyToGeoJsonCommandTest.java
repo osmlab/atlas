@@ -35,7 +35,7 @@ public class AnyToGeoJsonCommandTest
             command.setNewOutStream(new PrintStream(outContent));
             command.setNewErrStream(new PrintStream(errContent));
 
-            command.runSubcommand("--atlas=/Users/foo/test.atlas.txt", "--verbose",
+            command.runSubcommand("--atlas=/Users/foo/test.atlas", "--verbose",
                     "--output=/Users/foo");
 
             Assert.assertTrue(outContent.toString().isEmpty());
@@ -150,9 +150,9 @@ public class AnyToGeoJsonCommandTest
         builder.addPoint(1000000L, Location.forWkt("POINT(1 1)"), Maps.hashMap("foo", "bar"));
 
         final Atlas atlas = builder.get();
-        final File atlasFile = new File("/Users/foo/test.atlas.txt", filesystem);
+        final File atlasFile = new File("/Users/foo/test.atlas", filesystem);
         assert atlas != null;
-        atlas.saveAsText(atlasFile);
+        atlas.save(atlasFile);
 
         final File boundaryFile = new File(filesystem.getPath("/Users/foo", "boundary.txt"));
         boundaryFile.writeAndClose(AnyToGeoJsonCommandTest.class
