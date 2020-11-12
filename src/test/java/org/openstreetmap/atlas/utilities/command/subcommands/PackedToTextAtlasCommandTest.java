@@ -109,17 +109,17 @@ public class PackedToTextAtlasCommandTest
             command.setNewOutStream(new PrintStream(outContent));
             command.setNewErrStream(new PrintStream(errContent));
 
-            command.runSubcommand("/Users/foo/text.atlas.txt", "--verbose", "--output=/Users/foo",
+            command.runSubcommand("/Users/foo/binary.atlas", "--verbose", "--output=/Users/foo",
                     "--ldgeojson");
 
             Assert.assertTrue(outContent.toString().isEmpty());
             Assert.assertEquals(
-                    "packed2text: loading /Users/foo/text.atlas.txt\n"
-                            + "packed2text: processing atlas /Users/foo/text.atlas.txt (1/1)\n"
-                            + "packed2text: converting /Users/foo/text.atlas.txt...\n"
-                            + "packed2text: saved to /Users/foo/text.geojson\n",
+                    "packed2text: loading /Users/foo/binary.atlas\n"
+                            + "packed2text: processing atlas /Users/foo/binary.atlas (1/1)\n"
+                            + "packed2text: converting /Users/foo/binary.atlas...\n"
+                            + "packed2text: saved to /Users/foo/binary.geojson\n",
                     errContent.toString());
-            final File outputFile = new File("/Users/foo/text.geojson", filesystem);
+            final File outputFile = new File("/Users/foo/binary.geojson", filesystem);
             Assert.assertEquals(
                     "{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[1.0,1.0]},"
                             + "\"properties\":{\"foo\":\"bar\",\"identifier\":1000000,\"osmIdentifier\":1,\"itemType\":\"POINT\"}}",
@@ -144,16 +144,16 @@ public class PackedToTextAtlasCommandTest
             command.setNewOutStream(new PrintStream(outContent));
             command.setNewErrStream(new PrintStream(errContent));
 
-            command.runSubcommand("/Users/foo/text.atlas.txt", "--verbose", "--output=/Users/foo");
+            command.runSubcommand("/Users/foo/binary.atlas", "--verbose", "--output=/Users/foo");
 
             Assert.assertTrue(outContent.toString().isEmpty());
             Assert.assertEquals(
-                    "packed2text: loading /Users/foo/text.atlas.txt\n"
-                            + "packed2text: processing atlas /Users/foo/text.atlas.txt (1/1)\n"
-                            + "packed2text: converting /Users/foo/text.atlas.txt...\n"
-                            + "packed2text: saved to /Users/foo/text.atlas.txt\n",
+                    "packed2text: loading /Users/foo/binary.atlas\n"
+                            + "packed2text: processing atlas /Users/foo/binary.atlas (1/1)\n"
+                            + "packed2text: converting /Users/foo/binary.atlas...\n"
+                            + "packed2text: saved to /Users/foo/binary.atlas.txt\n",
                     errContent.toString());
-            final File outputAtlasFile = new File("/Users/foo/text.atlas.txt", filesystem);
+            final File outputAtlasFile = new File("/Users/foo/binary.atlas.txt", filesystem);
             Assert.assertEquals(
                     "# Nodes\n" + "# Edges\n" + "# Areas\n" + "# Lines\n" + "# Points\n"
                             + "1000000 && 1.0,1.0 && foo -> bar\n" + "# Relations",
@@ -171,7 +171,9 @@ public class PackedToTextAtlasCommandTest
         builder.addPoint(1000000L, Location.forWkt("POINT(1 1)"), Maps.hashMap("foo", "bar"));
         final Atlas atlas = builder.get();
         final File atlasTextFile = new File("/Users/foo/text.atlas.txt", filesystem);
+        final File atlasBinaryFile = new File("/Users/foo/binary.atlas", filesystem);
         assert atlas != null;
         atlas.saveAsText(atlasTextFile);
+        atlas.save(atlasBinaryFile);
     }
 }

@@ -33,7 +33,7 @@ public class RelationToMultiPolygonCommandTest
             command.setNewFileSystem(filesystem);
 
             int returnVal = command.runSubcommand("--id=1", "--wkt",
-                    "/Users/foo/invalidMultiPolygonAtlas.txt");
+                    "/Users/foo/invalidMultiPolygonAtlas.atlas");
             Assert.assertEquals(1, returnVal);
             Assert.assertFalse(new File("/work/1.wkt", filesystem).exists());
             Assert.assertFalse(new File("/work/1.atlas", filesystem).exists());
@@ -41,7 +41,7 @@ public class RelationToMultiPolygonCommandTest
             command = new RelationToMultiPolygonCommand();
             command.setNewFileSystem(filesystem);
             returnVal = command.runSubcommand("--id=1", "--wkt",
-                    "/Users/foo/invalidMultiPolygonAtlas2.txt");
+                    "/Users/foo/invalidMultiPolygonAtlas2.atlas");
             Assert.assertEquals(1, returnVal);
             Assert.assertFalse(new File("/work/1.wkt", filesystem).exists());
             Assert.assertFalse(new File("/work/1.atlas", filesystem).exists());
@@ -63,7 +63,7 @@ public class RelationToMultiPolygonCommandTest
             command.setNewFileSystem(filesystem);
 
             final int returnVal = command.runSubcommand("--id=3", "--wkt",
-                    "/Users/foo/invalidMultiPolygonAtlas.txt");
+                    "/Users/foo/invalidMultiPolygonAtlas.atlas");
             Assert.assertEquals(1, returnVal);
             Assert.assertFalse(new File("/work/1.wkt", filesystem).exists());
             Assert.assertFalse(new File("/work/1.atlas", filesystem).exists());
@@ -84,7 +84,7 @@ public class RelationToMultiPolygonCommandTest
             command.setNewFileSystem(filesystem);
 
             final int returnVal = command.runSubcommand("--id=1",
-                    "/Users/foo/validMultiPolygonAtlas.txt");
+                    "/Users/foo/validMultiPolygonAtlas.atlas");
             Assert.assertEquals(0, returnVal);
             Assert.assertTrue(new File("/work/1.wkt", filesystem).exists());
             Assert.assertTrue(MultiPolygon.wkt(
@@ -108,7 +108,7 @@ public class RelationToMultiPolygonCommandTest
             command.setNewFileSystem(filesystem);
 
             final int returnVal = command.runSubcommand("--id=1", "--wkt",
-                    "/Users/foo/validMultiPolygonAtlas.txt");
+                    "/Users/foo/validMultiPolygonAtlas.atlas");
             Assert.assertEquals(0, returnVal);
             Assert.assertTrue(new File("/work/1.wkt", filesystem).exists());
             Assert.assertTrue(MultiPolygon.wkt(
@@ -126,18 +126,18 @@ public class RelationToMultiPolygonCommandTest
     {
         final Atlas validMultiPolygonAtlas = this.setup.getSimpleMultiPolygonAtlas();
         final File validMultiPolygonAtlasFile = new File(
-                filesystem.getPath("/Users/foo", "validMultiPolygonAtlas.txt"));
-        validMultiPolygonAtlas.saveAsText(validMultiPolygonAtlasFile);
+                filesystem.getPath("/Users/foo", "validMultiPolygonAtlas.atlas"));
+        validMultiPolygonAtlas.save(validMultiPolygonAtlasFile);
 
         final Atlas invalidMultiPolygonAtlas = this.setup.getOpenMultiPolygonInOneCountryAtlas();
         final File invalidMultiPolygonAtlasFile = new File(
-                filesystem.getPath("/Users/foo", "invalidMultiPolygonAtlas.txt"));
-        invalidMultiPolygonAtlas.saveAsText(invalidMultiPolygonAtlasFile);
+                filesystem.getPath("/Users/foo", "invalidMultiPolygonAtlas.atlas"));
+        invalidMultiPolygonAtlas.save(invalidMultiPolygonAtlasFile);
 
         final Atlas invalidMultiPolygonAtlas2 = this.setup
                 .getSelfIntersectingOuterMemberRelationAtlas();
         final File invalidMultiPolygonAtlasFile2 = new File(
-                filesystem.getPath("/Users/foo", "invalidMultiPolygonAtlas2.txt"));
-        invalidMultiPolygonAtlas2.saveAsText(invalidMultiPolygonAtlasFile2);
+                filesystem.getPath("/Users/foo", "invalidMultiPolygonAtlas2.atlas"));
+        invalidMultiPolygonAtlas2.save(invalidMultiPolygonAtlasFile2);
     }
 }

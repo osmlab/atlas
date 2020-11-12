@@ -39,25 +39,25 @@ public class AtlasSearchCommandTest
             command.setNewOutStream(new PrintStream(outContent));
             command.setNewErrStream(new PrintStream(errContent));
 
-            command.runSubcommand("/Users/foo/test.atlas.txt", "--verbose",
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose",
                     "--bounding-polygon=POLYGON((0 0, 0 10, 10 10, 10 0, 0 0))");
 
-            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
+            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas:\n"
                     + "CompletePoint [\n" + "identifier: 1000000, \n" + "location: POINT (1 1), \n"
                     + "tags: {foo=bar}, \n" + "parentRelations: [], \n"
                     + "bounds: POLYGON ((1 1, 1 1, 1 1, 1 1, 1 1)), \n" + "]\n" + "\n"
-                    + "Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
+                    + "Found entity matching criteria in /Users/foo/test.atlas:\n"
                     + "CompletePoint [\n" + "identifier: 2000000, \n" + "location: POINT (2 2), \n"
                     + "tags: {baz=bat}, \n" + "parentRelations: [], \n"
                     + "bounds: POLYGON ((2 2, 2 2, 2 2, 2 2, 2 2)), \n" + "]\n" + "\n"
-                    + "Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
+                    + "Found entity matching criteria in /Users/foo/test.atlas:\n"
                     + "CompletePoint [\n" + "identifier: 3000000, \n" + "location: POINT (3 3), \n"
                     + "tags: {baz=bat, foo=bar}, \n" + "parentRelations: [], \n"
                     + "bounds: POLYGON ((3 3, 3 3, 3 3, 3 3, 3 3)), \n" + "]\n\n",
                     outContent.toString());
             Assert.assertEquals(
-                    "find: loading /Users/foo/test.atlas.txt\n"
-                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    "find: loading /Users/foo/test.atlas\n"
+                            + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
                     errContent.toString());
         }
         catch (final IOException exception)
@@ -80,17 +80,17 @@ public class AtlasSearchCommandTest
             command.setNewOutStream(new PrintStream(outContent));
             command.setNewErrStream(new PrintStream(errContent));
 
-            command.runSubcommand("/Users/foo/test.atlas.txt", "--verbose",
-                    "--geometry=POINT (1 1)", "--collect-matching", "--output=/Users/foo");
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose", "--geometry=POINT (1 1)",
+                    "--collect-matching", "--output=/Users/foo");
 
-            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
+            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas:\n"
                     + "CompletePoint [\n" + "identifier: 1000000, \n" + "location: POINT (1 1), \n"
                     + "tags: {foo=bar}, \n" + "parentRelations: [], \n"
                     + "bounds: POLYGON ((1 1, 1 1, 1 1, 1 1, 1 1)), \n" + "]\n\n",
                     outContent.toString());
             Assert.assertEquals(
-                    "find: loading /Users/foo/test.atlas.txt\n"
-                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n"
+                    "find: loading /Users/foo/test.atlas\n"
+                            + "find: processing atlas /Users/foo/test.atlas (1/1)\n"
                             + "find: saved to /Users/foo/collected-multi.atlas\n",
                     errContent.toString());
             Assert.assertTrue(new File("/Users/foo/collected-multi.atlas", filesystem).exists());
@@ -114,7 +114,7 @@ public class AtlasSearchCommandTest
             command.setNewOutStream(new PrintStream(outContent));
             command.setNewErrStream(new PrintStream(errContent));
 
-            command.runSubcommand("/Users/foo/test.atlas.txt", "--verbose", "--type=ASD");
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose", "--type=ASD");
 
             Assert.assertEquals("", outContent.toString());
             Assert.assertEquals(
@@ -142,17 +142,16 @@ public class AtlasSearchCommandTest
             command.setNewOutStream(new PrintStream(outContent));
             command.setNewErrStream(new PrintStream(errContent));
 
-            command.runSubcommand("/Users/foo/test.atlas.txt", "--verbose",
-                    "--geometry=POINT (1 1)");
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose", "--geometry=POINT (1 1)");
 
-            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
+            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas:\n"
                     + "CompletePoint [\n" + "identifier: 1000000, \n" + "location: POINT (1 1), \n"
                     + "tags: {foo=bar}, \n" + "parentRelations: [], \n"
                     + "bounds: POLYGON ((1 1, 1 1, 1 1, 1 1, 1 1)), \n" + "]\n\n",
                     outContent.toString());
             Assert.assertEquals(
-                    "find: loading /Users/foo/test.atlas.txt\n"
-                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    "find: loading /Users/foo/test.atlas\n"
+                            + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
                     errContent.toString());
 
             final ByteArrayOutputStream outContent2 = new ByteArrayOutputStream();
@@ -162,19 +161,19 @@ public class AtlasSearchCommandTest
             command.setNewOutStream(new PrintStream(outContent2));
             command.setNewErrStream(new PrintStream(errContent2));
 
-            command.runSubcommand("/Users/foo/test.atlas.txt", "--verbose",
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose",
                     "--geometry=LINESTRING (10 10, 11 11, 12 12)");
 
             Assert.assertEquals(
-                    "Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
+                    "Found entity matching criteria in /Users/foo/test.atlas:\n"
                             + "CompleteLine [\n" + "identifier: 4000000, \n"
                             + "polyLine: LINESTRING (10 10, 11 11, 12 12), \n"
                             + "tags: {this_is=a_line}, \n" + "parentRelations: [], \n"
                             + "bounds: POLYGON ((10 10, 10 12, 12 12, 12 10, 10 10)), \n" + "]\n\n",
                     outContent2.toString());
             Assert.assertEquals(
-                    "find: loading /Users/foo/test.atlas.txt\n"
-                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    "find: loading /Users/foo/test.atlas\n"
+                            + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
                     errContent2.toString());
 
             final ByteArrayOutputStream outContent3 = new ByteArrayOutputStream();
@@ -184,19 +183,19 @@ public class AtlasSearchCommandTest
             command.setNewOutStream(new PrintStream(outContent3));
             command.setNewErrStream(new PrintStream(errContent3));
 
-            command.runSubcommand("/Users/foo/test.atlas.txt", "--verbose",
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose",
                     "--geometry=POLYGON ((20 20, 21 20, 21 21, 20 20))");
 
             Assert.assertEquals(
-                    "Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
+                    "Found entity matching criteria in /Users/foo/test.atlas:\n"
                             + "CompleteArea [\n" + "identifier: 7000000, \n"
                             + "polygon: POLYGON ((20 20, 21 20, 21 21, 20 20)), \n"
                             + "tags: {baz=bat}, \n" + "parentRelations: [], \n"
                             + "bounds: POLYGON ((20 20, 20 21, 21 21, 21 20, 20 20)), \n" + "]\n\n",
                     outContent3.toString());
             Assert.assertEquals(
-                    "find: loading /Users/foo/test.atlas.txt\n"
-                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    "find: loading /Users/foo/test.atlas\n"
+                            + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
                     errContent3.toString());
         }
         catch (final IOException exception)
@@ -218,16 +217,16 @@ public class AtlasSearchCommandTest
             command.setNewOutStream(new PrintStream(outContent));
             command.setNewErrStream(new PrintStream(errContent));
 
-            command.runSubcommand("/Users/foo/test.atlas.txt", "--verbose", "--id=1000000");
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose", "--id=1000000");
 
-            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
+            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas:\n"
                     + "CompletePoint [\n" + "identifier: 1000000, \n" + "location: POINT (1 1), \n"
                     + "tags: {foo=bar}, \n" + "parentRelations: [], \n"
                     + "bounds: POLYGON ((1 1, 1 1, 1 1, 1 1, 1 1)), \n" + "]\n\n",
                     outContent.toString());
             Assert.assertEquals(
-                    "find: loading /Users/foo/test.atlas.txt\n"
-                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    "find: loading /Users/foo/test.atlas\n"
+                            + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
                     errContent.toString());
         }
         catch (final IOException exception)
@@ -249,17 +248,17 @@ public class AtlasSearchCommandTest
             command.setNewOutStream(new PrintStream(outContent));
             command.setNewErrStream(new PrintStream(errContent));
 
-            command.runSubcommand("/Users/foo/test.atlas.txt", "--verbose", "--out-edge=11000001");
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose", "--out-edge=11000001");
 
-            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
+            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas:\n"
                     + "CompleteNode [\n" + "identifier: 9000000, \n" + "location: POINT (32 32), \n"
                     + "inEdges: [11000000], \n" + "outEdges: [11000001], \n" + "tags: {baz=bat}, \n"
                     + "parentRelations: [], \n"
                     + "bounds: POLYGON ((32 32, 32 32, 32 32, 32 32, 32 32)), \n" + "]\n\n",
                     outContent.toString());
             Assert.assertEquals(
-                    "find: loading /Users/foo/test.atlas.txt\n"
-                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    "find: loading /Users/foo/test.atlas\n"
+                            + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
                     errContent.toString());
 
             final ByteArrayOutputStream outContent2 = new ByteArrayOutputStream();
@@ -269,17 +268,17 @@ public class AtlasSearchCommandTest
             command.setNewOutStream(new PrintStream(outContent2));
             command.setNewErrStream(new PrintStream(errContent2));
 
-            command.runSubcommand("/Users/foo/test.atlas.txt", "--verbose", "--in-edge=11000000");
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose", "--in-edge=11000000");
 
-            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
+            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas:\n"
                     + "CompleteNode [\n" + "identifier: 9000000, \n" + "location: POINT (32 32), \n"
                     + "inEdges: [11000000], \n" + "outEdges: [11000001], \n" + "tags: {baz=bat}, \n"
                     + "parentRelations: [], \n"
                     + "bounds: POLYGON ((32 32, 32 32, 32 32, 32 32, 32 32)), \n" + "]\n\n",
                     outContent2.toString());
             Assert.assertEquals(
-                    "find: loading /Users/foo/test.atlas.txt\n"
-                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    "find: loading /Users/foo/test.atlas\n"
+                            + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
                     errContent2.toString());
         }
         catch (final IOException exception)
@@ -301,24 +300,25 @@ public class AtlasSearchCommandTest
             command.setNewOutStream(new PrintStream(outContent));
             command.setNewErrStream(new PrintStream(errContent));
 
-            command.runSubcommand("/Users/foo/test.atlas.txt", "--verbose", "--osmid=11");
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose", "--osmid=11");
 
-            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
-                    + "CompleteEdge [\n" + "identifier: 11000000, \n"
-                    + "polyLine: LINESTRING (30 30, 31 30, 32 32), \n" + "startNode: 8000000, \n"
-                    + "endNode: 9000000, \n" + "tags: {foo=bar}, \n"
-                    + "parentRelations: [12000000], \n"
-                    + "bounds: POLYGON ((30 30, 30 32, 32 32, 32 30, 30 30)), \n" + "]\n" + "\n"
-                    + "Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
-                    + "CompleteEdge [\n" + "identifier: 11000001, \n"
-                    + "polyLine: LINESTRING (32 32, 32 33, 34 34), \n" + "startNode: 9000000, \n"
-                    + "endNode: 10000000, \n" + "tags: {baz=bat}, \n"
-                    + "parentRelations: [12000000], \n"
-                    + "bounds: POLYGON ((32 32, 32 34, 34 34, 34 32, 32 32)), \n" + "]\n\n",
+            Assert.assertEquals(
+                    "Found entity matching criteria in /Users/foo/test.atlas:\n"
+                            + "CompleteEdge [\n" + "identifier: 11000000, \n"
+                            + "polyLine: LINESTRING (30 30, 31 30, 32 32), \n"
+                            + "startNode: 8000000, \n" + "endNode: 9000000, \n"
+                            + "tags: {foo=bar}, \n" + "parentRelations: [12000000], \n"
+                            + "bounds: POLYGON ((30 30, 30 32, 32 32, 32 30, 30 30)), \n" + "]\n"
+                            + "\n" + "Found entity matching criteria in /Users/foo/test.atlas:\n"
+                            + "CompleteEdge [\n" + "identifier: 11000001, \n"
+                            + "polyLine: LINESTRING (32 32, 32 33, 34 34), \n"
+                            + "startNode: 9000000, \n" + "endNode: 10000000, \n"
+                            + "tags: {baz=bat}, \n" + "parentRelations: [12000000], \n"
+                            + "bounds: POLYGON ((32 32, 32 34, 34 34, 34 32, 32 32)), \n" + "]\n\n",
                     outContent.toString());
             Assert.assertEquals(
-                    "find: loading /Users/foo/test.atlas.txt\n"
-                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    "find: loading /Users/foo/test.atlas\n"
+                            + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
                     errContent.toString());
         }
         catch (final IOException exception)
@@ -340,25 +340,26 @@ public class AtlasSearchCommandTest
             command.setNewOutStream(new PrintStream(outContent));
             command.setNewErrStream(new PrintStream(errContent));
 
-            command.runSubcommand("/Users/foo/test.atlas.txt", "--verbose",
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose",
                     "--parent-relations=12000000");
 
-            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
-                    + "CompleteEdge [\n" + "identifier: 11000000, \n"
-                    + "polyLine: LINESTRING (30 30, 31 30, 32 32), \n" + "startNode: 8000000, \n"
-                    + "endNode: 9000000, \n" + "tags: {foo=bar}, \n"
-                    + "parentRelations: [12000000], \n"
-                    + "bounds: POLYGON ((30 30, 30 32, 32 32, 32 30, 30 30)), \n" + "]\n" + "\n"
-                    + "Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
-                    + "CompleteEdge [\n" + "identifier: 11000001, \n"
-                    + "polyLine: LINESTRING (32 32, 32 33, 34 34), \n" + "startNode: 9000000, \n"
-                    + "endNode: 10000000, \n" + "tags: {baz=bat}, \n"
-                    + "parentRelations: [12000000], \n"
-                    + "bounds: POLYGON ((32 32, 32 34, 34 34, 34 32, 32 32)), \n" + "]\n\n",
+            Assert.assertEquals(
+                    "Found entity matching criteria in /Users/foo/test.atlas:\n"
+                            + "CompleteEdge [\n" + "identifier: 11000000, \n"
+                            + "polyLine: LINESTRING (30 30, 31 30, 32 32), \n"
+                            + "startNode: 8000000, \n" + "endNode: 9000000, \n"
+                            + "tags: {foo=bar}, \n" + "parentRelations: [12000000], \n"
+                            + "bounds: POLYGON ((30 30, 30 32, 32 32, 32 30, 30 30)), \n" + "]\n"
+                            + "\n" + "Found entity matching criteria in /Users/foo/test.atlas:\n"
+                            + "CompleteEdge [\n" + "identifier: 11000001, \n"
+                            + "polyLine: LINESTRING (32 32, 32 33, 34 34), \n"
+                            + "startNode: 9000000, \n" + "endNode: 10000000, \n"
+                            + "tags: {baz=bat}, \n" + "parentRelations: [12000000], \n"
+                            + "bounds: POLYGON ((32 32, 32 34, 34 34, 34 32, 32 32)), \n" + "]\n\n",
                     outContent.toString());
             Assert.assertEquals(
-                    "find: loading /Users/foo/test.atlas.txt\n"
-                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    "find: loading /Users/foo/test.atlas\n"
+                            + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
                     errContent.toString());
         }
         catch (final IOException exception)
@@ -380,26 +381,27 @@ public class AtlasSearchCommandTest
             command.setNewOutStream(new PrintStream(outContent));
             command.setNewErrStream(new PrintStream(errContent));
 
-            command.runSubcommand("/Users/foo/test.atlas.txt", "--verbose",
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose",
                     "--predicate=!e.relations().isEmpty() && e.relations().collect { it.getIdentifier() }.containsAll(Sets.hashSet(12000000L))",
                     "--imports=org.openstreetmap.atlas.utilities.command.parsing");
 
-            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
-                    + "CompleteEdge [\n" + "identifier: 11000000, \n"
-                    + "polyLine: LINESTRING (30 30, 31 30, 32 32), \n" + "startNode: 8000000, \n"
-                    + "endNode: 9000000, \n" + "tags: {foo=bar}, \n"
-                    + "parentRelations: [12000000], \n"
-                    + "bounds: POLYGON ((30 30, 30 32, 32 32, 32 30, 30 30)), \n" + "]\n" + "\n"
-                    + "Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
-                    + "CompleteEdge [\n" + "identifier: 11000001, \n"
-                    + "polyLine: LINESTRING (32 32, 32 33, 34 34), \n" + "startNode: 9000000, \n"
-                    + "endNode: 10000000, \n" + "tags: {baz=bat}, \n"
-                    + "parentRelations: [12000000], \n"
-                    + "bounds: POLYGON ((32 32, 32 34, 34 34, 34 32, 32 32)), \n" + "]\n\n",
+            Assert.assertEquals(
+                    "Found entity matching criteria in /Users/foo/test.atlas:\n"
+                            + "CompleteEdge [\n" + "identifier: 11000000, \n"
+                            + "polyLine: LINESTRING (30 30, 31 30, 32 32), \n"
+                            + "startNode: 8000000, \n" + "endNode: 9000000, \n"
+                            + "tags: {foo=bar}, \n" + "parentRelations: [12000000], \n"
+                            + "bounds: POLYGON ((30 30, 30 32, 32 32, 32 30, 30 30)), \n" + "]\n"
+                            + "\n" + "Found entity matching criteria in /Users/foo/test.atlas:\n"
+                            + "CompleteEdge [\n" + "identifier: 11000001, \n"
+                            + "polyLine: LINESTRING (32 32, 32 33, 34 34), \n"
+                            + "startNode: 9000000, \n" + "endNode: 10000000, \n"
+                            + "tags: {baz=bat}, \n" + "parentRelations: [12000000], \n"
+                            + "bounds: POLYGON ((32 32, 32 34, 34 34, 34 32, 32 32)), \n" + "]\n\n",
                     outContent.toString());
             Assert.assertEquals(
-                    "find: loading /Users/foo/test.atlas.txt\n"
-                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    "find: loading /Users/foo/test.atlas\n"
+                            + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
                     errContent.toString());
         }
         catch (final IOException exception)
@@ -421,11 +423,11 @@ public class AtlasSearchCommandTest
             command.setNewOutStream(new PrintStream(outContent));
             command.setNewErrStream(new PrintStream(errContent));
 
-            command.runSubcommand("/Users/foo/test.atlas.txt", "--verbose", "--start-node=8000000",
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose", "--start-node=8000000",
                     "--end-node=9000000");
 
             Assert.assertEquals(
-                    "Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
+                    "Found entity matching criteria in /Users/foo/test.atlas:\n"
                             + "CompleteEdge [\n" + "identifier: 11000000, \n"
                             + "polyLine: LINESTRING (30 30, 31 30, 32 32), \n"
                             + "startNode: 8000000, \n" + "endNode: 9000000, \n"
@@ -433,8 +435,8 @@ public class AtlasSearchCommandTest
                             + "bounds: POLYGON ((30 30, 30 32, 32 32, 32 30, 30 30)), \n" + "]\n\n",
                     outContent.toString());
             Assert.assertEquals(
-                    "find: loading /Users/foo/test.atlas.txt\n"
-                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    "find: loading /Users/foo/test.atlas\n"
+                            + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
                     errContent.toString());
         }
         catch (final IOException exception)
@@ -457,17 +459,17 @@ public class AtlasSearchCommandTest
             command.setNewOutStream(new PrintStream(outContent));
             command.setNewErrStream(new PrintStream(errContent));
 
-            command.runSubcommand("/Users/foo/test.atlas.txt", "--verbose",
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose",
                     "--sub-geometry=POINT (1 1)");
 
-            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
+            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas:\n"
                     + "CompletePoint [\n" + "identifier: 1000000, \n" + "location: POINT (1 1), \n"
                     + "tags: {foo=bar}, \n" + "parentRelations: [], \n"
                     + "bounds: POLYGON ((1 1, 1 1, 1 1, 1 1, 1 1)), \n" + "]\n\n",
                     outContent.toString());
             Assert.assertEquals(
-                    "find: loading /Users/foo/test.atlas.txt\n"
-                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    "find: loading /Users/foo/test.atlas\n"
+                            + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
                     errContent.toString());
 
             final ByteArrayOutputStream outContent2 = new ByteArrayOutputStream();
@@ -477,19 +479,19 @@ public class AtlasSearchCommandTest
             command.setNewOutStream(new PrintStream(outContent2));
             command.setNewErrStream(new PrintStream(errContent2));
 
-            command.runSubcommand("/Users/foo/test.atlas.txt", "--verbose",
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose",
                     "--sub-geometry=POINT (10 10)");
 
             Assert.assertEquals(
-                    "Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
+                    "Found entity matching criteria in /Users/foo/test.atlas:\n"
                             + "CompleteLine [\n" + "identifier: 4000000, \n"
                             + "polyLine: LINESTRING (10 10, 11 11, 12 12), \n"
                             + "tags: {this_is=a_line}, \n" + "parentRelations: [], \n"
                             + "bounds: POLYGON ((10 10, 10 12, 12 12, 12 10, 10 10)), \n" + "]\n\n",
                     outContent2.toString());
             Assert.assertEquals(
-                    "find: loading /Users/foo/test.atlas.txt\n"
-                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    "find: loading /Users/foo/test.atlas\n"
+                            + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
                     errContent2.toString());
 
             final ByteArrayOutputStream outContent3 = new ByteArrayOutputStream();
@@ -499,19 +501,19 @@ public class AtlasSearchCommandTest
             command.setNewOutStream(new PrintStream(outContent3));
             command.setNewErrStream(new PrintStream(errContent3));
 
-            command.runSubcommand("/Users/foo/test.atlas.txt", "--verbose",
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose",
                     "--sub-geometry=LINESTRING (10 10, 11 11)");
 
             Assert.assertEquals(
-                    "Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
+                    "Found entity matching criteria in /Users/foo/test.atlas:\n"
                             + "CompleteLine [\n" + "identifier: 4000000, \n"
                             + "polyLine: LINESTRING (10 10, 11 11, 12 12), \n"
                             + "tags: {this_is=a_line}, \n" + "parentRelations: [], \n"
                             + "bounds: POLYGON ((10 10, 10 12, 12 12, 12 10, 10 10)), \n" + "]\n\n",
                     outContent3.toString());
             Assert.assertEquals(
-                    "find: loading /Users/foo/test.atlas.txt\n"
-                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    "find: loading /Users/foo/test.atlas\n"
+                            + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
                     errContent3.toString());
         }
         catch (final IOException exception)
@@ -533,23 +535,23 @@ public class AtlasSearchCommandTest
             command.setNewOutStream(new PrintStream(outContent));
             command.setNewErrStream(new PrintStream(errContent));
 
-            command.runSubcommand("/Users/foo/test.atlas.txt", "--verbose",
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose",
                     "--taggable-filter=another->*");
 
-            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
+            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas:\n"
                     + "CompleteNode [\n" + "identifier: 10000000, \n"
                     + "location: POINT (34 34), \n" + "inEdges: [11000001], \n" + "outEdges: [], \n"
                     + "tags: {another=tag2}, \n" + "parentRelations: [], \n"
                     + "bounds: POLYGON ((34 34, 34 34, 34 34, 34 34, 34 34)), \n" + "]\n" + "\n"
-                    + "Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
+                    + "Found entity matching criteria in /Users/foo/test.atlas:\n"
                     + "CompleteLine [\n" + "identifier: 6000000, \n"
                     + "polyLine: LINESTRING (16 16, 17 17, 18 18), \n"
                     + "tags: {another=tag1, hello=world}, \n" + "parentRelations: [], \n"
                     + "bounds: POLYGON ((16 16, 16 18, 18 18, 18 16, 16 16)), \n" + "]\n\n",
                     outContent.toString());
             Assert.assertEquals(
-                    "find: loading /Users/foo/test.atlas.txt\n"
-                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    "find: loading /Users/foo/test.atlas\n"
+                            + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
                     errContent.toString());
         }
         catch (final IOException exception)
@@ -571,9 +573,9 @@ public class AtlasSearchCommandTest
             command.setNewOutStream(new PrintStream(outContent));
             command.setNewErrStream(new PrintStream(errContent));
 
-            command.runSubcommand("/Users/foo/test.atlas.txt", "--verbose", "--type=RELATION");
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose", "--type=RELATION");
 
-            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas.txt:\n"
+            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas:\n"
                     + "CompleteRelation [\n" + "identifier: 12000000, \n"
                     + "bounds: POLYGON ((30 30, 30 34, 34 34, 34 30, 30 30)), \n"
                     + "members: RelationBean [[[EDGE, 11000000, role0], [EDGE, 11000001, role1]]], \n"
@@ -581,8 +583,8 @@ public class AtlasSearchCommandTest
                     + "bounds: POLYGON ((30 30, 30 34, 34 34, 34 30, 30 30)), \n" + "]\n\n",
                     outContent.toString());
             Assert.assertEquals(
-                    "find: loading /Users/foo/test.atlas.txt\n"
-                            + "find: processing atlas /Users/foo/test.atlas.txt (1/1)\n",
+                    "find: loading /Users/foo/test.atlas\n"
+                            + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
                     errContent.toString());
         }
         catch (final IOException exception)
@@ -626,8 +628,8 @@ public class AtlasSearchCommandTest
         builder.addRelation(12000000L, 12L, bean, Maps.hashMap("route", "bike"));
 
         final Atlas atlas = builder.get();
-        final File atlasFile = new File("/Users/foo/test.atlas.txt", filesystem);
+        final File atlasFile = new File("/Users/foo/test.atlas", filesystem);
         assert atlas != null;
-        atlas.saveAsText(atlasFile);
+        atlas.save(atlasFile);
     }
 }

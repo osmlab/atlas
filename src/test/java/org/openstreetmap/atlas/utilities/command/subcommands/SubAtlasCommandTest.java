@@ -42,15 +42,15 @@ public class SubAtlasCommandTest
             command.setNewOutStream(new PrintStream(outContent));
             command.setNewErrStream(new PrintStream(errContent));
 
-            command.runSubcommand("/Users/foo/test.atlas.txt", "--verbose", "--imports=java.util",
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose", "--imports=java.util",
                     "--predicate=!e.relations().isEmpty()",
                     "--polygon=POLYGON((33 33, 35 33, 35 35, 33 35, 33 33))", "--slice-first",
                     "--cut-type=SOFT_CUT", "--output=/Users/foo", "--verbose");
 
             Assert.assertEquals("", outContent.toString());
             Assert.assertEquals(
-                    "subatlas: loading /Users/foo/test.atlas.txt\n"
-                            + "subatlas: processing atlas /Users/foo/test.atlas.txt (1/1)\n"
+                    "subatlas: loading /Users/foo/test.atlas\n"
+                            + "subatlas: processing atlas /Users/foo/test.atlas (1/1)\n"
                             + "subatlas: saved to /Users/foo/sub_test.atlas\n",
                     errContent.toString());
 
@@ -82,14 +82,14 @@ public class SubAtlasCommandTest
             command.setNewOutStream(new PrintStream(outContent));
             command.setNewErrStream(new PrintStream(errContent));
 
-            command.runSubcommand("/Users/foo/test.atlas.txt", "--verbose",
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose",
                     "--polygon=POLYGON((0 0, 4 0, 4 4, 0 4, 0 0))", "--output=/Users/foo",
                     "--verbose");
 
             Assert.assertEquals("", outContent.toString());
             Assert.assertEquals(
-                    "subatlas: loading /Users/foo/test.atlas.txt\n"
-                            + "subatlas: processing atlas /Users/foo/test.atlas.txt (1/1)\n"
+                    "subatlas: loading /Users/foo/test.atlas\n"
+                            + "subatlas: processing atlas /Users/foo/test.atlas (1/1)\n"
                             + "subatlas: saved to /Users/foo/sub_test.atlas\n",
                     errContent.toString());
 
@@ -121,13 +121,13 @@ public class SubAtlasCommandTest
             command.setNewOutStream(new PrintStream(outContent));
             command.setNewErrStream(new PrintStream(errContent));
 
-            command.runSubcommand("/Users/foo/test.atlas.txt", "--verbose",
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose",
                     "--predicate=!e.relations().isEmpty()", "--output=/Users/foo", "--verbose");
 
             Assert.assertEquals("", outContent.toString());
             Assert.assertEquals(
-                    "subatlas: loading /Users/foo/test.atlas.txt\n"
-                            + "subatlas: processing atlas /Users/foo/test.atlas.txt (1/1)\n"
+                    "subatlas: loading /Users/foo/test.atlas\n"
+                            + "subatlas: processing atlas /Users/foo/test.atlas (1/1)\n"
                             + "subatlas: saved to /Users/foo/sub_test.atlas\n",
                     errContent.toString());
 
@@ -183,8 +183,8 @@ public class SubAtlasCommandTest
         builder.addRelation(12000000L, 12L, bean, Maps.hashMap("route", "bike"));
 
         final Atlas atlas = builder.get();
-        final File atlasFile = new File("/Users/foo/test.atlas.txt", filesystem);
+        final File atlasFile = new File("/Users/foo/test.atlas", filesystem);
         assert atlas != null;
-        atlas.saveAsText(atlasFile);
+        atlas.save(atlasFile);
     }
 }
