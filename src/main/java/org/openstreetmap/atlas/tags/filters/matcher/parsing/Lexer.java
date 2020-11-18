@@ -176,6 +176,10 @@ public class Lexer
             {
                 escape(inputBuffer, this.lexemeBuffer);
             }
+            else if (inputBuffer.peek() == Token.TokenType.BANG.getLiteralValue().charAt(0))
+            {
+                bang(inputBuffer, this.lexemeBuffer);
+            }
             else
             {
                 throw new CoreException("unknown char {}", (char) inputBuffer.peek());
@@ -189,6 +193,12 @@ public class Lexer
     {
         lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
         this.lexedTokens.add(new Token(Token.TokenType.AND, lexemeBuffer.toString()));
+    }
+
+    private void bang(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer)
+    {
+        lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
+        this.lexedTokens.add(new Token(Token.TokenType.BANG, lexemeBuffer.toString()));
     }
 
     private void equal(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer) // NOSONAR
@@ -215,7 +225,8 @@ public class Lexer
     private boolean isKeyValueCharacter(final int ch)
     {
         return ((char) ch) != '&' && ((char) ch) != '|' && ((char) ch) != '=' && ((char) ch) != '('
-                && ((char) ch) != ')' && ((char) ch) != '/' && ((char) ch) != '\\';
+                && ((char) ch) != ')' && ((char) ch) != '/' && ((char) ch) != '\\'
+                && ((char) ch) != '!';
     }
 
     private void keyValue(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer)

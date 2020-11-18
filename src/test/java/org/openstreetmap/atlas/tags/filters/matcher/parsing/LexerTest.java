@@ -18,9 +18,9 @@ public class LexerTest
                 lexer.debugString());
 
         lexer = new Lexer();
-        lexer.lex("hello=world foo|a=b");
+        lexer.lex("hello=world foo|a=!b");
         Assert.assertEquals(
-                "(KEY_VALUE, hello), (EQUAL, =), (KEY_VALUE, world foo), (OR, |), (KEY_VALUE, a), (EQUAL, =), (KEY_VALUE, b), ",
+                "(KEY_VALUE, hello), (EQUAL, =), (KEY_VALUE, world foo), (OR, |), (KEY_VALUE, a), (EQUAL, =), (BANG, !), (KEY_VALUE, b), ",
                 lexer.debugString());
 
         lexer = new Lexer();

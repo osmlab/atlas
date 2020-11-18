@@ -30,8 +30,6 @@ public class Token
 
         SLASH("/"),
 
-        WHITESPACE(null),
-
         UNKNOWN(null),
 
         KEY_VALUE(null);
