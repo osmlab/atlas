@@ -17,6 +17,17 @@ import org.openstreetmap.atlas.tags.Taggable;
 public class RegexTaggableFilterTest
 {
     @Test
+    public void testCreationFromString()
+    {
+        final String definition = "source,highway|secondary,illegal";
+        final RegexTaggableFilter filter = new RegexTaggableFilter(definition);
+        Assert.assertFalse(filter.test(Taggable.with()));
+        Assert.assertTrue(
+                filter.test(Taggable.with("source", "local knowledge", "highway", "secondary")));
+        Assert.assertTrue(filter.test(Taggable.with("source", "illegal", "highway", "primary")));
+    }
+
+    @Test
     public void testException()
     {
         final Set<String> tagNames = new HashSet<>(Arrays.asList("source", "highway"));

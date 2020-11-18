@@ -13,7 +13,6 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.streaming.resource.File;
-import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 
 import com.google.common.jimfs.Configuration;
@@ -37,21 +36,19 @@ public class ConcatenateAtlasCommandTest
             command.setNewOutStream(new PrintStream(outContent));
             command.setNewErrStream(new PrintStream(errContent));
 
-            command.runSubcommand("/Users/foo/test.atlas.txt", "/Users/foo/test2.atlas.txt",
-                    "--verbose", "--output=/Users/foo");
+            command.runSubcommand("/Users/foo/test.atlas", "/Users/foo/test2.atlas", "--verbose",
+                    "--output=/Users/foo");
 
             Assert.assertTrue(outContent.toString().isEmpty());
             Assert.assertEquals(
-                    "fatlas: loading /Users/foo/test.atlas.txt\n"
-                            + "fatlas: loading /Users/foo/test2.atlas.txt\n"
-                            + "fatlas: processing atlas /Users/foo/test.atlas.txt (1/2)\n"
-                            + "fatlas: processing atlas /Users/foo/test2.atlas.txt (2/2)\n"
+                    "fatlas: loading /Users/foo/test.atlas\n"
+                            + "fatlas: loading /Users/foo/test2.atlas\n"
+                            + "fatlas: processing atlas /Users/foo/test.atlas (1/2)\n"
+                            + "fatlas: processing atlas /Users/foo/test2.atlas (2/2)\n"
                             + "fatlas: cloning...\n" + "fatlas: saved to /Users/foo/output.atlas\n",
                     errContent.toString());
             final File outputAtlasFile = new File("/Users/foo/output.atlas", filesystem);
-            final Atlas outputAtlas = new AtlasResourceLoader()
-                    .load(new InputStreamResource(outputAtlasFile::read)
-                            .withName(outputAtlasFile.getAbsolutePathString()));
+            final Atlas outputAtlas = new AtlasResourceLoader().load(outputAtlasFile);
             Assert.assertEquals(2, outputAtlas.numberOfPoints());
         }
         catch (final IOException exception)
@@ -65,15 +62,15 @@ public class ConcatenateAtlasCommandTest
         final PackedAtlasBuilder builder = new PackedAtlasBuilder();
         builder.addPoint(1000000L, Location.forWkt("POINT(1 1)"), Maps.hashMap("foo", "bar"));
         final Atlas atlas = builder.get();
-        final File atlasFile = new File("/Users/foo/test.atlas.txt", filesystem);
+        final File atlasFile = new File("/Users/foo/test.atlas", filesystem);
         assert atlas != null;
-        atlas.saveAsText(atlasFile);
+        atlas.save(atlasFile);
 
         final PackedAtlasBuilder builder2 = new PackedAtlasBuilder();
         builder2.addPoint(2000000L, Location.forWkt("POINT(2 2)"), Maps.hashMap("baz", "bat"));
         final Atlas atlas2 = builder2.get();
-        final File atlasFile2 = new File("/Users/foo/test2.atlas.txt", filesystem);
+        final File atlasFile2 = new File("/Users/foo/test2.atlas", filesystem);
         assert atlas2 != null;
-        atlas2.saveAsText(atlasFile2);
+        atlas2.save(atlasFile2);
     }
 }

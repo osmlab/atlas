@@ -78,16 +78,8 @@ public class AtlasShardingConverterCommandTest
             final File franceAtlas1 = output.child("FRA_gbsf.atlas");
             final File franceAtlas2 = output.child("FRA_gbsg.atlas");
             Assert.assertEquals(2, output.listFilesRecursively().size());
-            Assert.assertEquals(5,
-                    new AtlasResourceLoader()
-                            .load(new InputStreamResource(franceAtlas1::read)
-                                    .withName(franceAtlas1.getAbsolutePathString()))
-                            .numberOfEdges());
-            Assert.assertEquals(8,
-                    new AtlasResourceLoader()
-                            .load(new InputStreamResource(franceAtlas2::read)
-                                    .withName(franceAtlas2.getAbsolutePathString()))
-                            .numberOfEdges());
+            Assert.assertEquals(5, new AtlasResourceLoader().load(franceAtlas1).numberOfEdges());
+            Assert.assertEquals(8, new AtlasResourceLoader().load(franceAtlas2).numberOfEdges());
         }
         catch (final IOException exception)
         {
@@ -120,9 +112,7 @@ public class AtlasShardingConverterCommandTest
         command.runSubcommand(args);
 
         final File outputAtlasFile = new File("/Users/foo/FRA_shardingConverter.atlas", filesystem);
-        final Atlas outputAtlas = new AtlasResourceLoader()
-                .load(new InputStreamResource(outputAtlasFile::read)
-                        .withName(outputAtlasFile.getAbsolutePathString()));
+        final Atlas outputAtlas = new AtlasResourceLoader().load(outputAtlasFile);
         final File input = new File("/Users/foo/input", filesystem);
         input.mkdirs();
         final SlippyTile tile1 = SlippyTile.forName("11-998-708");

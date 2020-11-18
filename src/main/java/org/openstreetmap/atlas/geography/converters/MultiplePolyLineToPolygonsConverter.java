@@ -350,8 +350,32 @@ public class MultiplePolyLineToPolygonsConverter
     private static final JtsPolyLineConverter JTS_POLY_LINE_CONVERTER = new JtsPolyLineConverter();
     private static final JtsPolygonConverter JTS_POLYGON_CONVERTER = new JtsPolygonConverter();
 
+    private final boolean usePolygonizer;
+
+    public MultiplePolyLineToPolygonsConverter()
+    {
+        this.usePolygonizer = false;
+    }
+
+    public MultiplePolyLineToPolygonsConverter(final boolean usePolygonizer)
+    {
+        this.usePolygonizer = usePolygonizer;
+    }
+
     @Override
     public Iterable<Polygon> convert(final Iterable<PolyLine> candidates)
+    {
+        if (this.usePolygonizer)
+        {
+            return convertAttemptPolygonizer(candidates);
+        }
+        else
+        {
+            return convertLegacy(candidates);
+        }
+    }
+
+    public Iterable<Polygon> convertAttemptPolygonizer(final Iterable<PolyLine> candidates)
     {
         final Polygonizer polygonizer = new Polygonizer();
         candidates.forEach(polyLine -> polygonizer.add(JTS_POLY_LINE_CONVERTER.convert(polyLine)));

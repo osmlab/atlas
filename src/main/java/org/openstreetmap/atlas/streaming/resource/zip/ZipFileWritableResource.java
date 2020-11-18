@@ -1,16 +1,17 @@
 package org.openstreetmap.atlas.streaming.resource.zip;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.function.Supplier;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.Resource;
-import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
  * Zip wrapper for a {@link File} resource. This enables random lookups which are not available in
@@ -20,22 +21,6 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
  */
 public class ZipFileWritableResource extends ZipWritableResource
 {
-    private static Supplier<InputStream> inputStreamSupplier(final ZipFile file,
-            final ZipEntry entry)
-    {
-        return () ->
-        {
-            try
-            {
-                return file.getInputStream(entry);
-            }
-            catch (final IOException e)
-            {
-                throw new CoreException("Cannot get the entry {}", entry.getName(), e);
-            }
-        };
-    }
-
     public ZipFileWritableResource(final File source)
     {
         super(source);
@@ -44,64 +29,38 @@ public class ZipFileWritableResource extends ZipWritableResource
     @Override
     public Iterable<Resource> entries()
     {
-        try (ZipFile file = new ZipFile(getFileSource().getFile())
+        try
         {
-            @Override
-            public void close()
+            final ZipInputStream iteratorStream = getZipInputStream();
+            ZipEntry currentZipEntry;
+            final List<Resource> resources = new ArrayList<>();
+            while ((currentZipEntry = iteratorStream.getNextEntry()) != null)
             {
-                // Do nothing to close the file here, to avoid cutting the legs off the just created
-                // ZipEntry-based resource.
+                final String entryName = currentZipEntry.getName();
+                resources.add(new InputStreamResource(() ->
+                {
+                    final ZipInputStream zipStream = getZipInputStream();
+                    seekStreamAheadToEntry(zipStream, entryName);
+                    return zipStream;
+                }).withName(entryName));
             }
-        })
-        {
-            return Iterables.translate(Iterables.from(file.entries()), entry ->
-            {
-                return new InputStreamResource(inputStreamSupplier(file, entry))
-                        .withName(entry.getName());
-            });
+            return resources;
         }
-        catch (final IOException e)
+        catch (final IOException exception)
         {
-            throw new CoreException("Cannot get entries from the Zipfile {}.",
-                    this.getFileSource().getName(), e);
+            throw new CoreException("Could not read entries for {}",
+                    getFileSource().getAbsolutePathString(), exception);
         }
     }
 
-    /**
-     * Jump to a specific entry.
-     *
-     * @param name
-     *            The name of the entry
-     * @return The entry as a {@link Resource}. Throws a {@link CoreException} if it cannot find the
-     *         entry.
-     */
     public Resource entryForName(final String name)
     {
-        try (ZipFile file = new ZipFile(getFileSource().getFile())
+        return new InputStreamResource(() ->
         {
-            @Override
-            public void close()
-            {
-                // Do nothing to close the file here, to avoid cutting the legs off the just created
-                // ZipEntry-based resource.
-            }
-        })
-        {
-            final ZipEntry entry = file.getEntry(name);
-            if (entry != null)
-            {
-                return new InputStreamResource(inputStreamSupplier(file, entry)).withName(name);
-            }
-            else
-            {
-                throw new IOException("Entry " + name + " does not exist.");
-            }
-        }
-        catch (final IOException e)
-        {
-            throw new CoreException("Cannot get the entry {} from the Zipfile {}.", name,
-                    this.getFileSource().getName(), e);
-        }
+            final ZipInputStream zipStream = getZipInputStream();
+            seekStreamAheadToEntry(zipStream, name);
+            return zipStream;
+        }).withName(name);
     }
 
     @Override
@@ -114,5 +73,46 @@ public class ZipFileWritableResource extends ZipWritableResource
     protected File getFileSource()
     {
         return (File) getWritableSource();
+    }
+
+    protected ZipInputStream getZipInputStream()
+    {
+        return new ZipInputStream(new BufferedInputStream(getFileSource().read()));
+    }
+
+    private void seekStreamAheadToEntry(final ZipInputStream streamToSeekThrough,
+            final String entryNameToSeek)
+    {
+        if (entryNameToSeek == null)
+        {
+            throw new CoreException("Cannot seek for null entry name");
+        }
+
+        String currentEntryName = null;
+        while (!Objects.equals(currentEntryName, entryNameToSeek))
+        {
+            try
+            {
+                final ZipEntry currentEntry = streamToSeekThrough.getNextEntry();
+                if (currentEntry == null)
+                {
+                    break;
+                }
+                currentEntryName = currentEntry.getName();
+            }
+            catch (final IOException exception)
+            {
+                throw new CoreException("IOException while getting next entry", exception);
+            }
+        }
+
+        /*
+         * If we make it here, then we didn't find the entry we were looking for - these aren't the
+         * entries you're looking for.
+         */
+        if (!Objects.equals(currentEntryName, entryNameToSeek))
+        {
+            throw new CoreException("No such entry {} found in stream", entryNameToSeek);
+        }
     }
 }
