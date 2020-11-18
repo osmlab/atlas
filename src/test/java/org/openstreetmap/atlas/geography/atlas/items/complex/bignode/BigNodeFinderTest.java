@@ -12,6 +12,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasLoadingCommand;
+import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Route;
 import org.openstreetmap.atlas.geography.atlas.items.complex.bignode.BigNode.Type;
@@ -259,6 +260,17 @@ public class BigNodeFinderTest extends AtlasLoadingCommand
                 !shortestRoutes.contains(nonShortestValidRoute));
         Assert.assertTrue("Valid route should be present in the total path set",
                 allRoutes.contains(nonShortestValidRoute));
+    }
+
+    @Test
+    public void testUTurnShapeEdgeAsJunctionEdge()
+    {
+        final Atlas atlas = this.setup.getuTurnShapeEdgeAtlas();
+        final Edge edge1 = atlas.edge(798542598000001L);
+        final Edge edge2 = atlas.edge(798542598000002L);
+        final BigNodeFinder finder = new BigNodeFinder();
+        Assert.assertFalse(finder.startAndEndNodesConnectedToSameEdge(edge1));
+        Assert.assertTrue(finder.startAndEndNodesConnectedToSameEdge(edge2));
     }
 
     @Override

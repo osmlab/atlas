@@ -561,6 +561,9 @@ public class BigNodeFinderTestCaseRule extends CoreTestRule
     @TestAtlas(loadFromJosmOsmResource = "ukr-link-road-test.osm")
     private Atlas ukrAtlas;
 
+    @TestAtlas(loadFromJosmOsmResource = "u-turn-shape-edge.osm")
+    private Atlas uTurnShapeEdgeAtlas;
+
     public Atlas getAtlas()
     {
         return this.atlas;
@@ -594,5 +597,10 @@ public class BigNodeFinderTestCaseRule extends CoreTestRule
     public Atlas getUKRAtlasToTestExcludeLinkRoadAsDualCarriageWay()
     {
         return this.ukrAtlas;
+    }
+
+    public Atlas getuTurnShapeEdgeAtlas()
+    {
+        return this.uTurnShapeEdgeAtlas;
     }
 }
