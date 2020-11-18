@@ -16,11 +16,17 @@ public class Token
 
         BANG("!"),
 
+        BANG_EQUAL("!="),
+
+        DOUBLE_QUOTE("\""),
+
         ESCAPE("\\"),
 
         EOF(null),
 
         EQUAL("="),
+
+        LITERAL(null),
 
         OR("|"),
 
@@ -28,11 +34,9 @@ public class Token
 
         PAREN_CLOSE(")"),
 
-        SLASH("/"),
+        REGEX("/"),
 
-        UNKNOWN(null),
-
-        KEY_VALUE(null);
+        WHITESPACE(null);
 
         private final String literalValue;
 

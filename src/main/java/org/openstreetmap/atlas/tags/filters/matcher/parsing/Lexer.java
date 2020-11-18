@@ -44,20 +44,6 @@ public class Lexer
             return this.string.charAt(this.position);
         }
 
-        int peek(final int offset)
-        {
-            if (this.position + offset >= this.string.length())
-            {
-                return EOF;
-            }
-            return this.string.charAt(this.position + offset);
-        }
-
-        void setPosition(final int newPosition)
-        {
-            this.position = newPosition;
-        }
-
         void unconsume()
         {
             if (this.position > 0)
@@ -150,7 +136,11 @@ public class Lexer
         {
             if (isKeyValueCharacter(inputBuffer.peek()))
             {
-                keyValue(inputBuffer, this.lexemeBuffer);
+                literal(inputBuffer, this.lexemeBuffer);
+            }
+            else if (isWhitespaceCharacter(inputBuffer.peek()))
+            {
+                whitespace(inputBuffer, this.lexemeBuffer);
             }
             else if (inputBuffer.peek() == Token.TokenType.EQUAL.getLiteralValue().charAt(0))
             {
@@ -178,7 +168,15 @@ public class Lexer
             }
             else if (inputBuffer.peek() == Token.TokenType.BANG.getLiteralValue().charAt(0))
             {
-                bang(inputBuffer, this.lexemeBuffer);
+                bangOrBangEqual(inputBuffer, this.lexemeBuffer);
+            }
+            else if (inputBuffer.peek() == Token.TokenType.REGEX.getLiteralValue().charAt(0))
+            {
+                regex(inputBuffer, this.lexemeBuffer);
+            }
+            else if (inputBuffer.peek() == Token.TokenType.DOUBLE_QUOTE.getLiteralValue().charAt(0))
+            {
+                doubleQuote(inputBuffer, this.lexemeBuffer);
             }
             else
             {
@@ -195,10 +193,47 @@ public class Lexer
         this.lexedTokens.add(new Token(Token.TokenType.AND, lexemeBuffer.toString()));
     }
 
-    private void bang(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer)
+    private void bangOrBangEqual(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer)
     {
         lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
-        this.lexedTokens.add(new Token(Token.TokenType.BANG, lexemeBuffer.toString()));
+        if (inputBuffer.peek() == Token.TokenType.EQUAL.getLiteralValue().charAt(0))
+        {
+            lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
+            this.lexedTokens.add(new Token(Token.TokenType.BANG_EQUAL, lexemeBuffer.toString()));
+        }
+        else
+        {
+            this.lexedTokens.add(new Token(Token.TokenType.BANG, lexemeBuffer.toString()));
+        }
+    }
+
+    private void doubleQuote(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer)
+    {
+        int ch;
+        do
+        {
+            ch = inputBuffer.consumeCharacter();
+            if (ch == InputBuffer.EOF)
+            {
+                throw new CoreException("Unexpected EOF after '\"' while lexing TaggableMatcher");
+            }
+            if (ch == Token.TokenType.ESCAPE.getLiteralValue().charAt(0))
+            {
+                final int escaped = inputBuffer.consumeCharacter();
+                lexemeBuffer.addCharacter((char) escaped);
+            }
+            else
+            {
+                lexemeBuffer.addCharacter((char) ch);
+            }
+        }
+        while (inputBuffer.peek() != Token.TokenType.DOUBLE_QUOTE.getLiteralValue().charAt(0));
+        // consume the trailing '"'
+        inputBuffer.consumeCharacter();
+
+        // Strip leading " character
+        final String lexeme = lexemeBuffer.stripLeading().toString();
+        this.lexedTokens.add(new Token(Token.TokenType.DOUBLE_QUOTE, lexeme));
     }
 
     private void equal(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer) // NOSONAR
@@ -224,17 +259,25 @@ public class Lexer
 
     private boolean isKeyValueCharacter(final int ch)
     {
+        // All these special chars do not count as key/value chars when they appear literally
         return ((char) ch) != Token.TokenType.AND.getLiteralValue().charAt(0)
                 && ((char) ch) != Token.TokenType.OR.getLiteralValue().charAt(0)
                 && ((char) ch) != Token.TokenType.EQUAL.getLiteralValue().charAt(0)
                 && ((char) ch) != Token.TokenType.PAREN_OPEN.getLiteralValue().charAt(0)
                 && ((char) ch) != Token.TokenType.PAREN_CLOSE.getLiteralValue().charAt(0)
-                && ((char) ch) != Token.TokenType.SLASH.getLiteralValue().charAt(0)
+                && ((char) ch) != Token.TokenType.REGEX.getLiteralValue().charAt(0)
                 && ((char) ch) != Token.TokenType.ESCAPE.getLiteralValue().charAt(0)
-                && ((char) ch) != Token.TokenType.BANG.getLiteralValue().charAt(0);
+                && ((char) ch) != Token.TokenType.BANG.getLiteralValue().charAt(0)
+                && ((char) ch) != Token.TokenType.DOUBLE_QUOTE.getLiteralValue().charAt(0)
+                && !isWhitespaceCharacter((char) ch);
     }
 
-    private void keyValue(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer)
+    private boolean isWhitespaceCharacter(final int ch)
+    {
+        return Character.isWhitespace((char) ch);
+    }
+
+    private void literal(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer)
     {
         int ch;
         do
@@ -253,7 +296,7 @@ public class Lexer
             lexemeBuffer.stripTrailing();
         }
 
-        this.lexedTokens.add(new Token(Token.TokenType.KEY_VALUE, lexemeBuffer.toString()));
+        this.lexedTokens.add(new Token(Token.TokenType.LITERAL, lexemeBuffer.toString()));
     }
 
     private void or(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer)
@@ -272,5 +315,53 @@ public class Lexer
     {
         lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
         this.lexedTokens.add(new Token(Token.TokenType.PAREN_OPEN, lexemeBuffer.toString()));
+    }
+
+    private void regex(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer)
+    {
+        int ch;
+        do
+        {
+            ch = inputBuffer.consumeCharacter();
+            if (ch == InputBuffer.EOF)
+            {
+                throw new CoreException("Unexpected EOF after '/' while lexing TaggableMatcher");
+            }
+            if (ch == Token.TokenType.ESCAPE.getLiteralValue().charAt(0))
+            {
+                /*
+                 * If the user is specifically escaping a '/', we need to make sure that '\/' gets
+                 * into the regex and the '/' will not be interpreted as an end to the regex.
+                 */
+                if (inputBuffer.peek() == Token.TokenType.REGEX.getLiteralValue().charAt(0))
+                {
+                    lexemeBuffer.addCharacter((char) ch);
+                    final int escapedForwardSlash = inputBuffer.consumeCharacter();
+                    lexemeBuffer.addCharacter((char) escapedForwardSlash);
+                }
+                // Otherwise, pass the \ forward into the regex normally
+                else
+                {
+                    lexemeBuffer.addCharacter((char) ch);
+                }
+            }
+            else
+            {
+                lexemeBuffer.addCharacter((char) ch);
+            }
+        }
+        while (inputBuffer.peek() != Token.TokenType.REGEX.getLiteralValue().charAt(0));
+        // consume the trailing '/'
+        inputBuffer.consumeCharacter();
+
+        // Strip leading and trailing / characters
+        final String lexeme = lexemeBuffer.stripLeading().toString();
+        this.lexedTokens.add(new Token(Token.TokenType.REGEX, lexeme));
+    }
+
+    private void whitespace(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer)
+    {
+        lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
+        this.lexedTokens.add(new Token(Token.TokenType.WHITESPACE, lexemeBuffer.toString()));
     }
 }
