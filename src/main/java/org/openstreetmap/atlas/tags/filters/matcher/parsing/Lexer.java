@@ -224,9 +224,14 @@ public class Lexer
 
     private boolean isKeyValueCharacter(final int ch)
     {
-        return ((char) ch) != '&' && ((char) ch) != '|' && ((char) ch) != '=' && ((char) ch) != '('
-                && ((char) ch) != ')' && ((char) ch) != '/' && ((char) ch) != '\\'
-                && ((char) ch) != '!';
+        return ((char) ch) != Token.TokenType.AND.getLiteralValue().charAt(0)
+                && ((char) ch) != Token.TokenType.OR.getLiteralValue().charAt(0)
+                && ((char) ch) != Token.TokenType.EQUAL.getLiteralValue().charAt(0)
+                && ((char) ch) != Token.TokenType.PAREN_OPEN.getLiteralValue().charAt(0)
+                && ((char) ch) != Token.TokenType.PAREN_CLOSE.getLiteralValue().charAt(0)
+                && ((char) ch) != Token.TokenType.SLASH.getLiteralValue().charAt(0)
+                && ((char) ch) != Token.TokenType.ESCAPE.getLiteralValue().charAt(0)
+                && ((char) ch) != Token.TokenType.BANG.getLiteralValue().charAt(0);
     }
 
     private void keyValue(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer)
