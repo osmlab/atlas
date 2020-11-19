@@ -416,6 +416,19 @@ public class BigNodeFinder implements Finder<BigNode>
         new GeoJsonBuilder().create(features).save(writableResource);
     }
 
+    /*
+     * Check if the start and end node of an edge connects to the same edge. Example is
+     * https://www.openstreetmap.org/way/798542598 This type of edge should not be considered as
+     * junction edge
+     */
+    protected boolean startAndEndNodesConnectedToSameEdge(final Edge edge)
+    {
+        return edge.start().connectedEdges().stream()
+                .filter(connectedEdge -> Math.abs(connectedEdge.getIdentifier()) != Math
+                        .abs(edge.getIdentifier()))
+                .anyMatch(connectedEdge -> edge.end().connectedEdges().contains(connectedEdge));
+    }
+
     /**
      * Identify {@link Edge} name matches when both {@link Edge}s have same names. When strict mode
      * parameter is set to {@code true}, both edge names must be non-empty and must match. Exact
@@ -471,8 +484,7 @@ public class BigNodeFinder implements Finder<BigNode>
     {
         final HighwayTag highwayTag = edge.highwayTag();
         return isShortEnough(edge) && highwayTag.isMoreImportantThanOrEqualTo(HighwayTag.SERVICE)
-                && !JunctionTag.isRoundabout(edge);
-
+                && !JunctionTag.isRoundabout(edge) && !startAndEndNodesConnectedToSameEdge(edge);
     }
 
     private boolean isDualCarriageWayJunctionEdge(final Edge candidateEdge)
