@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.tags.filters.matcher.parsing;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 
@@ -99,28 +100,14 @@ public class Lexer
         }
     }
 
-    private final LexemeBuffer lexemeBuffer;
-    private final List<Token> lexedTokens;
-
-    public Lexer()
-    {
-        this.lexemeBuffer = new LexemeBuffer();
-        this.lexedTokens = new ArrayList<>();
-    }
-
-    public String debugString()
+    public static String debugString(final List<Token> lexedTokens)
     {
         final StringBuilder builder = new StringBuilder();
-        for (final Token token : this.lexedTokens)
+        for (final Token token : lexedTokens)
         {
             builder.append(token.toString() + ", ");
         }
         return builder.toString();
-    }
-
-    public List<Token> getLexedTokens()
-    {
-        return this.lexedTokens;
     }
 
     /**
@@ -128,86 +115,96 @@ public class Lexer
      *
      * @param inputLine
      *            the input line
+     * @return a {@link List} of the processed {@link Token}s
      */
-    public void lex(final String inputLine)
+    public List<Token> lex(final String inputLine)
     {
+        final List<Token> lexedTokens = new ArrayList<>();
+        final LexemeBuffer lexemeBuffer = new LexemeBuffer();
         final InputBuffer inputBuffer = new InputBuffer(inputLine);
         while (inputBuffer.peek() != InputBuffer.EOF)
         {
             if (isKeyValueCharacter(inputBuffer.peek()))
             {
-                literal(inputBuffer, this.lexemeBuffer);
+                literal(inputBuffer, lexemeBuffer, lexedTokens);
             }
             else if (isWhitespaceCharacter(inputBuffer.peek()))
             {
-                whitespace(inputBuffer, this.lexemeBuffer);
+                whitespace(inputBuffer, lexemeBuffer, lexedTokens);
             }
             else if (inputBuffer.peek() == Token.TokenType.EQUAL.getLiteralValue().charAt(0))
             {
-                equal(inputBuffer, this.lexemeBuffer);
+                equal(inputBuffer, lexemeBuffer, lexedTokens);
             }
             else if (inputBuffer.peek() == Token.TokenType.AND.getLiteralValue().charAt(0))
             {
-                and(inputBuffer, this.lexemeBuffer);
+                and(inputBuffer, lexemeBuffer, lexedTokens);
             }
             else if (inputBuffer.peek() == Token.TokenType.OR.getLiteralValue().charAt(0))
             {
-                or(inputBuffer, this.lexemeBuffer);
+                or(inputBuffer, lexemeBuffer, lexedTokens);
             }
             else if (inputBuffer.peek() == Token.TokenType.PAREN_OPEN.getLiteralValue().charAt(0))
             {
-                parenOpen(inputBuffer, this.lexemeBuffer);
+                parenOpen(inputBuffer, lexemeBuffer, lexedTokens);
             }
             else if (inputBuffer.peek() == Token.TokenType.PAREN_CLOSE.getLiteralValue().charAt(0))
             {
-                parenClose(inputBuffer, this.lexemeBuffer);
+                parenClose(inputBuffer, lexemeBuffer, lexedTokens);
             }
             else if (inputBuffer.peek() == Token.TokenType.ESCAPE.getLiteralValue().charAt(0))
             {
-                escape(inputBuffer, this.lexemeBuffer);
+                escape(inputBuffer, lexemeBuffer, lexedTokens);
             }
             else if (inputBuffer.peek() == Token.TokenType.BANG.getLiteralValue().charAt(0))
             {
-                bangOrBangEqual(inputBuffer, this.lexemeBuffer);
+                bangOrBangEqual(inputBuffer, lexemeBuffer, lexedTokens);
             }
             else if (inputBuffer.peek() == Token.TokenType.REGEX.getLiteralValue().charAt(0))
             {
-                regex(inputBuffer, this.lexemeBuffer);
+                regex(inputBuffer, lexemeBuffer, lexedTokens);
             }
             else if (inputBuffer.peek() == Token.TokenType.DOUBLE_QUOTE.getLiteralValue().charAt(0))
             {
-                doubleQuote(inputBuffer, this.lexemeBuffer);
+                doubleQuote(inputBuffer, lexemeBuffer, lexedTokens);
             }
             else
             {
                 throw new CoreException("unknown char {}", (char) inputBuffer.peek());
             }
 
-            this.lexemeBuffer.clear();
+            lexemeBuffer.clear();
         }
+
+        // Remove all whitespace from token stream
+        return lexedTokens.stream().filter(token -> token.getType() != Token.TokenType.WHITESPACE)
+                .collect(Collectors.toList());
     }
 
-    private void and(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer)
+    private void and(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer,
+            final List<Token> lexedTokens)
     {
         lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
-        this.lexedTokens.add(new Token(Token.TokenType.AND, lexemeBuffer.toString()));
+        lexedTokens.add(new Token(Token.TokenType.AND, lexemeBuffer.toString()));
     }
 
-    private void bangOrBangEqual(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer)
+    private void bangOrBangEqual(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer,
+            final List<Token> lexedTokens)
     {
         lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
         if (inputBuffer.peek() == Token.TokenType.EQUAL.getLiteralValue().charAt(0))
         {
             lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
-            this.lexedTokens.add(new Token(Token.TokenType.BANG_EQUAL, lexemeBuffer.toString()));
+            lexedTokens.add(new Token(Token.TokenType.BANG_EQUAL, lexemeBuffer.toString()));
         }
         else
         {
-            this.lexedTokens.add(new Token(Token.TokenType.BANG, lexemeBuffer.toString()));
+            lexedTokens.add(new Token(Token.TokenType.BANG, lexemeBuffer.toString()));
         }
     }
 
-    private void doubleQuote(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer)
+    private void doubleQuote(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer,
+            final List<Token> lexedTokens)
     {
         int ch;
         do
@@ -233,16 +230,19 @@ public class Lexer
 
         // Strip leading " character
         final String lexeme = lexemeBuffer.stripLeading().toString();
-        this.lexedTokens.add(new Token(Token.TokenType.DOUBLE_QUOTE, lexeme));
+        // Don't bother saving as DOUBLE_QUOTE type, since we will change it later anyway
+        lexedTokens.add(new Token(Token.TokenType.LITERAL, lexeme));
     }
 
-    private void equal(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer) // NOSONAR
+    private void equal(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer, // NOSONAR
+            final List<Token> lexedTokens)
     {
         lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
-        this.lexedTokens.add(new Token(Token.TokenType.EQUAL, lexemeBuffer.toString()));
+        lexedTokens.add(new Token(Token.TokenType.EQUAL, lexemeBuffer.toString()));
     }
 
-    private void escape(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer)
+    private void escape(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer,
+            final List<Token> lexedTokens)
     {
         // Consume two characters, the '\' and the following character
         lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
@@ -254,7 +254,8 @@ public class Lexer
 
         // Strip leading \ character
         final String lexeme = lexemeBuffer.stripLeading().toString();
-        this.lexedTokens.add(new Token(Token.TokenType.ESCAPE, lexeme));
+        // Don't bother saving as ESCAPE type, since we will change it later anyway
+        lexedTokens.add(new Token(Token.TokenType.LITERAL, lexeme));
     }
 
     private boolean isKeyValueCharacter(final int ch)
@@ -277,7 +278,8 @@ public class Lexer
         return Character.isWhitespace((char) ch);
     }
 
-    private void literal(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer)
+    private void literal(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer,
+            final List<Token> lexedTokens)
     {
         int ch;
         do
@@ -296,28 +298,32 @@ public class Lexer
             lexemeBuffer.stripTrailing();
         }
 
-        this.lexedTokens.add(new Token(Token.TokenType.LITERAL, lexemeBuffer.toString()));
+        lexedTokens.add(new Token(Token.TokenType.LITERAL, lexemeBuffer.toString()));
     }
 
-    private void or(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer)
+    private void or(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer,
+            final List<Token> lexedTokens)
     {
         lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
-        this.lexedTokens.add(new Token(Token.TokenType.OR, lexemeBuffer.toString()));
+        lexedTokens.add(new Token(Token.TokenType.OR, lexemeBuffer.toString()));
     }
 
-    private void parenClose(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer)
+    private void parenClose(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer,
+            final List<Token> lexedTokens)
     {
         lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
-        this.lexedTokens.add(new Token(Token.TokenType.PAREN_CLOSE, lexemeBuffer.toString()));
+        lexedTokens.add(new Token(Token.TokenType.PAREN_CLOSE, lexemeBuffer.toString()));
     }
 
-    private void parenOpen(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer)
+    private void parenOpen(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer,
+            final List<Token> lexedTokens)
     {
         lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
-        this.lexedTokens.add(new Token(Token.TokenType.PAREN_OPEN, lexemeBuffer.toString()));
+        lexedTokens.add(new Token(Token.TokenType.PAREN_OPEN, lexemeBuffer.toString()));
     }
 
-    private void regex(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer)
+    private void regex(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer,
+            final List<Token> lexedTokens)
     {
         int ch;
         do
@@ -356,12 +362,13 @@ public class Lexer
 
         // Strip leading and trailing / characters
         final String lexeme = lexemeBuffer.stripLeading().toString();
-        this.lexedTokens.add(new Token(Token.TokenType.REGEX, lexeme));
+        lexedTokens.add(new Token(Token.TokenType.REGEX, lexeme));
     }
 
-    private void whitespace(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer)
+    private void whitespace(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer,
+            final List<Token> lexedTokens)
     {
         lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
-        this.lexedTokens.add(new Token(Token.TokenType.WHITESPACE, lexemeBuffer.toString()));
+        lexedTokens.add(new Token(Token.TokenType.WHITESPACE, lexemeBuffer.toString()));
     }
 }

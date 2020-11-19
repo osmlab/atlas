@@ -51,7 +51,7 @@ public class Token
         }
     }
 
-    public static final Token EPSILON_TOKEN = new Token(TokenType.EOF, null);
+    public static final Token EPSILON_TOKEN = new Token(TokenType.EOF);
 
     private final TokenType type;
     private final String lexeme;
