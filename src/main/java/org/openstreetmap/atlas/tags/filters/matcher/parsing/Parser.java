@@ -3,15 +3,42 @@ package org.openstreetmap.atlas.tags.filters.matcher.parsing;
 import java.util.List;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.tags.Taggable;
+import org.openstreetmap.atlas.tags.filters.matcher.TaggableMatcher;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.ASTNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * This class can transform a sequence of {@link Token}s into a syntactically valid abstract syntax
+ * tree (AST) that can then be checked by the {@link Checker}. Finally, a {@link TaggableMatcher}
+ * may walk this AST to determine if a {@link Taggable}'s tag map corresponds to the matcher. This
+ * {@link Parser} implements an LL(1) {@link TaggableMatcher} expression grammar using recursive
+ * descent. The grammar can be found below in comment form.
+ * 
  * @author lcram
  */
 public class Parser
 {
+    /*
+     * The Grammar. Operator precedence is handled in the standard way. '=' and '!=' are treated as
+     * extremely "sticky" (i.e. high precedence) operators.
+     */
+    // EXP -> TERM EXP'
+    // EXP' -> | TERM EXP'
+    // EXP' -> ''
+    // TERM -> FACT TERM'
+    // TERM' -> & FACT TERM'
+    // TERM' -> ''
+    // FACT -> VALUE FACT'
+    // FACT' -> = VALUE FACT'
+    // FACT' -> != VALUE FACT'
+    // FACT' -> ''
+    // VALUE -> ( EXP )
+    // VALUE -> ! VALUE
+    // VALUE -> literal
+    // VALUE -> /regex/
+
     /**
      * @author lcram
      */

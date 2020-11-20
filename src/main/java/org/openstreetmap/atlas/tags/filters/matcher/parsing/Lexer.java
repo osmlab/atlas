@@ -7,6 +7,9 @@ import java.util.stream.Collectors;
 import org.openstreetmap.atlas.exception.CoreException;
 
 /**
+ * This class can transform an input {@link String} into a sequence of {@link Token}s recognizable
+ * by the {@link Parser}.
+ * 
  * @author lcram
  */
 public class Lexer
