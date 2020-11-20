@@ -8,6 +8,8 @@ package org.openstreetmap.atlas.tags.filters.matcher.parsing.tree;
  */
 public interface ASTNode
 {
+    int getId();
+
     String getName();
 
     String printTree();

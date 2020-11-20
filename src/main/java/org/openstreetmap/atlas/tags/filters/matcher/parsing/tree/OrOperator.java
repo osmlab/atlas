@@ -13,6 +13,6 @@ public class OrOperator extends BinaryOperator
     @Override
     public String getName()
     {
-        return "OR";
+        return "OR_" + getId();
     }
 }

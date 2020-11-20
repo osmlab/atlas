@@ -15,12 +15,6 @@ public class LiteralOperand extends Operand
     @Override
     public String getName()
     {
-        return getToken().getLexeme();
-    }
-
-    @Override
-    public void printTree()
-    {
-
+        return getToken().getLexeme() + "_" + getId();
     }
 }

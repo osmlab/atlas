@@ -13,6 +13,6 @@ public class AndOperator extends BinaryOperator
     @Override
     public String getName()
     {
-        return "AND";
+        return "AND_" + getId();
     }
 }

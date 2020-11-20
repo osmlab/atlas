@@ -19,13 +19,19 @@ public abstract class BinaryOperator implements ASTNode
     }
 
     @Override
+    public int getId()
+    {
+        return this.id;
+    }
+
+    @Override
     public String printTree()
     {
         final StringBuilder builder = new StringBuilder();
-        builder.append(this.getName() + " id " + this.id + "\n");
-        builder.append(this.getName() + " id " + this.id + " left side\n");
+        builder.append(this.getName() + "\n");
+        builder.append(this.getName() + " left: " + this.left.getName() + "\n");
+        builder.append(this.getName() + " right: " + this.right.getName() + "\n");
         builder.append(this.left.printTree());
-        builder.append(this.getName() + " id " + this.id + " right side\n");
         builder.append(this.right.printTree());
         return builder.toString();
     }

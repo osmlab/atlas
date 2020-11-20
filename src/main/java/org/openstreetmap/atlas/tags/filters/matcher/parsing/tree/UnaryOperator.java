@@ -17,11 +17,17 @@ public abstract class UnaryOperator implements ASTNode
     }
 
     @Override
+    public int getId()
+    {
+        return this.id;
+    }
+
+    @Override
     public String printTree()
     {
         final StringBuilder builder = new StringBuilder();
-        builder.append(this.getName() + " id " + this.id + "\n");
-        builder.append(this.getName() + " id " + this.id + " child\n");
+        builder.append(this.getName() + "\n");
+        builder.append(this.getName() + " child: " + this.child.getName() + "\n");
         builder.append(this.child.printTree());
         return builder.toString();
     }

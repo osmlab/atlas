@@ -16,5 +16,7 @@ public class ParserTest
                 .lex("(foo = bar | baz = bat) & hello = \"world with a space\"");
         System.err.println(Lexer.debugString(input));
         new Parser(input).parse();
+
+        // TODO actually do a test here
     }
 }

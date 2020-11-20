@@ -13,6 +13,6 @@ public class EqualsOperator extends BinaryOperator
     @Override
     public String getName()
     {
-        return "EQ";
+        return "EQ_" + getId();
     }
 }
