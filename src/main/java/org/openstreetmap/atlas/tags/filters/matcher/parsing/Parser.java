@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.tags.filters.matcher.parsing;
 import java.util.List;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.ASTNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,9 +53,9 @@ public class Parser
         this.tokenBuffer = new TokenBuffer(tokens);
     }
 
-    public void parse()
+    public ASTNode parse()
     {
-        exp();
+        return exp();
     }
 
     private void accept(final Token.TokenType tokenType)
@@ -72,8 +73,10 @@ public class Parser
         }
     }
 
-    private void exp()
+    private ASTNode exp()
     {
+        ASTNode node;
+
         logger.error("EXP: peek: {}({})", this.tokenBuffer.peek().getType(),
                 this.tokenBuffer.peek().getLexeme());
         if (this.tokenBuffer.peek().getType() == Token.TokenType.BANG
@@ -90,10 +93,14 @@ public class Parser
             throw new CoreException("EXP: unexpected token {}({})",
                     this.tokenBuffer.peek().getType(), this.tokenBuffer.peek().getLexeme());
         }
+
+        return null;
     }
 
-    private void expPrime()
+    private ASTNode expPrime()
     {
+        ASTNode node;
+
         logger.error("EXP_PRIME: peek: {}({})", this.tokenBuffer.peek().getType(),
                 this.tokenBuffer.peek().getLexeme());
         if (this.tokenBuffer.peek().getType() == Token.TokenType.OR)
@@ -120,10 +127,14 @@ public class Parser
             throw new CoreException("EXP_PRIME: unexpected token {}({})",
                     this.tokenBuffer.peek().getType(), this.tokenBuffer.peek().getLexeme());
         }
+
+        return null;
     }
 
-    private void fact()
+    private ASTNode fact()
     {
+        ASTNode node;
+
         logger.error("FACT: peek: {}({})", this.tokenBuffer.peek().getType(),
                 this.tokenBuffer.peek().getLexeme());
         if (this.tokenBuffer.peek().getType() == Token.TokenType.BANG
@@ -140,10 +151,14 @@ public class Parser
             throw new CoreException("FACT: unexpected token {}({})",
                     this.tokenBuffer.peek().getType(), this.tokenBuffer.peek().getLexeme());
         }
+
+        return null;
     }
 
-    private void factPrime()
+    private ASTNode factPrime()
     {
+        ASTNode node;
+
         logger.error("FACT_PRIME: peek: {}({})", this.tokenBuffer.peek().getType(),
                 this.tokenBuffer.peek().getLexeme());
         if (this.tokenBuffer.peek().getType() == Token.TokenType.EQUAL)
@@ -166,10 +181,14 @@ public class Parser
             // epsilon transition
             logger.error("FACT_PRIME: taking epsilon");
         }
+
+        return null;
     }
 
-    private void term()
+    private ASTNode term()
     {
+        ASTNode node;
+
         logger.error("TERM: peek: {}({})", this.tokenBuffer.peek().getType(),
                 this.tokenBuffer.peek().getLexeme());
         if (this.tokenBuffer.peek().getType() == Token.TokenType.BANG
@@ -186,10 +205,14 @@ public class Parser
             throw new CoreException("TERM: unexpected token {}({})",
                     this.tokenBuffer.peek().getType(), this.tokenBuffer.peek().getLexeme());
         }
+
+        return null;
     }
 
-    private void termPrime()
+    private ASTNode termPrime()
     {
+        ASTNode node;
+
         logger.error("TERM_PRIME: peek: {}({})", this.tokenBuffer.peek().getType(),
                 this.tokenBuffer.peek().getLexeme());
         if (this.tokenBuffer.peek().getType() == Token.TokenType.AND)
@@ -205,10 +228,14 @@ public class Parser
             // epsilon transition
             logger.error("TERM_PRIME: taking epsilon");
         }
+
+        return null;
     }
 
-    private void value()
+    private ASTNode value()
     {
+        ASTNode node;
+
         logger.error("VALUE: peek: {}({})", this.tokenBuffer.peek().getType(),
                 this.tokenBuffer.peek().getLexeme());
         if (this.tokenBuffer.peek().getType() == Token.TokenType.PAREN_OPEN)
@@ -241,5 +268,7 @@ public class Parser
             throw new CoreException("VALUE: unexpected token {}({})",
                     this.tokenBuffer.peek().getType(), this.tokenBuffer.peek().getLexeme());
         }
+
+        return null;
     }
 }
