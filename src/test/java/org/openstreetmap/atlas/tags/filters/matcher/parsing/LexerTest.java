@@ -15,6 +15,17 @@ public class LexerTest
     public final ExpectedException expectedException = ExpectedException.none();
 
     @Test
+    public void testFailEscape()
+    {
+        final Lexer lexer = new Lexer();
+
+        this.expectedException.expect(CoreException.class);
+        this.expectedException
+                .expectMessage("Unexpected EOF after '\\' while lexing TaggableMatcher");
+        lexer.lex("foo=bar\\");
+    }
+
+    @Test
     public void testFailQuote()
     {
         final Lexer lexer = new Lexer();
