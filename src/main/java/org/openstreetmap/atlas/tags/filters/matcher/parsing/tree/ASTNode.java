@@ -10,5 +10,5 @@ public interface ASTNode
 {
     String getName();
 
-    void printTree();
+    String printTree();
 }
