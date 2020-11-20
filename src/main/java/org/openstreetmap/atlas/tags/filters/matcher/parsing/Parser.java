@@ -6,6 +6,12 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.tags.filters.matcher.TaggableMatcher;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.ASTNode;
+import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.AndOperator;
+import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.BangEqualsOperator;
+import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.EqualsOperator;
+import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.LiteralOperand;
+import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.OrOperator;
+import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.RegexOperand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,8 +117,12 @@ public class Parser
                 || this.tokenBuffer.peek().getType() == Token.TokenType.REGEX
                 || this.tokenBuffer.peek().getType() == Token.TokenType.PAREN_OPEN)
         {
-            term();
-            expPrime();
+            node = term();
+            final ASTNode rightResult = expPrime();
+            if (rightResult != null)
+            {
+                node = new OrOperator(node, rightResult);
+            }
         }
         else
         {
@@ -121,7 +131,7 @@ public class Parser
                     this.tokenBuffer.peek().getType(), this.tokenBuffer.peek().getLexeme());
         }
 
-        return null;
+        return node;
     }
 
     private ASTNode expPrime()
@@ -134,19 +144,25 @@ public class Parser
         {
             logger.error("EXP_PRIME: try accepting: {}", Token.TokenType.OR);
             accept(Token.TokenType.OR);
-            term();
-            expPrime();
+            node = term();
+            final ASTNode rightResult = expPrime();
+            if (rightResult != null)
+            {
+                node = new OrOperator(node, rightResult);
+            }
         }
         else if (this.tokenBuffer.peek().getType() == Token.TokenType.EOF)
         {
             // TODO what to do here?
             // epsilon transition
             logger.error("EXP_PRIME: taking epsilon");
+            return null;
         }
         else if (this.tokenBuffer.peek().getType() == Token.TokenType.PAREN_CLOSE)
         {
             // TODO what to do here?
             logger.error("EXP_PRIME: taking epsilon due to FOLLOW )");
+            return null;
         }
         else
         {
@@ -155,7 +171,7 @@ public class Parser
                     this.tokenBuffer.peek().getType(), this.tokenBuffer.peek().getLexeme());
         }
 
-        return null;
+        return node;
     }
 
     private ASTNode fact()
@@ -169,8 +185,23 @@ public class Parser
                 || this.tokenBuffer.peek().getType() == Token.TokenType.REGEX
                 || this.tokenBuffer.peek().getType() == Token.TokenType.PAREN_OPEN)
         {
-            value();
-            factPrime();
+            node = value();
+            if (this.tokenBuffer.peek().getType() == Token.TokenType.EQUAL)
+            {
+                final ASTNode rightResult = factPrime();
+                if (rightResult != null)
+                {
+                    node = new EqualsOperator(node, rightResult);
+                }
+            }
+            else if (this.tokenBuffer.peek().getType() == Token.TokenType.BANG_EQUAL)
+            {
+                final ASTNode rightResult = factPrime();
+                if (rightResult != null)
+                {
+                    node = new BangEqualsOperator(node, rightResult);
+                }
+            }
         }
         else
         {
@@ -179,7 +210,7 @@ public class Parser
                     this.tokenBuffer.peek().getType(), this.tokenBuffer.peek().getLexeme());
         }
 
-        return null;
+        return node;
     }
 
     private ASTNode factPrime()
@@ -192,24 +223,55 @@ public class Parser
         {
             logger.error("FACT_PRIME: try accepting: {}", Token.TokenType.EQUAL);
             accept(Token.TokenType.EQUAL);
-            value();
-            factPrime();
+            node = value();
+            if (this.tokenBuffer.peek().getType() == Token.TokenType.EQUAL)
+            {
+                final ASTNode rightResult = factPrime();
+                if (rightResult != null)
+                {
+                    node = new EqualsOperator(node, rightResult);
+                }
+            }
+            else if (this.tokenBuffer.peek().getType() == Token.TokenType.BANG_EQUAL)
+            {
+                final ASTNode rightResult = factPrime();
+                if (rightResult != null)
+                {
+                    node = new BangEqualsOperator(node, rightResult);
+                }
+            }
         }
         else if (this.tokenBuffer.peek().getType() == Token.TokenType.BANG_EQUAL)
         {
             logger.error("FACT_PRIME: try accepting: {}", Token.TokenType.BANG_EQUAL);
             accept(Token.TokenType.BANG_EQUAL);
-            value();
-            factPrime();
+            node = value();
+            if (this.tokenBuffer.peek().getType() == Token.TokenType.EQUAL)
+            {
+                final ASTNode rightResult = factPrime();
+                if (rightResult != null)
+                {
+                    node = new EqualsOperator(node, rightResult);
+                }
+            }
+            else if (this.tokenBuffer.peek().getType() == Token.TokenType.BANG_EQUAL)
+            {
+                final ASTNode rightResult = factPrime();
+                if (rightResult != null)
+                {
+                    node = new BangEqualsOperator(node, rightResult);
+                }
+            }
         }
         else
         {
             // TODO what to do here?
             // epsilon transition
             logger.error("FACT_PRIME: taking epsilon");
+            return null;
         }
 
-        return null;
+        return node;
     }
 
     private ASTNode term()
@@ -223,8 +285,12 @@ public class Parser
                 || this.tokenBuffer.peek().getType() == Token.TokenType.REGEX
                 || this.tokenBuffer.peek().getType() == Token.TokenType.PAREN_OPEN)
         {
-            fact();
-            termPrime();
+            node = fact();
+            final ASTNode rightResult = termPrime();
+            if (rightResult != null)
+            {
+                node = new AndOperator(node, rightResult);
+            }
         }
         else
         {
@@ -233,7 +299,7 @@ public class Parser
                     this.tokenBuffer.peek().getType(), this.tokenBuffer.peek().getLexeme());
         }
 
-        return null;
+        return node;
     }
 
     private ASTNode termPrime()
@@ -246,22 +312,27 @@ public class Parser
         {
             logger.error("TERM_PRIME: try accepting: {}", Token.TokenType.AND);
             accept(Token.TokenType.AND);
-            fact();
-            termPrime();
+            node = fact();
+            final ASTNode rightResult = termPrime();
+            if (rightResult != null)
+            {
+                node = new AndOperator(node, rightResult);
+            }
         }
         else
         {
             // TODO what to do here?
             // epsilon transition
             logger.error("TERM_PRIME: taking epsilon");
+            return null;
         }
 
-        return null;
+        return node;
     }
 
     private ASTNode value()
     {
-        ASTNode node;
+        final ASTNode node;
 
         logger.error("VALUE: peek: {}({})", this.tokenBuffer.peek().getType(),
                 this.tokenBuffer.peek().getLexeme());
@@ -269,7 +340,7 @@ public class Parser
         {
             logger.error("VALUE: try accepting: {}", Token.TokenType.PAREN_OPEN);
             accept(Token.TokenType.PAREN_OPEN);
-            exp();
+            node = exp();
             logger.error("VALUE: try accepting: {}", Token.TokenType.PAREN_CLOSE);
             accept(Token.TokenType.PAREN_CLOSE);
         }
@@ -277,16 +348,18 @@ public class Parser
         {
             logger.error("VALUE: try accepting: {}", Token.TokenType.BANG);
             accept(Token.TokenType.BANG);
-            value();
+            node = value();
         }
         else if (this.tokenBuffer.peek().getType() == Token.TokenType.LITERAL)
         {
             logger.error("VALUE: try accepting: {}", Token.TokenType.LITERAL);
+            node = new LiteralOperand(this.tokenBuffer.peek());
             accept(Token.TokenType.LITERAL);
         }
         else if (this.tokenBuffer.peek().getType() == Token.TokenType.REGEX)
         {
             logger.error("VALUE: try accepting: {}", Token.TokenType.REGEX);
+            node = new RegexOperand(this.tokenBuffer.peek());
             accept(Token.TokenType.REGEX);
         }
         else
@@ -296,6 +369,6 @@ public class Parser
                     this.tokenBuffer.peek().getType(), this.tokenBuffer.peek().getLexeme());
         }
 
-        return null;
+        return node;
     }
 }
