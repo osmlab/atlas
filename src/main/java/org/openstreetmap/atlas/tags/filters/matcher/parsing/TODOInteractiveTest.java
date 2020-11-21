@@ -6,7 +6,7 @@ import org.openstreetmap.atlas.exception.CoreException;
 
 /**
  * TODO delete this class
- * 
+ *
  * @author lcram
  */
 public class TODOInteractiveTest

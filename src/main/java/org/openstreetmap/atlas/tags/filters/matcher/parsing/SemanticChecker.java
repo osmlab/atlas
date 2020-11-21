@@ -16,7 +16,7 @@ import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.UnaryOperator;
  * semantically since it makes no sense for the purposes of tag matching. We will need to catch that
  * with this checker. Basically. we can walk the AST, and if the left or right subtree of a "="/"!="
  * operator contains another "="/"!=" operator, then we fail.
- * 
+ *
  * @author lcram
  */
 public class SemanticChecker
