@@ -188,7 +188,8 @@ public class Lexer
             final List<Token> lexedTokens)
     {
         lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
-        lexedTokens.add(new Token(Token.TokenType.AND, lexemeBuffer.toString()));
+        lexedTokens
+                .add(new Token(Token.TokenType.AND, lexemeBuffer.toString(), inputBuffer.position));
     }
 
     private void bangOrBangEqual(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer,
@@ -198,11 +199,13 @@ public class Lexer
         if (inputBuffer.peek() == Token.TokenType.EQUAL.getLiteralValue().charAt(0))
         {
             lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
-            lexedTokens.add(new Token(Token.TokenType.BANG_EQUAL, lexemeBuffer.toString()));
+            lexedTokens.add(new Token(Token.TokenType.BANG_EQUAL, lexemeBuffer.toString(),
+                    inputBuffer.position));
         }
         else
         {
-            lexedTokens.add(new Token(Token.TokenType.BANG, lexemeBuffer.toString()));
+            lexedTokens.add(
+                    new Token(Token.TokenType.BANG, lexemeBuffer.toString(), inputBuffer.position));
         }
     }
 
@@ -234,14 +237,15 @@ public class Lexer
         // Strip leading " character
         final String lexeme = lexemeBuffer.stripLeading().toString();
         // Don't bother saving as DOUBLE_QUOTE type, since we will change it later anyway
-        lexedTokens.add(new Token(Token.TokenType.LITERAL, lexeme));
+        lexedTokens.add(new Token(Token.TokenType.LITERAL, lexeme, inputBuffer.position));
     }
 
     private void equal(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer, // NOSONAR
             final List<Token> lexedTokens)
     {
         lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
-        lexedTokens.add(new Token(Token.TokenType.EQUAL, lexemeBuffer.toString()));
+        lexedTokens.add(
+                new Token(Token.TokenType.EQUAL, lexemeBuffer.toString(), inputBuffer.position));
     }
 
     private void escape(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer,
@@ -258,7 +262,7 @@ public class Lexer
         // Strip leading \ character
         final String lexeme = lexemeBuffer.stripLeading().toString();
         // Don't bother saving as ESCAPE type, since we will change it later anyway
-        lexedTokens.add(new Token(Token.TokenType.LITERAL, lexeme));
+        lexedTokens.add(new Token(Token.TokenType.LITERAL, lexeme, inputBuffer.position));
     }
 
     private boolean isKeyValueCharacter(final int ch)
@@ -301,28 +305,32 @@ public class Lexer
             lexemeBuffer.stripTrailing();
         }
 
-        lexedTokens.add(new Token(Token.TokenType.LITERAL, lexemeBuffer.toString()));
+        lexedTokens.add(
+                new Token(Token.TokenType.LITERAL, lexemeBuffer.toString(), inputBuffer.position));
     }
 
     private void or(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer,
             final List<Token> lexedTokens)
     {
         lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
-        lexedTokens.add(new Token(Token.TokenType.OR, lexemeBuffer.toString()));
+        lexedTokens
+                .add(new Token(Token.TokenType.OR, lexemeBuffer.toString(), inputBuffer.position));
     }
 
     private void parenClose(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer,
             final List<Token> lexedTokens)
     {
         lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
-        lexedTokens.add(new Token(Token.TokenType.PAREN_CLOSE, lexemeBuffer.toString()));
+        lexedTokens.add(new Token(Token.TokenType.PAREN_CLOSE, lexemeBuffer.toString(),
+                inputBuffer.position));
     }
 
     private void parenOpen(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer,
             final List<Token> lexedTokens)
     {
         lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
-        lexedTokens.add(new Token(Token.TokenType.PAREN_OPEN, lexemeBuffer.toString()));
+        lexedTokens.add(new Token(Token.TokenType.PAREN_OPEN, lexemeBuffer.toString(),
+                inputBuffer.position));
     }
 
     private void regex(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer,
@@ -365,13 +373,14 @@ public class Lexer
 
         // Strip leading and trailing / characters
         final String lexeme = lexemeBuffer.stripLeading().toString();
-        lexedTokens.add(new Token(Token.TokenType.REGEX, lexeme));
+        lexedTokens.add(new Token(Token.TokenType.REGEX, lexeme, inputBuffer.position));
     }
 
     private void whitespace(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer,
             final List<Token> lexedTokens)
     {
         lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
-        lexedTokens.add(new Token(Token.TokenType.WHITESPACE, lexemeBuffer.toString()));
+        lexedTokens.add(new Token(Token.TokenType.WHITESPACE, lexemeBuffer.toString(),
+                inputBuffer.position));
     }
 }

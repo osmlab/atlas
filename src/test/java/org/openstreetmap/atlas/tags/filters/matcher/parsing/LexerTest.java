@@ -87,4 +87,15 @@ public class LexerTest
                 "(LITERAL, foo), (EQUAL, =), (LITERAL, bar), (AND, &), (PAREN_OPEN, (), (LITERAL, a), (EQUAL, =), (LITERAL, b), (OR, |), (LITERAL, c), (EQUAL, =), (LITERAL, d), (PAREN_CLOSE, )), ",
                 Lexer.debugString(lexer.lex("    foo = bar & (   a=b | c = d)  ")));
     }
+
+    @Test
+    public void testTokenEquals()
+    {
+        final Token token1 = new Token(Token.TokenType.LITERAL, "foo", 0);
+        final Token token2 = new Token(Token.TokenType.LITERAL, "foo", 0);
+        final Token token3 = new Token(Token.TokenType.LITERAL, "bar", 4);
+
+        Assert.assertEquals(token1, token2);
+        Assert.assertNotEquals(token1, token3);
+    }
 }

@@ -51,20 +51,15 @@ public class Token
         }
     }
 
-    public static final Token EOF_TOKEN = new Token(TokenType.EOF);
-
     private final TokenType type;
     private final String lexeme;
+    private final int indexInLine;
 
-    public Token(final TokenType type, final String lexeme)
+    public Token(final TokenType type, final String lexeme, final int indexInLine)
     {
         this.type = type;
         this.lexeme = lexeme;
-    }
-
-    public Token(final TokenType type)
-    {
-        this(type, null);
+        this.indexInLine = indexInLine - (lexeme != null ? lexeme.length() : 0);
     }
 
     @Override
@@ -79,7 +74,13 @@ public class Token
             return false;
         }
         final Token token = (Token) other;
-        return this.type == token.type && Objects.equals(this.getLexeme(), token.getLexeme());
+        return this.type == token.type && Objects.equals(this.getLexeme(), token.getLexeme())
+                && this.indexInLine == token.indexInLine;
+    }
+
+    public int getIndexInLine()
+    {
+        return this.indexInLine;
     }
 
     public String getLexeme()
@@ -95,7 +96,7 @@ public class Token
     @Override
     public int hashCode()
     {
-        return Objects.hash(this.type, this.getLexeme());
+        return Objects.hash(this.type, this.getLexeme(), this.indexInLine);
     }
 
     @Override

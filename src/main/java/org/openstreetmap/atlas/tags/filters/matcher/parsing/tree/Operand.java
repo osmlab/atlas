@@ -12,6 +12,11 @@ public abstract class Operand implements ASTNode
     private final Token token;
     private final int id;
 
+    public static void clearIdCounter()
+    {
+        counter = 0;
+    }
+
     public Operand(final Token token)
     {
         this.token = token;

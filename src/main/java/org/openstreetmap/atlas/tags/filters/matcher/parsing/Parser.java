@@ -8,10 +8,14 @@ import org.openstreetmap.atlas.tags.filters.matcher.TaggableMatcher;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.ASTNode;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.AndOperator;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.BangEqualsOperator;
+import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.BangOperator;
+import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.BinaryOperator;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.EqualsOperator;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.LiteralOperand;
+import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.Operand;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.OrOperator;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.RegexOperand;
+import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.UnaryOperator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +25,7 @@ import org.slf4j.LoggerFactory;
  * may walk this AST to determine if a {@link Taggable}'s tag map corresponds to the matcher. This
  * {@link Parser} implements an LL(1) {@link TaggableMatcher} expression grammar using recursive
  * descent. The grammar can be found below in comment form.
- * 
+ *
  * @author lcram
  */
 public class Parser
@@ -51,11 +55,13 @@ public class Parser
     private static class TokenBuffer
     {
         private final List<Token> tokens;
+        private final String inputLine;
         private int position;
 
-        TokenBuffer(final List<Token> tokens)
+        TokenBuffer(final List<Token> tokens, final String inputLine)
         {
             this.tokens = tokens;
+            this.inputLine = inputLine;
             this.position = 0;
         }
 
@@ -71,7 +77,7 @@ public class Parser
         {
             if (this.position >= this.tokens.size())
             {
-                return Token.EOF_TOKEN;
+                return new Token(Token.TokenType.EOF, null, this.inputLine.length());
             }
             return this.tokens.get(this.position);
         }
@@ -80,14 +86,19 @@ public class Parser
     private static final Logger logger = LoggerFactory.getLogger(Parser.class);
 
     private final TokenBuffer tokenBuffer;
+    private final String inputLine;
 
-    public Parser(final List<Token> tokens)
+    public Parser(final List<Token> tokens, final String inputLine)
     {
-        this.tokenBuffer = new TokenBuffer(tokens);
+        this.tokenBuffer = new TokenBuffer(tokens, inputLine);
+        this.inputLine = inputLine;
     }
 
     public ASTNode parse()
     {
+        BinaryOperator.clearIdCounter();
+        UnaryOperator.clearIdCounter();
+        Operand.clearIdCounter();
         return exp();
     }
 
@@ -95,22 +106,21 @@ public class Parser
     {
         if (this.tokenBuffer.peek().getType() == tokenType)
         {
-            logger.error("ACCEPT: accepted {}({})", this.tokenBuffer.peek().getType(),
+            logger.debug("ACCEPT: accepted {}({})", this.tokenBuffer.peek().getType(),
                     this.tokenBuffer.peek().getLexeme());
             this.tokenBuffer.nextToken();
         }
         else
         {
-            throw new CoreException("ACCEPT: expected {}, saw {}({})", tokenType,
-                    this.tokenBuffer.peek().getType(), this.tokenBuffer.peek().getLexeme());
+            throwSyntaxError(tokenType, this.tokenBuffer.peek(), this.inputLine);
         }
     }
 
     private ASTNode exp()
     {
-        ASTNode node;
+        ASTNode node = null;
 
-        logger.error("EXP: peek: {}({})", this.tokenBuffer.peek().getType(),
+        logger.debug("EXP: peek: {}({})", this.tokenBuffer.peek().getType(),
                 this.tokenBuffer.peek().getLexeme());
         if (this.tokenBuffer.peek().getType() == Token.TokenType.BANG
                 || this.tokenBuffer.peek().getType() == Token.TokenType.LITERAL
@@ -126,9 +136,7 @@ public class Parser
         }
         else
         {
-            // TODO better error message
-            throw new CoreException("EXP: unexpected token {}({})",
-                    this.tokenBuffer.peek().getType(), this.tokenBuffer.peek().getLexeme());
+            throwSyntaxError(null, this.tokenBuffer.peek(), this.inputLine);
         }
 
         return node;
@@ -136,13 +144,13 @@ public class Parser
 
     private ASTNode expPrime()
     {
-        ASTNode node;
+        ASTNode node = null;
 
-        logger.error("EXP_PRIME: peek: {}({})", this.tokenBuffer.peek().getType(),
+        logger.debug("EXP_PRIME: peek: {}({})", this.tokenBuffer.peek().getType(),
                 this.tokenBuffer.peek().getLexeme());
         if (this.tokenBuffer.peek().getType() == Token.TokenType.OR)
         {
-            logger.error("EXP_PRIME: try accepting: {}", Token.TokenType.OR);
+            logger.debug("EXP_PRIME: try accepting: {}", Token.TokenType.OR);
             accept(Token.TokenType.OR);
             node = term();
             final ASTNode rightResult = expPrime();
@@ -153,22 +161,19 @@ public class Parser
         }
         else if (this.tokenBuffer.peek().getType() == Token.TokenType.EOF)
         {
-            // TODO what to do here?
             // epsilon transition
-            logger.error("EXP_PRIME: taking epsilon");
+            logger.debug("EXP_PRIME: taking epsilon");
             return null;
         }
         else if (this.tokenBuffer.peek().getType() == Token.TokenType.PAREN_CLOSE)
         {
-            // TODO what to do here?
-            logger.error("EXP_PRIME: taking epsilon due to FOLLOW )");
+            // epsilon transition
+            logger.debug("EXP_PRIME: taking epsilon due to FOLLOW )");
             return null;
         }
         else
         {
-            // TODO better error message
-            throw new CoreException("EXP_PRIME: unexpected token {}({})",
-                    this.tokenBuffer.peek().getType(), this.tokenBuffer.peek().getLexeme());
+            throwSyntaxError(null, this.tokenBuffer.peek(), this.inputLine);
         }
 
         return node;
@@ -176,9 +181,9 @@ public class Parser
 
     private ASTNode fact()
     {
-        ASTNode node;
+        ASTNode node = null;
 
-        logger.error("FACT: peek: {}({})", this.tokenBuffer.peek().getType(),
+        logger.debug("FACT: peek: {}({})", this.tokenBuffer.peek().getType(),
                 this.tokenBuffer.peek().getLexeme());
         if (this.tokenBuffer.peek().getType() == Token.TokenType.BANG
                 || this.tokenBuffer.peek().getType() == Token.TokenType.LITERAL
@@ -205,9 +210,7 @@ public class Parser
         }
         else
         {
-            // TODO better error message
-            throw new CoreException("FACT: unexpected token {}({})",
-                    this.tokenBuffer.peek().getType(), this.tokenBuffer.peek().getLexeme());
+            throwSyntaxError(null, this.tokenBuffer.peek(), this.inputLine);
         }
 
         return node;
@@ -217,11 +220,11 @@ public class Parser
     {
         ASTNode node;
 
-        logger.error("FACT_PRIME: peek: {}({})", this.tokenBuffer.peek().getType(),
+        logger.debug("FACT_PRIME: peek: {}({})", this.tokenBuffer.peek().getType(),
                 this.tokenBuffer.peek().getLexeme());
         if (this.tokenBuffer.peek().getType() == Token.TokenType.EQUAL)
         {
-            logger.error("FACT_PRIME: try accepting: {}", Token.TokenType.EQUAL);
+            logger.debug("FACT_PRIME: try accepting: {}", Token.TokenType.EQUAL);
             accept(Token.TokenType.EQUAL);
             node = value();
             if (this.tokenBuffer.peek().getType() == Token.TokenType.EQUAL)
@@ -243,7 +246,7 @@ public class Parser
         }
         else if (this.tokenBuffer.peek().getType() == Token.TokenType.BANG_EQUAL)
         {
-            logger.error("FACT_PRIME: try accepting: {}", Token.TokenType.BANG_EQUAL);
+            logger.debug("FACT_PRIME: try accepting: {}", Token.TokenType.BANG_EQUAL);
             accept(Token.TokenType.BANG_EQUAL);
             node = value();
             if (this.tokenBuffer.peek().getType() == Token.TokenType.EQUAL)
@@ -265,7 +268,6 @@ public class Parser
         }
         else
         {
-            // TODO what to do here?
             // epsilon transition
             logger.error("FACT_PRIME: taking epsilon");
             return null;
@@ -276,9 +278,9 @@ public class Parser
 
     private ASTNode term()
     {
-        ASTNode node;
+        ASTNode node = null;
 
-        logger.error("TERM: peek: {}({})", this.tokenBuffer.peek().getType(),
+        logger.debug("TERM: peek: {}({})", this.tokenBuffer.peek().getType(),
                 this.tokenBuffer.peek().getLexeme());
         if (this.tokenBuffer.peek().getType() == Token.TokenType.BANG
                 || this.tokenBuffer.peek().getType() == Token.TokenType.LITERAL
@@ -294,9 +296,7 @@ public class Parser
         }
         else
         {
-            // TODO better error message
-            throw new CoreException("TERM: unexpected token {}({})",
-                    this.tokenBuffer.peek().getType(), this.tokenBuffer.peek().getLexeme());
+            throwSyntaxError(null, this.tokenBuffer.peek(), this.inputLine);
         }
 
         return node;
@@ -306,11 +306,11 @@ public class Parser
     {
         ASTNode node;
 
-        logger.error("TERM_PRIME: peek: {}({})", this.tokenBuffer.peek().getType(),
+        logger.debug("TERM_PRIME: peek: {}({})", this.tokenBuffer.peek().getType(),
                 this.tokenBuffer.peek().getLexeme());
         if (this.tokenBuffer.peek().getType() == Token.TokenType.AND)
         {
-            logger.error("TERM_PRIME: try accepting: {}", Token.TokenType.AND);
+            logger.debug("TERM_PRIME: try accepting: {}", Token.TokenType.AND);
             accept(Token.TokenType.AND);
             node = fact();
             final ASTNode rightResult = termPrime();
@@ -321,52 +321,63 @@ public class Parser
         }
         else
         {
-            // TODO what to do here?
             // epsilon transition
-            logger.error("TERM_PRIME: taking epsilon");
+            logger.debug("TERM_PRIME: taking epsilon");
             return null;
         }
 
         return node;
     }
 
+    private void throwSyntaxError(final Token.TokenType expectedTokenType, final Token currentToken,
+            final String inputLine)
+    {
+        final String arrow = "~".repeat(Math.max(0, currentToken.getIndexInLine())) + "^";
+        if (expectedTokenType == null)
+        {
+            throw new CoreException("syntax error: unexpected token {}({})\n{}\n{}",
+                    currentToken.getType(), currentToken.getLexeme(), inputLine, arrow);
+        }
+        throw new CoreException("syntax error: expected {}, but saw {}({})\n{}\n{}",
+                expectedTokenType, currentToken.getType(), currentToken.getLexeme(), inputLine,
+                arrow);
+    }
+
     private ASTNode value()
     {
-        final ASTNode node;
+        ASTNode node = null;
 
-        logger.error("VALUE: peek: {}({})", this.tokenBuffer.peek().getType(),
+        logger.debug("VALUE: peek: {}({})", this.tokenBuffer.peek().getType(),
                 this.tokenBuffer.peek().getLexeme());
         if (this.tokenBuffer.peek().getType() == Token.TokenType.PAREN_OPEN)
         {
-            logger.error("VALUE: try accepting: {}", Token.TokenType.PAREN_OPEN);
+            logger.debug("VALUE: try accepting: {}", Token.TokenType.PAREN_OPEN);
             accept(Token.TokenType.PAREN_OPEN);
             node = exp();
-            logger.error("VALUE: try accepting: {}", Token.TokenType.PAREN_CLOSE);
+            logger.debug("VALUE: try accepting: {}", Token.TokenType.PAREN_CLOSE);
             accept(Token.TokenType.PAREN_CLOSE);
         }
         else if (this.tokenBuffer.peek().getType() == Token.TokenType.BANG)
         {
-            logger.error("VALUE: try accepting: {}", Token.TokenType.BANG);
+            logger.debug("VALUE: try accepting: {}", Token.TokenType.BANG);
             accept(Token.TokenType.BANG);
-            node = value();
+            node = new BangOperator(value());
         }
         else if (this.tokenBuffer.peek().getType() == Token.TokenType.LITERAL)
         {
-            logger.error("VALUE: try accepting: {}", Token.TokenType.LITERAL);
+            logger.debug("VALUE: try accepting: {}", Token.TokenType.LITERAL);
             node = new LiteralOperand(this.tokenBuffer.peek());
             accept(Token.TokenType.LITERAL);
         }
         else if (this.tokenBuffer.peek().getType() == Token.TokenType.REGEX)
         {
-            logger.error("VALUE: try accepting: {}", Token.TokenType.REGEX);
+            logger.debug("VALUE: try accepting: {}", Token.TokenType.REGEX);
             node = new RegexOperand(this.tokenBuffer.peek());
             accept(Token.TokenType.REGEX);
         }
         else
         {
-            // TODO better error message
-            throw new CoreException("VALUE: unexpected token {}({})",
-                    this.tokenBuffer.peek().getType(), this.tokenBuffer.peek().getLexeme());
+            throwSyntaxError(null, this.tokenBuffer.peek(), this.inputLine);
         }
 
         return node;

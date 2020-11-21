@@ -11,6 +11,11 @@ public abstract class BinaryOperator implements ASTNode
     private final ASTNode right;
     private final int id;
 
+    public static void clearIdCounter()
+    {
+        counter = 0;
+    }
+
     public BinaryOperator(final ASTNode left, final ASTNode right)
     {
         this.left = left;

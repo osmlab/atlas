@@ -10,6 +10,11 @@ public abstract class UnaryOperator implements ASTNode
     private final ASTNode child;
     private final int id;
 
+    public static void clearIdCounter()
+    {
+        counter = 0;
+    }
+
     public UnaryOperator(final ASTNode child)
     {
         this.child = child;

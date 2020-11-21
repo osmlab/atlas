@@ -12,11 +12,11 @@ public class ASTNodeTest
     @Test
     public void testPrint()
     {
-        final ASTNode foo = new LiteralOperand(new Token(Token.TokenType.LITERAL, "foo"));
-        final ASTNode bar = new LiteralOperand(new Token(Token.TokenType.LITERAL, "bar"));
-        final ASTNode mat = new LiteralOperand(new Token(Token.TokenType.LITERAL, "mat"));
-        final ASTNode baz = new LiteralOperand(new Token(Token.TokenType.LITERAL, "baz"));
-        final ASTNode bat = new RegexOperand(new Token(Token.TokenType.LITERAL, "bat.*"));
+        final ASTNode foo = new LiteralOperand(new Token(Token.TokenType.LITERAL, "foo", 0));
+        final ASTNode bar = new LiteralOperand(new Token(Token.TokenType.LITERAL, "bar", 0));
+        final ASTNode mat = new LiteralOperand(new Token(Token.TokenType.LITERAL, "mat", 0));
+        final ASTNode baz = new LiteralOperand(new Token(Token.TokenType.LITERAL, "baz", 0));
+        final ASTNode bat = new RegexOperand(new Token(Token.TokenType.LITERAL, "bat.*", 0));
 
         final ASTNode not = new BangOperator(bar);
         final ASTNode equals = new EqualsOperator(foo, not);
