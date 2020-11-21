@@ -29,6 +29,16 @@ public abstract class BinaryOperator implements ASTNode
         return this.id;
     }
 
+    public ASTNode getLeftSubTree()
+    {
+        return this.left;
+    }
+
+    public ASTNode getRightSubTree()
+    {
+        return this.right;
+    }
+
     @Override
     public String printTree()
     {

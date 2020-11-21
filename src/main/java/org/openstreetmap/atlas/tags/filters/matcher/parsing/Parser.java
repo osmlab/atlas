@@ -21,10 +21,10 @@ import org.slf4j.LoggerFactory;
 
 /**
  * This class can transform a sequence of {@link Token}s into a syntactically valid abstract syntax
- * tree (AST) that can then be checked by the {@link Checker}. Finally, a {@link TaggableMatcher}
- * may walk this AST to determine if a {@link Taggable}'s tag map corresponds to the matcher. This
- * {@link Parser} implements an LL(1) {@link TaggableMatcher} expression grammar using recursive
- * descent. The grammar can be found below in comment form.
+ * tree (AST) that can then be checked by the {@link SemanticChecker}. Finally, a
+ * {@link TaggableMatcher} may walk this AST to determine if a {@link Taggable}'s tag map
+ * corresponds to the matcher. This {@link Parser} implements an LL(1) {@link TaggableMatcher}
+ * expression grammar using recursive descent. The grammar can be found below in comment form.
  *
  * @author lcram
  */
