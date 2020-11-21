@@ -18,8 +18,8 @@ public class TaggableMatcherTest
     {
         final Taggable taggable = new Taggable()
         {
-            final Map<String, String> tags = Maps.hashMap("foo", "bar2", "baz", "bat", "hello",
-                    "world", "name", "lucas");
+            final Map<String, String> tags = Maps.hashMap("name", "Main Street", "highway",
+                    "secondary", "restricted", "no");
 
             @Override
             public Optional<String> getTag(final String key)
@@ -34,7 +34,8 @@ public class TaggableMatcherTest
             }
         };
 
-        Assert.assertTrue(
-                TaggableMatcher.from("foo=(bar | bar2) & hello=world & name").test(taggable));
+        Assert.assertTrue(TaggableMatcher.from(
+                "name=/^.*(s|S)treet$/ & highway!=primary & (!restricted | restricted!=(yes | sometimes))")
+                .test(taggable));
     }
 }

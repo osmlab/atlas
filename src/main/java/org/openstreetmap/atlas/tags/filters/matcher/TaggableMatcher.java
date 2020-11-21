@@ -10,6 +10,7 @@ import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.Lexer;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.Parser;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.SemanticChecker;
+import org.openstreetmap.atlas.tags.filters.matcher.parsing.Token;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.ASTNode;
 
 /**
@@ -23,7 +24,8 @@ public class TaggableMatcher implements Predicate<Taggable>, Serializable
 
     public static TaggableMatcher from(final String line)
     {
-        final ASTNode root = new Parser(new Lexer().lex(line), line).parse();
+        final List<Token> tokens = new Lexer().lex(line);
+        final ASTNode root = new Parser(tokens, line).parse();
         new SemanticChecker().check(root);
         return new TaggableMatcher(root);
     }

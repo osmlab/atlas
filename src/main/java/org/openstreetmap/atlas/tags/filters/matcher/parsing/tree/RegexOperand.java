@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.tags.filters.matcher.parsing.tree;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.Token;
@@ -24,6 +25,11 @@ public class RegexOperand extends Operand
     @Override
     public boolean match(final List<String> keys, final List<String> values)
     {
-        throw new CoreException("TODO support");
+        if (keys == null && values == null)
+        {
+            throw new CoreException("keys and values were null");
+        }
+        return Objects.requireNonNullElse(keys, values).stream()
+                .anyMatch(string -> string.matches(getToken().getLexeme()));
     }
 }

@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.tags.filters.matcher.parsing.tree;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -23,6 +24,25 @@ public class BangEqualsOperator extends BinaryOperator
     @Override
     public boolean match(final List<String> keys, final List<String> values)
     {
-        throw new CoreException("TODO support");
+        if (keys.size() != values.size())
+        {
+            throw new CoreException("`keys' and `values' sizes did not match, {} vs {}",
+                    keys.size(), values.size());
+        }
+
+        for (int i = 0; i < keys.size(); i++)
+        {
+            final boolean leftSide = getLeftSubTree().match(Collections.singletonList(keys.get(i)),
+                    null);
+            final boolean rightSide = getRightSubTree().match(null,
+                    Collections.singletonList(values.get(i)));
+
+            if (leftSide && !rightSide)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

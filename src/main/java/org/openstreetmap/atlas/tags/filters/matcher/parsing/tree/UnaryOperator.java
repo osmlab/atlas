@@ -21,6 +21,11 @@ public abstract class UnaryOperator implements ASTNode
         this.id = counter++;
     }
 
+    public ASTNode getChildSubTree()
+    {
+        return this.child;
+    }
+
     @Override
     public int getId()
     {

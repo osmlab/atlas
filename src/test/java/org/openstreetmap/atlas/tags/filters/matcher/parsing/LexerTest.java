@@ -64,8 +64,14 @@ public class LexerTest
                 "(LITERAL, hello), (EQUAL, =), (LITERAL, world), (LITERAL, foo), (OR, |), (LITERAL, a), (EQUAL, =), (BANG, !), (LITERAL, b), ",
                 Lexer.debugString(lexer.lex("hello=world foo|a=!b")));
 
-        Assert.assertEquals("(LITERAL, a), (EQUAL, =), (LITERAL, b), (LITERAL, =), (LITERAL, c), ",
+        Assert.assertEquals("(LITERAL, a), (EQUAL, =), (LITERAL, b=c), ",
                 Lexer.debugString(lexer.lex("a=b\\=c")));
+
+        Assert.assertEquals("(LITERAL, a), (EQUAL, =), (LITERAL, =b), ",
+                Lexer.debugString(lexer.lex("a=\\=b")));
+
+        Assert.assertEquals("(LITERAL, message), (EQUAL, =), (LITERAL, Hello World), ",
+                Lexer.debugString(lexer.lex("message=Hello\\ World")));
 
         Assert.assertEquals(
                 "(LITERAL, foo), (BANG_EQUAL, !=), (LITERAL, bar), (AND, &), (BANG, !), (LITERAL, baz), ",

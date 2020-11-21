@@ -127,7 +127,8 @@ public class Lexer
         final InputBuffer inputBuffer = new InputBuffer(inputLine);
         while (inputBuffer.peek() != InputBuffer.EOF)
         {
-            if (isKeyValueCharacter(inputBuffer.peek()))
+            if (isKeyValueCharacter(inputBuffer.peek())
+                    || inputBuffer.peek() == Token.TokenType.ESCAPE.getLiteralValue().charAt(0))
             {
                 literal(inputBuffer, lexemeBuffer, lexedTokens);
             }
@@ -154,10 +155,6 @@ public class Lexer
             else if (inputBuffer.peek() == Token.TokenType.PAREN_CLOSE.getLiteralValue().charAt(0))
             {
                 parenClose(inputBuffer, lexemeBuffer, lexedTokens);
-            }
-            else if (inputBuffer.peek() == Token.TokenType.ESCAPE.getLiteralValue().charAt(0))
-            {
-                escape(inputBuffer, lexemeBuffer, lexedTokens);
             }
             else if (inputBuffer.peek() == Token.TokenType.BANG.getLiteralValue().charAt(0))
             {
@@ -296,9 +293,17 @@ public class Lexer
             {
                 break;
             }
-            lexemeBuffer.addCharacter((char) ch);
+            if (ch == Token.TokenType.ESCAPE.getLiteralValue().charAt(0))
+            {
+                final int escaped = inputBuffer.consumeCharacter();
+                lexemeBuffer.addCharacter((char) escaped);
+            }
+            else
+            {
+                lexemeBuffer.addCharacter((char) ch);
+            }
         }
-        while (isKeyValueCharacter(ch));
+        while (isKeyValueCharacter(ch) || ch == Token.TokenType.ESCAPE.getLiteralValue().charAt(0));
         if (ch != InputBuffer.EOF)
         {
             inputBuffer.unconsume();
