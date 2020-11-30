@@ -108,7 +108,8 @@ public class Lexer
         final StringBuilder builder = new StringBuilder();
         for (final Token token : lexedTokens)
         {
-            builder.append(token.toString() + ", ");
+            builder.append(token.toString());
+            builder.append(", ");
         }
         return builder.toString();
     }
@@ -243,23 +244,6 @@ public class Lexer
         lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
         lexedTokens.add(
                 new Token(Token.TokenType.EQUAL, lexemeBuffer.toString(), inputBuffer.position));
-    }
-
-    private void escape(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer,
-            final List<Token> lexedTokens)
-    {
-        // Consume two characters, the '\' and the following character
-        lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
-        if (inputBuffer.peek() == InputBuffer.EOF)
-        {
-            throw new CoreException("Unexpected EOF after '\\' while lexing TaggableMatcher");
-        }
-        lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
-
-        // Strip leading \ character
-        final String lexeme = lexemeBuffer.stripLeading().toString();
-        // Don't bother saving as ESCAPE type, since we will change it later anyway
-        lexedTokens.add(new Token(Token.TokenType.LITERAL, lexeme, inputBuffer.position));
     }
 
     private boolean isKeyValueCharacter(final int ch)
