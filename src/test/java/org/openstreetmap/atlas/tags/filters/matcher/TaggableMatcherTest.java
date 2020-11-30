@@ -35,7 +35,7 @@ public class TaggableMatcherTest
         };
 
         Assert.assertTrue(TaggableMatcher.from(
-                "name=/^.*(s|S)treet$/ & highway!=primary & (!restricted | restricted!=(yes | sometimes))")
+                "name=/^.*(s|S)treet$/ & highway!=primary & (!restricted | restricted != (yes | sometimes))")
                 .test(taggable));
     }
 }
