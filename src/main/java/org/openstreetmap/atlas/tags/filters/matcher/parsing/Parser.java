@@ -32,7 +32,10 @@ public class Parser
 {
     /*
      * The Grammar. Operator precedence is handled in the standard way. '=' and '!=' are treated as
-     * extremely "sticky" (i.e. high precedence) operators.
+     * extremely "sticky" (i.e. high precedence) operators. The grammar is not capable of detecting
+     * "nested" '=' and '!=' operators (e.g. foo=(bar=baz)), which are syntactically valid but
+     * semantically invalid. Syntax trees containing nested equality operators must be dealt with at
+     * a later stage.
      */
     // EXP -> TERM EXP'
     // EXP' -> | TERM EXP'
@@ -116,6 +119,7 @@ public class Parser
         }
     }
 
+    // EXP -> TERM EXP'
     private ASTNode exp()
     {
         ASTNode node = null;
@@ -142,6 +146,8 @@ public class Parser
         return node;
     }
 
+    // EXP' -> | TERM EXP'
+    // EXP' -> ''
     private ASTNode expPrime()
     {
         ASTNode node = null;
@@ -179,6 +185,7 @@ public class Parser
         return node;
     }
 
+    // FACT -> VALUE FACT'
     private ASTNode fact()
     {
         ASTNode node = null;
@@ -216,6 +223,9 @@ public class Parser
         return node;
     }
 
+    // FACT' -> = VALUE FACT'
+    // FACT' -> != VALUE FACT'
+    // FACT' -> ''
     private ASTNode factPrime()
     {
         ASTNode node;
@@ -276,6 +286,7 @@ public class Parser
         return node;
     }
 
+    // TERM -> FACT TERM'
     private ASTNode term()
     {
         ASTNode node = null;
@@ -302,6 +313,8 @@ public class Parser
         return node;
     }
 
+    // TERM' -> & FACT TERM'
+    // TERM' -> ''
     private ASTNode termPrime()
     {
         ASTNode node;
@@ -343,6 +356,10 @@ public class Parser
                 arrow);
     }
 
+    // VALUE -> ( EXP )
+    // VALUE -> ! VALUE
+    // VALUE -> literal
+    // VALUE -> /regex/
     private ASTNode value()
     {
         ASTNode node = null;
@@ -360,18 +377,21 @@ public class Parser
         else if (this.tokenBuffer.peek().getType() == Token.TokenType.BANG)
         {
             logger.debug("VALUE: try accepting: {}", Token.TokenType.BANG);
+            // accept the BANG first, and then parse the remaining token buffer
             accept(Token.TokenType.BANG);
             node = new BangOperator(value());
         }
         else if (this.tokenBuffer.peek().getType() == Token.TokenType.LITERAL)
         {
             logger.debug("VALUE: try accepting: {}", Token.TokenType.LITERAL);
+            // Create the AST node first, since accepting will advance the token buffer
             node = new LiteralOperand(this.tokenBuffer.peek());
             accept(Token.TokenType.LITERAL);
         }
         else if (this.tokenBuffer.peek().getType() == Token.TokenType.REGEX)
         {
             logger.debug("VALUE: try accepting: {}", Token.TokenType.REGEX);
+            // Create the AST node first, since accepting will advance the token buffer
             node = new RegexOperand(this.tokenBuffer.peek());
             accept(Token.TokenType.REGEX);
         }
