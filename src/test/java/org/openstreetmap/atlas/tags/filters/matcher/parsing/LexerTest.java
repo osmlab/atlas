@@ -20,8 +20,8 @@ public class LexerTest
         final Lexer lexer = new Lexer();
 
         this.expectedException.expect(CoreException.class);
-        this.expectedException
-                .expectMessage("Unexpected EOF after '\\' while lexing TaggableMatcher");
+        this.expectedException.expectMessage(
+                "syntax error: unexpected EOF after '\\'\n" + "foo=bar\\\n" + "~~~~~~~~^");
         lexer.lex("foo=bar\\");
     }
 
@@ -31,8 +31,8 @@ public class LexerTest
         final Lexer lexer = new Lexer();
 
         this.expectedException.expect(CoreException.class);
-        this.expectedException
-                .expectMessage("Unexpected EOF after '\"' while lexing TaggableMatcher");
+        this.expectedException.expectMessage("syntax error: unexpected EOF after '\"'\n"
+                + "foo=\"bar\"baz\"\n" + "~~~~~~~~~~~~~^");
         lexer.lex("foo=\"bar\"baz\"");
     }
 
@@ -42,8 +42,8 @@ public class LexerTest
         final Lexer lexer = new Lexer();
 
         this.expectedException.expect(CoreException.class);
-        this.expectedException
-                .expectMessage("Unexpected EOF after '/' while lexing TaggableMatcher");
+        this.expectedException.expectMessage(
+                "syntax error: unexpected EOF after '/'\n" + "foo=/bar\n" + "~~~~~~~~^");
         lexer.lex("foo=/bar");
     }
 
@@ -92,6 +92,9 @@ public class LexerTest
         Assert.assertEquals(
                 "(LITERAL, foo), (EQUAL, =), (LITERAL, bar), (AND, &), (PAREN_OPEN, (), (LITERAL, a), (EQUAL, =), (LITERAL, b), (OR, |), (LITERAL, c), (EQUAL, =), (LITERAL, d), (PAREN_CLOSE, )), ",
                 Lexer.debugString(lexer.lex("    foo = bar & (   a=b | c = d)  ")));
+
+        Assert.assertEquals("(LITERAL, foo), (EQUAL, =), (LITERAL, ), ",
+                Lexer.debugString(lexer.lex("foo=\"\"")));
     }
 
     @Test

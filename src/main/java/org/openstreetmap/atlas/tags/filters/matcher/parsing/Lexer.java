@@ -216,7 +216,7 @@ public class Lexer
             ch = inputBuffer.consumeCharacter();
             if (ch == InputBuffer.EOF)
             {
-                throw new CoreException("Unexpected EOF after '\"' while lexing TaggableMatcher");
+                throwSyntaxError("EOF after '\"'", inputBuffer, inputBuffer.string);
             }
             if (ch == Token.TokenType.ESCAPE.getLiteralValue().charAt(0))
             {
@@ -248,14 +248,16 @@ public class Lexer
 
     private boolean isKeyValueCharacter(final int ch)
     {
-        // All these special chars do not count as key/value chars when they appear literally
+        /*
+         * Anything not in this list counts as a key/value character. To use characters on this list
+         * in a key/value literal, users must use escapes '\' or double quotes '"'.
+         */
         return ((char) ch) != Token.TokenType.AND.getLiteralValue().charAt(0)
                 && ((char) ch) != Token.TokenType.OR.getLiteralValue().charAt(0)
                 && ((char) ch) != Token.TokenType.EQUAL.getLiteralValue().charAt(0)
                 && ((char) ch) != Token.TokenType.PAREN_OPEN.getLiteralValue().charAt(0)
                 && ((char) ch) != Token.TokenType.PAREN_CLOSE.getLiteralValue().charAt(0)
                 && ((char) ch) != Token.TokenType.REGEX.getLiteralValue().charAt(0)
-                && ((char) ch) != Token.TokenType.ESCAPE.getLiteralValue().charAt(0)
                 && ((char) ch) != Token.TokenType.BANG.getLiteralValue().charAt(0)
                 && ((char) ch) != Token.TokenType.DOUBLE_QUOTE.getLiteralValue().charAt(0)
                 && !isWhitespaceCharacter((char) ch);
@@ -279,7 +281,16 @@ public class Lexer
             }
             if (ch == Token.TokenType.ESCAPE.getLiteralValue().charAt(0))
             {
+                /*
+                 * If we see an ESCAPE, consume the immediate next character and place it in the
+                 * lexeme buffer. We throw the escape character '\' out. If the escape character
+                 * comes just before the EOF, fail.
+                 */
                 final int escaped = inputBuffer.consumeCharacter();
+                if (escaped == InputBuffer.EOF)
+                {
+                    throwSyntaxError("EOF after '\\'", inputBuffer, inputBuffer.string);
+                }
                 lexemeBuffer.addCharacter((char) escaped);
             }
             else
@@ -287,9 +298,14 @@ public class Lexer
                 lexemeBuffer.addCharacter((char) ch);
             }
         }
-        while (isKeyValueCharacter(ch) || ch == Token.TokenType.ESCAPE.getLiteralValue().charAt(0));
+        while (isKeyValueCharacter(ch));
+
         if (ch != InputBuffer.EOF)
         {
+            /*
+             * We reached the end of the putative LITERAL token, so give back the non-literal
+             * character to the input buffer for the main loop to re-process.
+             */
             inputBuffer.unconsume();
             lexemeBuffer.stripTrailing();
         }
@@ -331,7 +347,7 @@ public class Lexer
             ch = inputBuffer.consumeCharacter();
             if (ch == InputBuffer.EOF)
             {
-                throw new CoreException("Unexpected EOF after '/' while lexing TaggableMatcher");
+                throwSyntaxError("EOF after '/'", inputBuffer, inputBuffer.string);
             }
             if (ch == Token.TokenType.ESCAPE.getLiteralValue().charAt(0))
             {
@@ -345,7 +361,7 @@ public class Lexer
                     final int escapedForwardSlash = inputBuffer.consumeCharacter();
                     lexemeBuffer.addCharacter((char) escapedForwardSlash);
                 }
-                // Otherwise, pass the \ forward into the regex normally
+                // Otherwise, pass the '\' forward into the regex normally
                 else
                 {
                     lexemeBuffer.addCharacter((char) ch);
@@ -360,9 +376,21 @@ public class Lexer
         // consume the trailing '/'
         inputBuffer.consumeCharacter();
 
-        // Strip leading and trailing / characters
+        // Strip leftover leading '/' character
         final String lexeme = lexemeBuffer.stripLeading().toString();
         lexedTokens.add(new Token(Token.TokenType.REGEX, lexeme, inputBuffer.position));
+    }
+
+    private void throwSyntaxError(final String unexpected, final InputBuffer inputBuffer,
+            final String inputLine)
+    {
+        final String arrow = "~".repeat(Math.max(0, inputBuffer.position)) + "^";
+        if (unexpected != null)
+        {
+            throw new CoreException("syntax error: unexpected {}\n{}\n{}", unexpected, inputLine,
+                    arrow);
+        }
+        throw new CoreException("syntax error: unexpected input\n{}\n{}", inputLine, arrow);
     }
 
     private void whitespace(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer,
