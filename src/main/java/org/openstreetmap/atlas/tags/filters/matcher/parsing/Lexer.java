@@ -234,8 +234,7 @@ public class Lexer
 
         // Strip leading " character
         final String lexeme = lexemeBuffer.stripLeading().toString();
-        // Don't bother saving as DOUBLE_QUOTE type, since we will change it later anyway
-        lexedTokens.add(new Token(Token.TokenType.LITERAL, lexeme, inputBuffer.position));
+        lexedTokens.add(new Token(Token.TokenType.DOUBLE_QUOTE, lexeme, inputBuffer.position));
     }
 
     private void equal(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer, // NOSONAR

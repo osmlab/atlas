@@ -57,9 +57,25 @@ public class Token
 
     public Token(final TokenType type, final String lexeme, final int indexInLine)
     {
-        this.type = type;
         this.lexeme = lexeme;
-        this.indexInLine = indexInLine - (lexeme != null ? lexeme.length() : 0);
+        if (type == TokenType.DOUBLE_QUOTE)
+        {
+            /*
+             * Override DOUBLE_QUOTE with regular LITERAL, since after lexing no other component
+             * cares about this distinction. Using LITERAL everywhere will simplify following code.
+             */
+            this.type = TokenType.LITERAL;
+            /*
+             * We need to add 2 back to the lexeme length to account for the " characters we removed
+             */
+            final int addBack = 2;
+            this.indexInLine = indexInLine - (lexeme != null ? lexeme.length() + addBack : 0);
+        }
+        else
+        {
+            this.type = type;
+            this.indexInLine = indexInLine - (lexeme != null ? lexeme.length() : 0);
+        }
     }
 
     @Override
