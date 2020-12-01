@@ -22,10 +22,10 @@ public class TaggableMatcher implements Predicate<Taggable>, Serializable
 
     private final ASTNode node;
 
-    public static TaggableMatcher from(final String line)
+    public static TaggableMatcher from(final String definition)
     {
-        final List<Token> tokens = new Lexer().lex(line);
-        final ASTNode root = new Parser(tokens, line).parse();
+        final List<Token> tokens = new Lexer().lex(definition);
+        final ASTNode root = new Parser(tokens, definition).parse();
         new SemanticChecker().check(root);
         return new TaggableMatcher(root);
     }
