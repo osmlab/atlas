@@ -23,7 +23,7 @@ public class SemanticCheckerTest
         final ASTNode bar = new LiteralOperand(new Token(Token.TokenType.LITERAL, "bar", 0));
         final ASTNode equals = new EqualsOperator(foo, bar);
 
-        // this should not fail
+        // this should never fail
         new SemanticChecker().check(equals);
     }
 
@@ -37,7 +37,7 @@ public class SemanticCheckerTest
         final ASTNode equals2 = new EqualsOperator(equals1, baz);
 
         this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("semantic error: detected nested equality operators");
+        this.expectedException.expectMessage("semantic error: invalid nested equality operators");
         new SemanticChecker().check(equals2);
     }
 }

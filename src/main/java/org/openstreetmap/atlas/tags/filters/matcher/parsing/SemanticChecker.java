@@ -6,8 +6,6 @@ import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.ASTNode;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.BangEqualsOperator;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.BinaryOperator;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.EqualsOperator;
-import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.Operand;
-import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.UnaryOperator;
 
 /**
  * Semantic checker for a {@link TaggableMatcher} abstract syntax tree (AST). This checker will make
@@ -23,24 +21,15 @@ public class SemanticChecker
 {
     public void check(final ASTNode root)
     {
-        if (root instanceof Operand || root instanceof UnaryOperator)
-        {
-            return; // NOSONAR
-        }
-        else if (root instanceof BinaryOperator)
+        if (root instanceof BinaryOperator)
         {
             if ((root instanceof EqualsOperator || root instanceof BangEqualsOperator)
                     && subtreeContainsEquals(root))
             {
-                // TODO fix error message
-                throw new CoreException("semantic error: detected nested equality operators");
+                throw new CoreException("semantic error: invalid nested equality operators");
             }
             check(((BinaryOperator) root).getLeftSubTree());
             check(((BinaryOperator) root).getRightSubTree());
-        }
-        else
-        {
-            throw new CoreException("Unknown Node type {}", root.getClass().getName());
         }
     }
 
