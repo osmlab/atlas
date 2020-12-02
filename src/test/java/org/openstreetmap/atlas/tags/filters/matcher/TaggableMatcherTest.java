@@ -14,7 +14,7 @@ import org.openstreetmap.atlas.utilities.collections.Maps;
 public class TaggableMatcherTest
 {
     @Test
-    public void test()
+    public void basicTest()
     {
         final Taggable taggable = new Taggable()
         {
@@ -37,5 +37,12 @@ public class TaggableMatcherTest
         Assert.assertTrue(TaggableMatcher.from(
                 "name=/^.*(s|S)treet$/ & highway!=primary & (!restricted | restricted != (yes | sometimes))")
                 .test(taggable));
+    }
+
+    @Test
+    public void testToString()
+    {
+        Assert.assertEquals("TaggableMatcher(foo = bar)",
+                TaggableMatcher.from("foo = bar").toString());
     }
 }

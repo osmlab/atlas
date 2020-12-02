@@ -20,19 +20,21 @@ public class TaggableMatcher implements Predicate<Taggable>, Serializable
 {
     private static final long serialVersionUID = -3505184622005535575L;
 
-    private final ASTNode node;
+    private final ASTNode rootNode;
+    private final String definition;
 
     public static TaggableMatcher from(final String definition)
     {
         final List<Token> tokens = new Lexer().lex(definition);
-        final ASTNode root = new Parser(tokens, definition).parse();
-        new SemanticChecker().check(root);
-        return new TaggableMatcher(root);
+        final ASTNode rootNode = new Parser(tokens, definition).parse();
+        new SemanticChecker().check(rootNode);
+        return new TaggableMatcher(rootNode, definition);
     }
 
-    private TaggableMatcher(final ASTNode node)
+    private TaggableMatcher(final ASTNode rootNode, final String definition)
     {
-        this.node = node;
+        this.rootNode = rootNode;
+        this.definition = definition;
     }
 
     /**
@@ -57,12 +59,12 @@ public class TaggableMatcher implements Predicate<Taggable>, Serializable
             values.add(entry.getValue());
         }
 
-        return this.node.match(keys, values);
+        return this.rootNode.match(keys, values);
     }
 
     @Override
     public String toString()
     {
-        return "TODO";
+        return this.getClass().getSimpleName() + "(" + this.definition + ")";
     }
 }
