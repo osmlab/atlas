@@ -10,7 +10,7 @@
    * [Escaping and Whitespace](#escaping-and-whitespace)
    * [Regex](#regex)
    * [Tree Representation](#tree-representation)
-4. TODO more sections
+4. TODO more sections?
 
 ## Quick Intro and Examples
 `TaggableMatcher` is an extension of `Predicate<Taggable>` that supports intuitive string definitions.
@@ -189,5 +189,6 @@ a = b & c = d | e != f
 ```
 The `TaggableMatcher` is evaluated by walking the tree in a depth-first, left-to-right fashion.
 
-TODO add note about invalid nested "="/"!=" operators
+TODO add note about invalid nested "="/"!=" operators and the trees they would produce
+TODO add note about tree view printing
 
