@@ -65,6 +65,20 @@ public class ParserTest
                 + "baz_2\n";
         Assert.assertEquals(expected7,
                 new Parser(new Lexer().lex(input7), input7).parse().printTree());
+
+        final String input8 = "foo=bar ^ baz=bat";
+        final String expected8 = "XOR_2\n" + "XOR_2 left: EQ_0\n" + "XOR_2 right: EQ_1\n" + "EQ_0\n"
+                + "EQ_0 left: foo_0\n" + "EQ_0 right: bar_1\n" + "foo_0\n" + "bar_1\n" + "EQ_1\n"
+                + "EQ_1 left: baz_2\n" + "EQ_1 right: bat_3\n" + "baz_2\n" + "bat_3\n";
+        Assert.assertEquals(expected8,
+                new Parser(new Lexer().lex(input8), input8).parse().printTree());
+
+        final String input9 = "foo ^ bar ^ baz";
+        final String expected9 = "XOR_1\n" + "XOR_1 left: foo_0\n" + "XOR_1 right: XOR_0\n"
+                + "foo_0\n" + "XOR_0\n" + "XOR_0 left: bar_1\n" + "XOR_0 right: baz_2\n" + "bar_1\n"
+                + "baz_2\n";
+        Assert.assertEquals(expected9,
+                new Parser(new Lexer().lex(input9), input9).parse().printTree());
     }
 
     @Test

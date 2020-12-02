@@ -56,6 +56,10 @@ public class LexerTest
                 "(PAREN_OPEN, (), (LITERAL, foo), (EQUAL, =), (LITERAL, bar), (OR, |), (LITERAL, baz), (EQUAL, =), (LITERAL, bat), (PAREN_CLOSE, )), ",
                 Lexer.debugString(lexer.lex("(foo=bar|baz=bat)")));
 
+        Assert.assertEquals(
+                "(LITERAL, foo), (EQUAL, =), (LITERAL, bar), (XOR, ^), (LITERAL, baz), (EQUAL, =), (LITERAL, bat), ",
+                Lexer.debugString(lexer.lex("foo=bar^baz=bat")));
+
         /*
          * This one has a syntax error that would manifest at the parse step ("world" literal
          * followed by "foo" literal). It should lex OK.

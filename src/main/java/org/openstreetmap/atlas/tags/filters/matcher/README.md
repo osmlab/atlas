@@ -78,6 +78,7 @@ the context of tag matching (more on that in the `Tree Representation` section).
 | `=` | Specify a `key=value` pair constraint that must be **included** in a given `Taggable` |
 | `!=` | Specify `key=value` pair constraint that must be **excluded** from a given `Taggable` |
 | `&` | Specify an AND relationship between `key=value` pair constaints or between specific keys/values within a pair constraint |
+| `^` | Specify an XOR relationship between `key=value` pair constaints or between specific keys/values within a pair constraint |
 | `\|` | Specify an OR relationship between `key=value` pair constaints or between specific keys/values within a pair constraint |
 
 ### Precedence
@@ -89,6 +90,7 @@ from highest precedence to lowest precedence.
 !
 =, != (these have equivalent precedence)
 &
+^
 |
 ```
 

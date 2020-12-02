@@ -149,6 +149,10 @@ public class Lexer
             {
                 or(inputBuffer, lexemeBuffer, lexedTokens);
             }
+            else if (inputBuffer.peek() == Token.TokenType.XOR.getLiteralValue().charAt(0))
+            {
+                xor(inputBuffer, lexemeBuffer, lexedTokens);
+            }
             else if (inputBuffer.peek() == Token.TokenType.PAREN_OPEN.getLiteralValue().charAt(0))
             {
                 parenOpen(inputBuffer, lexemeBuffer, lexedTokens);
@@ -253,6 +257,7 @@ public class Lexer
          */
         return ((char) ch) != Token.TokenType.AND.getLiteralValue().charAt(0)
                 && ((char) ch) != Token.TokenType.OR.getLiteralValue().charAt(0)
+                && ((char) ch) != Token.TokenType.XOR.getLiteralValue().charAt(0)
                 && ((char) ch) != Token.TokenType.EQUAL.getLiteralValue().charAt(0)
                 && ((char) ch) != Token.TokenType.PAREN_OPEN.getLiteralValue().charAt(0)
                 && ((char) ch) != Token.TokenType.PAREN_CLOSE.getLiteralValue().charAt(0)
@@ -398,5 +403,13 @@ public class Lexer
         lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
         lexedTokens.add(new Token(Token.TokenType.WHITESPACE, lexemeBuffer.toString(),
                 inputBuffer.position));
+    }
+
+    private void xor(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer,
+            final List<Token> lexedTokens)
+    {
+        lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
+        lexedTokens
+                .add(new Token(Token.TokenType.XOR, lexemeBuffer.toString(), inputBuffer.position));
     }
 }

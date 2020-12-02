@@ -36,7 +36,9 @@ public class Token
 
         REGEX("/"),
 
-        WHITESPACE(null);
+        WHITESPACE(null),
+
+        XOR("^");
 
         private final String literalValue;
 
