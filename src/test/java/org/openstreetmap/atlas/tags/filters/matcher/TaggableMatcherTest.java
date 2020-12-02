@@ -34,6 +34,20 @@ public class TaggableMatcherTest
         };
         Assert.assertTrue(TaggableMatcher.from("!(foo=bar ^ baz=bat)").test(taggable1));
         Assert.assertFalse(TaggableMatcher.from("foo=bar ^ baz=bat").test(taggable1));
+        Assert.assertTrue(TaggableMatcher.from("foo = bar | baz = bat").test(taggable1));
+        Assert.assertFalse(TaggableMatcher.from("!(foo=bar | baz=bat)").test(taggable1));
+        Assert.assertTrue(TaggableMatcher.from("foo=bar & baz=bat").test(taggable1));
+        Assert.assertFalse(TaggableMatcher.from("!(foo=bar & baz=bat)").test(taggable1));
+        Assert.assertFalse(TaggableMatcher.from("foo=bar & baz=\" bat\"").test(taggable1));
+        Assert.assertTrue(TaggableMatcher.from("foo=bar & baz!=\" bat\"").test(taggable1));
+        Assert.assertTrue(TaggableMatcher.from("foo=/b.*/ & baz=/b.*/").test(taggable1));
+        Assert.assertTrue(TaggableMatcher.from("foo = bar & !mat").test(taggable1));
+        Assert.assertFalse(TaggableMatcher.from("foo=bar & mat!=hat").test(taggable1));
+        Assert.assertTrue(TaggableMatcher.from("foo=bar & baz!=hat").test(taggable1));
+        Assert.assertTrue(TaggableMatcher.from("foo=bar & baz=!hat").test(taggable1));
+        Assert.assertEquals(TaggableMatcher.from("baz = (!hat & !cat)").test(taggable1),
+                TaggableMatcher.from("baz = !(hat | cat)").test(taggable1));
+        Assert.assertTrue(TaggableMatcher.from("  foo    =bar & baz= \"bat\"  ").test(taggable1));
     }
 
     @Test
