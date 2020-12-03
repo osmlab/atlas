@@ -66,7 +66,8 @@ constraints are case sensitive, but they are also *inclusive*, meaning that they
 containing *at least* the specified constraint. So the above `TaggableMatcher` would match both
 `Taggable(foo=bar)` as well as `Taggable(baz=bat, foo=bar)`. If we wanted to exclude the `Taggable`
 containing the "baz=bat" `key=value` pair, we would need to explicitly specify that in a compound constraint.
-One way to do this is by combining the original `key=value` constraint with a `key-only` constraint, like:
+One way to do this is by combining the original `key=value` constraint and a negated `key-only` constraint with an
+`&` (AND) operator, like:
 ```
 foo=bar & !baz
 ```
@@ -74,13 +75,13 @@ In the above example, `!baz` is the `key-only` constraint. Any constraint that d
 `!=` operator will become a `key-only` constraint and will match against the *key only*, as the name suggests.
 So something like:
 ```
-water & name
+water & !name
 ```
 is equivalent to the old `TaggableFilter` syntax:
 ```
-water->*&name->*
+water->*&name->!
 ```
-which will match any `Taggable` that has both a "water" key and a "name" key, with no constraint on
+which will match any `Taggable` that both *has* a "water" key and does *not* have a "name" key, with no constraint on
 the associated values.
 
 ## Syntax Rules
@@ -113,7 +114,6 @@ fall back on left-to-right evaluation.
 ^
 |
 ```
-
 
 ### Escaping and Whitespace
 For `TaggableMatcher` definitions, whitespace is not meaningful by default - the lexer will simply ignore it.
@@ -150,8 +150,8 @@ OR
 name = 'Lake Michigan' & water = lake
 ```
 
-You may also use `\`, `"`, `'` to escape operator characters. So to match a tag that contains a literal "=" character, you
-could do, for example:
+You may also use `\`, `"`, `'` to escape operator characters. For example, to match a tag that contains
+a literal "=" character you could do:
 ```
 math = 2+2\=4
 ```
@@ -161,7 +161,19 @@ math="2+2=4"
 ```
 
 ### More On Quoting
-TODO talk about "" vs '' and the nesting/escaping rules.
+As shown above, `TaggableMatcher` supports both single and double quoting. There are few differences
+between the two, other than their escaping rules. Specifically, a single quoted string may contain
+unescaped double quote characters but must escape all inner single quote characters. And vice versa
+for double quoted strings. A few examples of this follow:
+```
+// The ' does not need escaping, but the " do
+name="John's \"Coffee\" Shop"
+```
+
+```
+// Here we must escape the ', but we can skip escaping the "
+name='John\'s "Coffee" Shop'
+```
 
 Finally, note that, unlike many shell languages, a quoted string constitutes a complete literal, and the lexer will
 **not** coalesce multiple consecutive literals together. So something like:

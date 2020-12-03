@@ -121,7 +121,7 @@ public class Lexer
      *            the input line
      * @return a {@link List} of the processed {@link Token}s
      */
-    public List<Token> lex(final String inputLine)
+    public List<Token> lex(final String inputLine) // NOSONAR
     {
         final List<Token> lexedTokens = new ArrayList<>();
         final LexemeBuffer lexemeBuffer = new LexemeBuffer();
