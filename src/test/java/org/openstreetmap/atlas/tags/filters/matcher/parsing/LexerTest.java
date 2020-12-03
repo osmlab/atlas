@@ -26,12 +26,23 @@ public class LexerTest
     }
 
     @Test
+    public void testFailMixedQuotes()
+    {
+        final Lexer lexer = new Lexer();
+
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage(
+                "syntax error: unexpected EOF after `\"'\n" + "foo=\"bar'\n" + "~~~~~~~~~^");
+        lexer.lex("foo=\"bar'");
+    }
+
+    @Test
     public void testFailQuote()
     {
         final Lexer lexer = new Lexer();
 
         this.expectedException.expect(CoreException.class);
-        this.expectedException.expectMessage("syntax error: unexpected EOF after '\"'\n"
+        this.expectedException.expectMessage("syntax error: unexpected EOF after `\"'\n"
                 + "foo=\"bar\"baz\"\n" + "~~~~~~~~~~~~~^");
         lexer.lex("foo=\"bar\"baz\"");
     }
@@ -45,6 +56,16 @@ public class LexerTest
         this.expectedException.expectMessage(
                 "syntax error: unexpected EOF after '/'\n" + "foo=/bar\n" + "~~~~~~~~^");
         lexer.lex("foo=/bar");
+    }
+
+    @Test
+    public void testQuotes()
+    {
+        final Lexer lexer = new Lexer();
+
+        Assert.assertEquals(
+                "(LITERAL, foo), (EQUAL, =), (LITERAL, \"bar\"), (AND, &), (LITERAL, baz), (EQUAL, =), (LITERAL, 'bat'), ",
+                Lexer.debugString(lexer.lex("foo='\"bar\"'&baz=\"'bat'\"")));
     }
 
     @Test

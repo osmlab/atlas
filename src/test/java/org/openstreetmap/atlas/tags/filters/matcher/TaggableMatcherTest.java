@@ -76,6 +76,28 @@ public class TaggableMatcherTest
     }
 
     @Test
+    public void testQuotes()
+    {
+        final Taggable taggable1 = new Taggable()
+        {
+            final Map<String, String> tags = Maps.hashMap("foo", "'bar'", "baz", "\"bat\"");
+
+            @Override
+            public Optional<String> getTag(final String key)
+            {
+                return Optional.ofNullable(this.tags.get(key));
+            }
+
+            @Override
+            public Map<String, String> getTags()
+            {
+                return this.tags;
+            }
+        };
+        Assert.assertTrue(TaggableMatcher.from("foo=\"'bar'\" & baz='\"bat\"'").test(taggable1));
+    }
+
+    @Test
     public void testToString()
     {
         Assert.assertEquals("TaggableMatcher(foo = bar)",

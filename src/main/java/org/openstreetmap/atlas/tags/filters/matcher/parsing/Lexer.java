@@ -171,7 +171,13 @@ public class Lexer
             }
             else if (inputBuffer.peek() == Token.TokenType.DOUBLE_QUOTE.getLiteralValue().charAt(0))
             {
-                doubleQuote(inputBuffer, lexemeBuffer, lexedTokens);
+                quote(inputBuffer, lexemeBuffer, lexedTokens,
+                        Token.TokenType.DOUBLE_QUOTE.getLiteralValue().charAt(0));
+            }
+            else if (inputBuffer.peek() == Token.TokenType.SINGLE_QUOTE.getLiteralValue().charAt(0))
+            {
+                quote(inputBuffer, lexemeBuffer, lexedTokens,
+                        Token.TokenType.SINGLE_QUOTE.getLiteralValue().charAt(0));
             }
             else
             {
@@ -211,36 +217,6 @@ public class Lexer
         }
     }
 
-    private void doubleQuote(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer,
-            final List<Token> lexedTokens)
-    {
-        int ch;
-        do
-        {
-            ch = inputBuffer.consumeCharacter();
-            if (ch == InputBuffer.EOF)
-            {
-                throwSyntaxError("EOF after '\"'", inputBuffer, inputBuffer.string);
-            }
-            if (ch == Token.TokenType.ESCAPE.getLiteralValue().charAt(0))
-            {
-                final int escaped = inputBuffer.consumeCharacter();
-                lexemeBuffer.addCharacter((char) escaped);
-            }
-            else
-            {
-                lexemeBuffer.addCharacter((char) ch);
-            }
-        }
-        while (inputBuffer.peek() != Token.TokenType.DOUBLE_QUOTE.getLiteralValue().charAt(0));
-        // consume the trailing '"'
-        inputBuffer.consumeCharacter();
-
-        // Strip leading " character
-        final String lexeme = lexemeBuffer.stripLeading().toString();
-        lexedTokens.add(new Token(Token.TokenType.DOUBLE_QUOTE, lexeme, inputBuffer.position));
-    }
-
     private void equal(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer, // NOSONAR
             final List<Token> lexedTokens)
     {
@@ -264,6 +240,7 @@ public class Lexer
                 && ((char) ch) != Token.TokenType.REGEX.getLiteralValue().charAt(0)
                 && ((char) ch) != Token.TokenType.BANG.getLiteralValue().charAt(0)
                 && ((char) ch) != Token.TokenType.DOUBLE_QUOTE.getLiteralValue().charAt(0)
+                && ((char) ch) != Token.TokenType.SINGLE_QUOTE.getLiteralValue().charAt(0)
                 && !isWhitespaceCharacter((char) ch);
     }
 
@@ -340,6 +317,47 @@ public class Lexer
         lexemeBuffer.addCharacter((char) inputBuffer.consumeCharacter());
         lexedTokens.add(new Token(Token.TokenType.PAREN_OPEN, lexemeBuffer.toString(),
                 inputBuffer.position));
+    }
+
+    private void quote(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer,
+            final List<Token> lexedTokens, final char quoteType)
+    {
+        int ch;
+        do
+        {
+            ch = inputBuffer.consumeCharacter();
+            if (ch == InputBuffer.EOF)
+            {
+                throwSyntaxError("EOF after `" + quoteType + "'", inputBuffer, inputBuffer.string);
+            }
+            if (ch == Token.TokenType.ESCAPE.getLiteralValue().charAt(0))
+            {
+                final int escaped = inputBuffer.consumeCharacter();
+                lexemeBuffer.addCharacter((char) escaped);
+            }
+            else
+            {
+                lexemeBuffer.addCharacter((char) ch);
+            }
+        }
+        while (inputBuffer.peek() != quoteType);
+        // consume the trailing "/'
+        inputBuffer.consumeCharacter();
+
+        // Strip leading "/' character
+        final String lexeme = lexemeBuffer.stripLeading().toString();
+        if (quoteType == Token.TokenType.DOUBLE_QUOTE.getLiteralValue().charAt(0))
+        {
+            lexedTokens.add(new Token(Token.TokenType.DOUBLE_QUOTE, lexeme, inputBuffer.position));
+        }
+        else if (quoteType == Token.TokenType.SINGLE_QUOTE.getLiteralValue().charAt(0))
+        {
+            lexedTokens.add(new Token(Token.TokenType.SINGLE_QUOTE, lexeme, inputBuffer.position));
+        }
+        else
+        {
+            throw new CoreException("Unknown quote type `{}'", quoteType);
+        }
     }
 
     private void regex(final InputBuffer inputBuffer, final LexemeBuffer lexemeBuffer,

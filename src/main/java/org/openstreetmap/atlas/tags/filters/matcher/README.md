@@ -8,6 +8,7 @@
    * [Table of Operators](#table-of-operators)
    * [Precedence](#precedence)
    * [Escaping and Whitespace](#escaping-and-whitespace)
+   * [More On Quoting](#more-on-quoting)
    * [Regex](#regex)
    * [Tree Representation](#tree-representation)
 4. TODO more sections?
@@ -99,33 +100,38 @@ from highest precedence to lowest precedence.
 For `TaggableMatcher` definitions, whitespace is not meaningful by default - the lexer will simply ignore it.
 This means that, for example:
 ```
-foo=bar
+foo=bar|baz=bat
 ```
 AND
 ```
-foo = bar
+foo = bar | baz = bat
 ```
 are semantically equivalent.
 
-In order to include significant whitespace in a tag constraint, you must either escape the whitespace or wrap
-the whitespace-containing literal in `"`. For example, the following matcher will fail with a syntax error:
+In order to include significant whitespace in a `key=value` constraint, you must either escape the whitespace or wrap
+the whitespace-containing literal in quotes (`TaggableMatcher` supports single ' or double " quoted literals). For example,
+the following matcher will fail with a syntax error:
 ```
-name = Lake Michigan
+name = Lake Michigan & water = lake
 
 org.openstreetmap.atlas.exception.CoreException: syntax error: unexpected token LITERAL(Michigan)
-name = Lake Michigan
+name = Lake Michigan & water = lake
 ~~~~~~~~~~~~^
 ```
 Instead, you must do either:
 ```
-name = Lake\ Michigan
+name = Lake\ Michigan & water = lake
 ```
 OR
 ```
-name = "Lake Michigan"
+name = "Lake Michigan" & water = lake
+```
+OR
+```
+name = 'Lake Michigan' & water = lake
 ```
 
-You may also use `\` and `"` to escape operator characters. So to match a tag that contains a literal "=" character, you
+You may also use `\`, `"`, `'` to escape operator characters. So to match a tag that contains a literal "=" character, you
 could do, for example:
 ```
 math = 2+2\=4
@@ -135,7 +141,8 @@ OR
 math="2+2=4"
 ```
 
-Finally, note that, unlike many shell languages, a double quoted string constitutes a complete literal. The lexer will
+### More On Quoting
+Finally, note that, unlike many shell languages, a quoted string constitutes a complete literal, and the lexer will
 **not** coalesce multiple consecutive literals together. So something like:
 ```
 foo = bar" and baz"
@@ -148,7 +155,7 @@ foo = bar" and baz"
 ```
 
 ### Regex
-`TaggableMatchers` support regex matching for keys and values with the following syntax:
+`TaggableMatcher` supports regex matching for keys and values with the following syntax:
 ```
 name = /[l|L]ake.*/
 ```

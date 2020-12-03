@@ -36,6 +36,8 @@ public class Token
 
         REGEX("/"),
 
+        SINGLE_QUOTE("'"),
+
         WHITESPACE(null),
 
         XOR("^");
@@ -60,15 +62,17 @@ public class Token
     public Token(final TokenType type, final String lexeme, final int indexInLine)
     {
         this.lexeme = lexeme;
-        if (type == TokenType.DOUBLE_QUOTE)
+        if (type == TokenType.DOUBLE_QUOTE || type == TokenType.SINGLE_QUOTE)
         {
             /*
-             * Override DOUBLE_QUOTE with regular LITERAL, since after lexing no other component
-             * cares about this distinction. Using LITERAL everywhere will simplify following code.
+             * Override DOUBLE_QUOTE/SINGLE_QUOTE with regular LITERAL, since after lexing no other
+             * component cares about this distinction. Using LITERAL everywhere will simplify
+             * following code.
              */
             this.type = TokenType.LITERAL;
             /*
-             * We need to add 2 back to the lexeme length to account for the " characters we removed
+             * We need to add 2 back to the lexeme length to account for the "/' characters we
+             * removed.
              */
             final int addBack = 2;
             this.indexInLine = indexInLine - (lexeme != null ? lexeme.length() + addBack : 0);
