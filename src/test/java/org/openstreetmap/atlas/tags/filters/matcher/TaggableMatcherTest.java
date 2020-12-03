@@ -125,7 +125,7 @@ public class TaggableMatcherTest
     {
         final Taggable taggable1 = new Taggable()
         {
-            final Map<String, String> tags = Maps.hashMap("foo", "'bar'", "baz", "\"bat\"");
+            final Map<String, String> tags = Maps.hashMap("name", "John's \"Coffee\" Shop");
 
             @Override
             public Optional<String> getTag(final String key)
@@ -139,7 +139,10 @@ public class TaggableMatcherTest
                 return this.tags;
             }
         };
-        Assert.assertTrue(TaggableMatcher.from("foo=\"'bar'\" & baz='\"bat\"'").test(taggable1));
+        Assert.assertTrue(
+                TaggableMatcher.from("name = 'John\\'s \"Coffee\" Shop'").test(taggable1));
+        Assert.assertTrue(
+                TaggableMatcher.from("name = \"John's \\\"Coffee\\\" Shop\"").test(taggable1));
     }
 
     @Test

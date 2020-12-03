@@ -11,11 +11,10 @@
    * [More On Quoting](#more-on-quoting)
    * [Regex](#regex)
    * [Tree Representation](#tree-representation)
-4. TODO more sections?
 
 ## Quick Intro and Examples
 `TaggableMatcher` is an extension of `Predicate<Taggable>` that supports intuitive string definitions.
-One can create a new `TaggableMatcher` like so:
+You can create a new `TaggableMatcher` like:
 
 ```java
 // Create a simple predicate:
@@ -81,14 +80,19 @@ is equivalent to the old `TaggableFilter` syntax:
 ```
 water->*&name->!
 ```
-which will match any `Taggable` that both *has* a "water" key and does *not* have a "name" key, with no constraint on
+which will match any `Taggable` that both *has* a "water" key and does *not have* a "name" key, with no constraint on
 the associated values.
 
 ## Syntax Rules
 `TaggableMatcher` syntax follows basic boolean expression syntax, with the standard boolean `==`/`!=`
 operators replaced by `=`/`!=` to denote `key=value` pair constraints. Additionally, like boolean expressions,
 chained `=`/`!=` operators are forbidden by the semantic checker since these would be nonsense in
-the context of tag matching (more on that in the `Tree Representation` section).
+the context of tag matching (more on that in the `Tree Representation` section). For example,
+this `TaggableMatcher` would generate the following error:
+```
+foo = (bar = baz)
+org.openstreetmap.atlas.exception.CoreException: semantic error: invalid nested equality operators
+```
 
 ### Table of Operators
 | Operator | Description |
@@ -121,7 +125,7 @@ This means that, for example:
 ```
 foo=bar|baz=bat
 ```
-AND
+and
 ```
 foo = bar | baz = bat
 ```
@@ -141,11 +145,11 @@ Instead, you must do either:
 ```
 name = Lake\ Michigan & water = lake
 ```
-OR
+or
 ```
 name = "Lake Michigan" & water = lake
 ```
-OR
+or
 ```
 name = 'Lake Michigan' & water = lake
 ```
@@ -155,16 +159,16 @@ a literal "=" character you could do:
 ```
 math = 2+2\=4
 ```
-OR
+or
 ```
 math="2+2=4"
 ```
 
 ### More On Quoting
-As shown above, `TaggableMatcher` supports both single and double quoting. There are few differences
+As shown above, `TaggableMatcher` supports both single and double quoting. There are not many differences
 between the two, other than their escaping rules. Specifically, a single quoted string may contain
 unescaped double quote characters but must escape all inner single quote characters. And vice versa
-for double quoted strings. A few examples of this follow:
+for double quoted strings. A few examples of this:
 ```
 // The ' does not need escaping, but the " do
 name="John's \"Coffee\" Shop"
@@ -175,7 +179,7 @@ name="John's \"Coffee\" Shop"
 name='John\'s "Coffee" Shop'
 ```
 
-Finally, note that, unlike many shell languages, a quoted string constitutes a complete literal, and the lexer will
+Finally note that unlike many shell languages, a quoted string constitutes a complete literal, and the lexer will
 **not** coalesce multiple consecutive literals together. So something like:
 ```
 foo = bar" and baz"
@@ -231,6 +235,23 @@ a = b & c = d | e != f
 ```
 The `TaggableMatcher` is evaluated by walking the tree in a depth-first, left-to-right fashion.
 
-TODO add note about invalid nested "="/"!=" operators and the trees they would produce
-TODO add note about tree view printing
+As mentioned in an earlier section, chained "="/"!=" operators are forbidden since expressions
+containing them are nonsensical in the context of tag matching. Expressions with chained equality
+operators become trees in which an equality operator is present in the subtree of another equality
+operator. For example, the matcher definition:
+```
+a = b = c
+```
+becomes this tree:
+```
+            =
+          /   \
+         a     =
+              / \
+             /   \
+            b     c
+```
+The `TaggableMatcher` semantic checker is able to detect subtrees like this and reject the matcher
+definition as invalid.
+
 
