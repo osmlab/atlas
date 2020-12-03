@@ -18,11 +18,11 @@
 One can create a new `TaggableMatcher` like so:
 
 ```java
-// Create a simple filter
+// Create a simple predicate:
 String definition = "highway=primary";
-Predicate<Taggable> filter = TaggableMatcher.from(definition);
+Predicate<Taggable> predicate = TaggableMatcher.from(definition);
 
-// Extend the above filter
+// You could also do this to access the extra TaggableMatcher methods:
 TaggableMatcher matcher = TaggableMatcher.from(definition + " & name=I280");
 ```
 
@@ -33,59 +33,78 @@ Match any `Taggable` containing a "name" tag with value "John's Coffee Shop":
 name="John's Coffee Shop"
 ```
 
-Match any `Taggable` that is either a "natural=pond" or is a "natural=water" that is **not** named "Lake Michigan":
+Match any `Taggable` that is a "water=pond" or is a "water=lake" that is *not* named "Lake Michigan":
 ```
-natural = water & name != Lake\ Michigan | natural = pond
+water = pond | water = lake & name != Lake\ Michigan
 ```
 
-Match any tertiary or residential highway whose "name" tag contains the word "street" or "Street"
+Match any tertiary or residential highway whose "name" tag contains the word "street" or "Street":
 ```
 (highway=tertiary | highway=residential) & name=/.*\b[s|S]treet\b.*/
 ```
 
-Match all non-highway features, but also include primary and secondary highways.
+Match all non-highway features, but also include primary and secondary highways:
 ```
 !highway | highway=(primary | secondary)
+```
+
+Match any `Taggable` that is a "natural=lake" or "water=lake":
+```
+(natural | water) = lake
 ```
 
 And that's really all there is to it! Enough to get you started. Read on to get more details about
 the syntax rules and various features.
 
 ## Basic Semantics
-Consider the following `TaggableMatcher`:
+Consider the following definition:
 ```
 foo = bar
 ```
-This will match against any `Taggable` that contains the `key=value` pair "foo=bar". `TaggableMatchers`
-are case sensitive. They are also *inclusive*, meaning that they automatically match anything containing *at least*
-the specified constraint. So for the above `TaggableMatcher`, we would match both `Taggable(foo=bar)` as well
-as `Taggable(baz=bat, foo=bar)`. If we wanted to exclude the `Taggable` containing the "baz=bat"
-`key=value` pair, we would need to explicitly specify that in the constraint. One way to do this:
+This will create a `TaggableMatcher` with a single `key=value` pair constraint, "foo=bar". `TaggableMatcher`
+constraints are case sensitive, but they are also *inclusive*, meaning that they automatically match anything
+containing *at least* the specified constraint. So the above `TaggableMatcher` would match both
+`Taggable(foo=bar)` as well as `Taggable(baz=bat, foo=bar)`. If we wanted to exclude the `Taggable`
+containing the "baz=bat" `key=value` pair, we would need to explicitly specify that in a compound constraint.
+One way to do this is by combining the original `key=value` constraint with a `key-only` constraint, like:
 ```
 foo=bar & !baz
 ```
+In the above example, `!baz` is the `key-only` constraint. Any constraint that does not include an `=` or
+`!=` operator will become a `key-only` constraint and will match against the *key only*, as the name suggests.
+So something like:
+```
+water & name
+```
+is equivalent to the old `TaggableFilter` syntax:
+```
+water->*&name->*
+```
+which will match any `Taggable` that has both a "water" key and a "name" key, with no constraint on
+the associated values.
 
 ## Syntax Rules
 `TaggableMatcher` syntax follows basic boolean expression syntax, with the standard boolean `==`/`!=`
 operators replaced by `=`/`!=` to denote `key=value` pair constraints. Additionally, like boolean expressions,
-chained `=`/`!=` operators are forbidden by the semantic checker, since these would be nonsense in
+chained `=`/`!=` operators are forbidden by the semantic checker since these would be nonsense in
 the context of tag matching (more on that in the `Tree Representation` section).
 
 ### Table of Operators
 | Operator | Description |
 | -------- | ----------- |
-| `( .. )` | Group a subexpression |
+| `( .. )` | Group a subexpression to increase its precedence |
 | `!` | Negate a subexpression |
 | `=` | Specify a `key=value` pair constraint that must be **included** in a given `Taggable` |
 | `!=` | Specify `key=value` pair constraint that must be **excluded** from a given `Taggable` |
-| `&` | Specify an AND relationship between `key=value` pair constaints or between specific keys/values within a pair constraint |
-| `^` | Specify an XOR relationship between `key=value` pair constaints or between specific keys/values within a pair constraint |
-| `\|` | Specify an OR relationship between `key=value` pair constaints or between specific keys/values within a pair constraint |
+| `&` | Specify an AND relationship between constraints or between specific keys/values within a constraint |
+| `^` | Specify an XOR relationship between constraints or between specific keys/values within a constraint |
+| `\|` | Specify an OR relationship between constraints or between specific keys/values within a constraint |
 
 ### Precedence
-`TaggableMatcher` operator precedence matches that of standard boolean expressions, but with the `=`/`!=` operators
+`TaggableMatcher` operator precedence follows that of standard boolean expressions, but again with the `=`/`!=` operators
 taking the place of the standard boolean `==`/`!=` operators. The following snippet lists operators in descending order,
-from highest precedence to lowest precedence.
+from highest precedence to lowest precedence. `TaggableMatcher` will evaluate higher precedence operators first and will
+fall back on left-to-right evaluation.
 ```
 ( .. )
 !
@@ -108,7 +127,7 @@ foo = bar | baz = bat
 ```
 are semantically equivalent.
 
-In order to include significant whitespace in a `key=value` constraint, you must either escape the whitespace or wrap
+In order to include significant whitespace in a constraint, you must either escape the whitespace or wrap
 the whitespace-containing literal in quotes (`TaggableMatcher` supports single ' or double " quoted literals). For example,
 the following matcher will fail with a syntax error:
 ```
@@ -142,6 +161,8 @@ math="2+2=4"
 ```
 
 ### More On Quoting
+TODO talk about "" vs '' and the nesting/escaping rules.
+
 Finally, note that, unlike many shell languages, a quoted string constitutes a complete literal, and the lexer will
 **not** coalesce multiple consecutive literals together. So something like:
 ```
@@ -164,8 +185,8 @@ Anything between the `/` symbols will be treated as a regex operand.
 Regexes are evaluated using
 Java's `String#matches(String)` method, which means that in order to get a match, the regex must match the
 **entire** key or value string. So for example, the above regex would match `Taggable(name=lake michigan)`,
-but it would **not** match `Taggable(name=Arrow Lake)`. In order to match this second `Taggable`, the
-regex would need to be:
+but it would **not** match `Taggable(name=Arrow Lake)`. In order to match this second `Taggable` as well as
+the first, the regex would need to be:
 ```
 name = /.*[l|L]ake.*/
 ```

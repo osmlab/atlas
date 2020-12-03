@@ -51,8 +51,11 @@ public class TaggableMatcherTest
     }
 
     @Test
-    public void complexTest()
+    public void complexTests()
     {
+        /*
+         * Test a complex expression filter.
+         */
         final Taggable taggable = new Taggable()
         {
             final Map<String, String> tags = Maps.hashMap("name", "Main Street", "highway",
@@ -73,6 +76,48 @@ public class TaggableMatcherTest
         Assert.assertTrue(TaggableMatcher.from(
                 "name=/^.*(s|S)treet$/ & highway!=primary & (!restricted | restricted != (yes | sometimes))")
                 .test(taggable));
+
+        /*
+         * Test matching against variable keys.
+         */
+        final Taggable oldStyleLakes = new Taggable()
+        {
+            final Map<String, String> tags = Maps.hashMap("natural", "lake");
+
+            @Override
+            public Optional<String> getTag(final String key)
+            {
+                return Optional.ofNullable(this.tags.get(key));
+            }
+
+            @Override
+            public Map<String, String> getTags()
+            {
+                return this.tags;
+            }
+        };
+        final Taggable newStyleLakes = new Taggable()
+        {
+            final Map<String, String> tags = Maps.hashMap("natural", "water", "water", "lake");
+
+            @Override
+            public Optional<String> getTag(final String key)
+            {
+                return Optional.ofNullable(this.tags.get(key));
+            }
+
+            @Override
+            public Map<String, String> getTags()
+            {
+                return this.tags;
+            }
+        };
+        /*
+         * These filters should match both old style and new style lake tagging
+         */
+        final TaggableMatcher lakeMatcher = TaggableMatcher.from("(natural | water)=lake");
+        Assert.assertTrue(lakeMatcher.test(oldStyleLakes));
+        Assert.assertTrue(lakeMatcher.test(newStyleLakes));
     }
 
     @Test
