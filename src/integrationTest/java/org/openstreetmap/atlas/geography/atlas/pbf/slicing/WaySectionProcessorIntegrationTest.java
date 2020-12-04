@@ -109,13 +109,13 @@ public class WaySectionProcessorIntegrationTest extends AtlasIntegrationTest
         Assert.assertEquals(0, rawAtlas.numberOfEdges());
         Assert.assertEquals(2841, sectionedAtlas.numberOfEdges());
 
-        Assert.assertEquals(918, rawAtlas.numberOfLines());
+        Assert.assertEquals(582, rawAtlas.numberOfLines());
         Assert.assertEquals(9, sectionedAtlas.numberOfLines());
 
         Assert.assertEquals(0, rawAtlas.numberOfNodes());
         Assert.assertEquals(1165, sectionedAtlas.numberOfNodes());
 
-        Assert.assertEquals(0, rawAtlas.numberOfAreas());
+        Assert.assertEquals(336, rawAtlas.numberOfAreas());
         Assert.assertEquals(336, sectionedAtlas.numberOfAreas());
 
         Assert.assertEquals(1, rawAtlas.numberOfRelations());
@@ -130,7 +130,7 @@ public class WaySectionProcessorIntegrationTest extends AtlasIntegrationTest
     {
         // Waterway (Atlas area) should not be sectioned
         final long waterway = 25977495L;
-        Assert.assertNotNull(rawAtlas.line(waterway));
+        Assert.assertNotNull(rawAtlas.area(waterway));
         Assert.assertNotNull(sectionedAtlas.area(PaddingIdentifierFactory.pad(waterway)));
     }
 

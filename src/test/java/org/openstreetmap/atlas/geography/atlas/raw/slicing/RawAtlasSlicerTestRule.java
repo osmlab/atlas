@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.utilities.testing.CoreTestRule;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas;
+import org.openstreetmap.atlas.utilities.testing.TestAtlas.Area;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Line;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Loc;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Point;
@@ -362,7 +363,7 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
                     @Point(id = "3", coordinates = @Loc(value = AREA_LBR_SIDE_3)),
                     @Point(id = "4", coordinates = @Loc(value = AREA_LBR_SIDE_4)) },
 
-            lines = { @Line(id = "1", coordinates = { @Loc(value = AREA_CIV_SIDE_1),
+            areas = { @Area(id = "1", coordinates = { @Loc(value = AREA_CIV_SIDE_1),
                     @Loc(value = AREA_LBR_SIDE_4), @Loc(value = AREA_LBR_SIDE_3),
                     @Loc(value = AREA_CIV_SIDE_2),
                     @Loc(value = AREA_CIV_SIDE_1) }, tags = { "building=yes" }) })
@@ -594,11 +595,11 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
                     @Point(id = "106025000000", coordinates = @Loc(value = LOCATION_28)),
                     @Point(id = "106024000000", coordinates = @Loc(value = LOCATION_29)) },
 
-            lines = { @Line(id = "106036000000", coordinates = { @Loc(value = LOCATION_28),
+            areas = { @Area(id = "106036000000", coordinates = { @Loc(value = LOCATION_28),
                     @Loc(value = LOCATION_21), @Loc(value = LOCATION_27), @Loc(value = LOCATION_26),
                     @Loc(value = LOCATION_28) }, tags = { "water=natural" }),
 
-                    @Line(id = "106034000000", coordinates = { @Loc(value = LOCATION_23),
+                    @Area(id = "106034000000", coordinates = { @Loc(value = LOCATION_23),
                             @Loc(value = LOCATION_29), @Loc(value = LOCATION_24),
                             @Loc(value = LOCATION_25), @Loc(value = LOCATION_22),
                             @Loc(value = LOCATION_23) }, tags = { "water=natural" }) },
@@ -607,8 +608,8 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
 
                     @Relation(id = "214805000000", tags = { "type=multipolygon",
                             "natural=water" }, members = {
-                                    @Member(id = "106034000000", role = "outer", type = "line"),
-                                    @Member(id = "106036000000", role = "inner", type = "line") })
+                                    @Member(id = "106034000000", role = "outer", type = "area"),
+                                    @Member(id = "106036000000", role = "inner", type = "area") })
 
             })
     private Atlas complexMuliPolygonWithHoleUsingClosedLines;

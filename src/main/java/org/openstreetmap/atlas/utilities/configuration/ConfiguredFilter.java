@@ -12,6 +12,7 @@ import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.converters.WkbMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.WktMultiPolygonConverter;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
+import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.tags.filters.RegexTaggableFilter;
 import org.openstreetmap.atlas.tags.filters.TaggableFilter;
 import org.openstreetmap.atlas.utilities.conversion.HexStringByteArrayConverter;
@@ -28,7 +29,7 @@ import com.google.gson.JsonPrimitive;
  * This class reads in a configuration file with a specific schema and creates filters based on the
  * predicates and taggable filter specified in the file. Take a look at water-handlers.json for
  * reference
- * 
+ *
  * @author matthieun
  */
 public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializable
@@ -74,11 +75,16 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
     private final boolean noExpansion;
     private final List<MultiPolygon> geometryBasedFilters;
 
+    public static ConfiguredFilter from(final String name, final Configuration configuration)
+    {
+        return from(CONFIGURATION_ROOT, name, configuration);
+    }
+
     /**
      * Create a new {@link ConfiguredFilter}.
      * <p>
      * For example, in the following json configuration:
-     * 
+     *
      * <pre>
      * {@code
      * {
@@ -101,9 +107,9 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
      * }
      * }
      * </pre>
-     * 
+     *
      * the filter can be accessed using "my.conf" as root, and "filter" as name.
-     * 
+     *
      * @param root
      *            The root of the configuration hierarchy, where to search for the name of the
      *            filter.
@@ -130,9 +136,9 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
         return new ConfiguredFilter(root, name, configuration);
     }
 
-    public static ConfiguredFilter from(final String name, final Configuration configuration)
+    public static ConfiguredFilter getDefaultFilter(final Configuration configuration)
     {
-        return from(CONFIGURATION_ROOT, name, configuration);
+        return getDefaultFilter(CONFIGURATION_ROOT, configuration);
     }
 
     public static ConfiguredFilter getDefaultFilter(final String root,
@@ -143,11 +149,6 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
             return new ConfiguredFilter(root, DEFAULT, configuration);
         }
         return NO_FILTER;
-    }
-
-    public static ConfiguredFilter getDefaultFilter(final Configuration configuration)
-    {
-        return getDefaultFilter(CONFIGURATION_ROOT, configuration);
     }
 
     public static boolean isPresent(final String name, final Configuration configuration)
@@ -210,6 +211,11 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
     public boolean test(final AtlasEntity atlasEntity)
     {
         return getFilter().test(atlasEntity);
+    }
+
+    public boolean test(final Taggable taggable)
+    {
+        return TaggableFilter.forDefinition(this.taggableFilter).test(taggable);
     }
 
     public JsonObject toJson()

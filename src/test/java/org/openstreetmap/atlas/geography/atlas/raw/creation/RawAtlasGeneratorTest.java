@@ -116,7 +116,8 @@ public class RawAtlasGeneratorTest
         // Verify Atlas Entities
         assertBasicRawAtlasPrinciples(atlas);
         Assert.assertEquals(5, atlas.numberOfPoints());
-        Assert.assertEquals(1, atlas.numberOfLines());
+        Assert.assertEquals(0, atlas.numberOfLines());
+        Assert.assertEquals(1, atlas.numberOfAreas());
         Assert.assertEquals(2, atlas.numberOfRelations());
     }
 
@@ -131,8 +132,9 @@ public class RawAtlasGeneratorTest
 
         // Verify Atlas Entities
         assertBasicRawAtlasPrinciples(atlas);
-        Assert.assertEquals(457867, atlas.numberOfPoints());
-        Assert.assertEquals(45841, atlas.numberOfLines());
+        Assert.assertEquals(457863, atlas.numberOfPoints());
+        Assert.assertEquals(13334, atlas.numberOfAreas());
+        Assert.assertEquals(32522, atlas.numberOfLines());
         Assert.assertEquals(408, atlas.numberOfRelations());
         Assert.assertEquals(49, Iterables.size(atlas.points(
                 point -> Validators.hasValuesFor(point, SyntheticDuplicateOsmNodeTag.class))));
@@ -148,7 +150,8 @@ public class RawAtlasGeneratorTest
         // Verify Atlas Entities
         assertBasicRawAtlasPrinciples(atlas);
         Assert.assertEquals(54636, atlas.numberOfPoints());
-        Assert.assertEquals(6085, atlas.numberOfLines());
+        Assert.assertEquals(5399, atlas.numberOfAreas());
+        Assert.assertEquals(686, atlas.numberOfLines());
         Assert.assertEquals(5, atlas.numberOfRelations());
     }
 
@@ -164,7 +167,8 @@ public class RawAtlasGeneratorTest
         // Verify Atlas Entities
         assertBasicRawAtlasPrinciples(atlas);
         Assert.assertEquals(3851, atlas.numberOfPoints());
-        Assert.assertEquals(36, atlas.numberOfLines());
+        Assert.assertEquals(34, atlas.numberOfLines());
+        Assert.assertEquals(2, atlas.numberOfAreas());
         Assert.assertEquals(1, atlas.numberOfRelations());
     }
 
@@ -173,6 +177,5 @@ public class RawAtlasGeneratorTest
         // The Raw Atlas should never contain Nodes, Edges or Areas
         Assert.assertEquals(0, atlas.numberOfNodes());
         Assert.assertEquals(0, atlas.numberOfEdges());
-        Assert.assertEquals(0, atlas.numberOfAreas());
     }
 }
