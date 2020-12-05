@@ -3,6 +3,8 @@ package org.openstreetmap.atlas.tags.filters.matcher;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.ASTNode;
+
 /**
  * Binary tree printer https://stackoverflow.com/a/29704252
  * 
@@ -10,83 +12,18 @@ import java.util.List;
  */
 public class TODO_Remove_TreePrinterSampleTest
 {
-    public static class Node implements PrintableNode
-    {
-        PrintableNode left;
-        PrintableNode center;
-        PrintableNode right;
-        String value;
-
-        public Node(final PrintableNode left, final PrintableNode center, final PrintableNode right,
-                final String value)
-        {
-            this.left = left;
-            this.center = center;
-            this.right = right;
-            this.value = value;
-        }
-
-        @Override
-        public PrintableNode getCenter()
-        {
-            return this.center;
-        }
-
-        @Override
-        public PrintableNode getLeft()
-        {
-            return this.left;
-        }
-
-        @Override
-        public PrintableNode getRight()
-        {
-            return this.right;
-        }
-
-        @Override
-        public String getText()
-        {
-            return this.value;
-        }
-    }
-
-    public static void main(final String[] args)
-    {
-        final Node foo = new Node(null, null, null, "foo");
-
-        final Node fooRight = new Node(null, null, foo, "=");
-        final Node fooRightRight = new Node(null, null, fooRight, "=");
-        final Node fooRightRightRight = new Node(null, null, fooRightRight, "=");
-
-        print(fooRightRightRight);
-    }
-
-    public static void main2(final String[] args)
-    {
-        final Node bar = new Node(null, null, null, "bar");
-        final Node cat = new Node(null, null, null, "cat");
-        final Node mat = new Node(null, null, null, "mat");
-
-        final Node catOrMat = new Node(cat, null, mat, "|");
-        final Node notCatOrMat = new Node(catOrMat, null, null, "!");
-        final Node barEqNotCatOrMat = new Node(bar, null, notCatOrMat, "=");
-
-        print(barEqNotCatOrMat);
-    }
-
     /**
      * Print a tree
      *
      * @param root
      *            tree root node
      */
-    public static void print(final PrintableNode root)
+    public static void print(final ASTNode root)
     {
         final List<List<String>> lines = new ArrayList<>();
 
-        List<PrintableNode> nodesThisLevel = new ArrayList<>();
-        List<PrintableNode> nodesNextLevel = new ArrayList<>();
+        List<ASTNode> nodesThisLevel = new ArrayList<>();
+        List<ASTNode> nodesNextLevel = new ArrayList<>();
 
         nodesThisLevel.add(root);
         int numberOfNodesRemaining = 1;
@@ -96,7 +33,7 @@ public class TODO_Remove_TreePrinterSampleTest
         {
             final List<String> line = new ArrayList<>();
             numberOfNodesRemaining = 0;
-            for (final PrintableNode node : nodesThisLevel)
+            for (final ASTNode node : nodesThisLevel)
             {
                 if (node == null)
                 {
@@ -106,21 +43,21 @@ public class TODO_Remove_TreePrinterSampleTest
                 }
                 else
                 {
-                    final String nodeText = node.getText();
+                    final String nodeText = node.getPrettyPrintText();
                     line.add(nodeText);
                     if (nodeText.length() > widest)
                     {
                         widest = nodeText.length();
                     }
 
-                    nodesNextLevel.add(node.getLeft());
-                    nodesNextLevel.add(node.getRight());
+                    nodesNextLevel.add(node.getLeftChild());
+                    nodesNextLevel.add(node.getRightChild());
 
-                    if (node.getLeft() != null)
+                    if (node.getLeftChild() != null)
                     {
                         numberOfNodesRemaining++;
                     }
-                    if (node.getRight() != null)
+                    if (node.getRightChild() != null)
                     {
                         numberOfNodesRemaining++;
                     }
@@ -134,7 +71,7 @@ public class TODO_Remove_TreePrinterSampleTest
 
             lines.add(line);
 
-            final List<PrintableNode> tmp = nodesThisLevel;
+            final List<ASTNode> tmp = nodesThisLevel;
             nodesThisLevel = nodesNextLevel;
             nodesNextLevel = tmp;
             nodesNextLevel.clear();
@@ -221,21 +158,5 @@ public class TODO_Remove_TreePrinterSampleTest
 
             perpiece /= 2;
         }
-    }
-
-    /** Node that can be printed */
-    public interface PrintableNode
-    {
-        /** Get center child */
-        PrintableNode getCenter();
-
-        /** Get left child */
-        PrintableNode getLeft();
-
-        /** Get right child */
-        PrintableNode getRight();
-
-        /** Get text to be printed */
-        String getText();
     }
 }
