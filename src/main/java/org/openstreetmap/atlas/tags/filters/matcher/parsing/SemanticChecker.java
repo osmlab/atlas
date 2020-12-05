@@ -4,7 +4,6 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.tags.filters.matcher.TaggableMatcher;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.ASTNode;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.BangEqualsOperator;
-import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.BinaryOperator;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.EqualsOperator;
 
 /**
@@ -21,33 +20,38 @@ public class SemanticChecker
 {
     public void check(final ASTNode root)
     {
-        if (root instanceof BinaryOperator)
+        if (root == null)
         {
-            if ((root instanceof EqualsOperator || root instanceof BangEqualsOperator)
-                    && subtreeContainsEquals(root))
-            {
-                throw new CoreException("semantic error: invalid nested equality operators");
-            }
-            check(((BinaryOperator) root).getLeftChild());
-            check(((BinaryOperator) root).getRightChild());
+            return;
         }
+
+        if ((root instanceof EqualsOperator || root instanceof BangEqualsOperator)
+                && subtreeContainsEquals(root))
+        {
+            throw new CoreException("semantic error: invalid nested equality operators");
+        }
+        check(root.getLeftChild());
+        check(root.getCenterChild());
+        check(root.getRightChild());
     }
 
     private boolean subtreeContainsEquals(final ASTNode root)
     {
-        if (root instanceof BinaryOperator)
+        if (root == null)
         {
-            final BinaryOperator rootOp = (BinaryOperator) root;
-            final ASTNode leftRoot = rootOp.getLeftChild();
-            final ASTNode rightRoot = rootOp.getRightChild();
-            if (leftRoot instanceof EqualsOperator || leftRoot instanceof BangEqualsOperator
-                    || rightRoot instanceof EqualsOperator
-                    || rightRoot instanceof BangEqualsOperator)
-            {
-                return true;
-            }
-            return subtreeContainsEquals(leftRoot) || subtreeContainsEquals(rightRoot);
+            return false;
         }
-        return false;
+
+        final ASTNode leftRoot = root.getLeftChild();
+        final ASTNode rightRoot = root.getRightChild();
+        final ASTNode centerRoot = root.getCenterChild();
+        if (leftRoot instanceof EqualsOperator || leftRoot instanceof BangEqualsOperator
+                || rightRoot instanceof EqualsOperator || rightRoot instanceof BangEqualsOperator
+                || centerRoot instanceof EqualsOperator || centerRoot instanceof BangEqualsOperator)
+        {
+            return true;
+        }
+        return subtreeContainsEquals(leftRoot) || subtreeContainsEquals(rightRoot)
+                || subtreeContainsEquals(centerRoot);
     }
 }
