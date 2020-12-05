@@ -23,6 +23,12 @@ public class RegexOperand extends Operand
     }
 
     @Override
+    public String getPrettyPrintText()
+    {
+        return "/" + getToken().getLexeme() + "/";
+    }
+
+    @Override
     public boolean match(final List<String> keys, final List<String> values)
     {
         if (keys == null && values == null)

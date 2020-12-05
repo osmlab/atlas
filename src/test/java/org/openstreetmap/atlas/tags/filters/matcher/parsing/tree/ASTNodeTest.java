@@ -36,6 +36,6 @@ public class ASTNodeTest
                 + "BANG_0 child: bar_1\n" + "bar_1\n" + "BANGEQ_2\n" + "BANGEQ_2 left: mat_2\n"
                 + "BANGEQ_2 right: OR_1\n" + "mat_2\n" + "OR_1\n" + "OR_1 left: baz_3\n"
                 + "OR_1 right: bat.*_4\n" + "baz_3\n" + "bat.*_4\n" + "hat_5\n";
-        Assert.assertEquals(expected, xor.printTree());
+        Assert.assertEquals(expected, xor.debugPrintTree());
     }
 }

@@ -21,7 +21,17 @@ public abstract class UnaryOperator implements ASTNode
         this.id = counter++;
     }
 
-    public ASTNode getChildSubTree()
+    @Override
+    public String debugPrintTree()
+    {
+        final StringBuilder builder = new StringBuilder();
+        builder.append(this.getName() + "\n");
+        builder.append(this.getName() + " child: " + this.child.getName() + "\n");
+        builder.append(this.child.debugPrintTree());
+        return builder.toString();
+    }
+
+    @Override public ASTNode getCenterChild()
     {
         return this.child;
     }
@@ -32,13 +42,13 @@ public abstract class UnaryOperator implements ASTNode
         return this.id;
     }
 
-    @Override
-    public String printTree()
+    @Override public ASTNode getLeftChild()
     {
-        final StringBuilder builder = new StringBuilder();
-        builder.append(this.getName() + "\n");
-        builder.append(this.getName() + " child: " + this.child.getName() + "\n");
-        builder.append(this.child.printTree());
-        return builder.toString();
+        return null;
+    }
+
+    @Override public ASTNode getRightChild()
+    {
+        return null;
     }
 }

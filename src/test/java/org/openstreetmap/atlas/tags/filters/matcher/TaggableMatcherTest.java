@@ -121,6 +121,12 @@ public class TaggableMatcherTest
     }
 
     @Test
+    public void testPrettyPrintTree()
+    {
+        Assert.assertEquals("", TaggableMatcher.from("foo = bar | baz = bat").prettyPrintTree());
+    }
+
+    @Test
     public void testQuotes()
     {
         final Taggable taggable1 = new Taggable()

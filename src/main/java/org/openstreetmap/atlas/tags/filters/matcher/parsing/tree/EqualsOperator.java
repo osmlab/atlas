@@ -22,6 +22,12 @@ public class EqualsOperator extends BinaryOperator
     }
 
     @Override
+    public String getPrettyPrintText()
+    {
+        return "=";
+    }
+
+    @Override
     public boolean match(final List<String> keys, final List<String> values)
     {
         if (keys.size() != values.size())
@@ -32,9 +38,9 @@ public class EqualsOperator extends BinaryOperator
 
         for (int i = 0; i < keys.size(); i++)
         {
-            final boolean leftSide = getLeftSubTree().match(Collections.singletonList(keys.get(i)),
+            final boolean leftSide = getLeftChild().match(Collections.singletonList(keys.get(i)),
                     null);
-            final boolean rightSide = getRightSubTree().match(null,
+            final boolean rightSide = getRightChild().match(null,
                     Collections.singletonList(values.get(i)));
 
             if (leftSide && rightSide)

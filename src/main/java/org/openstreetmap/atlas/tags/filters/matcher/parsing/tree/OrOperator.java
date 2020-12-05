@@ -19,8 +19,14 @@ public class OrOperator extends BinaryOperator
     }
 
     @Override
+    public String getPrettyPrintText()
+    {
+        return "|";
+    }
+
+    @Override
     public boolean match(final List<String> keys, final List<String> values)
     {
-        return getLeftSubTree().match(keys, values) || getRightSubTree().match(keys, values);
+        return getLeftChild().match(keys, values) || getRightChild().match(keys, values);
     }
 }

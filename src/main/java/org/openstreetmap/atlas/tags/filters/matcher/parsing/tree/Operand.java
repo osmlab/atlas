@@ -24,21 +24,39 @@ public abstract class Operand implements ASTNode
     }
 
     @Override
+    public String debugPrintTree()
+    {
+        final StringBuilder builder = new StringBuilder();
+        builder.append(this.getName() + "\n");
+        return builder.toString();
+    }
+
+    @Override
+    public ASTNode getCenterChild()
+    {
+        return null;
+    }
+
+    @Override
     public int getId()
     {
         return this.id;
     }
 
-    public Token getToken()
+    @Override
+    public ASTNode getLeftChild()
     {
-        return this.token;
+        return null;
     }
 
     @Override
-    public String printTree()
+    public ASTNode getRightChild()
     {
-        final StringBuilder builder = new StringBuilder();
-        builder.append(this.getName() + "\n");
-        return builder.toString();
+        return null;
+    }
+
+    public Token getToken()
+    {
+        return this.token;
     }
 }

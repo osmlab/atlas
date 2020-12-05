@@ -19,10 +19,16 @@ public class XorOperator extends BinaryOperator
     }
 
     @Override
+    public String getPrettyPrintText()
+    {
+        return "^";
+    }
+
+    @Override
     public boolean match(final List<String> keys, final List<String> values)
     {
-        final boolean left = getLeftSubTree().match(keys, values);
-        final boolean right = getRightSubTree().match(keys, values);
+        final boolean left = getLeftChild().match(keys, values);
+        final boolean right = getRightChild().match(keys, values);
         return (left || right) && !(left && right);
     }
 }

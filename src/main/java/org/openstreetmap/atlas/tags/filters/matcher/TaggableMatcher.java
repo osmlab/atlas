@@ -42,7 +42,7 @@ public class TaggableMatcher implements Predicate<Taggable>, Serializable
      *
      * @return this {@link TaggableMatcher} as a tree
      */
-    public String prettyPrint()
+    public String prettyPrintTree()
     {
         return "TODO";
     }

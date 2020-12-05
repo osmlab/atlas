@@ -28,8 +28,8 @@ public class SemanticChecker
             {
                 throw new CoreException("semantic error: invalid nested equality operators");
             }
-            check(((BinaryOperator) root).getLeftSubTree());
-            check(((BinaryOperator) root).getRightSubTree());
+            check(((BinaryOperator) root).getLeftChild());
+            check(((BinaryOperator) root).getRightChild());
         }
     }
 
@@ -38,8 +38,8 @@ public class SemanticChecker
         if (root instanceof BinaryOperator)
         {
             final BinaryOperator rootOp = (BinaryOperator) root;
-            final ASTNode leftRoot = rootOp.getLeftSubTree();
-            final ASTNode rightRoot = rootOp.getRightSubTree();
+            final ASTNode leftRoot = rootOp.getLeftChild();
+            final ASTNode rightRoot = rootOp.getRightChild();
             if (leftRoot instanceof EqualsOperator || leftRoot instanceof BangEqualsOperator
                     || rightRoot instanceof EqualsOperator
                     || rightRoot instanceof BangEqualsOperator)

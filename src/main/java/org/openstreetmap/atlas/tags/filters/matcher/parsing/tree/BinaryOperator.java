@@ -24,30 +24,35 @@ public abstract class BinaryOperator implements ASTNode
     }
 
     @Override
-    public int getId()
-    {
-        return this.id;
-    }
-
-    public ASTNode getLeftSubTree()
-    {
-        return this.left;
-    }
-
-    public ASTNode getRightSubTree()
-    {
-        return this.right;
-    }
-
-    @Override
-    public String printTree()
+    public String debugPrintTree()
     {
         final StringBuilder builder = new StringBuilder();
         builder.append(this.getName() + "\n");
         builder.append(this.getName() + " left: " + this.left.getName() + "\n");
         builder.append(this.getName() + " right: " + this.right.getName() + "\n");
-        builder.append(this.left.printTree());
-        builder.append(this.right.printTree());
+        builder.append(this.left.debugPrintTree());
+        builder.append(this.right.debugPrintTree());
         return builder.toString();
+    }
+
+    @Override public ASTNode getCenterChild()
+    {
+        return null;
+    }
+
+    @Override
+    public int getId()
+    {
+        return this.id;
+    }
+
+    @Override public ASTNode getLeftChild()
+    {
+        return this.left;
+    }
+
+    @Override public ASTNode getRightChild()
+    {
+        return this.right;
     }
 }

@@ -19,8 +19,14 @@ public class BangOperator extends UnaryOperator
     }
 
     @Override
+    public String getPrettyPrintText()
+    {
+        return "!";
+    }
+
+    @Override
     public boolean match(final List<String> keys, final List<String> values)
     {
-        return !getChildSubTree().match(keys, values);
+        return !getCenterChild().match(keys, values);
     }
 }
