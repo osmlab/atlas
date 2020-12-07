@@ -19,7 +19,7 @@ public final class TreePrinter
      * @param root
      *            the root {@link ASTNode} of the tree
      */
-    public static String print(final ASTNode root)
+    public static String print(final ASTNode root) // NOSONAR
     {
         final StringBuilder treeString = new StringBuilder();
         final Tuple<List<List<String>>, Integer> tuple = discoverAllTreeNodes(root);
@@ -74,10 +74,7 @@ public final class TreePrinter
                      */
                     if (line.get(lineElementIndex) == null)
                     {
-                        for (int k = 0; k < lengthOfTreePiece - 1; k++)
-                        {
-                            treeString.append(" ");
-                        }
+                        treeString.append(" ".repeat(Math.max(0, lengthOfTreePiece - 1)));
                     }
                     /*
                      * Here we decide which box-drawing character to print above the nodes *BELOW*
@@ -85,15 +82,11 @@ public final class TreePrinter
                      */
                     else
                     {
-                        for (int k = 0; k < nodeLeftRightPadding; k++)
-                        {
-                            treeString.append(isEven(lineElementIndex) ? " " : "─");
-                        }
+                        treeString.append((isEven(lineElementIndex) ? " " : "─")
+                                .repeat(Math.max(0, nodeLeftRightPadding)));
                         treeString.append(isEven(lineElementIndex) ? "┌" : "┐");
-                        for (int k = 0; k < nodeLeftRightPadding; k++)
-                        {
-                            treeString.append(isEven(lineElementIndex) ? "─" : " ");
-                        }
+                        treeString.append((isEven(lineElementIndex) ? "─" : " ")
+                                .repeat(Math.max(0, nodeLeftRightPadding)));
                     }
                 }
                 treeString.append("\n");
@@ -112,15 +105,9 @@ public final class TreePrinter
                 final int paddingLeft = (int) Math.ceil(padding);
                 final int paddingRight = (int) Math.floor(padding);
 
-                for (int k = 0; k < paddingLeft; k++)
-                {
-                    treeString.append(" ");
-                }
+                treeString.append(" ".repeat(Math.max(0, paddingLeft)));
                 treeString.append(element);
-                for (int k = 0; k < paddingRight; k++)
-                {
-                    treeString.append(" ");
-                }
+                treeString.append(" ".repeat(Math.max(0, paddingRight)));
             }
             treeString.append("\n");
 
@@ -131,7 +118,7 @@ public final class TreePrinter
         return treeString.toString();
     }
 
-    private static Tuple<List<List<String>>, Integer> discoverAllTreeNodes(final ASTNode root)
+    private static Tuple<List<List<String>>, Integer> discoverAllTreeNodes(final ASTNode root) // NOSONAR
     {
         final List<List<String>> lines = new ArrayList<>();
 

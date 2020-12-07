@@ -2,7 +2,6 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 
 import java.util.List;
 
-import org.openstreetmap.atlas.tags.filters.matcher.TODO_Remove_TreePrinterSampleTest;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.Lexer;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.Parser;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.ASTNode;
@@ -33,9 +32,7 @@ public class TaggableMatcherPrinter extends AbstractAtlasShellToolsCommand
             this.getCommandOutputDelegate().printlnStdout(definition, TTYAttribute.BOLD,
                     TTYAttribute.GREEN);
             final ASTNode root = new Parser(new Lexer().lex(definition), definition).parse();
-            TODO_Remove_TreePrinterSampleTest.print(root);
-            this.getCommandOutputDelegate().printlnStdout(TreePrinter.print(root),
-                    TTYAttribute.BOLD, TTYAttribute.RED);
+            this.getCommandOutputDelegate().printlnStdout(TreePrinter.print(root));
             this.getCommandOutputDelegate().printlnStdout("");
         }
 
