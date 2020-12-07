@@ -20,14 +20,14 @@ public final class TreePrinter
      */
     public static String print(final ASTNode root)
     {
-        final List<List<String>> lines = breadthFirstSearchNodesAndGetLines(root);
+        final List<List<String>> lines = discoverAllTreeNodes(root);
 
         // TODO implement
 
         return lines.toString();
     }
 
-    private static List<List<String>> breadthFirstSearchNodesAndGetLines(final ASTNode root)
+    private static List<List<String>> discoverAllTreeNodes(final ASTNode root)
     {
         final List<List<String>> lines = new ArrayList<>();
 

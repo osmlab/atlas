@@ -11,6 +11,7 @@
    * [More On Quoting](#more-on-quoting)
    * [Regex](#regex)
    * [Tree Representation](#tree-representation)
+4. TODO TaggableMatcherPrinter command
 
 ## Quick Intro and Examples
 `TaggableMatcher` is an extension of `Predicate<Taggable>` that supports intuitive string definitions.
