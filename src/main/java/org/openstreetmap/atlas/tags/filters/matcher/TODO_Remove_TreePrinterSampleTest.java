@@ -56,9 +56,20 @@ public class TODO_Remove_TreePrinterSampleTest
                         widestNodeWidth = nodeText.length();
                     }
 
-                    nodesNextLevel.add(node.getLeftChild());
+                    if (node.getCenterChild() != null)
+                    {
+                        nodesNextLevel.add(node.getCenterChild());
+                    }
+                    else
+                    {
+                        nodesNextLevel.add(node.getLeftChild());
+                    }
                     nodesNextLevel.add(node.getRightChild());
 
+                    if (node.getCenterChild() != null)
+                    {
+                        numberOfNodesRemaining++;
+                    }
                     if (node.getLeftChild() != null)
                     {
                         numberOfNodesRemaining++;

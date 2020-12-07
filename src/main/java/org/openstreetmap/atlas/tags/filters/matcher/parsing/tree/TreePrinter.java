@@ -21,17 +21,114 @@ public final class TreePrinter
      */
     public static String print(final ASTNode root)
     {
+        final StringBuilder treeString = new StringBuilder();
         final Tuple<List<List<String>>, Integer> tuple = discoverAllTreeNodes(root);
         final List<List<String>> lines = tuple.getFirst();
         final int widestNodeWidth = tuple.getSecond();
 
-        final int lengthPerPrintedLine = lines.get(lines.size() - 1).size() * (widestNodeWidth + 4);
-        System.err.println("widestNodeWidth: " + widestNodeWidth);
-        System.err.println("lengthPerPrintedLine: " + lengthPerPrintedLine);
+        /*
+         * How are we calculating this? The last line returned by the breadth first search will be
+         * the longest, since it will contain a lot of nulls for every dead branch in the tree. So
+         * we use the last line as a baseline for line length. Then, we multiply by the widest width
+         * of any node plus 4 (4 gives some nice padding for readability). As the loop walks down
+         * the tree, this value will be continually halved, since each level there are approx. twice
+         * as many tree pieces.
+         */
+        int lengthOfTreePiece = lines.get(lines.size() - 1).size() * (widestNodeWidth + 4);
+        boolean firstIteration = true;
+        for (final List<String> line : lines)
+        {
+            final int nodeLeftRightPadding = (int) Math.floor(lengthOfTreePiece / 2f) - 1;
 
-        // TODO implement
+            /*
+             * This section prints the Unicode box-drawing characters above each line of actual
+             * elements. It does not run on the first iteration of the loop, since there is no line
+             * containing Unicode box-drawing characters to print above the root node.
+             */
+            if (!firstIteration)
+            {
+                for (int lineElementIndex = 0; lineElementIndex < line.size(); lineElementIndex++)
+                {
+                    /*
+                     * Decide which Unicode box-drawing character to print below the nodes *ABOVE*
+                     * the current line. Only print for odd elements within the line. Since the tree
+                     * is binary, there is only one node "between" each of the nodes in the current
+                     * line.
+                     */
+                    char boxCharacter = ' ';
+                    if (isOdd(lineElementIndex))
+                    {
+                        if (line.get(lineElementIndex - 1) != null)
+                        {
+                            boxCharacter = (line.get(lineElementIndex) != null) ? '┴' : '┘';
+                        }
+                        else if (line.get(lineElementIndex) != null)
+                        {
+                            boxCharacter = '└';
+                        }
+                    }
+                    treeString.append(boxCharacter);
 
-        return lines.toString();
+                    /*
+                     * Print whitespace above null line elements, since nothing is there.
+                     */
+                    if (line.get(lineElementIndex) == null)
+                    {
+                        for (int k = 0; k < lengthOfTreePiece - 1; k++)
+                        {
+                            treeString.append(" ");
+                        }
+                    }
+                    /*
+                     * Here we decide which box-drawing character to print above the nodes *BELOW*
+                     * the current line.
+                     */
+                    else
+                    {
+                        for (int k = 0; k < nodeLeftRightPadding; k++)
+                        {
+                            treeString.append(isEven(lineElementIndex) ? " " : "─");
+                        }
+                        treeString.append(isEven(lineElementIndex) ? "┌" : "┐");
+                        for (int k = 0; k < nodeLeftRightPadding; k++)
+                        {
+                            treeString.append(isEven(lineElementIndex) ? "─" : " ");
+                        }
+                    }
+                }
+                treeString.append("\n");
+            }
+
+            /*
+             * This section prints the actual line of elements.
+             */
+            for (String element : line)
+            {
+                if (element == null)
+                {
+                    element = "";
+                }
+                final double padding = (lengthOfTreePiece / 2f) - (element.length() / 2f);
+                final int paddingLeft = (int) Math.ceil(padding);
+                final int paddingRight = (int) Math.floor(padding);
+
+                for (int k = 0; k < paddingLeft; k++)
+                {
+                    treeString.append(" ");
+                }
+                treeString.append(element);
+                for (int k = 0; k < paddingRight; k++)
+                {
+                    treeString.append(" ");
+                }
+            }
+            treeString.append("\n");
+
+            lengthOfTreePiece /= 2;
+            firstIteration = false;
+        }
+
+        return treeString.toString();
     }
 
     private static Tuple<List<List<String>>, Integer> discoverAllTreeNodes(final ASTNode root)
@@ -66,9 +163,20 @@ public final class TreePrinter
                         widestNodeWidth = nodeText.length();
                     }
 
-                    nodesNextLevel.add(node.getLeftChild());
+                    if (node.getCenterChild() != null)
+                    {
+                        nodesNextLevel.add(node.getCenterChild());
+                    }
+                    else
+                    {
+                        nodesNextLevel.add(node.getLeftChild());
+                    }
                     nodesNextLevel.add(node.getRightChild());
 
+                    if (node.getCenterChild() != null)
+                    {
+                        numberOfNodesRemaining++;
+                    }
                     if (node.getLeftChild() != null)
                     {
                         numberOfNodesRemaining++;
@@ -94,6 +202,11 @@ public final class TreePrinter
         }
 
         return new Tuple<>(lines, widestNodeWidth);
+    }
+
+    private static boolean isEven(final int integer)
+    {
+        return integer % 2 == 0;
     }
 
     private static boolean isOdd(final int integer)
