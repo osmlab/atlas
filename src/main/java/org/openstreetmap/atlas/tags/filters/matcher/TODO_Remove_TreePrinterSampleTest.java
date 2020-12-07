@@ -27,7 +27,7 @@ public class TODO_Remove_TreePrinterSampleTest
 
         nodesThisLevel.add(root);
         int numberOfNodesRemaining = 1;
-        int widest = 0;
+        int widestNodeWidth = 0;
 
         while (numberOfNodesRemaining != 0)
         {
@@ -35,6 +35,12 @@ public class TODO_Remove_TreePrinterSampleTest
             numberOfNodesRemaining = 0;
             for (final ASTNode node : nodesThisLevel)
             {
+                /*
+                 * Why add all these nulls? Because we want every possible place a node *could*
+                 * appear to be "accounted for". Always thinking of the tree as full, but with empty
+                 * places filled in by null, will make spacing and box-character drawing decisions
+                 * in the next section much easier.
+                 */
                 if (node == null)
                 {
                     line.add(null);
@@ -45,9 +51,9 @@ public class TODO_Remove_TreePrinterSampleTest
                 {
                     final String nodeText = node.getPrettyPrintText();
                     line.add(nodeText);
-                    if (nodeText.length() > widest)
+                    if (nodeText.length() > widestNodeWidth)
                     {
-                        widest = nodeText.length();
+                        widestNodeWidth = nodeText.length();
                     }
 
                     nodesNextLevel.add(node.getLeftChild());
@@ -64,9 +70,9 @@ public class TODO_Remove_TreePrinterSampleTest
                 }
             }
 
-            if (widest % 2 == 1)
+            if (isOdd(widestNodeWidth))
             {
-                widest++;
+                widestNodeWidth++;
             }
 
             lines.add(line);
@@ -77,53 +83,73 @@ public class TODO_Remove_TreePrinterSampleTest
             nodesNextLevel.clear();
         }
 
-        int perpiece = lines.get(lines.size() - 1).size() * (widest + 4);
-        for (int i = 0; i < lines.size(); i++)
+        /*
+         * How are we calculating this? The last line returned by the breadth first search will be
+         * the longest, since it will contain a lot of nulls for every dead branch in the tree. So
+         * we use the last line as a baseline for line length. Then, we multiply by the widest width
+         * of any node plus 4 (4 gives some nice padding for readability). As the loop walks down
+         * the tree, this value will be continually halved, since each level there are approx. twice
+         * as many tree pieces.
+         */
+        int lengthOfTreePiece = lines.get(lines.size() - 1).size() * (widestNodeWidth + 4);
+        boolean firstIteration = true;
+        for (final List<String> line : lines)
         {
-            final List<String> line = lines.get(i);
-            final int heightPerWidth = (int) Math.floor(perpiece / 2f) - 1;
+            final int nodeLeftRightPadding = (int) Math.floor(lengthOfTreePiece / 2f) - 1;
 
             /*
-             * This section prints the tree pieces between each line of actual elements.
+             * This section prints the Unicode box-drawing characters above each line of actual
+             * elements. It does not run on the first iteration of the loop, since there is no line
+             * containing Unicode box-drawing characters to print above the root node.
              */
-            if (i > 0)
+            if (!firstIteration)
             {
-                for (int j = 0; j < line.size(); j++)
+                for (int lineElementIndex = 0; lineElementIndex < line.size(); lineElementIndex++)
                 {
-                    // split node
-                    char c = ' ';
-                    if (j % 2 == 1)
+                    /*
+                     * Decide which Unicode box-drawing character to print below the nodes *ABOVE*
+                     * the current line. Only print for odd elements within the line. Since the tree
+                     * is binary, there is only one node "between" each of the nodes in the current
+                     * line.
+                     */
+                    char boxCharacter = ' ';
+                    if (isOdd(lineElementIndex))
                     {
-                        if (line.get(j - 1) != null)
+                        if (line.get(lineElementIndex - 1) != null)
                         {
-                            c = (line.get(j) != null) ? '┴' : '┘';
+                            boxCharacter = (line.get(lineElementIndex) != null) ? '┴' : '┘';
                         }
-                        else
+                        else if (line.get(lineElementIndex) != null)
                         {
-                            if (j < line.size() && line.get(j) != null)
-                                c = '└';
+                            boxCharacter = '└';
                         }
                     }
-                    System.out.print(c);
+                    System.out.print(boxCharacter);
 
-                    // lines and spaces
-                    if (line.get(j) == null)
+                    /*
+                     * Print whitespace above null line elements, since nothing is there.
+                     */
+                    if (line.get(lineElementIndex) == null)
                     {
-                        for (int k = 0; k < perpiece - 1; k++)
+                        for (int k = 0; k < lengthOfTreePiece - 1; k++)
                         {
                             System.out.print(" ");
                         }
                     }
+                    /*
+                     * Here we decide which box-drawing character to print above the nodes *BELOW*
+                     * the current line.
+                     */
                     else
                     {
-                        for (int k = 0; k < heightPerWidth; k++)
+                        for (int k = 0; k < nodeLeftRightPadding; k++)
                         {
-                            System.out.print(j % 2 == 0 ? " " : "─");
+                            System.out.print(isEven(lineElementIndex) ? " " : "─");
                         }
-                        System.out.print(j % 2 == 0 ? "┌" : "┐");
-                        for (int k = 0; k < heightPerWidth; k++)
+                        System.out.print(isEven(lineElementIndex) ? "┌" : "┐");
+                        for (int k = 0; k < nodeLeftRightPadding; k++)
                         {
-                            System.out.print(j % 2 == 0 ? "─" : " ");
+                            System.out.print(isEven(lineElementIndex) ? "─" : " ");
                         }
                     }
                 }
@@ -139,24 +165,34 @@ public class TODO_Remove_TreePrinterSampleTest
                 {
                     element = "";
                 }
-                final double gapExact = (perpiece / 2f) - (element.length() / 2f);
-                final int gapLeft = (int) Math.ceil(gapExact);
-                final int gapRight = (int) Math.floor(gapExact);
+                final double padding = (lengthOfTreePiece / 2f) - (element.length() / 2f);
+                final int paddingLeft = (int) Math.ceil(padding);
+                final int paddingRight = (int) Math.floor(padding);
 
-                // a number
-                for (int k = 0; k < gapLeft; k++)
+                for (int k = 0; k < paddingLeft; k++)
                 {
                     System.out.print(" ");
                 }
                 System.out.print(element);
-                for (int k = 0; k < gapRight; k++)
+                for (int k = 0; k < paddingRight; k++)
                 {
                     System.out.print(" ");
                 }
             }
             System.out.println();
 
-            perpiece /= 2;
+            lengthOfTreePiece /= 2;
+            firstIteration = false;
         }
+    }
+
+    private static boolean isEven(final int integer)
+    {
+        return integer % 2 == 0;
+    }
+
+    private static boolean isOdd(final int integer)
+    {
+        return integer % 2 != 0;
     }
 }

@@ -13,7 +13,7 @@ public class TreePrinterTest
     @Test
     public void test()
     {
-        final String input3 = "foo = bar | baz = bat";
+        final String input3 = "foo=bar | baz=bat";
         final ASTNode root = new Parser(new Lexer().lex(input3), input3).parse();
         TODO_Remove_TreePrinterSampleTest.print(root);
         System.err.println(TreePrinter.print(root));

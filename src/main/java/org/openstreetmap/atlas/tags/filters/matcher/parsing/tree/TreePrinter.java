@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.openstreetmap.atlas.tags.filters.matcher.TaggableMatcher;
+import org.openstreetmap.atlas.utilities.tuples.Tuple;
 
 /**
  * Inspired by MightyPork's algorithm here: https://stackoverflow.com/a/29704252
@@ -20,14 +21,20 @@ public final class TreePrinter
      */
     public static String print(final ASTNode root)
     {
-        final List<List<String>> lines = discoverAllTreeNodes(root);
+        final Tuple<List<List<String>>, Integer> tuple = discoverAllTreeNodes(root);
+        final List<List<String>> lines = tuple.getFirst();
+        final int widestNodeWidth = tuple.getSecond();
+
+        final int lengthPerPrintedLine = lines.get(lines.size() - 1).size() * (widestNodeWidth + 4);
+        System.err.println("widestNodeWidth: " + widestNodeWidth);
+        System.err.println("lengthPerPrintedLine: " + lengthPerPrintedLine);
 
         // TODO implement
 
         return lines.toString();
     }
 
-    private static List<List<String>> discoverAllTreeNodes(final ASTNode root)
+    private static Tuple<List<List<String>>, Integer> discoverAllTreeNodes(final ASTNode root)
     {
         final List<List<String>> lines = new ArrayList<>();
 
@@ -36,7 +43,7 @@ public final class TreePrinter
 
         nodesThisLevel.add(root);
         int numberOfNodesRemaining = 1;
-        int widest = 0;
+        int widestNodeWidth = 0;
 
         while (numberOfNodesRemaining != 0)
         {
@@ -54,9 +61,9 @@ public final class TreePrinter
                 {
                     final String nodeText = node.getPrettyPrintText();
                     line.add(nodeText);
-                    if (nodeText.length() > widest)
+                    if (nodeText.length() > widestNodeWidth)
                     {
-                        widest = nodeText.length();
+                        widestNodeWidth = nodeText.length();
                     }
 
                     nodesNextLevel.add(node.getLeftChild());
@@ -73,9 +80,9 @@ public final class TreePrinter
                 }
             }
 
-            if (widest % 2 == 1)
+            if (isOdd(widestNodeWidth))
             {
-                widest++;
+                widestNodeWidth++;
             }
 
             lines.add(line);
@@ -86,7 +93,12 @@ public final class TreePrinter
             nodesNextLevel.clear();
         }
 
-        return lines;
+        return new Tuple<>(lines, widestNodeWidth);
+    }
+
+    private static boolean isOdd(final int integer)
+    {
+        return integer % 2 != 0;
     }
 
     private TreePrinter()
