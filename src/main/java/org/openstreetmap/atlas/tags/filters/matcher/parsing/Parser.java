@@ -7,7 +7,6 @@ import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.tags.filters.matcher.TaggableMatcher;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.ASTNode;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.AndOperator;
-import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.BangEqualsOperator;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.BangOperator;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.BinaryOperator;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.EqualsOperator;
@@ -198,7 +197,7 @@ public class Parser
                 final ASTNode rightResult = eqPrime();
                 if (rightResult != null)
                 {
-                    node = new EqualsOperator(node, rightResult);
+                    node = new EqualsOperator(node, rightResult, false);
                 }
             }
             else if (this.tokenBuffer.peek().getType() == Token.TokenType.BANG_EQUAL)
@@ -206,7 +205,7 @@ public class Parser
                 final ASTNode rightResult = eqPrime();
                 if (rightResult != null)
                 {
-                    node = new BangEqualsOperator(node, rightResult);
+                    node = new EqualsOperator(node, rightResult, true);
                 }
             }
         }
@@ -221,7 +220,7 @@ public class Parser
     // EQ' -> = VALUE EQ'
     // EQ' -> != VALUE EQ'
     // EQ' -> ''
-    private ASTNode eqPrime()
+    private ASTNode eqPrime() // NOSONAR
     {
         ASTNode node;
 
@@ -237,7 +236,7 @@ public class Parser
                 final ASTNode rightResult = eqPrime();
                 if (rightResult != null)
                 {
-                    node = new EqualsOperator(node, rightResult);
+                    node = new EqualsOperator(node, rightResult, false);
                 }
             }
             else if (this.tokenBuffer.peek().getType() == Token.TokenType.BANG_EQUAL)
@@ -245,7 +244,7 @@ public class Parser
                 final ASTNode rightResult = eqPrime();
                 if (rightResult != null)
                 {
-                    node = new BangEqualsOperator(node, rightResult);
+                    node = new EqualsOperator(node, rightResult, true);
                 }
             }
         }
@@ -259,7 +258,7 @@ public class Parser
                 final ASTNode rightResult = eqPrime();
                 if (rightResult != null)
                 {
-                    node = new EqualsOperator(node, rightResult);
+                    node = new EqualsOperator(node, rightResult, false);
                 }
             }
             else if (this.tokenBuffer.peek().getType() == Token.TokenType.BANG_EQUAL)
@@ -267,7 +266,7 @@ public class Parser
                 final ASTNode rightResult = eqPrime();
                 if (rightResult != null)
                 {
-                    node = new BangEqualsOperator(node, rightResult);
+                    node = new EqualsOperator(node, rightResult, true);
                 }
             }
         }
@@ -367,35 +366,36 @@ public class Parser
     // VALUE -> /regex/
     private ASTNode value()
     {
+        final String valueAcceptMessage = "VALUE: try accepting: {}";
         ASTNode node = null;
 
         logger.debug("VALUE: peek: {}({})", this.tokenBuffer.peek().getType(),
                 this.tokenBuffer.peek().getLexeme());
         if (this.tokenBuffer.peek().getType() == Token.TokenType.PAREN_OPEN)
         {
-            logger.debug("VALUE: try accepting: {}", Token.TokenType.PAREN_OPEN);
+            logger.debug(valueAcceptMessage, Token.TokenType.PAREN_OPEN);
             accept(Token.TokenType.PAREN_OPEN);
             node = or();
-            logger.debug("VALUE: try accepting: {}", Token.TokenType.PAREN_CLOSE);
+            logger.debug(valueAcceptMessage, Token.TokenType.PAREN_CLOSE);
             accept(Token.TokenType.PAREN_CLOSE);
         }
         else if (this.tokenBuffer.peek().getType() == Token.TokenType.BANG)
         {
-            logger.debug("VALUE: try accepting: {}", Token.TokenType.BANG);
+            logger.debug(valueAcceptMessage, Token.TokenType.BANG);
             // accept the BANG first, and then parse the remaining token buffer
             accept(Token.TokenType.BANG);
             node = new BangOperator(value());
         }
         else if (this.tokenBuffer.peek().getType() == Token.TokenType.LITERAL)
         {
-            logger.debug("VALUE: try accepting: {}", Token.TokenType.LITERAL);
+            logger.debug(valueAcceptMessage, Token.TokenType.LITERAL);
             // Create the AST node first, since accepting will advance the token buffer
             node = new LiteralOperand(this.tokenBuffer.peek());
             accept(Token.TokenType.LITERAL);
         }
         else if (this.tokenBuffer.peek().getType() == Token.TokenType.REGEX)
         {
-            logger.debug("VALUE: try accepting: {}", Token.TokenType.REGEX);
+            logger.debug(valueAcceptMessage, Token.TokenType.REGEX);
             // Create the AST node first, since accepting will advance the token buffer
             node = new RegexOperand(this.tokenBuffer.peek());
             accept(Token.TokenType.REGEX);

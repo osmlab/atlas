@@ -40,6 +40,27 @@ public class TaggableMatcherTest
         Assert.assertFalse(TaggableMatcher.from("!(foo=bar & baz=bat)").test(taggable1));
         Assert.assertFalse(TaggableMatcher.from("foo=bar & baz=\" bat\"").test(taggable1));
         Assert.assertTrue(TaggableMatcher.from("foo=bar & baz!=\" bat\"").test(taggable1));
+    }
+
+    @Test
+    public void basicTests2()
+    {
+        final Taggable taggable1 = new Taggable()
+        {
+            private final Map<String, String> tags = Maps.hashMap("foo", "bar", "baz", "bat");
+
+            @Override
+            public Optional<String> getTag(final String key)
+            {
+                return Optional.ofNullable(this.tags.get(key));
+            }
+
+            @Override
+            public Map<String, String> getTags()
+            {
+                return this.tags;
+            }
+        };
         Assert.assertTrue(TaggableMatcher.from("foo=/b.*/ & baz=/b.*/").test(taggable1));
         Assert.assertTrue(TaggableMatcher.from("foo = bar & !mat").test(taggable1));
         Assert.assertFalse(TaggableMatcher.from("foo=bar & mat!=hat").test(taggable1));

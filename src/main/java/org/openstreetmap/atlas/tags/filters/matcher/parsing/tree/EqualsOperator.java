@@ -10,21 +10,39 @@ import org.openstreetmap.atlas.exception.CoreException;
  */
 public class EqualsOperator extends BinaryOperator
 {
-    public EqualsOperator(final ASTNode left, final ASTNode right)
+    private static final long serialVersionUID = 4853555543879394794L;
+    private final boolean bang;
+
+    public EqualsOperator(final ASTNode left, final ASTNode right, final boolean bang)
     {
         super(left, right);
+        this.bang = bang;
     }
 
     @Override
     public String getName()
     {
-        return "EQ_" + getIdentifier();
+        if (this.bang)
+        {
+            return "BANGEQ_" + getIdentifier();
+        }
+        else
+        {
+            return "EQ_" + getIdentifier();
+        }
     }
 
     @Override
     public String getPrettyPrintText()
     {
-        return "=";
+        if (this.bang)
+        {
+            return "!=";
+        }
+        else
+        {
+            return "=";
+        }
     }
 
     @Override
@@ -40,8 +58,16 @@ public class EqualsOperator extends BinaryOperator
         {
             final boolean leftSide = getLeftChild().match(Collections.singletonList(keys.get(i)),
                     null);
-            final boolean rightSide = getRightChild().match(null,
+            boolean rightSide = getRightChild().match(null,
                     Collections.singletonList(values.get(i)));
+
+            /*
+             * For BANG_EQUALS, flip the boolean value of the right side to mimic the logic of `!='.
+             */
+            if (this.bang)
+            {
+                rightSide = !rightSide;
+            }
 
             if (leftSide && rightSide)
             {

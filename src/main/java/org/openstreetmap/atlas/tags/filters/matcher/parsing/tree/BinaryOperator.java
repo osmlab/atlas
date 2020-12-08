@@ -1,11 +1,14 @@
 package org.openstreetmap.atlas.tags.filters.matcher.parsing.tree;
 
+import java.io.Serializable;
+
 /**
  * @author lcram
  */
-public abstract class BinaryOperator implements ASTNode
+public abstract class BinaryOperator implements ASTNode, Serializable
 {
     private static int counter = 0;
+    private static final long serialVersionUID = -8367179322128266687L;
 
     private final ASTNode left;
     private final ASTNode right;
@@ -16,7 +19,7 @@ public abstract class BinaryOperator implements ASTNode
         counter = 0;
     }
 
-    public BinaryOperator(final ASTNode left, final ASTNode right)
+    protected BinaryOperator(final ASTNode left, final ASTNode right)
     {
         this.left = left;
         this.right = right;
