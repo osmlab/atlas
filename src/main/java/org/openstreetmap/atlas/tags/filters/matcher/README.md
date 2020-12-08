@@ -11,7 +11,6 @@
    * [More On Quoting](#more-on-quoting)
    * [Regex](#regex)
    * [Tree Representation](#tree-representation)
-4. TODO TaggableMatcherPrinter command
 
 ## Quick Intro and Examples
 `TaggableMatcher` is an extension of `Predicate<Taggable>` that supports intuitive string definitions.
@@ -220,7 +219,10 @@ it will match substrings of the input.
 
 ### Tree Representation
 It can be helpful to think about `TaggableMatchers` as syntax trees with the various operators as internal nodes.
-For example, we could represent the following `TaggableMatcher` as this tree:
+You can print out pretty Unicode trees for your `TaggableMatchers` using the `TaggableMatcherPrinterCommand`, which
+you can call from the command line as `print-matcher` using [Atlas Shell Tools](https://github.com/osmlab/atlas/tree/dev/atlas-shell-tools).
+
+For example, we could print the following `TaggableMatcher` as this tree:
 ```
 a = b & c = d | e != f
 ```
@@ -253,6 +255,7 @@ becomes this tree:
 
 ```
 The `TaggableMatcher` semantic checker is able to detect subtrees like this and reject the matcher
-definition as invalid.
+definition as invalid. In fact, the `TaggableMatcherPrinterCommand` will not even allow you to print
+this tree since it fails the semantic check.
 
 
