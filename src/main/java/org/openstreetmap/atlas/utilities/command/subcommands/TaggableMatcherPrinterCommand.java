@@ -32,6 +32,13 @@ public class TaggableMatcherPrinterCommand extends AbstractAtlasShellToolsComman
             {
                 final TaggableMatcher matcher = TaggableMatcher.from(definition);
                 this.getCommandOutputDelegate().printlnStdout(matcher.prettyPrintTree());
+                if (matcher.lengthOfLongestLineForPrintedTree() > this.getMaximumColumn())
+                {
+                    this.getCommandOutputDelegate()
+                            .printlnWarnMessage("tree was too big for detected terminal width");
+                    this.getCommandOutputDelegate().printlnCommandMessage(
+                            "try piping into `less -S' to disable line-wrapping");
+                }
             }
             catch (final CoreException exception)
             {

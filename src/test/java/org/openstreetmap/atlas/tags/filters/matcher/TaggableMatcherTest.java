@@ -150,6 +150,15 @@ public class TaggableMatcherTest
     }
 
     @Test
+    public void testPrettyTreeLength()
+    {
+        Assert.assertEquals(16L,
+                TaggableMatcher.from("foo = bar").lengthOfLongestLineForPrintedTree());
+        Assert.assertEquals(32L,
+                TaggableMatcher.from("foo = bar | baz = bat").lengthOfLongestLineForPrintedTree());
+    }
+
+    @Test
     public void testQuotes()
     {
         final Taggable taggable1 = new Taggable()

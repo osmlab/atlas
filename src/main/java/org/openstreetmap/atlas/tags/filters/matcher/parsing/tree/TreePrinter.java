@@ -1,8 +1,10 @@
 package org.openstreetmap.atlas.tags.filters.matcher.parsing.tree;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.tags.filters.matcher.TaggableMatcher;
 import org.openstreetmap.atlas.utilities.tuples.Tuple;
 
@@ -13,6 +15,12 @@ import org.openstreetmap.atlas.utilities.tuples.Tuple;
  */
 public final class TreePrinter
 {
+    public static long lengthOfLongestLineForTree(final ASTNode root)
+    {
+        return Arrays.stream(print(root).split("\n")).mapToLong(String::length).max()
+                .orElseThrow(() -> new CoreException("Failed to caluclate longest line length!"));
+    }
+
     /**
      * Get a {@link TaggableMatcher} tree as a string.
      *
