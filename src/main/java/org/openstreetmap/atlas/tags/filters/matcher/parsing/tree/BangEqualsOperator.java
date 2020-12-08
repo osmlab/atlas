@@ -18,7 +18,7 @@ public class BangEqualsOperator extends BinaryOperator
     @Override
     public String getName()
     {
-        return "BANGEQ_" + getId();
+        return "BANGEQ_" + getIdentifier();
     }
 
     @Override

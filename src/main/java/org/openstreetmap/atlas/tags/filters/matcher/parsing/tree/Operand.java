@@ -10,9 +10,9 @@ public abstract class Operand implements ASTNode
     private static int counter = 0;
 
     private final Token token;
-    private final int id;
+    private final int identifier;
 
-    public static void clearIdCounter()
+    public static void clearIdentifierCounter()
     {
         counter = 0;
     }
@@ -20,7 +20,7 @@ public abstract class Operand implements ASTNode
     public Operand(final Token token)
     {
         this.token = token;
-        this.id = counter++;
+        this.identifier = counter++;
     }
 
     @Override
@@ -38,9 +38,9 @@ public abstract class Operand implements ASTNode
     }
 
     @Override
-    public int getId()
+    public int getIdentifier()
     {
-        return this.id;
+        return this.identifier;
     }
 
     @Override

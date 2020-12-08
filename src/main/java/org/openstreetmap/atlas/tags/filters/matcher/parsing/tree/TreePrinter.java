@@ -14,10 +14,11 @@ import org.openstreetmap.atlas.utilities.tuples.Tuple;
 public final class TreePrinter
 {
     /**
-     * Print a {@link TaggableMatcher} tree.
+     * Get a {@link TaggableMatcher} tree as a string.
      *
      * @param root
      *            the root {@link ASTNode} of the tree
+     * @return the string tree
      */
     public static String print(final ASTNode root) // NOSONAR
     {
@@ -34,7 +35,9 @@ public final class TreePrinter
          * the tree, this value will be continually halved, since each level there are approx. twice
          * as many tree pieces.
          */
-        int lengthOfTreePiece = lines.get(lines.size() - 1).size() * (widestNodeWidth + 4);
+        final int widthPadding = 4;
+        int lengthOfTreePiece = lines.get(lines.size() - 1).size()
+                * (widestNodeWidth + widthPadding);
         boolean firstIteration = true;
         for (final List<String> line : lines)
         {
@@ -95,18 +98,19 @@ public final class TreePrinter
             /*
              * This section prints the actual line of elements.
              */
-            for (String element : line)
+            for (final String element : line)
             {
-                if (element == null)
+                String element2 = element;
+                if (element2 == null)
                 {
-                    element = "";
+                    element2 = "";
                 }
-                final double padding = (lengthOfTreePiece / 2f) - (element.length() / 2f);
+                final double padding = (lengthOfTreePiece / 2f) - (element2.length() / 2f);
                 final int paddingLeft = (int) Math.ceil(padding);
                 final int paddingRight = (int) Math.floor(padding);
 
                 treeString.append(" ".repeat(Math.max(0, paddingLeft)));
-                treeString.append(element);
+                treeString.append(element2);
                 treeString.append(" ".repeat(Math.max(0, paddingRight)));
             }
             treeString.append("\n");

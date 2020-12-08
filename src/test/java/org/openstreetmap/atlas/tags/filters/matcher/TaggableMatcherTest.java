@@ -18,7 +18,7 @@ public class TaggableMatcherTest
     {
         final Taggable taggable1 = new Taggable()
         {
-            final Map<String, String> tags = Maps.hashMap("foo", "bar", "baz", "bat");
+            private final Map<String, String> tags = Maps.hashMap("foo", "bar", "baz", "bat");
 
             @Override
             public Optional<String> getTag(final String key)
@@ -58,7 +58,7 @@ public class TaggableMatcherTest
          */
         final Taggable taggable = new Taggable()
         {
-            final Map<String, String> tags = Maps.hashMap("name", "Main Street", "highway",
+            private final Map<String, String> tags = Maps.hashMap("name", "Main Street", "highway",
                     "secondary", "restricted", "no");
 
             @Override
@@ -82,7 +82,7 @@ public class TaggableMatcherTest
          */
         final Taggable oldStyleLakes = new Taggable()
         {
-            final Map<String, String> tags = Maps.hashMap("natural", "lake");
+            private final Map<String, String> tags = Maps.hashMap("natural", "lake");
 
             @Override
             public Optional<String> getTag(final String key)
@@ -98,7 +98,8 @@ public class TaggableMatcherTest
         };
         final Taggable newStyleLakes = new Taggable()
         {
-            final Map<String, String> tags = Maps.hashMap("natural", "water", "water", "lake");
+            private final Map<String, String> tags = Maps.hashMap("natural", "water", "water",
+                    "lake");
 
             @Override
             public Optional<String> getTag(final String key)
@@ -132,7 +133,7 @@ public class TaggableMatcherTest
     {
         final Taggable taggable1 = new Taggable()
         {
-            final Map<String, String> tags = Maps.hashMap("name", "John's \"Coffee\" Shop");
+            private final Map<String, String> tags = Maps.hashMap("name", "John's \"Coffee\" Shop");
 
             @Override
             public Optional<String> getTag(final String key)

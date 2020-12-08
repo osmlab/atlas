@@ -8,9 +8,9 @@ public abstract class UnaryOperator implements ASTNode
     private static int counter = 0;
 
     private final ASTNode child;
-    private final int id;
+    private final int identifier;
 
-    public static void clearIdCounter()
+    public static void clearIdentifierCounter()
     {
         counter = 0;
     }
@@ -18,7 +18,7 @@ public abstract class UnaryOperator implements ASTNode
     public UnaryOperator(final ASTNode child)
     {
         this.child = child;
-        this.id = counter++;
+        this.identifier = counter++;
     }
 
     @Override
@@ -31,23 +31,26 @@ public abstract class UnaryOperator implements ASTNode
         return builder.toString();
     }
 
-    @Override public ASTNode getCenterChild()
+    @Override
+    public ASTNode getCenterChild()
     {
         return this.child;
     }
 
     @Override
-    public int getId()
+    public int getIdentifier()
     {
-        return this.id;
+        return this.identifier;
     }
 
-    @Override public ASTNode getLeftChild()
+    @Override
+    public ASTNode getLeftChild()
     {
         return null;
     }
 
-    @Override public ASTNode getRightChild()
+    @Override
+    public ASTNode getRightChild()
     {
         return null;
     }

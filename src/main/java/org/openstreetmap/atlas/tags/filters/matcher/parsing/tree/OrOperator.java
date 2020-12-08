@@ -15,7 +15,7 @@ public class OrOperator extends BinaryOperator
     @Override
     public String getName()
     {
-        return "OR_" + getId();
+        return "OR_" + getIdentifier();
     }
 
     @Override

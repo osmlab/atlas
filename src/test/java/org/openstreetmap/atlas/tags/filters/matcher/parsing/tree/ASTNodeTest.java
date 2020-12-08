@@ -12,9 +12,9 @@ public class ASTNodeTest
     @Test
     public void testPrint()
     {
-        BinaryOperator.clearIdCounter();
-        UnaryOperator.clearIdCounter();
-        Operand.clearIdCounter();
+        BinaryOperator.clearIdentifierCounter();
+        UnaryOperator.clearIdentifierCounter();
+        Operand.clearIdentifierCounter();
 
         final ASTNode foo = new LiteralOperand(new Token(Token.TokenType.LITERAL, "foo", 0));
         final ASTNode bar = new LiteralOperand(new Token(Token.TokenType.LITERAL, "bar", 0));

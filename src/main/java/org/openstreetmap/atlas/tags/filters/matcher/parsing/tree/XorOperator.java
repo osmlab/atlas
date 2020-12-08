@@ -15,7 +15,7 @@ public class XorOperator extends BinaryOperator
     @Override
     public String getName()
     {
-        return "XOR_" + getId();
+        return "XOR_" + getIdentifier();
     }
 
     @Override

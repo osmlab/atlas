@@ -28,7 +28,7 @@ public interface ASTNode
      */
     ASTNode getCenterChild();
 
-    int getId();
+    int getIdentifier();
 
     /**
      * Get the left child of this {@link ASTNode}. {@link BinaryOperator}s are the only type of node

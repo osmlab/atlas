@@ -18,7 +18,7 @@ public class EqualsOperator extends BinaryOperator
     @Override
     public String getName()
     {
-        return "EQ_" + getId();
+        return "EQ_" + getIdentifier();
     }
 
     @Override

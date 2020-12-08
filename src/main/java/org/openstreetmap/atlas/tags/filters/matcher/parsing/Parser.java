@@ -104,9 +104,9 @@ public class Parser
 
     public ASTNode parse()
     {
-        BinaryOperator.clearIdCounter();
-        UnaryOperator.clearIdCounter();
-        Operand.clearIdCounter();
+        BinaryOperator.clearIdentifierCounter();
+        UnaryOperator.clearIdentifierCounter();
+        Operand.clearIdentifierCounter();
         return or();
     }
 

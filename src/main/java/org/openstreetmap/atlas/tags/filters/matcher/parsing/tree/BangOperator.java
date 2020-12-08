@@ -15,7 +15,7 @@ public class BangOperator extends UnaryOperator
     @Override
     public String getName()
     {
-        return "BANG_" + getId();
+        return "BANG_" + getIdentifier();
     }
 
     @Override

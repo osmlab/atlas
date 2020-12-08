@@ -9,9 +9,9 @@ public abstract class BinaryOperator implements ASTNode
 
     private final ASTNode left;
     private final ASTNode right;
-    private final int id;
+    private final int identifier;
 
-    public static void clearIdCounter()
+    public static void clearIdentifierCounter()
     {
         counter = 0;
     }
@@ -20,7 +20,7 @@ public abstract class BinaryOperator implements ASTNode
     {
         this.left = left;
         this.right = right;
-        this.id = counter++;
+        this.identifier = counter++;
     }
 
     @Override
@@ -35,23 +35,26 @@ public abstract class BinaryOperator implements ASTNode
         return builder.toString();
     }
 
-    @Override public ASTNode getCenterChild()
+    @Override
+    public ASTNode getCenterChild()
     {
         return null;
     }
 
     @Override
-    public int getId()
+    public int getIdentifier()
     {
-        return this.id;
+        return this.identifier;
     }
 
-    @Override public ASTNode getLeftChild()
+    @Override
+    public ASTNode getLeftChild()
     {
         return this.left;
     }
 
-    @Override public ASTNode getRightChild()
+    @Override
+    public ASTNode getRightChild()
     {
         return this.right;
     }

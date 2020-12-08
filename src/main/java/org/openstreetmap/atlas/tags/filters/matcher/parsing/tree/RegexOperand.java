@@ -19,7 +19,7 @@ public class RegexOperand extends Operand
     @Override
     public String getName()
     {
-        return getToken().getLexeme() + "_" + getId();
+        return getToken().getLexeme() + "_" + getIdentifier();
     }
 
     @Override

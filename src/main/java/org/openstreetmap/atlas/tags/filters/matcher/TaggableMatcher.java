@@ -17,7 +17,7 @@ import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.TreePrinter;
 /**
  * @author lcram
  */
-public class TaggableMatcher implements Predicate<Taggable>, Serializable
+public final class TaggableMatcher implements Predicate<Taggable>, Serializable
 {
     private static final long serialVersionUID = -3505184622005535575L;
 
