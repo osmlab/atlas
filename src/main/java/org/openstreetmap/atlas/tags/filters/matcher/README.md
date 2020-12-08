@@ -225,14 +225,14 @@ For example, we could represent the following `TaggableMatcher` as this tree:
 a = b & c = d | e != f
 ```
 ```
-                |
-              /   \
-            /       \
-           &        !=
-         /   \      / \
-        =     =    e   f
-       / \   / \
-      a   b c   d
+                        |
+            ┌───────────┴───────────┐
+            &                      !=
+      ┌─────┴─────┐           ┌─────┴─────┐
+      =           =           e           f
+   ┌──┴──┐     ┌──┴──┐
+   a     b     c     d
+
 ```
 The `TaggableMatcher` is evaluated by walking the tree in a depth-first, left-to-right fashion.
 
@@ -246,11 +246,11 @@ a = b = c
 becomes this tree:
 ```
             =
-          /   \
-         a     =
-              / \
-             /   \
-            b     c
+      ┌─────┴─────┐
+      a           =
+               ┌──┴──┐
+               b     c
+
 ```
 The `TaggableMatcher` semantic checker is able to detect subtrees like this and reject the matcher
 definition as invalid.

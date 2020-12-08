@@ -1,0 +1,5 @@
+Print out the tree views for a set of given TaggableMatcher description strings.
+The strings will run through the TaggableMatcher parsing system.
+
+If a tree is too long to fit in your terminal window, try piping it into less
+with linewrap disabled using less's -S option.

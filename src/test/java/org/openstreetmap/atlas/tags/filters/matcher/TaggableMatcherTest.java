@@ -123,7 +123,8 @@ public class TaggableMatcherTest
     @Test
     public void testPrettyPrintTree()
     {
-        Assert.assertEquals("", TaggableMatcher.from("foo = bar | baz = bat").prettyPrintTree());
+        Assert.assertEquals("        =       \n" + "    ┌───┴───┐   \n" + "   foo     bar  \n",
+                TaggableMatcher.from("foo = bar").prettyPrintTree());
     }
 
     @Test

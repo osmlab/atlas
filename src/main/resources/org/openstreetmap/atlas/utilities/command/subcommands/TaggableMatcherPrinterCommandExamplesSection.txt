@@ -1,0 +1,4 @@
+Print the trees for a few TaggableMatchers:
+#$ print-matcher 'foo=bar' 'baz=bat | cat = mat'
+Print the tree for a large matcher and make it easier to read:
+#$ print-matcher '!(foo=bar | baz=bat) & cat=mat' | less -S

@@ -12,6 +12,7 @@ import org.openstreetmap.atlas.tags.filters.matcher.parsing.Parser;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.SemanticChecker;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.Token;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.ASTNode;
+import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.TreePrinter;
 
 /**
  * @author lcram
@@ -44,7 +45,7 @@ public class TaggableMatcher implements Predicate<Taggable>, Serializable
      */
     public String prettyPrintTree()
     {
-        return "TODO";
+        return TreePrinter.print(this.rootNode);
     }
 
     @Override

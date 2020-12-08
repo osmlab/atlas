@@ -2,24 +2,21 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 
 import java.util.List;
 
-import org.openstreetmap.atlas.tags.filters.matcher.parsing.Lexer;
-import org.openstreetmap.atlas.tags.filters.matcher.parsing.Parser;
-import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.ASTNode;
-import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.TreePrinter;
+import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.tags.filters.matcher.TaggableMatcher;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
-import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 
 /**
  * @author lcram
  */
-public class TaggableMatcherPrinter extends AbstractAtlasShellToolsCommand
+public class TaggableMatcherPrinterCommand extends AbstractAtlasShellToolsCommand
 {
     public static void main(final String[] args)
     {
-        new TaggableMatcherPrinter().runSubcommandAndExit(args);
+        new TaggableMatcherPrinterCommand().runSubcommandAndExit(args);
     }
 
     @Override
@@ -31,8 +28,23 @@ public class TaggableMatcherPrinter extends AbstractAtlasShellToolsCommand
         {
             this.getCommandOutputDelegate().printlnStdout(definition, TTYAttribute.BOLD,
                     TTYAttribute.GREEN);
-            final ASTNode root = new Parser(new Lexer().lex(definition), definition).parse();
-            this.getCommandOutputDelegate().printlnStdout(TreePrinter.print(root));
+            try
+            {
+                final TaggableMatcher matcher = TaggableMatcher.from(definition);
+                this.getCommandOutputDelegate().printlnStdout(matcher.prettyPrintTree());
+            }
+            catch (final CoreException exception)
+            {
+                if (exception.getMessage().contains("invalid nested equality operators"))
+                {
+                    this.getCommandOutputDelegate().printlnErrorMessage(
+                            "definition `" + definition + "' contained nested equality operators");
+                }
+                else
+                {
+                    throw exception;
+                }
+            }
             this.getCommandOutputDelegate().printlnStdout("");
         }
 
@@ -54,16 +66,16 @@ public class TaggableMatcherPrinter extends AbstractAtlasShellToolsCommand
     @Override
     public void registerManualPageSections()
     {
-        // TODO fill these in
+        addManualPageSection("DESCRIPTION", AtlasSearchCommand.class
+                .getResourceAsStream("TaggableMatcherPrinterCommandDescriptionSection.txt"));
+        addManualPageSection("EXAMPLES", AtlasSearchCommand.class
+                .getResourceAsStream("TaggableMatcherPrinterCommandExamplesSection.txt"));
     }
 
     @Override
     public void registerOptionsAndArguments()
     {
         registerArgument("matchers", ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED);
-        registerOptionWithOptionalArgument("page", 'p',
-                "Run through a local pager program, /usr/bin/less by default.",
-                OptionOptionality.OPTIONAL, "pager");
         super.registerOptionsAndArguments();
     }
 }
