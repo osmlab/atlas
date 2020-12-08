@@ -33,7 +33,7 @@ public class ConfiguredFilterTest
     }
 
     @Test
-    public void testFilter()
+    public void testFilterAndMatcher()
     {
         final ConfiguredFilter junctionRoundaboutFilter = get("junctionRoundaboutFilter");
         final ConfiguredFilter dummyFilter = get("dummyFilter");
@@ -137,12 +137,6 @@ public class ConfiguredFilterTest
     public void testIsNoExpansion()
     {
         Assert.assertTrue(get("nothingGoesThroughFilter").isNoExpansion());
-    }
-
-    @Test
-    public void testMatcher()
-    {
-
     }
 
     @Test

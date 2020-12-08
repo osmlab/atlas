@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.tags.filters.matcher.parsing.tree;
 
+import java.io.Serializable;
 import java.util.List;
 
 import org.openstreetmap.atlas.tags.filters.matcher.TaggableMatcher;
@@ -10,15 +11,17 @@ import org.openstreetmap.atlas.tags.filters.matcher.TaggableMatcher;
  *
  * @author lcram
  */
-public interface ASTNode
+public abstract class ASTNode implements Serializable
 {
+    private static final long serialVersionUID = -2085619833468362629L;
+
     /**
      * Construct a debug printout of the entire tree. For a prettified version of this tree, try
      * {@link ASTNode#getPrettyPrintText()}.
      *
      * @return the debug printout
      */
-    String debugPrintTree();
+    public abstract String debugPrintTree();
 
     /**
      * Get the center child of this {@link ASTNode}. {@link UnaryOperator}s are the only type of
@@ -26,9 +29,9 @@ public interface ASTNode
      *
      * @return the center child {@link ASTNode}
      */
-    ASTNode getCenterChild();
+    public abstract ASTNode getCenterChild();
 
-    int getIdentifier();
+    public abstract int getIdentifier();
 
     /**
      * Get the left child of this {@link ASTNode}. {@link BinaryOperator}s are the only type of node
@@ -36,9 +39,9 @@ public interface ASTNode
      *
      * @return the left child {@link ASTNode}
      */
-    ASTNode getLeftChild();
+    public abstract ASTNode getLeftChild();
 
-    String getName();
+    public abstract String getName();
 
     /**
      * Get the representation of this node for the purposes of {@link TaggableMatcher}'s pretty tree
@@ -46,7 +49,7 @@ public interface ASTNode
      *
      * @return the pretty tree
      */
-    String getPrettyPrintText();
+    public abstract String getPrettyPrintText();
 
     /**
      * Get the right child of this {@link ASTNode}. {@link BinaryOperator}s are the only type of
@@ -54,7 +57,7 @@ public interface ASTNode
      *
      * @return the right child {@link ASTNode}
      */
-    ASTNode getRightChild();
+    public abstract ASTNode getRightChild();
 
-    boolean match(List<String> keys, List<String> values);
+    public abstract boolean match(List<String> keys, List<String> values);
 }

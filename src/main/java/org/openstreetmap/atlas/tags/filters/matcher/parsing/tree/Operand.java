@@ -1,13 +1,11 @@
 package org.openstreetmap.atlas.tags.filters.matcher.parsing.tree;
 
-import java.io.Serializable;
-
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.Token;
 
 /**
  * @author lcram
  */
-public abstract class Operand implements ASTNode, Serializable
+public abstract class Operand extends ASTNode
 {
     private static int counter = 0;
     private static final long serialVersionUID = 4045177960157269200L;
