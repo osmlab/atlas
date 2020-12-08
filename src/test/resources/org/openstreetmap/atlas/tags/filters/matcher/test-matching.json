@@ -1,0 +1,6 @@
+{
+    "matchers": [
+        "foo = bar | baz = bat",
+        "hello != world"
+    ]
+}

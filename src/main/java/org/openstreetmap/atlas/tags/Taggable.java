@@ -64,6 +64,12 @@ public interface Taggable
             }
 
             @Override
+            public Map<String, String> getTags()
+            {
+                return tags;
+            }
+
+            @Override
             public String toString()
             {
                 return tags.toString();

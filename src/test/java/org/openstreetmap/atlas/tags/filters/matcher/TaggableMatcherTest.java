@@ -1,12 +1,8 @@
 package org.openstreetmap.atlas.tags.filters.matcher;
 
-import java.util.Map;
-import java.util.Optional;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.tags.Taggable;
-import org.openstreetmap.atlas.utilities.collections.Maps;
 
 /**
  * @author lcram
@@ -16,22 +12,7 @@ public class TaggableMatcherTest
     @Test
     public void basicTests()
     {
-        final Taggable taggable1 = new Taggable()
-        {
-            private final Map<String, String> tags = Maps.hashMap("foo", "bar", "baz", "bat");
-
-            @Override
-            public Optional<String> getTag(final String key)
-            {
-                return Optional.ofNullable(this.tags.get(key));
-            }
-
-            @Override
-            public Map<String, String> getTags()
-            {
-                return this.tags;
-            }
-        };
+        final Taggable taggable1 = Taggable.with("foo", "bar", "baz", "bat");
         Assert.assertTrue(TaggableMatcher.from("!(foo=bar ^ baz=bat)").test(taggable1));
         Assert.assertFalse(TaggableMatcher.from("foo=bar ^ baz=bat").test(taggable1));
         Assert.assertTrue(TaggableMatcher.from("foo = bar | baz = bat").test(taggable1));
@@ -45,22 +26,7 @@ public class TaggableMatcherTest
     @Test
     public void basicTests2()
     {
-        final Taggable taggable1 = new Taggable()
-        {
-            private final Map<String, String> tags = Maps.hashMap("foo", "bar", "baz", "bat");
-
-            @Override
-            public Optional<String> getTag(final String key)
-            {
-                return Optional.ofNullable(this.tags.get(key));
-            }
-
-            @Override
-            public Map<String, String> getTags()
-            {
-                return this.tags;
-            }
-        };
+        final Taggable taggable1 = Taggable.with("foo", "bar", "baz", "bat");
         Assert.assertTrue(TaggableMatcher.from("foo=/b.*/ & baz=/b.*/").test(taggable1));
         Assert.assertTrue(TaggableMatcher.from("foo = bar & !mat").test(taggable1));
         Assert.assertFalse(TaggableMatcher.from("foo=bar & mat!=hat").test(taggable1));
@@ -77,23 +43,8 @@ public class TaggableMatcherTest
         /*
          * Test a complex expression filter.
          */
-        final Taggable taggable = new Taggable()
-        {
-            private final Map<String, String> tags = Maps.hashMap("name", "Main Street", "highway",
-                    "secondary", "restricted", "no");
-
-            @Override
-            public Optional<String> getTag(final String key)
-            {
-                return Optional.ofNullable(this.tags.get(key));
-            }
-
-            @Override
-            public Map<String, String> getTags()
-            {
-                return this.tags;
-            }
-        };
+        final Taggable taggable = Taggable.with("name", "Main Street", "highway", "secondary",
+                "restricted", "no");
         Assert.assertTrue(TaggableMatcher.from(
                 "name=/^.*(s|S)treet$/ & highway!=primary & (!restricted | restricted != (yes | sometimes))")
                 .test(taggable));
@@ -101,39 +52,8 @@ public class TaggableMatcherTest
         /*
          * Test matching against variable keys.
          */
-        final Taggable oldStyleLakes = new Taggable()
-        {
-            private final Map<String, String> tags = Maps.hashMap("natural", "lake");
-
-            @Override
-            public Optional<String> getTag(final String key)
-            {
-                return Optional.ofNullable(this.tags.get(key));
-            }
-
-            @Override
-            public Map<String, String> getTags()
-            {
-                return this.tags;
-            }
-        };
-        final Taggable newStyleLakes = new Taggable()
-        {
-            private final Map<String, String> tags = Maps.hashMap("natural", "water", "water",
-                    "lake");
-
-            @Override
-            public Optional<String> getTag(final String key)
-            {
-                return Optional.ofNullable(this.tags.get(key));
-            }
-
-            @Override
-            public Map<String, String> getTags()
-            {
-                return this.tags;
-            }
-        };
+        final Taggable oldStyleLakes = Taggable.with("natural", "lake");
+        final Taggable newStyleLakes = Taggable.with("natural", "water", "water", "lake");
         /*
          * These filters should match both old style and new style lake tagging
          */
@@ -145,22 +65,7 @@ public class TaggableMatcherTest
     @Test
     public void testEmptyMatcher()
     {
-        final Taggable taggable1 = new Taggable()
-        {
-            private final Map<String, String> tags = Maps.hashMap("name", "hello");
-
-            @Override
-            public Optional<String> getTag(final String key)
-            {
-                return Optional.ofNullable(this.tags.get(key));
-            }
-
-            @Override
-            public Map<String, String> getTags()
-            {
-                return this.tags;
-            }
-        };
+        final Taggable taggable1 = Taggable.with("name", "hello");
 
         final TaggableMatcher emptyMatcher = TaggableMatcher.from("");
         Assert.assertEquals(0L, emptyMatcher.lengthOfLongestLineForPrintedTree());
@@ -187,22 +92,7 @@ public class TaggableMatcherTest
     @Test
     public void testQuotes()
     {
-        final Taggable taggable1 = new Taggable()
-        {
-            private final Map<String, String> tags = Maps.hashMap("name", "John's \"Coffee\" Shop");
-
-            @Override
-            public Optional<String> getTag(final String key)
-            {
-                return Optional.ofNullable(this.tags.get(key));
-            }
-
-            @Override
-            public Map<String, String> getTags()
-            {
-                return this.tags;
-            }
-        };
+        final Taggable taggable1 = Taggable.with("name", "John's \"Coffee\" Shop");
         Assert.assertTrue(
                 TaggableMatcher.from("name = 'John\\'s \"Coffee\" Shop'").test(taggable1));
         Assert.assertTrue(
