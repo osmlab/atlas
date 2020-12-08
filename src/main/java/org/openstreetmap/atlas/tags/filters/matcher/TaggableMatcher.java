@@ -26,6 +26,10 @@ public final class TaggableMatcher implements Predicate<Taggable>, Serializable
 
     public static TaggableMatcher from(final String definition)
     {
+        if (definition.isEmpty())
+        {
+            return new TaggableMatcher(null, definition);
+        }
         final List<Token> tokens = new Lexer().lex(definition);
         final ASTNode rootNode = new Parser(tokens, definition).parse();
         new SemanticChecker().check(rootNode);
@@ -46,6 +50,10 @@ public final class TaggableMatcher implements Predicate<Taggable>, Serializable
      */
     public long lengthOfLongestLineForPrintedTree()
     {
+        if (this.rootNode == null)
+        {
+            return 0L;
+        }
         return TreePrinter.lengthOfLongestLineForTree(this.rootNode);
     }
 
@@ -56,12 +64,21 @@ public final class TaggableMatcher implements Predicate<Taggable>, Serializable
      */
     public String prettyPrintTree()
     {
+        if (this.rootNode == null)
+        {
+            return "";
+        }
         return TreePrinter.print(this.rootNode);
     }
 
     @Override
     public boolean test(final Taggable taggable)
     {
+        if (this.rootNode == null)
+        {
+            return true;
+        }
+
         final Map<String, String> tags = taggable.getTags();
         final List<String> keys = new ArrayList<>();
         final List<String> values = new ArrayList<>();

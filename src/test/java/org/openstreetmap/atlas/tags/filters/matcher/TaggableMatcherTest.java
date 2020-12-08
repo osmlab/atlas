@@ -143,6 +143,32 @@ public class TaggableMatcherTest
     }
 
     @Test
+    public void testEmptyMatcher()
+    {
+        final Taggable taggable1 = new Taggable()
+        {
+            private final Map<String, String> tags = Maps.hashMap("name", "hello");
+
+            @Override
+            public Optional<String> getTag(final String key)
+            {
+                return Optional.ofNullable(this.tags.get(key));
+            }
+
+            @Override
+            public Map<String, String> getTags()
+            {
+                return this.tags;
+            }
+        };
+
+        final TaggableMatcher emptyMatcher = TaggableMatcher.from("");
+        Assert.assertEquals(0L, emptyMatcher.lengthOfLongestLineForPrintedTree());
+        Assert.assertEquals("", emptyMatcher.prettyPrintTree());
+        Assert.assertTrue(emptyMatcher.test(taggable1));
+    }
+
+    @Test
     public void testPrettyPrintTree()
     {
         Assert.assertEquals("        =       \n" + "    ┌───┴───┐   \n" + "   foo     bar  \n",
