@@ -24,9 +24,9 @@ public class ASTNodeTest
         final ASTNode hat = new LiteralOperand(new Token(Token.TokenType.LITERAL, "hat", 0));
 
         final ASTNode not = new BangOperator(bar);
-        final ASTNode equals = new EqualsOperator(foo, not);
+        final ASTNode equals = new EqualsOperator(foo, not, false);
         final ASTNode or1 = new OrOperator(baz, bat);
-        final ASTNode bangEquals = new BangEqualsOperator(mat, or1);
+        final ASTNode bangEquals = new EqualsOperator(mat, or1, true);
         final ASTNode and = new AndOperator(equals, bangEquals);
         final ASTNode xor = new XorOperator(and, hat);
 

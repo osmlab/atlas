@@ -3,7 +3,6 @@ package org.openstreetmap.atlas.tags.filters.matcher.parsing;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.tags.filters.matcher.TaggableMatcher;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.ASTNode;
-import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.BangEqualsOperator;
 import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.EqualsOperator;
 
 /**
@@ -25,8 +24,7 @@ public class SemanticChecker
             return;
         }
 
-        if ((root instanceof EqualsOperator || root instanceof BangEqualsOperator)
-                && subtreeContainsEquals(root))
+        if ((root instanceof EqualsOperator) && subtreeContainsEquals(root))
         {
             throw new CoreException("semantic error: invalid nested equality operators");
         }
@@ -45,9 +43,8 @@ public class SemanticChecker
         final ASTNode leftRoot = root.getLeftChild();
         final ASTNode rightRoot = root.getRightChild();
         final ASTNode centerRoot = root.getCenterChild();
-        if (leftRoot instanceof EqualsOperator || leftRoot instanceof BangEqualsOperator
-                || rightRoot instanceof EqualsOperator || rightRoot instanceof BangEqualsOperator
-                || centerRoot instanceof EqualsOperator || centerRoot instanceof BangEqualsOperator)
+        if (leftRoot instanceof EqualsOperator || rightRoot instanceof EqualsOperator
+                || centerRoot instanceof EqualsOperator)
         {
             return true;
         }
