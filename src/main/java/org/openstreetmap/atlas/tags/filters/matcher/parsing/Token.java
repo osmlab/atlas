@@ -1,11 +1,12 @@
 package org.openstreetmap.atlas.tags.filters.matcher.parsing;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * @author lcram
  */
-public class Token
+public class Token implements Serializable
 {
     /**
      * @author lcram
@@ -54,6 +55,8 @@ public class Token
             return this.literalValue;
         }
     }
+
+    private static final long serialVersionUID = -8498419139066512731L;
 
     private final TokenType type;
     private final String lexeme;
