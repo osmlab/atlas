@@ -24,7 +24,7 @@ import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
-import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.AtlasSectionProcessor;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
@@ -154,7 +154,7 @@ public class OsmPbfIngestTest
             final AtlasLoadingOption loadingOption = AtlasLoadingOption.createOptionWithNoSlicing();
             Atlas atlas = new RawAtlasGenerator(() -> osmosis, loadingOption, MultiPolygon.MAXIMUM)
                     .build();
-            atlas = new WaySectionProcessor(atlas, loadingOption).run();
+            atlas = new AtlasSectionProcessor(atlas, loadingOption).run();
             final Edge edgeIn = atlas.edgesIntersecting(DE_ANZA_AT_280.bounds()).iterator().next();
             final Node nodeIn = edgeIn.end();
             Assert.assertNull(nodeIn.tag(SyntheticBoundaryNodeTag.KEY));
@@ -182,7 +182,7 @@ public class OsmPbfIngestTest
                         () -> OsmPbfIngestTest.class.getResourceAsStream("edge-filter.json")))));
         Atlas atlas = new RawAtlasGenerator(pbfFile, option, boundary).build();
         atlas = new RawAtlasSlicer(option, atlas).slice();
-        atlas = new WaySectionProcessor(atlas, option).run();
+        atlas = new AtlasSectionProcessor(atlas, option).run();
 
         // Edges with access=no that need to be included
         Assert.assertNotNull(atlas.edge(205527844000002L));
@@ -204,7 +204,7 @@ public class OsmPbfIngestTest
             Atlas atlas = new RawAtlasGenerator(() -> osmosis, loadingOption, MultiPolygon.MAXIMUM)
                     .build();
             atlas = new RawAtlasSlicer(loadingOption, atlas).slice();
-            atlas = new WaySectionProcessor(atlas, AtlasLoadingOption.createOptionWithNoSlicing())
+            atlas = new AtlasSectionProcessor(atlas, AtlasLoadingOption.createOptionWithNoSlicing())
                     .run();
             Assert.assertEquals(1, atlas.numberOfLines());
             Assert.assertEquals(1, atlas.numberOfRelations());
@@ -222,7 +222,7 @@ public class OsmPbfIngestTest
             final AtlasLoadingOption loadingOption = AtlasLoadingOption.withNoFilter();
             Atlas atlas = new RawAtlasGenerator(() -> osmosis, loadingOption, MultiPolygon.MAXIMUM)
                     .build();
-            atlas = new WaySectionProcessor(atlas, loadingOption).run();
+            atlas = new AtlasSectionProcessor(atlas, loadingOption).run();
             Assert.assertEquals(3, atlas.numberOfLines());
         }
     }

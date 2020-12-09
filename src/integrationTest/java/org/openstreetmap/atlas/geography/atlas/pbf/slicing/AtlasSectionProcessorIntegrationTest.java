@@ -18,7 +18,7 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
 /**
  * @author tony
  */
-public class WaySectionProcessorIntegrationTest extends AtlasIntegrationTest
+public class AtlasSectionProcessorIntegrationTest extends AtlasIntegrationTest
 {
     private static Atlas rawAtlas;
     private static Atlas sectionedAtlas;

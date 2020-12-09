@@ -129,14 +129,14 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
                     @Point(id = "108756000000", coordinates = @Loc(value = LOCATION_42)),
                     @Point(id = "108758000000", coordinates = @Loc(value = LOCATION_43)) },
 
-            lines = { @Line(id = "108768000000", coordinates = { @Loc(value = LOCATION_40),
+            areas = { @Area(id = "108768000000", coordinates = { @Loc(value = LOCATION_40),
                     @Loc(value = LOCATION_41), @Loc(value = LOCATION_42), @Loc(value = LOCATION_43),
                     @Loc(value = LOCATION_40) }, tags = { "building=yes" }) },
 
             relations = {
 
                     @Relation(tags = { "type=multipolygon", "building=yes" }, members = {
-                            @Member(id = "108768000000", role = "inner", type = "line") })
+                            @Member(id = "108768000000", role = "inner", type = "area") })
 
             })
     private Atlas innerWithoutOuterAcrossBoundary;
@@ -325,20 +325,20 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
                     @Point(id = "108759000000", coordinates = @Loc(value = LOCATION_54)),
                     @Point(id = "108761000000", coordinates = @Loc(value = LOCATION_55)) },
 
-            lines = {
-                    @Line(id = "108768000000", coordinates = { @Loc(value = LOCATION_40),
+            areas = {
+                    @Area(id = "108768000000", coordinates = { @Loc(value = LOCATION_40),
                             @Loc(value = LOCATION_56), @Loc(value = LOCATION_57),
                             @Loc(value = LOCATION_53), @Loc(value = LOCATION_54),
                             @Loc(value = LOCATION_55), @Loc(value = LOCATION_40) }),
-                    @Line(id = "108769000000", coordinates = { @Loc(value = LOCATION_49),
+                    @Area(id = "108769000000", coordinates = { @Loc(value = LOCATION_49),
                             @Loc(value = LOCATION_50), @Loc(value = LOCATION_51),
                             @Loc(value = LOCATION_52), @Loc(value = LOCATION_49) }) },
 
             relations = {
 
                     @Relation(tags = { "type=multipolygon", "building=yes" }, members = {
-                            @Member(id = "108768000000", role = "outer", type = "line"),
-                            @Member(id = "108769000000", role = "inner", type = "line") })
+                            @Member(id = "108768000000", role = "outer", type = "area"),
+                            @Member(id = "108769000000", role = "inner", type = "area") })
 
             })
     private Atlas selfIntersectingOuterMemberRelationAcrossBoundary;
@@ -528,14 +528,14 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
                     @Point(id = "214580000000", coordinates = @Loc(value = LOCATION_11)),
                     @Point(id = "214579000000", coordinates = @Loc(value = LOCATION_12)) },
 
-            lines = { @Line(id = "214599000000", coordinates = { @Loc(value = LOCATION_4),
+            areas = { @Area(id = "214599000000", coordinates = { @Loc(value = LOCATION_4),
                     @Loc(value = LOCATION_3), @Loc(value = LOCATION_2), @Loc(value = LOCATION_1),
                     @Loc(value = LOCATION_4) }, tags = { "leisure=park" }),
-                    @Line(id = "214590000000", coordinates = { @Loc(value = LOCATION_8),
+                    @Area(id = "214590000000", coordinates = { @Loc(value = LOCATION_8),
                             @Loc(value = LOCATION_7), @Loc(value = LOCATION_6),
                             @Loc(value = LOCATION_5),
                             @Loc(value = LOCATION_8) }, tags = { "leisure=park" }),
-                    @Line(id = "214581000000", coordinates = { @Loc(value = LOCATION_12),
+                    @Area(id = "214581000000", coordinates = { @Loc(value = LOCATION_12),
                             @Loc(value = LOCATION_11), @Loc(value = LOCATION_10),
                             @Loc(value = LOCATION_9),
                             @Loc(value = LOCATION_12) }, tags = { "leisure=park" }) },
@@ -543,9 +543,9 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
             relations = {
 
                     @Relation(id = "1", tags = { "type=multipolygon", "leisure=park" }, members = {
-                            @Member(id = "214599000000", role = "outer", type = "line"),
-                            @Member(id = "214590000000", role = "outer", type = "line"),
-                            @Member(id = "214581000000", role = "outer", type = "line") })
+                            @Member(id = "214599000000", role = "outer", type = "area"),
+                            @Member(id = "214590000000", role = "outer", type = "area"),
+                            @Member(id = "214581000000", role = "outer", type = "area") })
 
             })
     private Atlas simpleMultiPolygon;
@@ -624,19 +624,19 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
                     @Point(id = "108764000000", coordinates = @Loc(value = LOCATION_19)),
                     @Point(id = "108766000000", coordinates = @Loc(value = LOCATION_20)) },
 
-            lines = {
-                    @Line(id = "108768000000", coordinates = { @Loc(value = LOCATION_13),
+            areas = {
+                    @Area(id = "108768000000", coordinates = { @Loc(value = LOCATION_13),
                             @Loc(value = LOCATION_14), @Loc(value = LOCATION_15),
                             @Loc(value = LOCATION_16), @Loc(value = LOCATION_13) }),
-                    @Line(id = "108770000000", coordinates = { @Loc(value = LOCATION_17),
+                    @Area(id = "108770000000", coordinates = { @Loc(value = LOCATION_17),
                             @Loc(value = LOCATION_18), @Loc(value = LOCATION_19),
                             @Loc(value = LOCATION_20), @Loc(value = LOCATION_17) }) },
 
             relations = {
 
                     @Relation(tags = { "type=multipolygon", "building=yes" }, members = {
-                            @Member(id = "108768000000", role = "outer", type = "line"),
-                            @Member(id = "108770000000", role = "inner", type = "line") })
+                            @Member(id = "108768000000", role = "outer", type = "area"),
+                            @Member(id = "108770000000", role = "inner", type = "area") })
 
             })
     private Atlas multiPolygonWithHole;
@@ -663,14 +663,14 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
             @Point(id = "108764000000", coordinates = @Loc(value = LOCATION_19)),
             @Point(id = "108766000000", coordinates = @Loc(value = LOCATION_20)) },
 
-            lines = {
-                    @Line(id = "108768000000", coordinates = { @Loc(value = LOCATION_13),
+            areas = {
+                    @Area(id = "108768000000", coordinates = { @Loc(value = LOCATION_13),
                             @Loc(value = LOCATION_14), @Loc(value = LOCATION_15),
                             @Loc(value = LOCATION_16), @Loc(value = LOCATION_13) }),
-                    @Line(id = "108770000000", coordinates = { @Loc(value = LOCATION_17),
+                    @Area(id = "108770000000", coordinates = { @Loc(value = LOCATION_17),
                             @Loc(value = LOCATION_18), @Loc(value = LOCATION_19),
                             @Loc(value = LOCATION_20), @Loc(value = LOCATION_17) }),
-                    @Line(id = "3", coordinates = { @Loc(value = LOCATION_17),
+                    @Area(id = "3", coordinates = { @Loc(value = LOCATION_17),
                             @Loc(value = LOCATION_18), @Loc(value = LOCATION_19),
                             @Loc(value = LOCATION_20), @Loc(value = LOCATION_17) }) },
 
@@ -678,11 +678,11 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
                     @Relation(id = "5", tags = { "bugs=no" }, members = {
                             @Member(id = "108756000000", role = "member", type = "point") }),
                     @Relation(tags = { "type=multipolygon", "building=yes" }, members = {
-                            @Member(id = "108768000000", role = "outer", type = "line"),
-                            @Member(id = "108770000000", role = "inner", type = "line"),
+                            @Member(id = "108768000000", role = "outer", type = "area"),
+                            @Member(id = "108770000000", role = "inner", type = "area"),
                             @Member(id = "108752000000", role = "badType", type = "point"),
                             @Member(id = "5", role = "badType", type = "relation"),
-                            @Member(id = "3", role = "badRole", type = "line") }) })
+                            @Member(id = "3", role = "badRole", type = "area") }) })
     private Atlas relationWithInvalidMultiPolygonMembers;
     @TestAtlas(points = { @Point(id = "214775000000", coordinates = @Loc(value = LOCATION_31)),
             @Point(id = "214774000000", coordinates = @Loc(value = LOCATION_32)),

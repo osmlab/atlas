@@ -31,6 +31,7 @@ import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeAtlas;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeBuilder;
 import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
@@ -127,13 +128,14 @@ public class RawAtlasSlicer
     private static final String STARTED_RELATION_FILTERING = "Starting relation filtering for Atlas {}";
     private static final String FINISHED_RELATION_FILTERING = "Finished relation filtering for Atlas {} in {}";
 
-    private final Atlas startingAtlas;
+    private final Atlas inputAtlas;
     private final Shard initialShard;
     private final Predicate<AtlasEntity> relationPredicate;
     private final Predicate<AtlasEntity> isInCountry;
     private final Predicate<AtlasEntity> isAtlasEdge;
     private final CountryBoundaryMap boundary;
     private final String shardOrAtlasName;
+    private final String country;
     private final Map<Long, CompleteArea> stagedAreas = new ConcurrentHashMap<>();
     private final Map<Long, CompleteRelation> stagedRelations = new ConcurrentHashMap<>();
     private final Map<Long, CompleteLine> stagedLines = new ConcurrentHashMap<>();
@@ -157,8 +159,9 @@ public class RawAtlasSlicer
      */
     public RawAtlasSlicer(final AtlasLoadingOption loadingOption, final Atlas startingAtlas)
     {
-        this.startingAtlas = startingAtlas;
+        this.inputAtlas = startingAtlas;
         this.initialShard = null;
+        this.country = loadingOption.getCountryCode();
         this.relationPredicate = entity -> entity.getType().equals(ItemType.RELATION)
                 && loadingOption.getRelationSlicingFilter().test(entity);
         if (loadingOption.getCountryCode() == null || loadingOption.getCountryCode().isEmpty())
@@ -174,13 +177,13 @@ public class RawAtlasSlicer
         this.boundary = loadingOption.getCountryBoundaryMap();
         this.shardOrAtlasName = startingAtlas.metaData().getShardName()
                 .orElse(startingAtlas.getName());
-        this.startingAtlas.areas().forEach(
+        this.inputAtlas.areas().forEach(
                 area -> this.stagedAreas.put(area.getIdentifier(), CompleteArea.from(area)));
-        this.startingAtlas.points().forEach(
+        this.inputAtlas.points().forEach(
                 point -> this.stagedPoints.put(point.getIdentifier(), CompletePoint.from(point)));
-        this.startingAtlas.lines().forEach(
+        this.inputAtlas.lines().forEach(
                 line -> this.stagedLines.put(line.getIdentifier(), CompleteLine.from(line)));
-        this.startingAtlas.relations().forEach(relation -> this.stagedRelations
+        this.inputAtlas.relations().forEach(relation -> this.stagedRelations
                 .put(relation.getIdentifier(), CompleteRelation.from(relation)));
     }
 
@@ -202,6 +205,7 @@ public class RawAtlasSlicer
             final Sharding sharding, final Function<Shard, Optional<Atlas>> atlasFetcher)
     {
         this.initialShard = initialShard;
+        this.country = loadingOption.getCountryCode();
         this.relationPredicate = entity -> entity.getType().equals(ItemType.RELATION)
                 && loadingOption.getRelationSlicingFilter().test(entity);
         if (loadingOption.getCountryCode() == null || loadingOption.getCountryCode().isEmpty())
@@ -245,7 +249,7 @@ public class RawAtlasSlicer
                 AtlasCutType.SILK_CUT);
         if (subAtlasOptional.isPresent())
         {
-            this.startingAtlas = subAtlasOptional.get();
+            this.inputAtlas = subAtlasOptional.get();
         }
         else
         {
@@ -254,15 +258,15 @@ public class RawAtlasSlicer
                     expandedAtlas.getName());
         }
 
-        this.shardOrAtlasName = this.startingAtlas.metaData().getShardName()
-                .orElse(this.startingAtlas.getName());
-        this.startingAtlas.areas().forEach(
+        this.shardOrAtlasName = this.inputAtlas.metaData().getShardName()
+                .orElse(this.inputAtlas.getName());
+        this.inputAtlas.areas().forEach(
                 area -> this.stagedAreas.put(area.getIdentifier(), CompleteArea.from(area)));
-        this.startingAtlas.points().forEach(
+        this.inputAtlas.points().forEach(
                 point -> this.stagedPoints.put(point.getIdentifier(), CompletePoint.from(point)));
-        this.startingAtlas.lines().forEach(
+        this.inputAtlas.lines().forEach(
                 line -> this.stagedLines.put(line.getIdentifier(), CompleteLine.from(line)));
-        this.startingAtlas.relations().forEach(relation -> this.stagedRelations
+        this.inputAtlas.relations().forEach(relation -> this.stagedRelations
                 .put(relation.getIdentifier(), CompleteRelation.from(relation)));
     }
 
@@ -280,7 +284,7 @@ public class RawAtlasSlicer
         Time time = Time.now();
         logger.info(STARTED_SLICING, this.shardOrAtlasName);
         logger.info(STARTED_LINE_SLICING, this.shardOrAtlasName);
-        this.startingAtlas.areas().forEach(this::sliceArea);
+        this.inputAtlas.areas().forEach(this::sliceArea);
 
         final Set<CompleteLine> linesToSlice = new HashSet<>();
         linesToSlice.addAll(this.stagedLines.values());
@@ -291,7 +295,7 @@ public class RawAtlasSlicer
 
         time = Time.now();
         logger.info(STARTED_RELATION_SLICING, this.shardOrAtlasName);
-        this.startingAtlas.relationsLowerOrderFirst().forEach(relation ->
+        this.inputAtlas.relationsLowerOrderFirst().forEach(relation ->
         {
             // the first part of this predicate checks to see if the relation qualifies for slicing
             // based on tagging, the second checks its members since a relation with no sliced
@@ -299,7 +303,7 @@ public class RawAtlasSlicer
             if (this.relationPredicate.test(relation) && !this.stagedRelations
                     .get(relation.getIdentifier())
                     .membersMatching(member -> member.getEntity().getType().equals(ItemType.LINE)
-                            && this.startingAtlas.line(member.getEntity().getIdentifier()) == null)
+                            && this.inputAtlas.line(member.getEntity().getIdentifier()) == null)
                     .isEmpty())
             {
                 sliceMultiPolygonRelation(this.stagedRelations.get(relation.getIdentifier()));
@@ -310,12 +314,12 @@ public class RawAtlasSlicer
 
         time = Time.now();
         logger.info(STARTED_POINT_SLICING, this.shardOrAtlasName);
-        this.startingAtlas.points().forEach(this::slicePoint);
+        this.inputAtlas.points().forEach(this::slicePoint);
         logger.info(FINISHED_POINT_SLICING, this.shardOrAtlasName,
                 time.elapsedSince().asMilliseconds());
 
         logger.info(STARTED_RELATION_FILTERING, this.shardOrAtlasName);
-        this.startingAtlas.relationsLowerOrderFirst().forEach(relation ->
+        this.inputAtlas.relationsLowerOrderFirst().forEach(relation ->
         {
             if (this.stagedRelations.containsKey(relation.getIdentifier())
                     && !Validators.hasValuesFor(this.stagedRelations.get(relation.getIdentifier()),
@@ -328,19 +332,34 @@ public class RawAtlasSlicer
                 time.elapsedSince().asMilliseconds());
 
         this.stagedLines.values()
-                .forEach(line -> this.changes.add(FeatureChange.add(line, this.startingAtlas)));
+                .forEach(line -> this.changes.add(FeatureChange.add(line, this.inputAtlas)));
         this.stagedPoints.values()
-                .forEach(point -> this.changes.add(FeatureChange.add(point, this.startingAtlas)));
+                .forEach(point -> this.changes.add(FeatureChange.add(point, this.inputAtlas)));
         this.stagedRelations.values().forEach(
-                relation -> this.changes.add(FeatureChange.add(relation, this.startingAtlas)));
+                relation -> this.changes.add(FeatureChange.add(relation, this.inputAtlas)));
         this.stagedAreas.values()
-                .forEach(area -> this.changes.add(FeatureChange.add(area, this.startingAtlas)));
+                .forEach(area -> this.changes.add(FeatureChange.add(area, this.inputAtlas)));
 
         logger.info(FINISHED_SLICING, this.shardOrAtlasName,
                 overallTime.elapsedSince().asMilliseconds());
 
-        return cutSubAtlasForOriginalShard(new ChangeAtlas(this.startingAtlas,
-                new ChangeBuilder().addAll(this.changes).get()));
+        final ChangeAtlas slicedAtlas = new ChangeAtlas(this.inputAtlas,
+                new ChangeBuilder().addAll(this.changes).get())
+        {
+            private static final long serialVersionUID = -1379576156041355921L;
+
+            @Override
+            public synchronized AtlasMetaData metaData()
+            {
+                // Override meta-data here so the country code is properly included.
+                final AtlasMetaData metaData = super.metaData();
+                return new AtlasMetaData(metaData.getSize(), false,
+                        metaData.getCodeVersion().orElse(null),
+                        metaData.getDataVersion().orElse(null), RawAtlasSlicer.this.country,
+                        RawAtlasSlicer.this.shardOrAtlasName, new HashMap<>());
+            }
+        };
+        return cutSubAtlasForOriginalShard(slicedAtlas);
     }
 
     /**
@@ -406,8 +425,7 @@ public class RawAtlasSlicer
     {
         if (!slice.first().equals(line.asPolyLine().first()))
         {
-            final Iterable<Point> pointsAtFirstLocation = this.startingAtlas
-                    .pointsAt(slice.first());
+            final Iterable<Point> pointsAtFirstLocation = this.inputAtlas.pointsAt(slice.first());
             if (Iterables.isEmpty(pointsAtFirstLocation))
             {
                 final EntityIdentifierGenerator pointIdentifierGenerator = new EntityIdentifierGenerator();
@@ -434,7 +452,7 @@ public class RawAtlasSlicer
 
         if (!slice.last().equals(line.asPolyLine().last()))
         {
-            final Iterable<Point> pointsAtLastLocation = this.startingAtlas.pointsAt(slice.last());
+            final Iterable<Point> pointsAtLastLocation = this.inputAtlas.pointsAt(slice.last());
             if (Iterables.isEmpty(pointsAtLastLocation))
             {
                 final EntityIdentifierGenerator pointIdentifierGenerator = new EntityIdentifierGenerator();
@@ -1081,7 +1099,6 @@ public class RawAtlasSlicer
                         relation.withRemovedMember(invalidMember.getEntity());
                         this.stagedAreas.get(identifier)
                                 .withRemovedRelationIdentifier(relation.getIdentifier());
-                        // memberIdentifiersRemoved.add(Long.toString(identifier));
                     }
                     else if (invalidMember.getEntity().getType().equals(ItemType.POINT))
                     {
@@ -1127,7 +1144,7 @@ public class RawAtlasSlicer
     private void removeArea(final Area area)
     {
         final CompleteArea removedArea = this.stagedAreas.remove(area.getIdentifier());
-        this.changes.add(FeatureChange.remove(removedArea, this.startingAtlas));
+        this.changes.add(FeatureChange.remove(removedArea, this.inputAtlas));
         removedArea.relationIdentifiers().forEach(relationIdentifier ->
         {
             if (this.stagedRelations.containsKey(relationIdentifier))
@@ -1146,7 +1163,7 @@ public class RawAtlasSlicer
     private void removeLine(final Line line)
     {
         final CompleteLine removedLine = this.stagedLines.remove(line.getIdentifier());
-        if (this.startingAtlas.line(line.getIdentifier()) == null)
+        if (this.inputAtlas.line(line.getIdentifier()) == null)
         {
             // in rare cases, we're slicing a line that technically never existed in the original
             // atlas, e.g. multipolygon areas now being sliced as lines, or areas that failed
@@ -1161,7 +1178,7 @@ public class RawAtlasSlicer
             });
             return;
         }
-        this.changes.add(FeatureChange.remove(removedLine, this.startingAtlas));
+        this.changes.add(FeatureChange.remove(removedLine, this.inputAtlas));
         removedLine.relationIdentifiers().forEach(relationIdentifier ->
         {
             if (this.stagedRelations.containsKey(relationIdentifier))
@@ -1289,11 +1306,8 @@ public class RawAtlasSlicer
             area.relations().forEach(relation -> relationIds.add(relation.getIdentifier()));
             final CompleteLine lineFromArea = new CompleteLine(area.getIdentifier(),
                     area.asPolygon(), area.getTags(), relationIds);
-            area.relations().forEach(relation ->
-            {
-                this.stagedRelations.get(relation.getIdentifier()).withAddedMember(lineFromArea,
-                        area);
-            });
+            area.relations().forEach(relation -> this.stagedRelations.get(relation.getIdentifier())
+                    .withAddedMember(lineFromArea, area));
             removeArea(area);
             this.stagedLines.put(lineFromArea.getIdentifier(), lineFromArea);
             return;
@@ -1455,7 +1469,7 @@ public class RawAtlasSlicer
 
         if (this.isAtlasEdge.test(line))
         {
-            line.forEach(location -> this.startingAtlas.pointsAt(location)
+            line.forEach(location -> this.inputAtlas.pointsAt(location)
                     .forEach(point -> this.pointsBelongingToEdge.add(point.getIdentifier())));
         }
 
@@ -1629,7 +1643,7 @@ public class RawAtlasSlicer
         try
         {
             final MultiPolygon multipolygon = RELATION_TO_MULTIPOLYGON_CONVERTER
-                    .convert(this.startingAtlas.relation(relation.getIdentifier()));
+                    .convert(this.inputAtlas.relation(relation.getIdentifier()));
             jtsMp = JTS_MULTIPOLYGON_CONVERTER.backwardConvert(multipolygon);
         }
         catch (final CoreException exception)
@@ -1746,7 +1760,7 @@ public class RawAtlasSlicer
         });
 
         // remove the old relation
-        this.changes.add(FeatureChange.remove(relation, this.startingAtlas));
+        this.changes.add(FeatureChange.remove(relation, this.inputAtlas));
         this.stagedRelations.remove(relation.getIdentifier());
         this.splitRelations.put(relation.getIdentifier(), relationByCountry);
         if (time.elapsedSince().isMoreThan(Duration.minutes(SLICING_DURATION_WARN)))
@@ -1789,7 +1803,7 @@ public class RawAtlasSlicer
             if (!this.isInCountry.test(updatedPoint))
             {
                 this.stagedPoints.remove(point.getIdentifier());
-                this.changes.add(FeatureChange.remove(updatedPoint, this.startingAtlas));
+                this.changes.add(FeatureChange.remove(updatedPoint, this.inputAtlas));
             }
         }
     }

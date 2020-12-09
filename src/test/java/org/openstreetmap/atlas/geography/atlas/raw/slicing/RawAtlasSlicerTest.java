@@ -6,7 +6,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
@@ -42,8 +41,8 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
  *
  * @author samg
  */
-@Ignore
-public class RawAtlasSlicingTest
+
+public class RawAtlasSlicerTest
 {
     private static final CountryBoundaryMap boundary;
     private static final RelationOrAreaToMultiPolygonConverter converter;
@@ -51,7 +50,7 @@ public class RawAtlasSlicingTest
     static
     {
         boundary = CountryBoundaryMap
-                .fromPlainText(new InputStreamResource(() -> RawAtlasSlicingTest.class
+                .fromPlainText(new InputStreamResource(() -> RawAtlasSlicerTest.class
                         .getResourceAsStream("CIV_GIN_LBR_osm_boundaries_with_grid_index.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
         converter = new RelationOrAreaToMultiPolygonConverter();
@@ -488,37 +487,37 @@ public class RawAtlasSlicingTest
         Assert.assertEquals(0, lbrSlicedAtlas.numberOfPoints());
 
         // Line was cut into two pieces, and each relation contains the piece as an inner
-        Assert.assertEquals(1, civSlicedAtlas.numberOfLines());
-        Assert.assertEquals(1, lbrSlicedAtlas.numberOfLines());
+        Assert.assertEquals(1, civSlicedAtlas.numberOfAreas());
+        Assert.assertEquals(1, lbrSlicedAtlas.numberOfAreas());
         Assert.assertEquals(1, civSlicedAtlas.numberOfRelations());
         Assert.assertEquals(1, lbrSlicedAtlas.numberOfRelations());
 
         final CountrySlicingIdentifierFactory lineIdentifierFactory = new CountrySlicingIdentifierFactory(
                 108768000000L);
-        final Line rawLine = rawAtlas.line(108768000000L);
+        final Area rawArea = rawAtlas.area(108768000000L);
         final Line civLine = civSlicedAtlas.line(lineIdentifierFactory.nextIdentifier());
         Assert.assertEquals("CIV", civLine.getTag(ISOCountryTag.KEY).get());
         Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
                 civLine.getTag(SyntheticGeometrySlicedTag.KEY).get());
-        Assert.assertEquals(rawLine.getOsmTags(), civLine.getOsmTags());
+        Assert.assertEquals(rawArea.getOsmTags(), civLine.getOsmTags());
 
         final Line lbrLine = lbrSlicedAtlas.line(lineIdentifierFactory.nextIdentifier());
         Assert.assertEquals("LBR", lbrLine.getTag(ISOCountryTag.KEY).get());
         Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
                 lbrLine.getTag(SyntheticGeometrySlicedTag.KEY).get());
-        Assert.assertEquals(rawLine.getOsmTags(), lbrLine.getOsmTags());
+        Assert.assertEquals(rawArea.getOsmTags(), lbrLine.getOsmTags());
 
         final Area civArea = civSlicedAtlas.area(civLine.getIdentifier());
         Assert.assertEquals("CIV", civArea.getTag(ISOCountryTag.KEY).get());
         Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
                 civArea.getTag(SyntheticGeometrySlicedTag.KEY).get());
-        Assert.assertEquals(rawLine.getOsmTags(), civArea.getOsmTags());
+        Assert.assertEquals(rawArea.getOsmTags(), civArea.getOsmTags());
 
         final Area lbrArea = lbrSlicedAtlas.area(lbrLine.getIdentifier());
         Assert.assertEquals("LBR", lbrArea.getTag(ISOCountryTag.KEY).get());
         Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
                 lbrArea.getTag(SyntheticGeometrySlicedTag.KEY).get());
-        Assert.assertEquals(rawLine.getOsmTags(), lbrArea.getOsmTags());
+        Assert.assertEquals(rawArea.getOsmTags(), lbrArea.getOsmTags());
 
         Assert.assertEquals("CIV", civSlicedAtlas.relation(1).getTag(ISOCountryTag.KEY).get());
         Assert.assertTrue(
@@ -598,8 +597,8 @@ public class RawAtlasSlicingTest
         Assert.assertTrue(Iterables.stream(civSlicedAtlas.entities())
                 .allMatch(entity -> entity.getTag(ISOCountryTag.KEY).get().equals("CIV")));
 
-        Assert.assertEquals(5, lbrSlicedAtlas.numberOfLines());
-        Assert.assertEquals(2, lbrSlicedAtlas.numberOfAreas());
+        Assert.assertEquals(4, lbrSlicedAtlas.numberOfLines());
+        Assert.assertEquals(3, lbrSlicedAtlas.numberOfAreas());
         Assert.assertEquals(0, lbrSlicedAtlas.numberOfPoints());
         Assert.assertEquals(1, lbrSlicedAtlas.numberOfRelations());
         Assert.assertTrue(Iterables.stream(lbrSlicedAtlas.entities())
@@ -610,11 +609,11 @@ public class RawAtlasSlicingTest
         {
             if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
             {
-                final Line rawLine = rawAtlas.lines(rawLineCandidate -> rawLineCandidate
+                final Area rawArea = rawAtlas.areas(rawAreaCandidate -> rawAreaCandidate
                         .getOsmIdentifier() == line.getOsmIdentifier()).iterator().next();
                 Assert.assertNotNull(civSlicedAtlas.area(line.getIdentifier()));
-                Assert.assertEquals(rawLine.getOsmTags(), line.getOsmTags());
-                Assert.assertEquals(rawLine.getOsmTags(),
+                Assert.assertEquals(rawArea.getOsmTags(), line.getOsmTags());
+                Assert.assertEquals(rawArea.getOsmTags(),
                         civSlicedAtlas.area(line.getIdentifier()).getOsmTags());
                 Assert.assertEquals(1, line.relations().size());
                 Assert.assertEquals(0,
@@ -632,11 +631,11 @@ public class RawAtlasSlicingTest
         {
             if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
             {
-                final Line rawLine = rawAtlas.lines(rawLineCandidate -> rawLineCandidate
+                final Area rawArea = rawAtlas.areas(rawAreaCandidate -> rawAreaCandidate
                         .getOsmIdentifier() == line.getOsmIdentifier()).iterator().next();
                 Assert.assertNotNull(lbrSlicedAtlas.area(line.getIdentifier()));
-                Assert.assertEquals(rawLine.getOsmTags(), line.getOsmTags());
-                Assert.assertEquals(rawLine.getOsmTags(),
+                Assert.assertEquals(rawArea.getOsmTags(), line.getOsmTags());
+                Assert.assertEquals(rawArea.getOsmTags(),
                         lbrSlicedAtlas.area(line.getIdentifier()).getOsmTags());
                 Assert.assertEquals(1, line.relations().size());
                 Assert.assertEquals(0,
@@ -721,19 +720,32 @@ public class RawAtlasSlicingTest
         Assert.assertEquals(1, Iterables.size(lbrWaterEntities));
 
         final SortedSet<String> civSyntheticRelationMembers = new TreeSet<>();
-        civSlicedAtlas.areas().forEach(area ->
+        civSlicedAtlas.lines().forEach(line ->
         {
-            if (area.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
+            if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
             {
                 final Area rawArea = rawAtlas.areas(rawAreaCandidate -> rawAreaCandidate
-                        .getOsmIdentifier() == area.getOsmIdentifier()).iterator().next();
-                Assert.assertNotNull(civSlicedAtlas.area(area.getIdentifier()));
-                Assert.assertEquals(rawArea.getOsmTags(), area.getOsmTags());
+                        .getOsmIdentifier() == line.getOsmIdentifier()).iterator().next();
+                Assert.assertNotNull(civSlicedAtlas.area(line.getIdentifier()));
+                Assert.assertEquals(rawArea.getOsmTags(), line.getOsmTags());
                 Assert.assertEquals(rawArea.getOsmTags(),
-                        civSlicedAtlas.area(area.getIdentifier()).getOsmTags());
-                Assert.assertEquals(1, area.relations().size());
+                        civSlicedAtlas.area(line.getIdentifier()).getOsmTags());
+                Assert.assertEquals(1, line.relations().size());
                 Assert.assertEquals(0,
-                        civSlicedAtlas.area(area.getIdentifier()).relations().size());
+                        civSlicedAtlas.area(line.getIdentifier()).relations().size());
+            }
+            else if (rawAtlas.line(line.getIdentifier()) != null)
+            {
+                Assert.assertEquals(rawAtlas.line(line.getIdentifier()).getOsmTags(),
+                        line.getOsmTags());
+                Assert.assertEquals(rawAtlas.line(line.getIdentifier()).asPolyLine(),
+                        line.asPolyLine());
+                Assert.assertEquals(1, line.relations().size());
+            }
+            else
+            {
+                Assert.assertTrue(line.getTag(SyntheticSyntheticRelationMemberTag.KEY).isPresent());
+                civSyntheticRelationMembers.add(Long.toString(line.getIdentifier()));
             }
         });
 
@@ -742,11 +754,11 @@ public class RawAtlasSlicingTest
         {
             if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
             {
-                final Line rawLine = rawAtlas.lines(rawLineCandidate -> rawLineCandidate
+                final Area rawArea = rawAtlas.areas(rawAreaCandidate -> rawAreaCandidate
                         .getOsmIdentifier() == line.getOsmIdentifier()).iterator().next();
                 Assert.assertNotNull(lbrSlicedAtlas.area(line.getIdentifier()));
-                Assert.assertEquals(rawLine.getOsmTags(), line.getOsmTags());
-                Assert.assertEquals(rawLine.getOsmTags(),
+                Assert.assertEquals(rawArea.getOsmTags(), line.getOsmTags());
+                Assert.assertEquals(rawArea.getOsmTags(),
                         lbrSlicedAtlas.area(line.getIdentifier()).getOsmTags());
                 Assert.assertEquals(1, line.relations().size());
                 Assert.assertEquals(0,
@@ -834,9 +846,9 @@ public class RawAtlasSlicingTest
         {
             if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
             {
-                final Line rawLine = rawAtlas.lines(rawLineCandidate -> rawLineCandidate
+                final Area rawArea = rawAtlas.areas(rawAreaCandidate -> rawAreaCandidate
                         .getOsmIdentifier() == line.getOsmIdentifier()).iterator().next();
-                Assert.assertEquals(rawLine.getOsmTags(), line.getOsmTags());
+                Assert.assertEquals(rawArea.getOsmTags(), line.getOsmTags());
             }
             else
             {
@@ -850,9 +862,9 @@ public class RawAtlasSlicingTest
         {
             if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
             {
-                final Line rawLine = rawAtlas.lines(rawLineCandidate -> rawLineCandidate
+                final Area rawArea = rawAtlas.areas(rawAreaCandidate -> rawAreaCandidate
                         .getOsmIdentifier() == line.getOsmIdentifier()).iterator().next();
-                Assert.assertEquals(rawLine.getOsmTags(), line.getOsmTags());
+                Assert.assertEquals(rawArea.getOsmTags(), line.getOsmTags());
             }
             else if (rawAtlas.line(line.getIdentifier()) != null)
             {
@@ -1164,13 +1176,13 @@ public class RawAtlasSlicingTest
                 rawAtlas).slice();
 
         Assert.assertEquals(0, civSlicedAtlas.numberOfPoints());
-        Assert.assertEquals(1, civSlicedAtlas.numberOfLines());
-        Assert.assertEquals(0, civSlicedAtlas.numberOfAreas());
+        Assert.assertEquals(0, civSlicedAtlas.numberOfLines());
+        Assert.assertEquals(1, civSlicedAtlas.numberOfAreas());
         Assert.assertEquals(1, civSlicedAtlas.numberOfRelations());
         Assert.assertEquals("CIV,LBR",
-                civSlicedAtlas.line(108768000000L).getTag(ISOCountryTag.KEY).get());
-        Assert.assertEquals(rawAtlas.line(108768000000L).asPolyLine(),
-                civSlicedAtlas.line(108768000000L).asPolyLine());
+                civSlicedAtlas.area(108768000000L).getTag(ISOCountryTag.KEY).get());
+        Assert.assertEquals(rawAtlas.area(108768000000L).asPolygon(),
+                civSlicedAtlas.area(108768000000L).asPolygon());
         Assert.assertEquals("CIV,LBR", civSlicedAtlas.relation(1).getTag(ISOCountryTag.KEY).get());
         Assert.assertTrue(
                 civSlicedAtlas.relation(1).getTag(SyntheticGeometrySlicedTag.KEY).isEmpty());
@@ -1180,13 +1192,13 @@ public class RawAtlasSlicingTest
                 .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).isEmpty());
 
         Assert.assertEquals(0, lbrSlicedAtlas.numberOfPoints());
-        Assert.assertEquals(2, lbrSlicedAtlas.numberOfLines());
-        Assert.assertEquals(0, lbrSlicedAtlas.numberOfAreas());
+        Assert.assertEquals(0, lbrSlicedAtlas.numberOfLines());
+        Assert.assertEquals(2, lbrSlicedAtlas.numberOfAreas());
         Assert.assertEquals(1, lbrSlicedAtlas.numberOfRelations());
         Assert.assertEquals("CIV,LBR",
-                lbrSlicedAtlas.line(108768000000L).getTag(ISOCountryTag.KEY).get());
-        Assert.assertEquals(rawAtlas.line(108768000000L).asPolyLine(),
-                lbrSlicedAtlas.line(108768000000L).asPolyLine());
+                lbrSlicedAtlas.area(108768000000L).getTag(ISOCountryTag.KEY).get());
+        Assert.assertEquals(rawAtlas.area(108768000000L).asPolygon(),
+                lbrSlicedAtlas.area(108768000000L).asPolygon());
         Assert.assertEquals("CIV,LBR", lbrSlicedAtlas.relation(1).getTag(ISOCountryTag.KEY).get());
         Assert.assertTrue(
                 lbrSlicedAtlas.relation(1).getTag(SyntheticGeometrySlicedTag.KEY).isEmpty());
@@ -1261,9 +1273,9 @@ public class RawAtlasSlicingTest
         {
             if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
             {
-                final Line rawLine = rawAtlas.lines(rawLineCandidate -> rawLineCandidate
+                final Area rawArea = rawAtlas.areas(rawAreaCandidate -> rawAreaCandidate
                         .getOsmIdentifier() == line.getOsmIdentifier()).iterator().next();
-                Assert.assertEquals(rawLine.getOsmTags(), line.getOsmTags());
+                Assert.assertEquals(rawArea.getOsmTags(), line.getOsmTags());
                 Assert.assertEquals(1, line.relations().size());
             }
             else
@@ -1278,9 +1290,9 @@ public class RawAtlasSlicingTest
         {
             if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
             {
-                final Line rawLine = rawAtlas.lines(rawLineCandidate -> rawLineCandidate
+                final Area rawArea = rawAtlas.areas(rawAreaCandidate -> rawAreaCandidate
                         .getOsmIdentifier() == line.getOsmIdentifier()).iterator().next();
-                Assert.assertEquals(rawLine.getOsmTags(), line.getOsmTags());
+                Assert.assertEquals(rawArea.getOsmTags(), line.getOsmTags());
                 Assert.assertEquals(1, line.relations().size());
             }
             else if (rawAtlas.line(line.getIdentifier()) != null)

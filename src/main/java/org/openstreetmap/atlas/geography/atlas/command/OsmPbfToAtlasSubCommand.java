@@ -10,7 +10,7 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.BridgeConfiguredFilter;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
-import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.AtlasSectionProcessor;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.streaming.resource.File;
@@ -82,7 +82,7 @@ public class OsmPbfToAtlasSubCommand implements FlexibleSubCommand
         {
             atlas = new RawAtlasSlicer(options, atlas).slice();
         }
-        atlas = new WaySectionProcessor(atlas, options).run();
+        atlas = new AtlasSectionProcessor(atlas, options).run();
         atlas.save((File) map.get(OUTPUT_PARAMETER));
         return 0;
     }
