@@ -10,7 +10,7 @@ import org.openstreetmap.atlas.tags.filters.matcher.parsing.tree.EqualsOperator;
  * sure the supplied matcher does not contain invalid "=" or "!=" semantics. For e.g. "foo = (bar !=
  * baz)" is valid syntactically per the {@link TaggableMatcher} expression grammar, but not
  * semantically since it makes no sense for the purposes of tag matching. We will need to catch that
- * with this checker. Basically. we can walk the AST, and if the left or right subtree of a "="/"!="
+ * with this checker. Basically, we can walk the AST, and if the left or right subtree of a "="/"!="
  * operator contains another "="/"!=" operator, then we fail.
  *
  * @author lcram
@@ -29,8 +29,8 @@ public class SemanticChecker
             throw new CoreException("semantic error: invalid nested equality operators");
         }
         check(root.getLeftChild());
-        check(root.getCenterChild());
         check(root.getRightChild());
+        check(root.getCenterChild());
     }
 
     private boolean subtreeContainsEquals(final ASTNode root)

@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.tags.filters.matcher;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.tags.Taggable;
+import org.openstreetmap.atlas.tags.filters.TaggableFilter;
 
 /**
  * @author lcram
@@ -71,6 +72,40 @@ public class TaggableMatcherTest
         Assert.assertEquals(0L, emptyMatcher.lengthOfLongestLineForPrintedTree());
         Assert.assertEquals("", emptyMatcher.prettyPrintTree());
         Assert.assertTrue(emptyMatcher.test(taggable1));
+    }
+
+    @Test
+    public void testFilterVsMatcher()
+    {
+        final Taggable primaryHighway = Taggable.with("highway", "primary", "name", "280");
+        final Taggable secondaryHighway = Taggable.with("highway", "secondary", "name", "De Anza");
+        final Taggable someLake = Taggable.with("water", "lake", "name", "Loch Ness");
+
+        final TaggableMatcher allFeaturesNotPrimaryHighway = TaggableMatcher
+                .from("highway != primary | !highway");
+        final TaggableFilter allFeaturesNotPrimaryHighwayFilter = TaggableFilter
+                .forDefinition("highway->!primary");
+
+        final TaggableMatcher allHighwaysNotPrimaryHighway = TaggableMatcher
+                .from("highway != primary");
+        final TaggableFilter allHighwaysNotPrimaryHighwayFilter = TaggableFilter
+                .forDefinition("highway->!primary&highway->*");
+
+        Assert.assertFalse(allFeaturesNotPrimaryHighway.test(primaryHighway));
+        Assert.assertTrue(allFeaturesNotPrimaryHighway.test(secondaryHighway));
+        Assert.assertTrue(allFeaturesNotPrimaryHighway.test(someLake));
+
+        Assert.assertFalse(allFeaturesNotPrimaryHighwayFilter.test(primaryHighway));
+        Assert.assertTrue(allFeaturesNotPrimaryHighwayFilter.test(secondaryHighway));
+        Assert.assertTrue(allFeaturesNotPrimaryHighwayFilter.test(someLake));
+
+        Assert.assertFalse(allHighwaysNotPrimaryHighway.test(primaryHighway));
+        Assert.assertTrue(allHighwaysNotPrimaryHighway.test(secondaryHighway));
+        Assert.assertFalse(allHighwaysNotPrimaryHighway.test(someLake));
+
+        Assert.assertFalse(allHighwaysNotPrimaryHighwayFilter.test(primaryHighway));
+        Assert.assertTrue(allHighwaysNotPrimaryHighwayFilter.test(secondaryHighway));
+        Assert.assertFalse(allHighwaysNotPrimaryHighwayFilter.test(someLake));
     }
 
     @Test

@@ -360,7 +360,7 @@ public class Parser
                 arrow);
     }
 
-    // VALUE -> ( EXP )
+    // VALUE -> ( OR )
     // VALUE -> ! VALUE
     // VALUE -> literal
     // VALUE -> /regex/

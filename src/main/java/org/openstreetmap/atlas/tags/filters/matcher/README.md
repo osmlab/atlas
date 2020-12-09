@@ -236,7 +236,7 @@ a = b & c = d | e != f
    a     b     c     d
 
 ```
-The `TaggableMatcher` is evaluated by walking the tree in a depth-first, left-to-right fashion.
+The `TaggableMatcher` is evaluated by walking the tree in post-order (LRN).
 
 As mentioned in an earlier section, chained "="/"!=" operators are forbidden since expressions
 containing them are nonsensical in the context of tag matching. Expressions with chained equality
