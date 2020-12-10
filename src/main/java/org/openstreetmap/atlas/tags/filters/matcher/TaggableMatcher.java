@@ -42,6 +42,11 @@ public final class TaggableMatcher implements Predicate<Taggable>, Serializable
         this.definition = definition;
     }
 
+    public String getDefinition()
+    {
+        return this.definition;
+    }
+
     /**
      * Get the length of the longest line for the printed tree returned by
      * {@link TaggableMatcher#prettyPrintTree()}.

@@ -126,4 +126,35 @@ public class TaggableFilterTest
         final TaggableFilter filter22 = (TaggableFilter) new FreezeDryFunction<>().apply(filter2);
         Assert.assertEquals(filter2.getDefinition(), filter22.getDefinition());
     }
+
+    @Test
+    public void z()
+    {
+        // TODO remove test
+        final TaggableFilterToMatcherConverter converter = new TaggableFilterToMatcherConverter();
+        final TaggableFilter filter = TaggableFilter.forDefinition(
+                "highway->service&cycleway->lane||cycleway:lane->*&&cycleway->!|highway->!motorway");
+        System.err.println(converter.convert(filter).getDefinition());
+
+        final TaggableFilter filterA = TaggableFilter.forDefinition("highway->service,primary");
+        System.err.println(converter.convert(filterA).getDefinition());
+
+        final TaggableFilter filter2 = TaggableFilter.forDefinition("highway->!service");
+        final Taggable taggable1 = Taggable.with("highway", "primary");
+        final Taggable taggable2 = Taggable.with("highway", "service");
+        final Taggable taggable3 = Taggable.with("natural", "lake");
+        Assert.assertTrue(filter2.test(taggable1));
+        Assert.assertFalse(filter2.test(taggable2));
+        Assert.assertTrue(filter2.test(taggable3));
+
+        final TaggableFilter filter3 = TaggableFilter.forDefinition("highway->service,primary");
+        Assert.assertTrue(filter3.test(taggable1));
+        Assert.assertTrue(filter3.test(taggable2));
+        Assert.assertFalse(filter3.test(taggable3));
+
+        final TaggableFilter filter4 = TaggableFilter.forDefinition("highway->primary,!,service");
+        Assert.assertTrue(filter4.test(taggable1));
+        Assert.assertFalse(filter4.test(taggable2));
+        Assert.assertFalse(filter4.test(taggable3));
+    }
 }

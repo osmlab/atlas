@@ -8,6 +8,7 @@ import java.util.function.Predicate;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.tags.Taggable;
+import org.openstreetmap.atlas.tags.filters.matcher.TaggableMatcher;
 
 /**
  * {@link Taggable} filter that relies on a String definition
@@ -115,6 +116,11 @@ public class TaggableFilter implements Predicate<Taggable>, Serializable
         this.definition = other.definition;
     }
 
+    public TaggableMatcher convertToTaggableMatcher()
+    {
+        return new TaggableFilterToMatcherConverter().convert(this);
+    }
+
     @Override
     public boolean test(final Taggable taggable)
     {
@@ -151,6 +157,11 @@ public class TaggableFilter implements Predicate<Taggable>, Serializable
     protected Optional<String> getDefinition()
     {
         return Optional.ofNullable(this.definition);
+    }
+
+    protected Predicate<Taggable> getSimple()
+    {
+        return this.simple;
     }
 
     protected TreeBoolean getTreeBoolean()
