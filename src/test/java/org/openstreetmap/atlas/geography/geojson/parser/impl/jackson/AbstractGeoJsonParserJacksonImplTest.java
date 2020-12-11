@@ -9,17 +9,17 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Automatically loads the appropriate JSON file in the classpath under
- * {@link AbstractGeoJsonParserGsonImplTest#BASE_CLASSPATH}. It looks for the file that shares the
- * same name as the test method.
+ * {@link AbstractGeoJsonParserJacksonImplTest#BASE_CLASSPATH}. It looks for the file that shares
+ * the same name as the test method.
  *
  * @author Yazad Khambata
  */
-public class AbstractGeoJsonParserGsonImplTest
+public class AbstractGeoJsonParserJacksonImplTest
 {
     public static final String BASE_CLASSPATH = "org/openstreetmap/atlas/geography/geojson/parser/";
     public static final String EXTENSION = ".json";
     private static final Logger log = LoggerFactory
-            .getLogger(AbstractGeoJsonParserGsonImplTest.class);
+            .getLogger(AbstractGeoJsonParserJacksonImplTest.class);
 
     protected String extractJsonForExtension()
     {

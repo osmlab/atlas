@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Yazad Khambata
  */
-public class GeoJsonParserJacksonImplExtensionsTest extends AbstractGeoJsonParserGsonImplTest
+public class GeoJsonParserJacksonImplExtensionsTest extends AbstractGeoJsonParserJacksonImplTest
 {
     private static final Logger log = LoggerFactory
             .getLogger(GeoJsonParserJacksonImplExtensionsTest.class);
