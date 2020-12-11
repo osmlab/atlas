@@ -20,41 +20,41 @@ public final class Coordinates<V>
 
     private V value;
 
-    public static Coordinates<List<Position>> forLineString(final List<List<Double>> data)
+    public static Coordinates<List<Position>> forLineString(final List<List<Number>> data)
     {
         return forMultiPoint(data);
     }
 
     public static Coordinates<List<List<Position>>> forMultiLineString(
-            final List<List<List<Double>>> data)
+            final List<List<List<Number>>> data)
     {
         return new Coordinates<>(toListOfPositionList(data));
     }
 
-    public static Coordinates<List<Position>> forMultiPoint(final List<List<Double>> data)
+    public static Coordinates<List<Position>> forMultiPoint(final List<List<Number>> data)
     {
         return new Coordinates<>(toPositionList(data));
     }
 
     public static Coordinates<List<List<List<Position>>>> forMultiPolygon(
-            final List<List<List<List<Double>>>> data)
+            final List<List<List<List<Number>>>> data)
     {
         return new Coordinates<>(
                 data.stream().map(Coordinates::toListOfPositionList).collect(Collectors.toList()));
     }
 
-    public static Coordinates<Position> forPoint(final List<Double> data)
+    public static Coordinates<Position> forPoint(final List<Number> data)
     {
         return new Coordinates<>(toPosition(data));
     }
 
-    public static Coordinates<List<List<Position>>> forPolygon(final List<List<List<Double>>> data)
+    public static Coordinates<List<List<Position>>> forPolygon(final List<List<List<Number>>> data)
     {
         // Designed in the specification as a MultiPolygon of size 1.
         return forMultiLineString(data);
     }
 
-    private static List<List<Position>> toListOfPositionList(final List<List<List<Double>>> data)
+    private static List<List<Position>> toListOfPositionList(final List<List<List<Number>>> data)
     {
         Validate.notEmpty(data, "list containing the lists of coordinates is EMPTY.");
         Validate.isTrue(data.size() >= 1, "multi point coordinates must be at least 1: %s.", data);
@@ -63,15 +63,15 @@ public final class Coordinates<V>
                 .collect(Collectors.toList());
     }
 
-    private static Position toPosition(final List<Double> data)
+    private static Position toPosition(final List<Number> data)
     {
         Validate.notEmpty(data, "coordinates is EMPTY.");
         Validate.isTrue(data.size() == 2, "point coordinates is NOT 2: %s.", data);
 
-        return new Position(data.get(0), data.get(1));
+        return new Position(data.get(0).doubleValue(), data.get(1).doubleValue());
     }
 
-    private static List<Position> toPositionList(final List<List<Double>> data)
+    private static List<Position> toPositionList(final List<List<Number>> data)
     {
         Validate.notEmpty(data, "list of coordinates is EMPTY.");
         Validate.isTrue(data.size() >= 1, "multi point coordinates must be at least 1: %s.", data);

@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.geojson.parser.impl.gson;
+package org.openstreetmap.atlas.geography.geojson.parser.impl.jackson;
 
 import java.nio.charset.Charset;
 
@@ -39,7 +39,7 @@ public class AbstractGeoJsonParserGsonImplTest
 
         log.info("{} json:: {}.", callingMethodName, json);
 
-        final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
+        final GeoJsonItem geoJsonItem = GeoJsonParserJacksonImpl.instance.deserialize(json);
         log.info("{} geoJsonItem:: {}.", callingMethodName, geoJsonItem);
         return geoJsonItem;
     }

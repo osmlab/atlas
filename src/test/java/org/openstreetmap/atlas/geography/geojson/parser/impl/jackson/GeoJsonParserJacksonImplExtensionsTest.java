@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.geojson.parser.impl.gson;
+package org.openstreetmap.atlas.geography.geojson.parser.impl.jackson;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -14,17 +14,17 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Yazad Khambata
  */
-public class GeoJsonParserGsonImplExtensionsTest extends AbstractGeoJsonParserGsonImplTest
+public class GeoJsonParserJacksonImplExtensionsTest extends AbstractGeoJsonParserGsonImplTest
 {
     private static final Logger log = LoggerFactory
-            .getLogger(GeoJsonParserGsonImplExtensionsTest.class);
+            .getLogger(GeoJsonParserJacksonImplExtensionsTest.class);
 
     @Test
     public void beanA()
     {
         final String json = extractJsonForExtension();
 
-        final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
+        final GeoJsonParser geoJsonParser = GeoJsonParserJacksonImpl.instance;
 
         final BeanA beanA = geoJsonParser.deserializeExtension(json, BeanA.class);
         log.info("beanA:: {}.", beanA);
@@ -38,7 +38,7 @@ public class GeoJsonParserGsonImplExtensionsTest extends AbstractGeoJsonParserGs
     {
         final String json = extractJsonForExtension();
 
-        final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
+        final GeoJsonParser geoJsonParser = GeoJsonParserJacksonImpl.instance;
 
         final BeanB beanB = geoJsonParser.deserializeExtension(json, BeanB.class);
         log.info("beanB:: {}.", beanB);
@@ -53,7 +53,7 @@ public class GeoJsonParserGsonImplExtensionsTest extends AbstractGeoJsonParserGs
     {
         final String json = extractJsonForExtension();
 
-        final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
+        final GeoJsonParser geoJsonParser = GeoJsonParserJacksonImpl.instance;
 
         final BeanB beanB = geoJsonParser.deserializeExtension(json, BeanB.class);
         log.info("beanB:: {}.", beanB);
@@ -67,7 +67,7 @@ public class GeoJsonParserGsonImplExtensionsTest extends AbstractGeoJsonParserGs
     {
         final String json = extractJsonForExtension();
 
-        final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
+        final GeoJsonParser geoJsonParser = GeoJsonParserJacksonImpl.instance;
 
         final Description description = geoJsonParser.deserializeExtension(json, Description.class);
         log.info("description:: {}.", description);
@@ -81,7 +81,7 @@ public class GeoJsonParserGsonImplExtensionsTest extends AbstractGeoJsonParserGs
     {
         final String json = extractJsonForExtension();
 
-        final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
+        final GeoJsonParser geoJsonParser = GeoJsonParserJacksonImpl.instance;
 
         final Descriptor descriptor = geoJsonParser.deserializeExtension(json, Descriptor.class);
         log.info("descriptor:: {}.", descriptor);
@@ -95,7 +95,7 @@ public class GeoJsonParserGsonImplExtensionsTest extends AbstractGeoJsonParserGs
     {
         final String json = extractJsonForExtension();
 
-        final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
+        final GeoJsonParser geoJsonParser = GeoJsonParserJacksonImpl.instance;
 
         final Descriptor descriptor = geoJsonParser.deserializeExtension(json, Descriptor.class);
         log.info("descriptor:: {}.", descriptor);
@@ -109,7 +109,7 @@ public class GeoJsonParserGsonImplExtensionsTest extends AbstractGeoJsonParserGs
     {
         final String json = extractJsonForExtension();
 
-        final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
+        final GeoJsonParser geoJsonParser = GeoJsonParserJacksonImpl.instance;
 
         final Descriptor descriptor = geoJsonParser.deserializeExtension(json, Descriptor.class);
         log.info("descriptor:: {}.", descriptor);
@@ -124,7 +124,7 @@ public class GeoJsonParserGsonImplExtensionsTest extends AbstractGeoJsonParserGs
     {
         final String json = extractJsonForExtension();
 
-        final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
+        final GeoJsonParser geoJsonParser = GeoJsonParserJacksonImpl.instance;
 
         final FeatureChangeProperties featureChangeProperties = geoJsonParser
                 .deserializeExtension(json, FeatureChangeProperties.class);
@@ -140,7 +140,7 @@ public class GeoJsonParserGsonImplExtensionsTest extends AbstractGeoJsonParserGs
     {
         final String json = extractJsonForExtension();
 
-        final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
+        final GeoJsonParser geoJsonParser = GeoJsonParserJacksonImpl.instance;
 
         try
         {
@@ -165,7 +165,7 @@ public class GeoJsonParserGsonImplExtensionsTest extends AbstractGeoJsonParserGs
     {
         final String json = extractJsonForExtension();
 
-        final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
+        final GeoJsonParser geoJsonParser = GeoJsonParserJacksonImpl.instance;
 
         try
         {
@@ -189,7 +189,7 @@ public class GeoJsonParserGsonImplExtensionsTest extends AbstractGeoJsonParserGs
     {
         final String json = extractJsonForExtension();
 
-        final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
+        final GeoJsonParser geoJsonParser = GeoJsonParserJacksonImpl.instance;
 
         final FeatureChangeProperties featureChangeProperties = geoJsonParser
                 .deserializeExtension(json, FeatureChangeProperties.class);

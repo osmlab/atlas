@@ -196,7 +196,7 @@ In my exploration I didn't come across a framework that solves these problems to
 If you are just interested in the standard types and do not rely heavily on `Foreign Fields` or `properties` you just need one line of code.
 
 ```java
-        final GeoJsonItem geoJsonItem = GeoJsonParserGsonImpl.instance.deserialize(json);
+        final GeoJsonItem geoJsonItem = GeoJsonParserJacksonImpl.instance.deserialize(json);
 ```
 
 If you do wish to map your properties to a deep nested `bean` or `pojo`, you will need an additional line while accessing properties (assume MyClass is your deep-nested POJO),

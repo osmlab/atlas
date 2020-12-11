@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.geojson.parser.impl.gson;
+package org.openstreetmap.atlas.geography.geojson.parser.impl.jackson;
 
 import java.util.List;
 import java.util.Map;
@@ -29,9 +29,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author Yazad Khambata
  */
-public class GeoJsonParserGsonImplTest extends AbstractGeoJsonParserGsonImplTest
+public class GeoJsonParserJacksonImplTest extends AbstractGeoJsonParserGsonImplTest
 {
-    private static final Logger log = LoggerFactory.getLogger(GeoJsonParserGsonImplTest.class);
+    private static final Logger log = LoggerFactory.getLogger(GeoJsonParserJacksonImplTest.class);
 
     @Test
     public void feature1()
@@ -72,7 +72,7 @@ public class GeoJsonParserGsonImplTest extends AbstractGeoJsonParserGsonImplTest
                 .asType(FeatureChangeProperties.class);
 
         final Descriptor descriptor = featureChangeProperties.getDescription().getDescriptors()[0];
-        Assert.assertEquals(402306209000000L, (long) descriptor.getId());
+        Assert.assertEquals(-1374305525422343588L, (long) descriptor.getId());
         Assert.assertEquals("NODE", descriptor.getItemType());
         Assert.assertEquals("via", descriptor.getRole());
         Assert.assertEquals(9087654321L, (long) descriptor.getBeforeElement());
