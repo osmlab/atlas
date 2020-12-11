@@ -3,10 +3,12 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 import java.util.List;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.tags.filters.TaggableFilter;
 import org.openstreetmap.atlas.tags.filters.matcher.TaggableMatcher;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
+import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 
 /**
@@ -14,6 +16,14 @@ import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
  */
 public class TaggableMatcherPrinterCommand extends AbstractAtlasShellToolsCommand
 {
+    private static final String REVERSE_OPTION_LONG = "reverse";
+    private static final String REVERSE_OPTION_DESCRIPTION = "Convert an old-style TaggableFilter into a TaggableMatcher.";
+
+    private static final String FILTERS_ARGUMENT = "filters";
+    private static final String MATCHERS_ARGUMENT = "matchers";
+
+    private static final int REVERSE_CONTEXT = 4;
+
     public static void main(final String[] args)
     {
         new TaggableMatcherPrinterCommand().runSubcommandAndExit(args);
@@ -22,8 +32,54 @@ public class TaggableMatcherPrinterCommand extends AbstractAtlasShellToolsComman
     @Override
     public int execute()
     {
+        if (this.getOptionAndArgumentDelegate().getParserContext() == REVERSE_CONTEXT)
+        {
+            executeReverseContext();
+        }
+        else
+        {
+            executeDefaultContext();
+        }
+
+        return 0;
+    }
+
+    @Override
+    public String getCommandName()
+    {
+        return "print-matcher";
+    }
+
+    @Override
+    public String getSimpleDescription()
+    {
+        return "print a TaggableMatcher as a tree";
+    }
+
+    @Override
+    public void registerManualPageSections()
+    {
+        addManualPageSection("DESCRIPTION", AtlasSearchCommand.class
+                .getResourceAsStream("TaggableMatcherPrinterCommandDescriptionSection.txt"));
+        addManualPageSection("EXAMPLES", AtlasSearchCommand.class
+                .getResourceAsStream("TaggableMatcherPrinterCommandExamplesSection.txt"));
+    }
+
+    @Override
+    public void registerOptionsAndArguments()
+    {
+        registerArgument(MATCHERS_ARGUMENT, ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED);
+        registerArgument(FILTERS_ARGUMENT, ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED,
+                REVERSE_CONTEXT);
+        registerOption(REVERSE_OPTION_LONG, REVERSE_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
+                REVERSE_CONTEXT);
+        super.registerOptionsAndArguments();
+    }
+
+    private void executeDefaultContext()
+    {
         final List<String> definitions = this.getOptionAndArgumentDelegate()
-                .getVariadicArgument("matchers");
+                .getVariadicArgument(MATCHERS_ARGUMENT);
         for (final String definition : definitions)
         {
             this.getCommandOutputDelegate().printlnStdout(definition, TTYAttribute.BOLD,
@@ -54,35 +110,27 @@ public class TaggableMatcherPrinterCommand extends AbstractAtlasShellToolsComman
             }
             this.getCommandOutputDelegate().printlnStdout("");
         }
-
-        return 0;
     }
 
-    @Override
-    public String getCommandName()
+    private void executeReverseContext()
     {
-        return "print-matcher";
-    }
+        final List<String> definitions = this.getOptionAndArgumentDelegate()
+                .getVariadicArgument(FILTERS_ARGUMENT);
+        for (final String definition : definitions)
+        {
+            this.getCommandOutputDelegate().printlnStdout(definition, TTYAttribute.BOLD,
+                    TTYAttribute.GREEN);
+            try
+            {
+                this.getCommandOutputDelegate().printlnStdout(TaggableFilter
+                        .forDefinition(definition).convertToTaggableMatcher().getDefinition());
 
-    @Override
-    public String getSimpleDescription()
-    {
-        return "print a TaggableMatcher as a tree";
-    }
-
-    @Override
-    public void registerManualPageSections()
-    {
-        addManualPageSection("DESCRIPTION", AtlasSearchCommand.class
-                .getResourceAsStream("TaggableMatcherPrinterCommandDescriptionSection.txt"));
-        addManualPageSection("EXAMPLES", AtlasSearchCommand.class
-                .getResourceAsStream("TaggableMatcherPrinterCommandExamplesSection.txt"));
-    }
-
-    @Override
-    public void registerOptionsAndArguments()
-    {
-        registerArgument("matchers", ArgumentArity.VARIADIC, ArgumentOptionality.REQUIRED);
-        super.registerOptionsAndArguments();
+            }
+            catch (final Exception exception)
+            {
+                this.getCommandOutputDelegate().printlnErrorMessage(exception.getMessage());
+            }
+            this.getCommandOutputDelegate().printlnStdout("");
+        }
     }
 }

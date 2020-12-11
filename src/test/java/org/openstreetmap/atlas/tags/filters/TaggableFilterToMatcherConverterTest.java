@@ -79,7 +79,7 @@ public class TaggableFilterToMatcherConverterTest
 
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage(
-                "Cannot transpile `highway->primary,!,secondary' since value `primary,!,secondary' contains a lone `!' operator.");
+                "Cannot transpile `highway->primary,!,secondary' since composite value `primary,!,secondary' contains a lone `!' operator.");
         converter.convert(filter);
     }
 
@@ -135,7 +135,7 @@ public class TaggableFilterToMatcherConverterTest
 
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage(
-                "Cannot transpile `highway->primary,*,secondary' since value `primary,*,secondary' contains a lone `*' operator.");
+                "Cannot transpile `highway->primary,*,secondary' since composite value `primary,*,secondary' contains a lone `*' operator.");
         converter.convert(filter);
     }
 }

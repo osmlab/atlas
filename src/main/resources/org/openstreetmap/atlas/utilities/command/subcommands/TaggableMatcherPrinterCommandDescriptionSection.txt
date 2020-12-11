@@ -3,3 +3,6 @@ The strings will run through the TaggableMatcher parsing system.
 
 If a tree is too long to fit in your terminal window, try piping it into less
 with linewrap disabled using less's -S option.
+
+Alternatively, you may supply the '--reverse' flag in order to convert old-style
+TaggableFilters into TaggableMatchers.
