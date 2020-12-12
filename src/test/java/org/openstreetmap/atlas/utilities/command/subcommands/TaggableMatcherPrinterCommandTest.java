@@ -75,7 +75,7 @@ public class TaggableMatcherPrinterCommandTest
         Assert.assertEquals("foo->bar,!,bat\n" + "\n", outContent.toString());
         Assert.assertEquals(
                 "print-matcher: error: Cannot transpile `foo->bar,!,bat' since composite value `bar,!,bat' contains a lone `!' operator.\n"
-                        + "expression `foo->bar,!,bat' is ambiguous and order dependent, please rewrite your TaggableFilter to remove it.\n",
+                        + "Expression `foo->bar,!,bat' is ambiguous and order dependent, please rewrite your TaggableFilter to remove it.\n",
                 errContent.toString());
     }
 }

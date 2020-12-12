@@ -60,7 +60,7 @@ public class TaggableFilterToMatcherConverter implements Converter<TaggableFilte
                 throw new CoreException(
                         "Cannot transpile `{}->{}' since composite value `{}' contains a lone `{}' operator."
                                 + "\n"
-                                + "expression `{}->{}' is ambiguous and order dependent, please rewrite your TaggableFilter to remove it.",
+                                + "Expression `{}->{}' is ambiguous and order dependent, please rewrite your TaggableFilter to remove it.",
                         key, commaSeparatedValuesString, commaSeparatedValuesString,
                         Token.TokenType.BANG.getLiteralValue(), key, commaSeparatedValuesString);
             }
@@ -69,7 +69,7 @@ public class TaggableFilterToMatcherConverter implements Converter<TaggableFilte
                 throw new CoreException(
                         "Cannot transpile `{}->{}' since composite value `{}' contains a lone `*' operator."
                                 + "\n"
-                                + "expression `{}->{}' is ambiguous and order dependent, please rewrite your TaggableFilter to remove it.",
+                                + "Expression `{}->{}' is ambiguous and order dependent, please rewrite your TaggableFilter to remove it.",
                         key, commaSeparatedValuesString, commaSeparatedValuesString, key,
                         commaSeparatedValuesString);
             }

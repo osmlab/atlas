@@ -11,6 +11,7 @@
    * [More On Quoting](#more-on-quoting)
    * [Regex](#regex)
    * [Tree Representation](#tree-representation)
+4. [Converting Your Old TaggableFilters](#converting-your-old-taggableFilters)
 
 ## Quick Intro and Examples
 `TaggableMatcher` is an extension of `Predicate<Taggable>` that supports intuitive string definitions.
@@ -258,4 +259,29 @@ The `TaggableMatcher` semantic checker is able to detect subtrees like this and 
 definition as invalid. In fact, the `TaggableMatcherPrinterCommand` will not even allow you to print
 this tree since it fails the semantic check.
 
+## Converting Your Old TaggableFilters
+The `TaggableMatcherPrinterCommand` mentioned earlier can also help you convert old `TaggableFilter`
+definitions into the new `TaggableMatcher` syntax. All you need to do is specify the `--reverse` option
+at the command line, and then pass as many `TaggableFilter` definitions as you would like to convert.
+For example:
+```
+$ atlas print-matcher --reverse 'foo->bar|baz->bat' 'cat->mat&hat->zat,hello'
+foo->bar|baz->bat
+foo=bar | baz=bat
 
+cat->mat&hat->zat,hello
+(cat=mat & hat=(zat | hello))
+```
+Note that occasionally, `print-matcher` will include unnecessary parentheses or other strange
+conversion artifacts in its generated `TaggableMatcher` definitions. You can safely remove those.
+
+Also note that `print-matcher` will fail to convert certain kinds of valid `TaggableFilters`,
+specifically those that make use of ambiguous combinations of operators. For example:
+```
+$ atlas print-matcher --reverse 'foo->bar,!,bat'
+foo->bar,!,bat
+print-matcher: error: Cannot transpile `foo->bar,!,bat' since composite value `bar,!,bat' contains a lone `!' operator.
+Expression `foo->bar,!,bat' is ambiguous and order dependent, please rewrite your TaggableFilter to remove it.
+```
+
+Finally, as mentioned above, you can obtain `print-matcher` by installing [Atlas Shell Tools](https://github.com/osmlab/atlas/tree/dev/atlas-shell-tools).
