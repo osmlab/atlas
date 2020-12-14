@@ -17,6 +17,8 @@
     <suppress checks="ParameterName" files="src/main/java/org/openstreetmap/atlas/utilities/function/QuaternaryOperator.java" />
     <suppress checks="ParameterName" files="src/main/java/org/openstreetmap/atlas/utilities/function/SenaryFunction.java" />
     <suppress checks="ParameterName" files="src/main/java/org/openstreetmap/atlas/utilities/function/SenaryOperator.java" />
+    <suppress checks="MethodName" files="src/main/java/org/openstreetmap/atlas/tags/filters/matcher/parsing/Parser.java" />
+    <suppress checks="MethodName" files="src/main/java/org/openstreetmap/atlas/tags/filters/matcher/parsing/Lexer.java" />
 
     <!-- Field name for "WKT" does not follow Java Bean standards-->
     <suppress checks="MemberName" files="src/main/java/org/openstreetmap/atlas/geography/geojson/parser/domain/properties/ext/change/FeatureChangeProperties.java" />

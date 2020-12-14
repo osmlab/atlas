@@ -33,7 +33,7 @@ public class ConfiguredFilterTest
     }
 
     @Test
-    public void testFilter()
+    public void testFilterAndMatcher()
     {
         final ConfiguredFilter junctionRoundaboutFilter = get("junctionRoundaboutFilter");
         final ConfiguredFilter dummyFilter = get("dummyFilter");
@@ -41,7 +41,9 @@ public class ConfiguredFilterTest
         final ConfiguredFilter defaultFilter = get("I am not there");
         final ConfiguredFilter nothingGoesThroughFilter = get("nothingGoesThroughFilter");
         final ConfiguredFilter regexFilterOnly = get("regexFilterOnly");
+        final ConfiguredFilter taggableMatcherOnly = get("taggableMatcherOnly");
         final ConfiguredFilter unsafePredicateFilter = get("unsafePredicateFilter");
+        final ConfiguredFilter taggableMatcherAndFilter = get("taggableMatcherAndFilter");
 
         final Edge edge = new CompleteEdge(123L, null,
                 Maps.hashMap("junction", "roundabout", "source", "illegal source"), null, null,
@@ -57,6 +59,9 @@ public class ConfiguredFilterTest
         Assert.assertTrue(regexFilterOnly.test(edge));
         Assert.assertFalse(regexFilterOnly.test(node));
         Assert.assertTrue(unsafePredicateFilter.test(edge));
+        Assert.assertFalse(taggableMatcherOnly.test(edge));
+        Assert.assertTrue(taggableMatcherOnly.test(node));
+        Assert.assertTrue(taggableMatcherAndFilter.test(edge));
     }
 
     @Test

@@ -223,6 +223,16 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     }
 
     /**
+     * Get the maximum column of the current terminal.
+     *
+     * @return the maximum column
+     */
+    public int getMaximumColumn()
+    {
+        return this.maximumColumn;
+    }
+
+    /**
      * Get the {@link PrintStream} for this command's out stream.
      *
      * @return the {@link PrintStream} for this command's out stream.

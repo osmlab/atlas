@@ -35,6 +35,7 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.tags.filters.TaggableFilter;
+import org.openstreetmap.atlas.tags.filters.matcher.TaggableMatcher;
 import org.openstreetmap.atlas.utilities.collections.Sets;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
@@ -76,9 +77,13 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     private static final String SUB_GEOMETRY_OPTION_DESCRIPTION = "Like --geometry, but can match against contained geometry. E.g. POINT(2 2) would match LINESTRING(1 1, 2 2, 3 3).";
     private static final String SUB_GEOMETRY_OPTION_HINT = "wkt-geometry";
 
-    private static final String TAGGABLEFILTER_OPTION_LONG = "taggable-filter";
+    private static final String TAGGABLEFILTER_OPTION_LONG = "tag-filter";
     private static final String TAGGABLEFILTER_OPTION_DESCRIPTION = "A TaggableFilter by which to filter the search space.";
     private static final String TAGGABLEFILTER_OPTION_HINT = "filter";
+
+    private static final String TAGGABLEMATCHER_OPTION_LONG = "tag-matcher";
+    private static final String TAGGABLEMATCHER_OPTION_DESCRIPTION = "A TaggableMatcher by which to filter the search space.";
+    private static final String TAGGABLEMATCHER_OPTION_HINT = "matcher";
 
     private static final String STARTNODE_OPTION_LONG = "start-node";
     private static final String STARTNODE_OPTION_DESCRIPTION = "A comma separated list of start node identifiers for which to search.";
@@ -138,6 +143,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     private Set<String> subGeometryWkts;
     private Set<String> boundingWkts;
     private TaggableFilter taggableFilter;
+    private TaggableMatcher taggableMatcher;
     private Set<Long> startNodeIds;
     private Set<Long> endNodeIds;
     private Set<Long> inEdgeIds;
@@ -247,6 +253,10 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                 TAGGABLEFILTER_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
                 TAGGABLEFILTER_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT,
                 NODE_ONLY_CONTEXT);
+        registerOptionWithRequiredArgument(TAGGABLEMATCHER_OPTION_LONG,
+                TAGGABLEMATCHER_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
+                TAGGABLEMATCHER_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT,
+                NODE_ONLY_CONTEXT);
         registerOptionWithRequiredArgument(STARTNODE_OPTION_LONG, STARTNODE_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, STARTNODE_OPTION_HINT, EDGE_ONLY_CONTEXT);
         registerOptionWithRequiredArgument(ENDNODE_OPTION_LONG, ENDNODE_OPTION_DESCRIPTION,
@@ -307,6 +317,8 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         this.taggableFilter = this.optionAndArgumentDelegate
                 .getOptionArgument(TAGGABLEFILTER_OPTION_LONG, TaggableFilter::forDefinition)
                 .orElse(null);
+        this.taggableMatcher = this.optionAndArgumentDelegate
+                .getOptionArgument(TAGGABLEMATCHER_OPTION_LONG, TaggableMatcher::from).orElse(null);
         if (this.optionAndArgumentDelegate.getParserContext() == EDGE_ONLY_CONTEXT)
         {
             this.typesToCheck.add(ItemType.EDGE);
@@ -391,6 +403,11 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             }
             if (entityMatchesAllCriteriaSoFar && this.taggableFilter != null
                     && !this.taggableFilter.test(entity))
+            {
+                entityMatchesAllCriteriaSoFar = false;
+            }
+            if (entityMatchesAllCriteriaSoFar && this.taggableMatcher != null
+                    && !this.taggableMatcher.test(entity))
             {
                 entityMatchesAllCriteriaSoFar = false;
             }
