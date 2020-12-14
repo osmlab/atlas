@@ -69,6 +69,15 @@
             "regexFilterOnly":
             {
                 "regexTaggableFilter": "source,highway|.*illegal.*,.*secondary.*"
+            },
+            "taggableMatcherOnly":
+            {
+                "taggableMatcher": "(highway = primary & name = 1st) | source = local\\ knowledge"
+            },
+            "taggableMatcherAndFilter":
+            {
+                "taggableFilter": "junction->roundabout",
+                "taggableMatcher": "source = illegal\\ source"
             }
         }
     }
