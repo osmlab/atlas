@@ -235,7 +235,6 @@ a = b & c = d | e != f
       =           =           e           f
    ┌──┴──┐     ┌──┴──┐
    a     b     c     d
-
 ```
 The `TaggableMatcher` is evaluated by walking the tree in post-order (LRN).
 
@@ -253,7 +252,6 @@ becomes this tree:
       a           =
                ┌──┴──┐
                b     c
-
 ```
 The `TaggableMatcher` semantic checker is able to detect subtrees like this and reject the matcher
 definition as invalid. In fact, the `TaggableMatcherPrinterCommand` will not even allow you to print
@@ -266,10 +264,7 @@ at the command line, and then pass as many `TaggableFilter` definitions as you w
 For example:
 ```
 $ atlas print-matcher --reverse 'foo->bar|baz->bat' 'cat->mat&hat->zat,hello'
-foo->bar|baz->bat
 foo=bar | baz=bat
-
-cat->mat&hat->zat,hello
 (cat=mat & hat=(zat | hello))
 ```
 Note that occasionally, `print-matcher` will include unnecessary parentheses or other strange
@@ -279,7 +274,6 @@ Also note that `print-matcher` will fail to convert certain kinds of valid `Tagg
 specifically those that make use of ambiguous combinations of operators. For example:
 ```
 $ atlas print-matcher --reverse 'foo->bar,!,bat'
-foo->bar,!,bat
 print-matcher: error: Cannot transpile `foo->bar,!,bat' since composite value `bar,!,bat' contains a lone `!' operator.
 Expression `foo->bar,!,bat' is ambiguous and order dependent, please rewrite your TaggableFilter to remove it.
 ```
