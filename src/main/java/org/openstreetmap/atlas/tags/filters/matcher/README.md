@@ -267,8 +267,9 @@ $ atlas print-matcher --reverse 'foo->bar|baz->bat' 'cat->mat&hat->zat,hello'
 foo=bar | baz=bat
 (cat=mat & hat=(zat | hello))
 ```
-Note that occasionally, `print-matcher` will include unnecessary parentheses or other strange
-conversion artifacts in its generated `TaggableMatcher` definitions. You can safely remove those.
+Note that occasionally, `print-matcher` will include unnecessary parentheses its generated
+`TaggableMatcher` definitions (like the outermost parentheses in the above example).
+You can safely remove those.
 
 Also note that `print-matcher` will fail to convert certain kinds of valid `TaggableFilters`,
 specifically those that make use of ambiguous combinations of operators. For example:
@@ -276,6 +277,19 @@ specifically those that make use of ambiguous combinations of operators. For exa
 $ atlas print-matcher --reverse 'foo->bar,!,bat'
 print-matcher: error: Cannot transpile `foo->bar,!,bat' since composite value `bar,!,bat' contains a lone `!' operator.
 Expression `foo->bar,!,bat' is ambiguous and order dependent, please rewrite your TaggableFilter to remove it.
+```
+
+You can also use the `print-matcher` command to easily print a tree for an old-style `TaggableFilter`, should
+you want help debugging one. Make use of your shell's command substitution feature like so:
+```
+atlas print-matcher "$(atlas print-matcher --reverse 'foo->bar||baz->bat&cat->hat')"
+                                &
+                ┌───────────────┴───────────────┐
+                |                               =
+        ┌───────┴───────┐               ┌───────┴───────┐
+        =               =              cat             hat
+    ┌───┴───┐       ┌───┴───┐
+   foo     bar     baz     bat
 ```
 
 Finally, as mentioned above, you can obtain `print-matcher` by installing [Atlas Shell Tools](https://github.com/osmlab/atlas/tree/dev/atlas-shell-tools).
