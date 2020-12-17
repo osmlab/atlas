@@ -22,9 +22,10 @@ public class TaggableMatcherPrinterCommandTest
 
         command.runSubcommand("foo=bar", "baz=bat", "--verbose");
 
-        Assert.assertEquals("foo=bar\n" + "        =       \n" + "    ┌───┴───┐   \n"
-                + "   foo     bar  \n" + "\n" + "\n" + "baz=bat\n" + "        =       \n"
-                + "    ┌───┴───┐   \n" + "   baz     bat  \n" + "\n" + "\n", outContent.toString());
+        Assert.assertEquals(
+                "        =       \n" + "    ┌───┴───┐   \n" + "   foo     bar  \n" + "\n"
+                        + "        =       \n" + "    ┌───┴───┐   \n" + "   baz     bat  \n",
+                outContent.toString());
         Assert.assertEquals("", errContent.toString());
     }
 
@@ -39,7 +40,7 @@ public class TaggableMatcherPrinterCommandTest
 
         command.runSubcommand("foo=bar=baz", "--verbose");
 
-        Assert.assertEquals("foo=bar=baz\n" + "\n", outContent.toString());
+        Assert.assertEquals("", outContent.toString());
         Assert.assertEquals(
                 "print-matcher: error: definition `foo=bar=baz' contained nested equality operators\n",
                 errContent.toString());
@@ -56,8 +57,7 @@ public class TaggableMatcherPrinterCommandTest
 
         command.runSubcommand("--reverse", "foo->bar", "baz->bat", "--verbose");
 
-        Assert.assertEquals("foo->bar\n" + "foo=bar\n" + "\n" + "baz->bat\n" + "baz=bat\n" + "\n",
-                outContent.toString());
+        Assert.assertEquals("foo=bar\n" + "baz=bat\n", outContent.toString());
         Assert.assertEquals("", errContent.toString());
     }
 
@@ -72,7 +72,7 @@ public class TaggableMatcherPrinterCommandTest
 
         command.runSubcommand("--reverse", "foo->bar,!,bat", "--verbose");
 
-        Assert.assertEquals("foo->bar,!,bat\n" + "\n", outContent.toString());
+        Assert.assertEquals("", outContent.toString());
         Assert.assertEquals(
                 "print-matcher: error: Cannot transpile `foo->bar,!,bat' since composite value `bar,!,bat' contains a lone `!' operator.\n"
                         + "Expression `foo->bar,!,bat' is ambiguous and order dependent, please rewrite your TaggableFilter to remove it.\n",

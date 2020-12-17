@@ -9,7 +9,6 @@ import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasSh
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
-import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 
 /**
  * @author lcram
@@ -80,14 +79,13 @@ public class TaggableMatcherPrinterCommand extends AbstractAtlasShellToolsComman
     {
         final List<String> definitions = this.getOptionAndArgumentDelegate()
                 .getVariadicArgument(MATCHERS_ARGUMENT);
-        for (final String definition : definitions)
+        for (int i = 0; i < definitions.size(); i++)
         {
-            this.getCommandOutputDelegate().printlnStdout(definition, TTYAttribute.BOLD,
-                    TTYAttribute.GREEN);
+            final String definition = definitions.get(i);
             try
             {
                 final TaggableMatcher matcher = TaggableMatcher.from(definition);
-                this.getCommandOutputDelegate().printlnStdout(matcher.prettyPrintTree());
+                this.getCommandOutputDelegate().printStdout(matcher.prettyPrintTree());
                 if (matcher.lengthOfLongestLineForPrintedTree() > this.getMaximumColumn())
                 {
                     this.getCommandOutputDelegate()
@@ -108,7 +106,12 @@ public class TaggableMatcherPrinterCommand extends AbstractAtlasShellToolsComman
                     throw exception;
                 }
             }
-            this.getCommandOutputDelegate().printlnStdout("");
+
+            // Print an extra newline between trees, but not for the last tree
+            if (i < definitions.size() - 1)
+            {
+                this.getCommandOutputDelegate().printlnStdout("");
+            }
         }
     }
 
@@ -118,19 +121,15 @@ public class TaggableMatcherPrinterCommand extends AbstractAtlasShellToolsComman
                 .getVariadicArgument(FILTERS_ARGUMENT);
         for (final String definition : definitions)
         {
-            this.getCommandOutputDelegate().printlnStdout(definition, TTYAttribute.BOLD,
-                    TTYAttribute.GREEN);
             try
             {
                 this.getCommandOutputDelegate().printlnStdout(TaggableFilter
                         .forDefinition(definition).convertToTaggableMatcher().getDefinition());
-
             }
             catch (final Exception exception)
             {
                 this.getCommandOutputDelegate().printlnErrorMessage(exception.getMessage());
             }
-            this.getCommandOutputDelegate().printlnStdout("");
         }
     }
 }
