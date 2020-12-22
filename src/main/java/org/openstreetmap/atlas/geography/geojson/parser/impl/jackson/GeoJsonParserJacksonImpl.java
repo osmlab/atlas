@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public enum GeoJsonParserJacksonImpl implements GeoJsonParser
 {
 
-    instance;
+    INSTANCE;
 
     private static final Logger log = LoggerFactory.getLogger(GeoJsonParserJacksonImpl.class);
 
@@ -44,7 +44,7 @@ public enum GeoJsonParserJacksonImpl implements GeoJsonParser
 
         final Type type = TypeUtil.identifyStandardType(getType(map));
 
-        return type.construct(GeoJsonParserJacksonImpl.instance, map);
+        return type.construct(GeoJsonParserJacksonImpl.INSTANCE, map);
     }
 
     @Override
