@@ -13,6 +13,7 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
+import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.utilities.scalars.Angle;
 
 /**
@@ -213,6 +214,20 @@ public class StandardConfigurationTest
         {
             testStandardConfiguration(stream);
         }
+    }
+
+    @Test
+    public void testSubConfiguration()
+    {
+        final Configuration configuration = new StandardConfiguration(
+                new StringResource("{\"a\":{\"b\":{\"c\":\"d\"},\"e\":{\"f\":\"g\"}}}"));
+        final Configuration subConfiguration = configuration.subConfiguration("a").get();
+        Assert.assertTrue(subConfiguration.get("b").value() instanceof Map);
+        Assert.assertEquals("{c=d}", ((Map) subConfiguration.get("b").value()).toString());
+        Assert.assertEquals("d", (String) subConfiguration.get("b.c").value());
+        Assert.assertTrue(subConfiguration.get("e").value() instanceof Map);
+        Assert.assertEquals("{f=g}", ((Map) subConfiguration.get("e").value()).toString());
+        Assert.assertEquals("g", (String) subConfiguration.get("e.f").value());
     }
 
     @Test

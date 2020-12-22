@@ -99,7 +99,7 @@ public class StandardConfiguration implements Configuration
     private static final String OVERRIDE_STRING = "override";
     private static final String DOT = ".";
     private static final Logger logger = LoggerFactory.getLogger(StandardConfiguration.class);
-    private Map<String, Object> configurationData;
+    private final Map<String, Object> configurationData;
     private final String name;
 
     public StandardConfiguration(final Resource resource)
@@ -186,6 +186,35 @@ public class StandardConfiguration implements Configuration
             final Function<R, T> transform)
     {
         return new StandardConfigurable<>(key, defaultValue, transform);
+    }
+
+    @Override
+    public Optional<Configuration> subConfiguration(final String key)
+    {
+        if (StringUtils.isEmpty(key))
+        {
+            return Optional.of(this);
+        }
+        final Object result = this.resolve(key, this.configurationData);
+        if (result != null)
+        {
+            final Map<String, Object> subConfigurationData;
+            if (result instanceof Map)
+            {
+                subConfigurationData = (Map<String, Object>) result;
+
+            }
+            else
+            {
+                subConfigurationData = new HashMap<>();
+                subConfigurationData.put("", result);
+            }
+            return Optional.of(new StandardConfiguration(this.name, subConfigurationData));
+        }
+        else
+        {
+            return Optional.empty();
+        }
     }
 
     @Override
