@@ -727,11 +727,11 @@ public class RawAtlasSlicer
         {
             final org.locationtech.jts.geom.Polygon geometry = (org.locationtech.jts.geom.Polygon) newMultiPolygon
                     .getGeometryN(polygonIndex);
-            Geometry remainderExterior = geometry.getExteriorRing();
+            Geometry remainderExterior = geometry.getExteriorRing().norm();
             if (newRelation.members() != null)
             {
-                remainderExterior = cutOutExistingMembers(newRelation, geometry.getExteriorRing(),
-                        true);
+                remainderExterior = cutOutExistingMembers(newRelation,
+                        geometry.getExteriorRing().norm(), true);
             }
             else
             {
@@ -802,7 +802,16 @@ public class RawAtlasSlicer
                 }
             }
         }
-        return remainder;
+        final LineMerger merger = new LineMerger();
+        merger.add(remainder);
+        final Geometry[] mergedGeometryCollection = (Geometry[]) merger.getMergedLineStrings()
+                .toArray(new Geometry[merger.getMergedLineStrings().size()]);
+        for (final Geometry geom : mergedGeometryCollection)
+        {
+            geom.normalize();
+        }
+        return new GeometryCollection(mergedGeometryCollection,
+                JtsPrecisionManager.getGeometryFactory());
     }
 
     /**

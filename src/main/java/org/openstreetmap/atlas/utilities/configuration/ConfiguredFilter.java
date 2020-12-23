@@ -15,6 +15,7 @@ import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.tags.filters.RegexTaggableFilter;
 import org.openstreetmap.atlas.tags.filters.TaggableFilter;
+import org.openstreetmap.atlas.tags.filters.matcher.TaggableMatcher;
 import org.openstreetmap.atlas.utilities.conversion.HexStringByteArrayConverter;
 import org.openstreetmap.atlas.utilities.conversion.StringToPredicateConverter;
 import org.slf4j.Logger;
@@ -50,6 +51,7 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
     public static final String IMPORTS_JSON_PROPERTY = "imports";
     public static final String TAGGABLE_FILTER_JSON_PROPERTY = "taggableFilter";
     public static final String REGEX_TAGGABLE_FILTER_JSON_PROPERTY = "regexTaggableFilter";
+    public static final String TAGGABLE_MATCHER_JSON_PROPERTY = "taggableMatcher";
     public static final String NO_EXPANSION_JSON_PROPERTY = "noExpansion";
 
     private static final long serialVersionUID = 7503301238426719144L;
@@ -59,12 +61,14 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
     private static final String CONFIGURATION_PREDICATE_IMPORTS = "predicate.imports";
     private static final String CONFIGURATION_TAGGABLE_FILTER = "taggableFilter";
     private static final String CONFIGURATION_REGEX_TAGGABLE_FILTER = "regexTaggableFilter";
+    private static final String CONFIGURATION_TAGGABLE_MATCHER = "taggableMatcher";
     private static final String CONFIGURATION_WKT_FILTER = "geometry.wkt";
     private static final String CONFIGURATION_WKB_FILTER = "geometry.wkb";
     private static final String CONFIGURATION_HINT_NO_EXPANSION = "hint.noExpansion";
     private static final WktMultiPolygonConverter WKT_MULTI_POLYGON_CONVERTER = new WktMultiPolygonConverter();
     private static final WkbMultiPolygonConverter WKB_MULTI_POLYGON_CONVERTER = new WkbMultiPolygonConverter();
     private static final HexStringByteArrayConverter HEX_STRING_BYTE_ARRAY_CONVERTER = new HexStringByteArrayConverter();
+
     private final String name;
     private final String predicate;
     private final String unsafePredicate;
@@ -72,6 +76,7 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
     private final List<String> imports;
     private final String taggableFilter;
     private final String regexTaggableFilter;
+    private final String taggableMatcher;
     private final boolean noExpansion;
     private final List<MultiPolygon> geometryBasedFilters;
 
@@ -100,7 +105,8 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
      *                     "...", "..."
      *                 ],
      *                 "taggableFilter": "...",
-     *                 "regexTaggableFilter": "..."
+     *                 "regexTaggableFilter": "...",
+     *                 "taggableMatcher": "..."
      *             }
      *         }
      *     }
@@ -187,6 +193,8 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
                 CONFIGURATION_TAGGABLE_FILTER, "");
         this.regexTaggableFilter = reader.configurationValue(configuration,
                 CONFIGURATION_REGEX_TAGGABLE_FILTER, "");
+        this.taggableMatcher = reader.configurationValue(configuration,
+                CONFIGURATION_TAGGABLE_MATCHER, "");
         this.noExpansion = readBoolean(configuration, reader, CONFIGURATION_HINT_NO_EXPANSION,
                 false);
         this.geometryBasedFilters = readGeometries(configuration, reader);
@@ -248,6 +256,10 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
         {
             filterObject.addProperty(REGEX_TAGGABLE_FILTER_JSON_PROPERTY, this.regexTaggableFilter); // NOSONAR
         }
+        if (!this.taggableMatcher.isEmpty())
+        {
+            filterObject.addProperty(TAGGABLE_MATCHER_JSON_PROPERTY, this.taggableMatcher); // NOSONAR
+        }
         filterObject.addProperty(NO_EXPANSION_JSON_PROPERTY, this.noExpansion);
 
         return filterObject;
@@ -305,10 +317,12 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
                     .forDefinition(this.taggableFilter);
             final RegexTaggableFilter localRegexTaggableFilter = new RegexTaggableFilter(
                     this.regexTaggableFilter);
+            final TaggableMatcher localTaggableMatcher = TaggableMatcher.from(this.taggableMatcher);
             final Predicate<AtlasEntity> geometryPredicate = geometryPredicate();
             this.filter = atlasEntity -> localPredicate.test(atlasEntity)
                     && localTaggablefilter.test(atlasEntity) && geometryPredicate.test(atlasEntity)
-                    && localRegexTaggableFilter.test(atlasEntity);
+                    && localRegexTaggableFilter.test(atlasEntity)
+                    && localTaggableMatcher.test(atlasEntity);
         }
         return this.filter;
     }
