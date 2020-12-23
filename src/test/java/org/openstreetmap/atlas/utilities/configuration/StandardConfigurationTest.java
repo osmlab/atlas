@@ -228,6 +228,7 @@ public class StandardConfigurationTest
         Assert.assertTrue(subConfiguration.get("e").value() instanceof Map);
         Assert.assertEquals("{f=g}", ((Map) subConfiguration.get("e").value()).toString());
         Assert.assertEquals("g", (String) subConfiguration.get("e.f").value());
+        Assert.assertTrue(configuration.subConfiguration("z").isEmpty());
     }
 
     @Test

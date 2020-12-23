@@ -202,7 +202,6 @@ public class StandardConfiguration implements Configuration
             if (result instanceof Map)
             {
                 subConfigurationData = (Map<String, Object>) result;
-
             }
             else
             {
