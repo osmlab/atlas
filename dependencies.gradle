@@ -7,7 +7,7 @@ project.ext.versions = [
     opencsv: '2.3',
     gson: '2.2.4',
     http: '4.5.1',
-    jts: '1.17.1',
+    jts: '1.18.0',
     spatial4j: '0.7',
     geotools: '24.0',
     osmosis: '0.44.1',
