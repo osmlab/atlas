@@ -30,7 +30,7 @@ public enum GeoJsonParserJacksonImpl implements GeoJsonParser
     @Override
     public GeoJsonItem deserialize(final String geoJson)
     {
-        log.info("geoJson:: {}.", geoJson);
+        log.trace("geoJson:: {}.", geoJson);
 
         final Map<String, Object> map = toMap(geoJson);
 
@@ -40,7 +40,7 @@ public enum GeoJsonParserJacksonImpl implements GeoJsonParser
     @Override
     public GeoJsonItem deserialize(final Map<String, Object> map)
     {
-        log.info("map:: {}.", map);
+        log.trace("map:: {}.", map);
 
         final Type type = TypeUtil.identifyStandardType(getType(map));
 
