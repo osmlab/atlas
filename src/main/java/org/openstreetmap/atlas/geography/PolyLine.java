@@ -21,6 +21,7 @@ import org.openstreetmap.atlas.geography.converters.WkbLocationConverter;
 import org.openstreetmap.atlas.geography.converters.WkbPolyLineConverter;
 import org.openstreetmap.atlas.geography.converters.WktLocationConverter;
 import org.openstreetmap.atlas.geography.converters.WktPolyLineConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonGeometry;
@@ -63,6 +64,8 @@ public class PolyLine implements Collection<Location>, Located, Serializable, Ge
     public static final String SEPARATOR = ":";
 
     protected static final int SIMPLE_STRING_LENGTH = 200;
+
+    private static final JtsPolyLineConverter JTS_POLYLINE_CONVERTER = new JtsPolyLineConverter();
 
     private static final long serialVersionUID = -3291779878869865427L;
     private static final Logger logger = LoggerFactory.getLogger(PolyLine.class);
@@ -666,6 +669,11 @@ public class PolyLine implements Collection<Location>, Located, Serializable, Ge
             }
         }
         return true;
+    }
+
+    public boolean isSimple()
+    {
+        return JTS_POLYLINE_CONVERTER.convert(this).isSimple();
     }
 
     @Override

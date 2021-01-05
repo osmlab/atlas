@@ -7,7 +7,7 @@ import org.openstreetmap.atlas.geography.atlas.dsl.util.Valid
 import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator
-import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.AtlasSectionProcessor
 import org.openstreetmap.atlas.streaming.resource.ByteArrayResource
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource
 import org.openstreetmap.atlas.utilities.testing.OsmFileToPbf
@@ -29,7 +29,7 @@ abstract class AbstractScheme implements Scheme {
                 MultiPolygon.MAXIMUM).build()
 
         // Way-section
-        final Atlas atlas = new WaySectionProcessor(rawAtlas, loadingOption).run()
+        final Atlas atlas = new AtlasSectionProcessor(rawAtlas, loadingOption).run()
 
         atlas
     }

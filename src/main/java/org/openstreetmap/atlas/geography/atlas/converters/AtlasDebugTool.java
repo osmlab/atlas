@@ -10,7 +10,7 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
-import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.AtlasSectionProcessor;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.geography.atlas.routing.AStarRouter;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
@@ -116,7 +116,7 @@ public class AtlasDebugTool extends Command
             {
                 atlas = new RawAtlasSlicer(option, atlas).slice();
             }
-            atlas = new WaySectionProcessor(atlas, option).run();
+            atlas = new AtlasSectionProcessor(atlas, option).run();
             atlas.save(atlasFile);
         }
         else if (atlasFile != null && atlasFile.exists())

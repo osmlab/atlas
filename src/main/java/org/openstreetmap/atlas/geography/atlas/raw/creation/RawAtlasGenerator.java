@@ -410,8 +410,8 @@ public class RawAtlasGenerator
 
         // Set the metadata and size. Use existing Atlas as estimate.
         rebuilder.setMetaData(this.metaData);
-        final AtlasSize size = new AtlasSize(0, 0, 0, atlas.numberOfLines(), atlas.numberOfPoints(),
-                atlas.numberOfRelations());
+        final AtlasSize size = new AtlasSize(0, 0, atlas.numberOfAreas(), atlas.numberOfLines(),
+                atlas.numberOfPoints(), atlas.numberOfRelations());
         rebuilder.setSizeEstimates(size);
 
         // Add Points
@@ -437,6 +437,10 @@ public class RawAtlasGenerator
         // Add Lines
         atlas.lines().forEach(
                 line -> rebuilder.addLine(line.getIdentifier(), line.asPolyLine(), line.getTags()));
+
+        // Add Lines
+        atlas.areas().forEach(
+                area -> rebuilder.addArea(area.getIdentifier(), area.asPolygon(), area.getTags()));
 
         // Add Relations
         // Keep a set of all relations that have members that have been removed, so if that member
@@ -593,8 +597,9 @@ public class RawAtlasGenerator
      */
     private void setAtlasSizeEstimate()
     {
-        final AtlasSize size = new AtlasSize(0, 0, 0, this.pbfCounter.lineCount(),
-                this.pbfCounter.pointCount(), this.pbfCounter.relationCount());
+        final AtlasSize size = new AtlasSize(0, 0, this.pbfCounter.lineCount(),
+                this.pbfCounter.lineCount(), this.pbfCounter.pointCount(),
+                this.pbfCounter.relationCount());
         this.builder.setSizeEstimates(size);
     }
 }

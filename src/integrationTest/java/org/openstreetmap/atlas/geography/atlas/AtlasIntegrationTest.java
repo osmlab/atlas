@@ -9,7 +9,7 @@ import org.openstreetmap.atlas.geography.atlas.builder.text.TextAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.OsmPbfIngestIntegrationTest;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
-import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.AtlasSectionProcessor;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.File;
@@ -45,7 +45,7 @@ public class AtlasIntegrationTest
                 .setLoadWaysSpanningCountryBoundaries(false);
         final Atlas atlas = new RawAtlasGenerator(new File(path), loadingOption,
                 MultiPolygon.forPolygon(polygon)).build();
-        return new WaySectionProcessor(atlas, loadingOption).run();
+        return new AtlasSectionProcessor(atlas, loadingOption).run();
     }
 
     protected Atlas loadBelizeRaw(final Polygon polygon,
@@ -61,7 +61,7 @@ public class AtlasIntegrationTest
         }
         if (atlasLoadingOption.isWaySectioning())
         {
-            atlas = new WaySectionProcessor(atlas, atlasLoadingOption).run();
+            atlas = new AtlasSectionProcessor(atlas, atlasLoadingOption).run();
         }
         return atlas;
     }

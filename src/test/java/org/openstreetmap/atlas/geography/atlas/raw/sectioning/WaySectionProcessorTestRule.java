@@ -5,7 +5,7 @@ import org.openstreetmap.atlas.utilities.testing.CoreTestRule;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas;
 
 /**
- * {@link WaySectionProcessorTest} test data.
+ * {@link AtlasSectionProcessorTest} test data.
  *
  * @author mgostintsev
  */
