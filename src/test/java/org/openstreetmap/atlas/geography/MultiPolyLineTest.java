@@ -138,4 +138,16 @@ public class MultiPolyLineTest
         Assert.assertTrue(polyLines.contains(polyLine1));
         Assert.assertTrue(polyLines.contains(polyLine2));
     }
+
+    @Test
+    public void testEquals()
+    {
+        final String wkt = "MULTILINESTRING ((113.9980787038803 7.3216002915048872, "
+                + "113.99803847074506 7.3215225281339456))";
+        final MultiPolyLine multiPolyLine1 = MultiPolyLine.wkt(wkt);
+        final MultiPolyLine multiPolyLine2 = MultiPolyLine.wkt(wkt);
+
+        Assert.assertEquals(multiPolyLine1, multiPolyLine2);
+        Assert.assertFalse(multiPolyLine1 == multiPolyLine2);
+    }
 }

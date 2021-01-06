@@ -89,9 +89,31 @@ public class MultiPolyLine
     }
 
     @Override
+    public boolean equals(final Object other)
+    {
+        if (!(other instanceof MultiPolyLine))
+        {
+            return false;
+        }
+        final MultiPolyLine otherItem = (MultiPolyLine) other;
+        return this.hashCode() == otherItem.hashCode();
+    }
+
+    @Override
     public GeoJsonType getGeoJsonType()
     {
         return GeoJsonType.MULTI_LINESTRING;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int hash = 0;
+        for (final PolyLine polyLine : this.polyLineList)
+        {
+            hash += polyLine.hashCode();
+        }
+        return hash;
     }
 
     @Override
