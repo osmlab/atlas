@@ -96,7 +96,16 @@ public class MultiPolyLine
             return false;
         }
         final MultiPolyLine otherItem = (MultiPolyLine) other;
-        return this.hashCode() == otherItem.hashCode();
+        final Iterator<PolyLine> iterator = this.iterator();
+        final Iterator<PolyLine> iteratorOther = otherItem.iterator();
+        while (iterator.hasNext() && iteratorOther.hasNext())
+        {
+            if (!iterator.next().equals(iteratorOther.next()))
+            {
+                return false;
+            }
+        }
+        return !iterator.hasNext() && !iteratorOther.hasNext();
     }
 
     @Override
