@@ -149,5 +149,6 @@ public class MultiPolyLineTest
 
         Assert.assertEquals(multiPolyLine1, multiPolyLine2);
         Assert.assertFalse(multiPolyLine1 == multiPolyLine2);
+        Assert.assertNotEquals(null, multiPolyLine1);
     }
 }
