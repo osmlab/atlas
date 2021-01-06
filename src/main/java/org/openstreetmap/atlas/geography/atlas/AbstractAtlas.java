@@ -23,7 +23,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
-import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.AtlasSectionProcessor;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.index.PackedSpatialIndex;
@@ -86,7 +86,7 @@ public abstract class AbstractAtlas extends BareAtlas
             final WritableResource atlasResource)
     {
         Atlas atlas = new RawAtlasGenerator(osmPbf).build();
-        atlas = new WaySectionProcessor(atlas, AtlasLoadingOption.createOptionWithNoSlicing())
+        atlas = new AtlasSectionProcessor(atlas, AtlasLoadingOption.createOptionWithNoSlicing())
                 .run();
         atlas.save(atlasResource);
         return atlas;
@@ -111,7 +111,7 @@ public abstract class AbstractAtlas extends BareAtlas
         final AtlasLoadingOption loadingOption = AtlasLoadingOption
                 .createOptionWithAllEnabled(boundaryMap);
         atlas = new RawAtlasSlicer(loadingOption, atlas).slice();
-        atlas = new WaySectionProcessor(atlas,
+        atlas = new AtlasSectionProcessor(atlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap)).run();
         atlas.save(atlasResource);
         return atlas;
@@ -127,7 +127,7 @@ public abstract class AbstractAtlas extends BareAtlas
     public static Atlas forOsmPbf(final Resource resource)
     {
         Atlas atlas = new RawAtlasGenerator(resource).build();
-        atlas = new WaySectionProcessor(atlas, AtlasLoadingOption.createOptionWithNoSlicing())
+        atlas = new AtlasSectionProcessor(atlas, AtlasLoadingOption.createOptionWithNoSlicing())
                 .run();
         return atlas;
     }

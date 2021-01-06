@@ -28,7 +28,7 @@ import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
-import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.AtlasSectionProcessor;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
@@ -121,7 +121,7 @@ public class TestAtlasHandler implements FieldHandler
                 MultiPolygon.MAXIMUM).build();
 
         // Country Slice and Way-Section
-        return new WaySectionProcessor(
+        return new AtlasSectionProcessor(
                 iso.isPresent() ? new RawAtlasSlicer(loadingOption, rawAtlas).slice() : rawAtlas,
                 loadingOption).run();
     }
