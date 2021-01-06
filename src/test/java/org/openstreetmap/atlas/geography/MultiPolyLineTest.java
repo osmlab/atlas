@@ -148,7 +148,7 @@ public class MultiPolyLineTest
         final MultiPolyLine multiPolyLine2 = MultiPolyLine.wkt(wkt);
 
         Assert.assertEquals(multiPolyLine1, multiPolyLine2);
-        Assert.assertFalse(multiPolyLine1 == multiPolyLine2);
+        Assert.assertNotSame(multiPolyLine1, multiPolyLine2);
         Assert.assertNotEquals(null, multiPolyLine1);
     }
 }
