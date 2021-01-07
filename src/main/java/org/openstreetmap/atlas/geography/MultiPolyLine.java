@@ -3,8 +3,10 @@ package org.openstreetmap.atlas.geography;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
@@ -96,22 +98,21 @@ public class MultiPolyLine
             return false;
         }
         final MultiPolyLine otherItem = (MultiPolyLine) other;
-        final Iterator<PolyLine> iterator = this.iterator();
-        final Iterator<PolyLine> iteratorOther = otherItem.iterator();
-        while (iterator.hasNext() && iteratorOther.hasNext())
-        {
-            if (!iterator.next().equals(iteratorOther.next()))
-            {
-                return false;
-            }
-        }
-        return !iterator.hasNext() && !iteratorOther.hasNext();
+        final Set<PolyLine> polyLineSet = new HashSet<>(this.polyLineList);
+        final Set<PolyLine> otherPolyLineSet = new HashSet<>(otherItem.getPolyLineList());
+        return otherItem.getPolyLineList().size() == this.getPolyLineList().size()
+                && new HashSet<>(polyLineSet).equals(new HashSet<>(otherPolyLineSet));
     }
 
     @Override
     public GeoJsonType getGeoJsonType()
     {
         return GeoJsonType.MULTI_LINESTRING;
+    }
+
+    public List<PolyLine> getPolyLineList()
+    {
+        return this.polyLineList;
     }
 
     @Override
