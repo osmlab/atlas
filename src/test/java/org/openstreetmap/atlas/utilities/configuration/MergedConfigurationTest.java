@@ -11,6 +11,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.streaming.StringInputStream;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
+import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.utilities.scalars.Angle;
 
 /**
@@ -138,6 +139,22 @@ public class MergedConfigurationTest
     {
         testPartial(getResourceInputStreamSupplier(BASE_CONFIGURATION_JSON),
                 getResourceInputStreamSupplier(PARTIAL_CONFIGURATION_YAML));
+    }
+
+    @Test
+    public void testSubConfiguration()
+    {
+        final Configuration configurationA = new StandardConfiguration(
+                new StringResource("{\"a\":{\"b\":{\"c\":\"d\"}}}"));
+        final Configuration configurationB = new StandardConfiguration(
+                new StringResource("{\"a\":{\"e\":{\"f\":\"g\"}}}"));
+        final Configuration configuration = new MergedConfiguration(configurationA, configurationB);
+        final Configuration subConfiguration = configuration.subConfiguration("a").get();
+        Assert.assertTrue(subConfiguration.get("b").value() instanceof Map);
+        Assert.assertEquals("{c=d}", ((Map) subConfiguration.get("b").value()).toString());
+        Assert.assertEquals("d", (String) subConfiguration.get("b.c").value());
+        // Merged configuration will take the first only for key "a", ignoring others.
+        Assert.assertNull(subConfiguration.get("e").value());
     }
 
     /**
