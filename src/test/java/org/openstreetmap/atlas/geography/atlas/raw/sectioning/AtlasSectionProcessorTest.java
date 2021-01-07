@@ -1,8 +1,10 @@
 package org.openstreetmap.atlas.geography.atlas.raw.sectioning;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -14,28 +16,29 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicingTest;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicerTest;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
 import org.openstreetmap.atlas.geography.sharding.SlippyTileSharding;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
+import org.openstreetmap.atlas.tags.BarrierTag;
 import org.openstreetmap.atlas.tags.SyntheticInvalidWaySectionTag;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
- * {@link WaySectionProcessor} unit tests
+ * {@link AtlasSectionProcessor} unit tests
  *
  * @author mgostintsev
  */
-public class WaySectionProcessorTest
+public class AtlasSectionProcessorTest
 {
     private static final CountryBoundaryMap COUNTRY_BOUNDARY_MAP;
 
     static
     {
         COUNTRY_BOUNDARY_MAP = CountryBoundaryMap
-                .fromPlainText(new InputStreamResource(() -> RawAtlasSlicingTest.class
+                .fromPlainText(new InputStreamResource(() -> RawAtlasSlicerTest.class
                         .getResourceAsStream("CIV_GIN_LBR_osm_boundaries_with_grid_index.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
     }
@@ -48,7 +51,7 @@ public class WaySectionProcessorTest
     {
         // Based on https://www.openstreetmap.org/way/317579533
         final Atlas slicedRawAtlas = this.setup.getBidirectionalRingAtlas();
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
 
         Assert.assertEquals("Two edges, each having a reverse counterpart", 4,
@@ -66,7 +69,7 @@ public class WaySectionProcessorTest
     public void testCutAtShardBoundary()
     {
         final Atlas slicedRawAtlas = this.setup.getRawAtlasSpanningOutsideBoundary();
-        final Atlas finalAtlas = new WaySectionProcessor(SlippyTile.forName("8-123-123"),
+        final Atlas finalAtlas = new AtlasSectionProcessor(SlippyTile.forName("8-123-123"),
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP),
                 new SlippyTileSharding(8), shard -> Optional.of(slicedRawAtlas)).run();
 
@@ -87,29 +90,11 @@ public class WaySectionProcessorTest
     }
 
     @Test
-    public void testLineWithInvalidOverlappingGeometry()
-    {
-        // Based on https://www.openstreetmap.org/way/858888726
-        final Atlas slicedRawAtlas = this.setup.getLineWithInvalidOverlappingGeometry();
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
-                AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
-
-        Assert.assertEquals("Two edges, each having a reverse counterpart", 4,
-                finalAtlas.numberOfEdges());
-
-        // Explicit check for expected identifiers
-        Assert.assertNotNull(finalAtlas.edge(858888719000001L));
-        Assert.assertNotNull(finalAtlas.edge(-858888719000001L));
-        Assert.assertNotNull(finalAtlas.edge(858888719000002L));
-        Assert.assertNotNull(finalAtlas.edge(-858888719000002L));
-    }
-
-    @Test
     public void testLineWithLoopAtEnd()
     {
         // Based on https://www.openstreetmap.org/way/461101743
         final Atlas slicedRawAtlas = this.setup.getLineWithLoopAtEndAtlas();
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
 
         Assert.assertEquals("Two edges, each having a reverse counterpart", 4,
@@ -130,7 +115,7 @@ public class WaySectionProcessorTest
     {
         // Based on https://www.openstreetmap.org/way/460419987
         final Atlas slicedRawAtlas = this.setup.getLineWithLoopAtStartAtlas();
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
 
         Assert.assertEquals("Three edges, each having a reverse counterpart", 6,
@@ -155,7 +140,7 @@ public class WaySectionProcessorTest
         // Loosely based on https://www.openstreetmap.org/way/460419987 - with a new added node
         final Atlas slicedRawAtlas = this.setup.getLineWithLoopInMiddleAtlas();
 
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
 
         Assert.assertEquals("Four edges, each having a reverse counterpart", 8,
@@ -182,7 +167,7 @@ public class WaySectionProcessorTest
     {
         // Based on a prior version of https://www.openstreetmap.org/way/488453376
         final Atlas slicedRawAtlas = this.setup.getLineWithRepeatedLocationAtlas();
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
 
         Assert.assertEquals("Four edges, each having a reverse counterpart", 4,
@@ -198,7 +183,7 @@ public class WaySectionProcessorTest
         // Based on https://www.openstreetmap.org/way/310540517 and partial excerpt of
         // https://www.openstreetmap.org/way/310540519
         final Atlas slicedRawAtlas = this.setup.getLoopingWayWithIntersectionAtlas();
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
 
         Assert.assertEquals("Four edges, each having a reverse counterpart", 8,
@@ -216,7 +201,7 @@ public class WaySectionProcessorTest
         // Based on a prior version of https://www.openstreetmap.org/way/488453376 with a piece of
         // https://www.openstreetmap.org/way/386313688
         final Atlas slicedRawAtlas = this.setup.getLoopWithRepeatedLocationAtlas();
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
 
         Assert.assertEquals("Four edges, each having a reverse counterpart", 4,
@@ -232,9 +217,9 @@ public class WaySectionProcessorTest
         // Based on a prior version of https://www.openstreetmap.org/way/621043891
         final Atlas slicedRawAtlas = this.setup.getMalformedPolyLineAtlas();
         final CountryBoundaryMap boundaryMap = CountryBoundaryMap
-                .fromPlainText(new InputStreamResource(() -> WaySectionProcessorTest.class
+                .fromPlainText(new InputStreamResource(() -> AtlasSectionProcessorTest.class
                         .getResourceAsStream("malformedPolyLineBoundaryMap.txt")));
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap)).run();
 
         Assert.assertEquals("Six edges, each having a reverse counterpart", 12,
@@ -247,7 +232,7 @@ public class WaySectionProcessorTest
     {
         // Based on https://www.openstreetmap.org/way/460257372
         final Atlas slicedRawAtlas = this.setup.getOneWayRingAtlas();
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
 
         Assert.assertEquals("Two edges, the ring got sectioned in the middle", 2,
@@ -262,7 +247,7 @@ public class WaySectionProcessorTest
     {
         // Based on https://www.openstreetmap.org/way/109486264
         final Atlas slicedRawAtlas = this.setup.getOneWaySimpleLineAtlas();
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
 
         Assert.assertEquals("One edge", 1, finalAtlas.numberOfEdges());
@@ -276,7 +261,7 @@ public class WaySectionProcessorTest
     {
         // Based on https://www.openstreetmap.org/way/460257372
         final Atlas slicedRawAtlas = this.setup.getPedestrianRingAtlas();
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
 
         Assert.assertEquals("Two edges, the ring got sectioned in the middle", 2,
@@ -284,9 +269,6 @@ public class WaySectionProcessorTest
         Assert.assertEquals("Two nodes", 2, finalAtlas.numberOfNodes());
         finalAtlas.edges().forEach(
                 edge -> Assert.assertFalse("No edge has a reverse edge", edge.hasReverseEdge()));
-
-        Assert.assertEquals("One area from the same way used for the edges", 1,
-                finalAtlas.numberOfAreas());
     }
 
     @Test
@@ -297,9 +279,9 @@ public class WaySectionProcessorTest
         final Atlas slicedRawAtlas = this.setup.getNodeAndPointAsRelationMemberAtlas();
 
         final CountryBoundaryMap boundaryMap = CountryBoundaryMap
-                .fromPlainText(new InputStreamResource(() -> WaySectionProcessorTest.class
+                .fromPlainText(new InputStreamResource(() -> AtlasSectionProcessorTest.class
                         .getResourceAsStream("nodeAndPointRelationMemberBoundaryMap.txt")));
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap)).run();
 
         final RelationMemberList members = finalAtlas.relation(578254000000L).members();
@@ -316,7 +298,7 @@ public class WaySectionProcessorTest
     {
         // Based on https://www.openstreetmap.org/way/333112568
         final Atlas slicedRawAtlas = this.setup.getReversedOneWayLineAtlas();
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
 
         Assert.assertEquals("One edge", 1, finalAtlas.numberOfEdges());
@@ -332,7 +314,7 @@ public class WaySectionProcessorTest
         // Based on https://www.openstreetmap.org/way/460419995 and
         // https://www.openstreetmap.org/way/460419994
         final Atlas slicedRawAtlas = this.setup.getRingWithSingleIntersectionAtlas();
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
 
         Assert.assertEquals(
@@ -349,7 +331,7 @@ public class WaySectionProcessorTest
         // https://www.openstreetmap.org/way/426558827 and
         // https://www.openstreetmap.org/way/426558831
         final Atlas slicedRawAtlas = this.setup.getRoundAboutAtlas();
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
 
         Assert.assertEquals(
@@ -366,14 +348,14 @@ public class WaySectionProcessorTest
         // Based on https://www.openstreetmap.org/way/460419996 - has two barrier, one in the middle
         // and one at the end node
         final Atlas slicedRawAtlas = this.setup.getLineWithBarrierAtlas();
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
 
         Assert.assertEquals("Two edges, with reverse counterparts", 4, finalAtlas.numberOfEdges());
         Assert.assertEquals("Three nodes, one in the middle at the barrier", 3,
                 finalAtlas.numberOfNodes());
         Assert.assertEquals("Make sure that the two barriers are also represented as Points", 2,
-                finalAtlas.numberOfPoints());
+                Iterables.size(finalAtlas.points(point -> BarrierTag.isBarrier(point))));
     }
 
     @Test
@@ -381,7 +363,7 @@ public class WaySectionProcessorTest
     {
         // Based on https://www.openstreetmap.org/way/373705334 and surrounding edge network
         final Atlas slicedRawAtlas = this.setup.getSelfIntersectingLoopAtlas();
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
 
         Assert.assertEquals("Ten edges, each having a reverse counterpart", 20,
@@ -394,7 +376,7 @@ public class WaySectionProcessorTest
     {
         // Based on https://www.openstreetmap.org/way/460834514
         final Atlas slicedRawAtlas = this.setup.getSimpleBiDirectionalLineAtlas();
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
 
         Assert.assertEquals("single edge and its counter part", 2, finalAtlas.numberOfEdges());
@@ -410,7 +392,9 @@ public class WaySectionProcessorTest
         final Atlas slicedRawAtlas = this.setup.getWayExceedingSectioningLimitAtlas();
 
         // Create a dummy country boundary map that contains these ways and call it Afghanistan
+        final Set<String> countries = new HashSet<>();
         final String afghanistan = "AFG";
+        countries.add(afghanistan);
         final Map<String, MultiPolygon> boundaries = new HashMap<>();
         final Polygon fakePolygon = new Polygon(Location.forString("34.15102284294,66.22764518738"),
                 Location.forString("34.1515910819,66.53388908386"),
@@ -422,7 +406,7 @@ public class WaySectionProcessorTest
         final CountryBoundaryMap countryBoundaryMap = CountryBoundaryMap
                 .fromBoundaryMap(boundaries);
 
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(countryBoundaryMap)).run();
 
         // Verify maximum number of sections for each edge

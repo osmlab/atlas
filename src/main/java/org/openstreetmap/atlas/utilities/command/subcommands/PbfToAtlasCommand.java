@@ -11,7 +11,7 @@ import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas.AtlasSerializationFormat;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
-import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.AtlasSectionProcessor;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.File;
@@ -85,7 +85,7 @@ public class PbfToAtlasCommand extends MultipleOutputCommand
                     Shard.SHARD_DATA_SEPARATOR, pbfName, FileSuffix.ATLAS);
             if (!stopAtRaw())
             {
-                final WaySectionProcessor waySectionProcessor = new WaySectionProcessor(atlas,
+                final AtlasSectionProcessor waySectionProcessor = new AtlasSectionProcessor(atlas,
                         AtlasLoadingOption.createOptionWithNoSlicing());
                 atlas = (PackedAtlas) waySectionProcessor.run();
             }

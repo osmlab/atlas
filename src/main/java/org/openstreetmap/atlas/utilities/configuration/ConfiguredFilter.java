@@ -12,8 +12,10 @@ import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.converters.WkbMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.WktMultiPolygonConverter;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
+import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.tags.filters.RegexTaggableFilter;
 import org.openstreetmap.atlas.tags.filters.TaggableFilter;
+import org.openstreetmap.atlas.tags.filters.matcher.TaggableMatcher;
 import org.openstreetmap.atlas.utilities.conversion.HexStringByteArrayConverter;
 import org.openstreetmap.atlas.utilities.conversion.StringToPredicateConverter;
 import org.slf4j.Logger;
@@ -28,7 +30,7 @@ import com.google.gson.JsonPrimitive;
  * This class reads in a configuration file with a specific schema and creates filters based on the
  * predicates and taggable filter specified in the file. Take a look at water-handlers.json for
  * reference
- * 
+ *
  * @author matthieun
  */
 public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializable
@@ -49,6 +51,7 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
     public static final String IMPORTS_JSON_PROPERTY = "imports";
     public static final String TAGGABLE_FILTER_JSON_PROPERTY = "taggableFilter";
     public static final String REGEX_TAGGABLE_FILTER_JSON_PROPERTY = "regexTaggableFilter";
+    public static final String TAGGABLE_MATCHER_JSON_PROPERTY = "taggableMatcher";
     public static final String NO_EXPANSION_JSON_PROPERTY = "noExpansion";
 
     private static final long serialVersionUID = 7503301238426719144L;
@@ -58,12 +61,14 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
     private static final String CONFIGURATION_PREDICATE_IMPORTS = "predicate.imports";
     private static final String CONFIGURATION_TAGGABLE_FILTER = "taggableFilter";
     private static final String CONFIGURATION_REGEX_TAGGABLE_FILTER = "regexTaggableFilter";
+    private static final String CONFIGURATION_TAGGABLE_MATCHER = "taggableMatcher";
     private static final String CONFIGURATION_WKT_FILTER = "geometry.wkt";
     private static final String CONFIGURATION_WKB_FILTER = "geometry.wkb";
     private static final String CONFIGURATION_HINT_NO_EXPANSION = "hint.noExpansion";
     private static final WktMultiPolygonConverter WKT_MULTI_POLYGON_CONVERTER = new WktMultiPolygonConverter();
     private static final WkbMultiPolygonConverter WKB_MULTI_POLYGON_CONVERTER = new WkbMultiPolygonConverter();
     private static final HexStringByteArrayConverter HEX_STRING_BYTE_ARRAY_CONVERTER = new HexStringByteArrayConverter();
+
     private final String name;
     private final String predicate;
     private final String unsafePredicate;
@@ -71,14 +76,20 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
     private final List<String> imports;
     private final String taggableFilter;
     private final String regexTaggableFilter;
+    private final String taggableMatcher;
     private final boolean noExpansion;
     private final List<MultiPolygon> geometryBasedFilters;
+
+    public static ConfiguredFilter from(final String name, final Configuration configuration)
+    {
+        return from(CONFIGURATION_ROOT, name, configuration);
+    }
 
     /**
      * Create a new {@link ConfiguredFilter}.
      * <p>
      * For example, in the following json configuration:
-     * 
+     *
      * <pre>
      * {@code
      * {
@@ -94,16 +105,17 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
      *                     "...", "..."
      *                 ],
      *                 "taggableFilter": "...",
-     *                 "regexTaggableFilter": "..."
+     *                 "regexTaggableFilter": "...",
+     *                 "taggableMatcher": "..."
      *             }
      *         }
      *     }
      * }
      * }
      * </pre>
-     * 
+     *
      * the filter can be accessed using "my.conf" as root, and "filter" as name.
-     * 
+     *
      * @param root
      *            The root of the configuration hierarchy, where to search for the name of the
      *            filter.
@@ -130,9 +142,9 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
         return new ConfiguredFilter(root, name, configuration);
     }
 
-    public static ConfiguredFilter from(final String name, final Configuration configuration)
+    public static ConfiguredFilter getDefaultFilter(final Configuration configuration)
     {
-        return from(CONFIGURATION_ROOT, name, configuration);
+        return getDefaultFilter(CONFIGURATION_ROOT, configuration);
     }
 
     public static ConfiguredFilter getDefaultFilter(final String root,
@@ -143,11 +155,6 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
             return new ConfiguredFilter(root, DEFAULT, configuration);
         }
         return NO_FILTER;
-    }
-
-    public static ConfiguredFilter getDefaultFilter(final Configuration configuration)
-    {
-        return getDefaultFilter(CONFIGURATION_ROOT, configuration);
     }
 
     public static boolean isPresent(final String name, final Configuration configuration)
@@ -186,6 +193,8 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
                 CONFIGURATION_TAGGABLE_FILTER, "");
         this.regexTaggableFilter = reader.configurationValue(configuration,
                 CONFIGURATION_REGEX_TAGGABLE_FILTER, "");
+        this.taggableMatcher = reader.configurationValue(configuration,
+                CONFIGURATION_TAGGABLE_MATCHER, "");
         this.noExpansion = readBoolean(configuration, reader, CONFIGURATION_HINT_NO_EXPANSION,
                 false);
         this.geometryBasedFilters = readGeometries(configuration, reader);
@@ -210,6 +219,11 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
     public boolean test(final AtlasEntity atlasEntity)
     {
         return getFilter().test(atlasEntity);
+    }
+
+    public boolean test(final Taggable taggable)
+    {
+        return TaggableFilter.forDefinition(this.taggableFilter).test(taggable);
     }
 
     public JsonObject toJson()
@@ -241,6 +255,10 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
         if (!this.regexTaggableFilter.isEmpty())
         {
             filterObject.addProperty(REGEX_TAGGABLE_FILTER_JSON_PROPERTY, this.regexTaggableFilter); // NOSONAR
+        }
+        if (!this.taggableMatcher.isEmpty())
+        {
+            filterObject.addProperty(TAGGABLE_MATCHER_JSON_PROPERTY, this.taggableMatcher); // NOSONAR
         }
         filterObject.addProperty(NO_EXPANSION_JSON_PROPERTY, this.noExpansion);
 
@@ -299,10 +317,12 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
                     .forDefinition(this.taggableFilter);
             final RegexTaggableFilter localRegexTaggableFilter = new RegexTaggableFilter(
                     this.regexTaggableFilter);
+            final TaggableMatcher localTaggableMatcher = TaggableMatcher.from(this.taggableMatcher);
             final Predicate<AtlasEntity> geometryPredicate = geometryPredicate();
             this.filter = atlasEntity -> localPredicate.test(atlasEntity)
                     && localTaggablefilter.test(atlasEntity) && geometryPredicate.test(atlasEntity)
-                    && localRegexTaggableFilter.test(atlasEntity);
+                    && localRegexTaggableFilter.test(atlasEntity)
+                    && localTaggableMatcher.test(atlasEntity);
         }
         return this.filter;
     }

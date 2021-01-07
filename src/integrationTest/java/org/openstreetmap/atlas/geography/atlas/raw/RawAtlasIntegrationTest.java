@@ -18,7 +18,7 @@ import org.openstreetmap.atlas.geography.atlas.ShardFileOverlapsPolygonTest;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
-import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.AtlasSectionProcessor;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.sharding.DynamicTileSharding;
@@ -218,7 +218,7 @@ public class RawAtlasIntegrationTest
         assertAllEntitiesHaveCountryCode(ivoryCoast);
 
         // Test sectioning!
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas, loadingOptionAll).run();
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas, loadingOptionAll).run();
 
         Assert.assertEquals(5011, finalAtlas.numberOfNodes());
         Assert.assertEquals(9764, finalAtlas.numberOfEdges());
@@ -253,7 +253,7 @@ public class RawAtlasIntegrationTest
             }
         };
 
-        final Atlas finalAtlas = new WaySectionProcessor(new SlippyTile(122, 122, 8),
+        final Atlas finalAtlas = new AtlasSectionProcessor(new SlippyTile(122, 122, 8),
                 loadingOptionAll,
                 new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class.getResource(
                         "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
@@ -279,7 +279,7 @@ public class RawAtlasIntegrationTest
         final Atlas rawAtlas = rawAtlasGenerator.build();
 
         final Atlas slicedRawAtlas = new RawAtlasSlicer(loadingOptionAntarctica, rawAtlas).slice();
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas, loadingOptionAntarctica)
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas, loadingOptionAntarctica)
                 .run();
 
         // Verify only a single point exists
@@ -307,7 +307,7 @@ public class RawAtlasIntegrationTest
 
         final Atlas slicedRawAtlas = new RawAtlasSlicer(loadingOptionIntersectionAtEnd, rawAtlas)
                 .slice();
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
                 loadingOptionIntersectionAtEnd).run();
 
         // Make sure there are exactly three edges created. Both ways are one-way and one of them
@@ -341,7 +341,7 @@ public class RawAtlasIntegrationTest
 
         final Atlas slicedRawAtlas = new RawAtlasSlicer(loadingOptionIntersectionAtStart, rawAtlas)
                 .slice();
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
                 loadingOptionIntersectionAtStart).run();
 
         // Make sure there are exactly six edges created. The trunk link (551411163) is
@@ -380,7 +380,7 @@ public class RawAtlasIntegrationTest
 
         final Atlas slicedRawAtlas = new RawAtlasSlicer(loadingOptionIntersectionAtMiddle, rawAtlas)
                 .slice();
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
                 loadingOptionIntersectionAtMiddle).run();
 
         // Make sure there is no sectioning happening between the two ways with different layer tag
@@ -413,7 +413,7 @@ public class RawAtlasIntegrationTest
     private Atlas generateSectionedAtlasStartingAtShard(final Shard shard,
             final Function<Shard, Optional<Atlas>> rawAtlasFetcher)
     {
-        return new WaySectionProcessor(shard, loadingOptionAll,
+        return new AtlasSectionProcessor(shard, loadingOptionAll,
                 new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class.getResource(
                         "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
                         .getFile())),
