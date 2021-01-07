@@ -29,8 +29,14 @@ public class JtsMultiPolyLineConverter implements TwoWayConverter<MultiPolyLine,
         for (int i = 0; i < multiLineString.getNumGeometries(); i++)
         {
             final LineString lineString = (LineString) multiLineString.getGeometryN(i);
-            polyLineList.add(new PolyLine(COORDINATE_ARRAY_CONVERTER
-                    .backwardConvert(lineString.getCoordinateSequence())));
+            final PolyLine polyLine = new PolyLine(
+                    COORDINATE_ARRAY_CONVERTER.backwardConvert(lineString.getCoordinateSequence()));
+            // No duplicated polyline is allowed to add.
+            if (!polyLineList.contains(polyLine))
+            {
+                polyLineList.add(new PolyLine(COORDINATE_ARRAY_CONVERTER
+                        .backwardConvert(lineString.getCoordinateSequence())));
+            }
         }
         return new MultiPolyLine(polyLineList);
     }

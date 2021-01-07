@@ -147,13 +147,20 @@ public class MultiPolyLineTest
         final String wkt3 = "MULTILINESTRING ((107.68471354246141 2.2346191319821231, 107.68471354246141 2.2345360028045156), "
                 + "(107.68454724550249 2.2345601370821555, 107.68453115224835 2.2345601370821555, "
                 + "107.68449419872607 2.2344243539043736))";
+        // wkt4 = wkt3 with duplicated polylines
+        final String wkt4 = "MULTILINESTRING ((107.68471354246141 2.2346191319821231, 107.68471354246141 2.2345360028045156), "
+                + "(107.68454724550249 2.2345601370821555, 107.68453115224835 2.2345601370821555, "
+                + "107.68449419872607 2.2344243539043736), "
+                + "(107.68471354246141 2.2346191319821231, 107.68471354246141 2.2345360028045156))";
         final MultiPolyLine multiPolyLine1 = MultiPolyLine.wkt(wkt1);
         final MultiPolyLine multiPolyLine2 = MultiPolyLine.wkt(wkt1);
         final MultiPolyLine multiPolyLine3 = MultiPolyLine.wkt(wkt3);
+        final MultiPolyLine multiPolyLine4 = MultiPolyLine.wkt(wkt4);
 
         Assert.assertEquals(multiPolyLine1, multiPolyLine2);
         Assert.assertNotSame(multiPolyLine1, multiPolyLine2);
         Assert.assertNotEquals(null, multiPolyLine1);
         Assert.assertNotEquals(multiPolyLine1, multiPolyLine3);
+        Assert.assertEquals(multiPolyLine3, multiPolyLine4);
     }
 }
