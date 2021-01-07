@@ -21,6 +21,7 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.PolyLine;
+import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.text.TextAtlasBuilder;
@@ -223,9 +224,9 @@ public class CountryBoundaryMapTest
 
         final WKTReader reader = new WKTReader();
         final PackedAtlasBuilder builder = new PackedAtlasBuilder();
-        final PolyLine geometry = PolyLine.wkt(
-                "LINESTRING ( -71.7424191 18.7499411097, -71.730485136 18.749848501, -71.730081575 18.749979671, -71.730142154 18.749575218, -71.730486015 18.7498444, -71.7424191 18.7499411097 )");
-        builder.addLine(1L, geometry, new HashMap<String, String>());
+        final Polygon geometry = new Polygon(PolyLine.wkt(
+                "LINESTRING ( -71.7424191 18.7499411097, -71.730485136 18.749848501, -71.730081575 18.749979671, -71.730142154 18.749575218, -71.730486015 18.7498444, -71.7424191 18.7499411097 )"));
+        builder.addArea(1L, geometry, new HashMap<String, String>());
         final Atlas rawAtlas = builder.get();
         final Atlas slicedAtlas = new RawAtlasSlicer(
                 AtlasLoadingOption.createOptionWithAllEnabled(map), rawAtlas).slice();

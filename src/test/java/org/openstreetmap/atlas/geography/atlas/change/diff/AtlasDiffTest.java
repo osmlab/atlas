@@ -33,7 +33,7 @@ public class AtlasDiffTest
     {
         Atlas atlasX = this.rule.simpleAtlas1();
         Atlas atlasY = this.rule.simpleAtlas2();
-        int expectedNumberOfChanges = 8;
+        int expectedNumberOfChanges = 2;
 
         assertChangeAtlasConsistency(atlasX, atlasY, expectedNumberOfChanges);
 

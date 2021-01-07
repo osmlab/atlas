@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
+import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.tags.filters.ConfiguredTaggableFilter;
 import org.openstreetmap.atlas.utilities.configuration.Configuration;
 import org.openstreetmap.atlas.utilities.configuration.ConfigurationReader;
@@ -16,7 +17,7 @@ import com.google.common.collect.Lists;
  * This class is a bridge between {@link ConfiguredTaggableFilter} and {@link ConfiguredFilter} for
  * use in {@link AtlasLoadingOption}, as a backwards-compatible option until
  * {@link ConfiguredFilter} is the only option used.
- * 
+ *
  * @author matthieun
  */
 public class BridgeConfiguredFilter implements Predicate<AtlasEntity>, Serializable
@@ -52,5 +53,12 @@ public class BridgeConfiguredFilter implements Predicate<AtlasEntity>, Serializa
     {
         return this.configuredFilter != null ? this.configuredFilter.test(atlasEntity)
                 : this.configuredTaggableFilter.test(atlasEntity);
+
+    }
+
+    public boolean test(final Taggable taggable)
+    {
+        return this.configuredFilter != null ? this.configuredFilter.test(taggable)
+                : this.configuredTaggableFilter.test(taggable);
     }
 }
