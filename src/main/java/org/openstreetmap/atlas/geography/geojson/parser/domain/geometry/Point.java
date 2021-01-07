@@ -19,7 +19,7 @@ public class Point extends AbstractGeometryWithCoordinateSupport<Position, Locat
     public Point(final Map<String, Object> map)
     {
         super(map);
-        this.coordinates = Coordinates.forPoint((List<Double>) extractRawCoordinates(map))
+        this.coordinates = Coordinates.forPoint((List<Number>) extractRawCoordinates(map))
                 .getValue();
     }
 

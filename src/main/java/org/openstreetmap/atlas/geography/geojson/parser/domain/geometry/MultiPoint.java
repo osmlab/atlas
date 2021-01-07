@@ -21,7 +21,7 @@ public class MultiPoint
     {
         super(map, null);
         this.coordinates = Coordinates
-                .forMultiPoint((List<List<Double>>) extractRawCoordinates(map)).getValue();
+                .forMultiPoint((List<List<Number>>) extractRawCoordinates(map)).getValue();
     }
 
     @Override

@@ -70,7 +70,7 @@ public class OsmWayWalker extends EdgeWalker
      */
     public OsmWayWalker(final Edge edge)
     {
-        super(edge, new WaySectionComparator(),
+        super(edge.getMainEdge(), new WaySectionComparator(),
                 new MainEdgeByOsmIdentifierFilter(edge.getOsmIdentifier()), CONNECTED_EDGES);
     }
 
@@ -84,7 +84,7 @@ public class OsmWayWalker extends EdgeWalker
      */
     public OsmWayWalker(final Edge edge, final EdgeHandler edgeHandler)
     {
-        super(edge, new WaySectionComparator(),
+        super(edge.getMainEdge(), new WaySectionComparator(),
                 new MainEdgeByOsmIdentifierFilter(edge.getOsmIdentifier()), CONNECTED_EDGES,
                 edgeHandler);
     }

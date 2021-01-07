@@ -1,4 +1,4 @@
-package org.openstreetmap.atlas.geography.geojson.parser.impl.gson;
+package org.openstreetmap.atlas.geography.geojson.parser.impl.jackson;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -14,17 +14,17 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Yazad Khambata
  */
-public class GeoJsonParserGsonImplExtensionsTest extends AbstractGeoJsonParserGsonImplTest
+public class GeoJsonParserJacksonImplExtensionsTest extends AbstractGeoJsonParserJacksonImplTestBase
 {
     private static final Logger log = LoggerFactory
-            .getLogger(GeoJsonParserGsonImplExtensionsTest.class);
+            .getLogger(GeoJsonParserJacksonImplExtensionsTest.class);
 
     @Test
     public void beanA()
     {
         final String json = extractJsonForExtension();
 
-        final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
+        final GeoJsonParser geoJsonParser = GeoJsonParserJacksonImpl.INSTANCE;
 
         final BeanA beanA = geoJsonParser.deserializeExtension(json, BeanA.class);
         log.info("beanA:: {}.", beanA);
@@ -38,7 +38,7 @@ public class GeoJsonParserGsonImplExtensionsTest extends AbstractGeoJsonParserGs
     {
         final String json = extractJsonForExtension();
 
-        final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
+        final GeoJsonParser geoJsonParser = GeoJsonParserJacksonImpl.INSTANCE;
 
         final BeanB beanB = geoJsonParser.deserializeExtension(json, BeanB.class);
         log.info("beanB:: {}.", beanB);
@@ -53,7 +53,7 @@ public class GeoJsonParserGsonImplExtensionsTest extends AbstractGeoJsonParserGs
     {
         final String json = extractJsonForExtension();
 
-        final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
+        final GeoJsonParser geoJsonParser = GeoJsonParserJacksonImpl.INSTANCE;
 
         final BeanB beanB = geoJsonParser.deserializeExtension(json, BeanB.class);
         log.info("beanB:: {}.", beanB);
@@ -67,7 +67,7 @@ public class GeoJsonParserGsonImplExtensionsTest extends AbstractGeoJsonParserGs
     {
         final String json = extractJsonForExtension();
 
-        final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
+        final GeoJsonParser geoJsonParser = GeoJsonParserJacksonImpl.INSTANCE;
 
         final Description description = geoJsonParser.deserializeExtension(json, Description.class);
         log.info("description:: {}.", description);
@@ -81,7 +81,7 @@ public class GeoJsonParserGsonImplExtensionsTest extends AbstractGeoJsonParserGs
     {
         final String json = extractJsonForExtension();
 
-        final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
+        final GeoJsonParser geoJsonParser = GeoJsonParserJacksonImpl.INSTANCE;
 
         final Descriptor descriptor = geoJsonParser.deserializeExtension(json, Descriptor.class);
         log.info("descriptor:: {}.", descriptor);
@@ -95,7 +95,7 @@ public class GeoJsonParserGsonImplExtensionsTest extends AbstractGeoJsonParserGs
     {
         final String json = extractJsonForExtension();
 
-        final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
+        final GeoJsonParser geoJsonParser = GeoJsonParserJacksonImpl.INSTANCE;
 
         final Descriptor descriptor = geoJsonParser.deserializeExtension(json, Descriptor.class);
         log.info("descriptor:: {}.", descriptor);
@@ -109,7 +109,7 @@ public class GeoJsonParserGsonImplExtensionsTest extends AbstractGeoJsonParserGs
     {
         final String json = extractJsonForExtension();
 
-        final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
+        final GeoJsonParser geoJsonParser = GeoJsonParserJacksonImpl.INSTANCE;
 
         final Descriptor descriptor = geoJsonParser.deserializeExtension(json, Descriptor.class);
         log.info("descriptor:: {}.", descriptor);
@@ -124,7 +124,7 @@ public class GeoJsonParserGsonImplExtensionsTest extends AbstractGeoJsonParserGs
     {
         final String json = extractJsonForExtension();
 
-        final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
+        final GeoJsonParser geoJsonParser = GeoJsonParserJacksonImpl.INSTANCE;
 
         final FeatureChangeProperties featureChangeProperties = geoJsonParser
                 .deserializeExtension(json, FeatureChangeProperties.class);
@@ -140,7 +140,7 @@ public class GeoJsonParserGsonImplExtensionsTest extends AbstractGeoJsonParserGs
     {
         final String json = extractJsonForExtension();
 
-        final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
+        final GeoJsonParser geoJsonParser = GeoJsonParserJacksonImpl.INSTANCE;
 
         try
         {
@@ -152,8 +152,8 @@ public class GeoJsonParserGsonImplExtensionsTest extends AbstractGeoJsonParserGs
             final String message1 = e.getCause().getMessage();
             Assert.assertTrue(message1.startsWith("Population failed. propertyDescriptor name"));
             final String message2 = e.getCause().getCause().getCause().getMessage();
-            Assert.assertTrue(
-                    "Can not call newInstance() on the Class for java.lang.Class".equals(message2));
+            Assert.assertEquals("Can not call newInstance() on the Class for java.lang.Class",
+                    message2);
             return;
         }
 
@@ -165,7 +165,7 @@ public class GeoJsonParserGsonImplExtensionsTest extends AbstractGeoJsonParserGs
     {
         final String json = extractJsonForExtension();
 
-        final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
+        final GeoJsonParser geoJsonParser = GeoJsonParserJacksonImpl.INSTANCE;
 
         try
         {
@@ -189,7 +189,7 @@ public class GeoJsonParserGsonImplExtensionsTest extends AbstractGeoJsonParserGs
     {
         final String json = extractJsonForExtension();
 
-        final GeoJsonParser geoJsonParser = GeoJsonParserGsonImpl.instance;
+        final GeoJsonParser geoJsonParser = GeoJsonParserJacksonImpl.INSTANCE;
 
         final FeatureChangeProperties featureChangeProperties = geoJsonParser
                 .deserializeExtension(json, FeatureChangeProperties.class);

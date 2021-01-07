@@ -1,8 +1,9 @@
-package org.openstreetmap.atlas.geography.geojson.parser.impl.gson;
+package org.openstreetmap.atlas.geography.geojson.parser.impl.jackson;
 
 import java.util.Map;
 
 import org.apache.commons.lang3.Validate;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.geojson.parser.GeoJsonParser;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.base.GeoJsonItem;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.base.type.Type;
@@ -12,23 +13,24 @@ import org.openstreetmap.atlas.geography.geojson.parser.mapper.impl.DefaultBeanU
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Yazad Khambata
+ * @author seancoulter
  */
-public enum GeoJsonParserGsonImpl implements GeoJsonParser
+public enum GeoJsonParserJacksonImpl implements GeoJsonParser
 {
 
-    instance;
+    INSTANCE;
 
-    private static final Logger log = LoggerFactory.getLogger(GeoJsonParserGsonImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(GeoJsonParserJacksonImpl.class);
 
     @Override
     public GeoJsonItem deserialize(final String geoJson)
     {
-        log.info("geoJson:: {}.", geoJson);
+        log.trace("geoJson:: {}.", geoJson);
 
         final Map<String, Object> map = toMap(geoJson);
 
@@ -38,11 +40,11 @@ public enum GeoJsonParserGsonImpl implements GeoJsonParser
     @Override
     public GeoJsonItem deserialize(final Map<String, Object> map)
     {
-        log.info("map:: {}.", map);
+        log.trace("map:: {}.", map);
 
         final Type type = TypeUtil.identifyStandardType(getType(map));
 
-        return type.construct(GeoJsonParserGsonImpl.instance, map);
+        return type.construct(GeoJsonParserJacksonImpl.INSTANCE, map);
     }
 
     @Override
@@ -68,7 +70,14 @@ public enum GeoJsonParserGsonImpl implements GeoJsonParser
 
     private Map<String, Object> toMap(final String geoJson)
     {
-        final Gson gson = new GsonBuilder().create();
-        return (Map<String, Object>) gson.fromJson(geoJson, Object.class);
+        try
+        {
+            final ObjectMapper mapper = new ObjectMapper();
+            return (Map<String, Object>) mapper.readValue(geoJson, Object.class);
+        }
+        catch (final JsonProcessingException exception1)
+        {
+            throw new CoreException(exception1.getMessage());
+        }
     }
 }
