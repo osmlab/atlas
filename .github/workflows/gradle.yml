@@ -26,7 +26,8 @@ jobs:
       shell: bash
       env:
         ATLAS_TEST_SECRET: ${{ secrets.ATLAS_TEST_SECRET }}
-      run: echo "I have my secret here: $ATLAS_TEST_SECRET"
+      run: |
+        echo "I have my secret here: $ATLAS_TEST_SECRET"
     - name: Quality checks (No tests)
       run: ./gradlew jar check -x test -x integrationTest
     - name: Tests
