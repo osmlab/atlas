@@ -1,12 +1,13 @@
 package org.openstreetmap.atlas.tags;
 
+import java.util.EnumSet;
+import java.util.Optional;
+
 import com.google.common.collect.EnumBiMap;
 import org.openstreetmap.atlas.tags.annotations.Tag;
 import org.openstreetmap.atlas.tags.annotations.TagKey;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 
-import java.util.EnumSet;
-import java.util.Optional;
 
 /**
  * OSM highway tag
