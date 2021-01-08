@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.utilities.configuration;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -79,4 +80,37 @@ public interface Configuration
      * @return a {@link Configurable} wrapper
      */
     <T> Configurable get(String key, T defaultValue);
+
+    /**
+     * Returns a new configuration with contents starting at the provided key.
+     * <p>
+     * Assuming the initial configuration is:
+     *
+     * <pre>
+     * {@code
+     * {
+     *     "a" :
+     *     {
+     *         "b" : "c"
+     *     }
+     *
+     * }
+     * }
+     * </pre>
+     *
+     * With a key provided as "a", the new sub configuration looks like:
+     *
+     * <pre>
+     * {@code
+     * {
+     *     "b" : "c"
+     * }
+     * }
+     * </pre>
+     *
+     * @param key
+     *            The provided key
+     * @return The sub Configuration if it exists under the key, Optional.empty otherwise.
+     */
+    Optional<Configuration> subConfiguration(String key);
 }
