@@ -136,17 +136,6 @@ public enum HighwayTag
         return highway.isPresent() && CORE_WAYS.contains(highway.get());
     }
 
-    public static boolean isNodeOnlyTag(final Taggable taggable)
-    {
-        final Optional<HighwayTag> highway = highwayTag(taggable);
-        return highway.isPresent() && NODE_ONLY_HIGHWAYTAGS.contains(highway.get());
-    }
-
-    public static boolean isWayOnlyTag(final Taggable taggable)
-    {
-        final Optional<HighwayTag> highway = highwayTag(taggable);
-        return highway.isPresent() && WAY_ONLY_HIGHWAYTAGS.contains(highway.get());
-    }
 
     /**
      * Looking for (highway=pedestrian or highway=footway) and (building = * or area=yes) tag
@@ -187,6 +176,12 @@ public enum HighwayTag
         return highway.isPresent() && METRICS_HIGHWAYS.contains(highway.get());
     }
 
+    public static boolean isNodeOnlyTag(final Taggable taggable)
+    {
+        final Optional<HighwayTag> highway = highwayTag(taggable);
+        return highway.isPresent() && NODE_ONLY_HIGHWAYTAGS.contains(highway.get());
+    }
+
     public static boolean isPedestrianCrossing(final Taggable taggable)
     {
         return Validators.isOfType(taggable, HighwayTag.class, CROSSING);
@@ -201,6 +196,12 @@ public enum HighwayTag
     public static Optional<HighwayTag> tag(final Taggable taggable)
     {
         return Validators.from(HighwayTag.class, taggable);
+    }
+
+    public static boolean isWayOnlyTag(final Taggable taggable)
+    {
+        final Optional<HighwayTag> highway = highwayTag(taggable);
+        return highway.isPresent() && WAY_ONLY_HIGHWAYTAGS.contains(highway.get());
     }
 
     /**
