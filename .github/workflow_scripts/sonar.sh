@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-if [ -z "$GITHUB_HEAD_REF" ];
+if [ -n "$GITHUB_HEAD_REF" ];
 then
 	PULL_REQUEST_NUMBER=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
 	echo "Running sonarqube in Pull Request $PULL_REQUEST_NUMBER"
