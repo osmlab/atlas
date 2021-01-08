@@ -95,10 +95,11 @@ public enum HighwayTag
             PASSING_PLACE, SPEED_CAMERA, STREET_LAMP, STOP, TRAFFIC_MIRROR, TRAFFIC_SIGNALS,
             TRAILHEAD, TURNING_LOOP, TOLL_GANTRY);
 
-    private static final EnumSet<HighwayTag> WAY_ONLY_HIGHWAYTAGS = EnumSet.of(MOTORWAY, TRUNK, PRIMARY,
-            SECONDARY, TERTIARY, UNCLASSIFIED, RESIDENTIAL, MOTORWAY_LINK, TRUNK_LINK, PRIMARY_LINK,
-            SECONDARY_LINK, TERTIARY_LINK, LIVING_STREET, SERVICE, PEDESTRIAN, TRACK, BUS_GUIDEWAY, ESCAPE,
-            RACEWAY, ROAD, FOOTWAY, BRIDLEWAY, STEPS, CORRIDOR, PATH, CYCLEWAY, PROPOSED, CONSTRUCTION);
+    private static final EnumSet<HighwayTag> WAY_ONLY_HIGHWAYTAGS = EnumSet.of(MOTORWAY, TRUNK,
+            PRIMARY, SECONDARY, TERTIARY, UNCLASSIFIED, RESIDENTIAL, MOTORWAY_LINK, TRUNK_LINK,
+            PRIMARY_LINK, SECONDARY_LINK, TERTIARY_LINK, LIVING_STREET, SERVICE, PEDESTRIAN, TRACK,
+            BUS_GUIDEWAY, ESCAPE, RACEWAY, ROAD, FOOTWAY, BRIDLEWAY, STEPS, CORRIDOR, PATH,
+            CYCLEWAY, PROPOSED, CONSTRUCTION);
 
     private static final EnumBiMap<HighwayTag, HighwayTag> HIGHWAY_LINKS = EnumBiMap
             .create(HighwayTag.class, HighwayTag.class);
@@ -133,7 +134,6 @@ public enum HighwayTag
         final Optional<HighwayTag> highway = highwayTag(taggable);
         return highway.isPresent() && CORE_WAYS.contains(highway.get());
     }
-
 
     /**
      * Looking for (highway=pedestrian or highway=footway) and (building = * or area=yes) tag
