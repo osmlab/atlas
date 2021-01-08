@@ -22,13 +22,19 @@ jobs:
         java-version: 11
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
+    - name: Grant execute permission for Github Actions Workflows
+      run: chmod -R ug+x .github/workflow_scripts
     - name: Print Test Secret
       shell: bash
       env:
         ATLAS_TEST_SECRET: ${{ secrets.ATLAS_TEST_SECRET }}
       run: |
         echo "I have my secret here: $ATLAS_TEST_SECRET"
-    - name: Quality checks (No tests)
-      run: ./gradlew jar check -x test -x integrationTest
-    - name: Tests
-      run: ./gradlew check
+#    - name: ShellCheck PyAtlas
+#      run: shellcheck pyatlas/*.sh
+#    - name: Quality checks (No tests)
+#      run: ./gradlew jar check -x test -x integrationTest
+#    - name: Tests
+#      run: ./gradlew check
+    -name: Sonar
+      run: .github/workflow_scripts/sonar.sh
