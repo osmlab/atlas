@@ -36,5 +36,5 @@ jobs:
 #      run: ./gradlew jar check -x test -x integrationTest
 #    - name: Tests
 #      run: ./gradlew check
-    -name: Sonar
+    - name: Sonar
       run: .github/workflow_scripts/sonar.sh
