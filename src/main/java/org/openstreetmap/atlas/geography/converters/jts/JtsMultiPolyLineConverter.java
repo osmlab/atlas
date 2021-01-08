@@ -34,8 +34,7 @@ public class JtsMultiPolyLineConverter implements TwoWayConverter<MultiPolyLine,
             // No duplicated polyline is allowed to add.
             if (!polyLineList.contains(polyLine))
             {
-                polyLineList.add(new PolyLine(COORDINATE_ARRAY_CONVERTER
-                        .backwardConvert(lineString.getCoordinateSequence())));
+                polyLineList.add(polyLine);
             }
         }
         return new MultiPolyLine(polyLineList);
