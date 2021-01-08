@@ -1,15 +1,12 @@
 package org.openstreetmap.atlas.tags;
 
-import java.util.EnumSet;
-import java.util.Optional;
-
+import com.google.common.collect.EnumBiMap;
 import org.openstreetmap.atlas.tags.annotations.Tag;
 import org.openstreetmap.atlas.tags.annotations.TagKey;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 
-import com.google.common.collect.EnumBiMap;
-
-import javax.swing.text.html.Option;
+import java.util.EnumSet;
+import java.util.Optional;
 
 /**
  * OSM highway tag
@@ -193,15 +190,15 @@ public enum HighwayTag
         return highway.isPresent() && PEDESTRIAN_NAVIGABLE_HIGHWAYS.contains(highway.get());
     }
 
-    public static Optional<HighwayTag> tag(final Taggable taggable)
-    {
-        return Validators.from(HighwayTag.class, taggable);
-    }
-
     public static boolean isWayOnlyTag(final Taggable taggable)
     {
         final Optional<HighwayTag> highway = highwayTag(taggable);
         return highway.isPresent() && WAY_ONLY_HIGHWAYTAGS.contains(highway.get());
+    }
+
+    public static Optional<HighwayTag> tag(final Taggable taggable)
+    {
+        return Validators.from(HighwayTag.class, taggable);
     }
 
     /**
