@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export GPG_KEY_LOCATION="$HOME/secrets/secret.gpg"
+GPG_KEY_LOCATION="$HOME/secrets/secret.gpg"
 # Decrypt the file
 mkdir $HOME/secrets
 # --batch to prevent interactive command
