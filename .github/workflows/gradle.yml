@@ -27,17 +27,7 @@ jobs:
     - name: Grant execute permission for Github Actions Workflows
       run: chmod -R ug+x .github/workflow_scripts
 
-# Quality Checks
-    - name: Quality checks (No tests)
-      run: ./gradlew jar check -x test -x integrationTest
-    - name: Tests
-      run: ./gradlew check
-    - name: Sonar
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_PR_DECORATION_GITHUB_TOKEN: ${{ secrets.SONAR_PR_DECORATION_GITHUB_TOKEN }}
-      run: .github/workflow_scripts/sonar.sh
-
+# TODO: Move this below Quality Checks
 # Sign and Build
     - name: Decrypt GPG key (To sign artifacts)
       env:
@@ -49,5 +39,20 @@ jobs:
         GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
         GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       run: ./gradlew build
+
+# Quality Checks
+    - name: ShellCheck PyAtlas
+      run: shellcheck pyatlas/*.sh
+    - name: Quality checks (No tests)
+      run: ./gradlew jar check -x test -x integrationTest
+    - name: Tests
+      run: ./gradlew check
+    - name: Sonar
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_PR_DECORATION_GITHUB_TOKEN: ${{ secrets.SONAR_PR_DECORATION_GITHUB_TOKEN }}
+      run: .github/workflow_scripts/sonar.sh
+
+
 
 # Publish
