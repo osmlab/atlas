@@ -38,7 +38,7 @@ jobs:
         # GPG_KEY_LOCATION: Not set here, it is set by the decrypt_gpg_key.sh script above
         GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
         GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-      run: ./gradlew build -x check
+      run: ./gradlew signArchives -x check
 
 # Quality Checks
     - name: ShellCheck PyAtlas
