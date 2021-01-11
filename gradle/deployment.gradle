@@ -11,7 +11,7 @@ gradle.taskGraph.whenReady { taskGraph ->
         allprojects { ext."signing.password" = System.getenv('GPG_PASSPHRASE') }
         allprojects { ext."signing.gnupg.executable" = "gpg" }
         allprojects { ext."signing.gnupg.useLegacyGpg" = "true" }
-        allprojects { ext."signing.gnupg.keyName" = System.getenv('GPG_KEY_ID') }
+        allprojects { ext."signing.gnupg.keyName" = "646013D53E247EBB" }
         allprojects { ext."signing.gnupg.passphrase" = System.getenv('GPG_PASSPHRASE') }
     }
     // Do not sign archives by default (a local build without gpg keyring should succeed)
