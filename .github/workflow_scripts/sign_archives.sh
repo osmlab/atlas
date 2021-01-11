@@ -8,4 +8,4 @@ echo "GPG passphrase: $GPG_PASSPHRASE"
 
 wc -c $GPG_KEY_LOCATION
 
-./gradlew -d sign -x check
+./gradlew -s sign -x check
