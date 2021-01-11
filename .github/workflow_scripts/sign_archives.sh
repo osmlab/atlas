@@ -1,6 +1,6 @@
 #!/bin/sh
 
-GPG_KEY_LOCATION="$HOME/secrets/secring.gpg"
+GPG_KEY_LOCATION="$HOME/.gnupg/secring.gpg"
 
 echo "GPG Key location: $GPG_KEY_LOCATION"
 echo "GPG Key id: $GPG_KEY_ID"
