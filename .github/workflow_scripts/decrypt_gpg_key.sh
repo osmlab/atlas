@@ -1,6 +1,6 @@
 #!/bin/sh
 
-GPG_KEY_LOCATION="$HOME/secrets/secret.gpg"
+GPG_KEY_LOCATION="$HOME/secrets/secring.gpg"
 # Decrypt the file
 mkdir $HOME/secrets
 # --batch to prevent interactive command
