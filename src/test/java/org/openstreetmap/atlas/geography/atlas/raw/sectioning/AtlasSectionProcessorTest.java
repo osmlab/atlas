@@ -1,7 +1,9 @@
 package org.openstreetmap.atlas.geography.atlas.raw.sectioning;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -10,7 +12,6 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
-import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
@@ -18,6 +19,7 @@ import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicerTest;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
 import org.openstreetmap.atlas.geography.sharding.SlippyTileSharding;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
@@ -39,7 +41,7 @@ public class AtlasSectionProcessorTest
     {
         COUNTRY_BOUNDARY_MAP = CountryBoundaryMap
                 .fromPlainText(new InputStreamResource(() -> RawAtlasSlicerTest.class
-                        .getResourceAsStream("CIV_GIN_LBR_osm_boundaries_with_grid_index.txt.gz"))
+                        .getResourceAsStream("CIV_GIN_LBR_osm_boundaries.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
     }
 
@@ -395,14 +397,15 @@ public class AtlasSectionProcessorTest
         final Set<String> countries = new HashSet<>();
         final String afghanistan = "AFG";
         countries.add(afghanistan);
-        final Map<String, MultiPolygon> boundaries = new HashMap<>();
+        final Map<String, List<org.locationtech.jts.geom.Polygon>> boundaries = new HashMap<>();
         final Polygon fakePolygon = new Polygon(Location.forString("34.15102284294,66.22764518738"),
                 Location.forString("34.1515910819,66.53388908386"),
                 Location.forString("33.99802783162,66.53045585632"),
                 Location.forString("33.99632001003,66.22558525085"),
                 Location.forString("34.15102284294,66.22764518738"));
-        final MultiPolygon boundary = MultiPolygon.forPolygon(fakePolygon);
-        boundaries.put(afghanistan, boundary);
+        final List<org.locationtech.jts.geom.Polygon> fakeBoundaries = new ArrayList<>();
+        fakeBoundaries.add(new JtsPolygonConverter().convert(fakePolygon));
+        boundaries.put(afghanistan, fakeBoundaries);
         final CountryBoundaryMap countryBoundaryMap = CountryBoundaryMap
                 .fromBoundaryMap(boundaries);
 

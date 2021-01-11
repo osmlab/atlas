@@ -1,23 +1,20 @@
 package org.openstreetmap.atlas.geography.boundary;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Set;
 
 import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Polygon;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
-import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
 import org.openstreetmap.atlas.streaming.compression.Compressor;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.Resource;
+import org.openstreetmap.atlas.utilities.command.subcommands.CountryBoundaryMapPrinterCommand;
 import org.openstreetmap.atlas.utilities.runtime.Command;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
 import org.openstreetmap.atlas.utilities.time.Time;
@@ -92,7 +89,11 @@ public class CountryBoundaryMapArchiver extends Command
                 }
                 if (countryGeometry instanceof MultiPolygon)
                 {
-                    finalBoundaryMap.addCountry(countryCode, (MultiPolygon) countryGeometry);
+                    for (int i = 0; i < countryGeometry.getNumGeometries(); i++)
+                    {
+                        finalBoundaryMap.addCountry(countryCode,
+                                (Polygon) countryGeometry.getGeometryN(i));
+                    }
                 }
                 logger.info("Added Ocean Country {} in {}", countryCode, start.elapsedSince());
                 oceanCountryCount++;
@@ -106,18 +107,11 @@ public class CountryBoundaryMapArchiver extends Command
 
         // add all countries from the input boundary map to the new boundary map
         logger.info("Adding back country boundaries to the new ocean boundary map");
-        final JtsMultiPolygonConverter multiPolyConverter = new JtsMultiPolygonConverter();
         for (final String country : boundaryMap.allCountryNames())
         {
-            for (final CountryBoundary countryBoundary : boundaryMap.countryBoundary(country))
+            for (final Polygon countryBoundary : boundaryMap.countryBoundary(country))
             {
-                final GeometryFactory factory = new GeometryFactory();
-                final Set<org.locationtech.jts.geom.Polygon> boundaryPolygons = multiPolyConverter
-                        .convert(countryBoundary.getBoundary());
-                final org.locationtech.jts.geom.MultiPolygon countryGeometry = factory
-                        .createMultiPolygon(
-                                boundaryPolygons.toArray(new Polygon[boundaryPolygons.size()]));
-                finalBoundaryMap.addCountry(country, countryGeometry);
+                finalBoundaryMap.addCountry(country, countryBoundary);
             }
         }
         return finalBoundaryMap;
@@ -126,21 +120,13 @@ public class CountryBoundaryMapArchiver extends Command
     protected Geometry geometryForShard(final Rectangle shardBounds,
             final CountryBoundaryMap boundaryMap)
     {
-        final JtsMultiPolygonConverter multiPolyConverter = new JtsMultiPolygonConverter();
         final JtsPolygonConverter polyConverter = new JtsPolygonConverter();
-        final GeometryFactory factory = new GeometryFactory();
-        final List<CountryBoundary> boundaries = boundaryMap.boundaries(shardBounds);
         // jts version of the initial shard bounds
         org.locationtech.jts.geom.Geometry shardPolyJts = polyConverter.convert(shardBounds);
         // remove country boundaries from the ocean tile one by one
-        for (final CountryBoundary boundary : boundaries)
+        for (final Polygon boundary : boundaryMap.boundaries(shardBounds).allValues())
         {
-            final Set<Polygon> boundaryPolygons = multiPolyConverter
-                    .convert(boundary.getBoundary());
-            final org.locationtech.jts.geom.MultiPolygon countryGeometry = factory
-                    .createMultiPolygon(
-                            boundaryPolygons.toArray(new Polygon[boundaryPolygons.size()]));
-            shardPolyJts = shardPolyJts.difference(countryGeometry);
+            shardPolyJts = shardPolyJts.difference(boundary);
         }
         return shardPolyJts;
     }
@@ -155,7 +141,6 @@ public class CountryBoundaryMapArchiver extends Command
         final File output = (File) command.get(OUTPUT);
         output.setCompressor(Compressor.GZIP);
         final Rectangle bounds = (Rectangle) command.get(BOUNDS);
-        final boolean createIndex = (Boolean) command.get(CREATE_SPATIAL_INDEX);
         final Integer oceanBoundaryZoomLevel = (Integer) command.get(OCEAN_BOUNDARY_ZOOM_LEVEL);
         final boolean saveGeojsonWkt = (Boolean) command.get(SAVE_GEOJSON_WKT);
 
@@ -186,16 +171,6 @@ public class CountryBoundaryMapArchiver extends Command
             map = generateOceanBoundaryMap(map, allTiles);
         }
 
-        // Create index
-        if (createIndex)
-        {
-            logger.info("Building Grid Index...");
-            final Time startTime = Time.now();
-            final Set<String> loadedCountries = map.getLoadedCountries();
-            map.initializeGridIndex(loadedCountries);
-            logger.info("Finished building Grid Index in {}", startTime.elapsedSince());
-        }
-
         // Save
         try
         {
@@ -210,7 +185,8 @@ public class CountryBoundaryMapArchiver extends Command
         // Use printer for Geojson and WKT
         if (saveGeojsonWkt)
         {
-            new CountryBoundaryMapPrinter().print(output);
+            new CountryBoundaryMapPrinterCommand().runSubcommand(
+                    String.join("", "--country-boundary=", output.getAbsolutePathString()));
         }
 
         logger.info("CountryBoundaryMap creation took {}.", timer.elapsedSince());

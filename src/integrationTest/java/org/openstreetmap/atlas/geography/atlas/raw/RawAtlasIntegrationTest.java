@@ -1,7 +1,9 @@
 package org.openstreetmap.atlas.geography.atlas.raw;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -11,8 +13,8 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.locationtech.jts.geom.Polygon;
 import org.openstreetmap.atlas.geography.Location;
-import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.ShardFileOverlapsPolygonTest;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -21,6 +23,7 @@ import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
 import org.openstreetmap.atlas.geography.atlas.raw.sectioning.AtlasSectionProcessor;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.sharding.DynamicTileSharding;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
@@ -70,11 +73,12 @@ public class RawAtlasIntegrationTest
         final String antarctica = "ATA";
 
         // Create a fake boundary as a bounding box around the target point
-        final Map<String, MultiPolygon> boundaries = new HashMap<>();
+        final Map<String, List<Polygon>> boundaries = new HashMap<>();
         final Location targetPoint = Location.forString("-81.2022146, 51.6408578");
-        final MultiPolygon antarcticaBoundary = MultiPolygon
-                .forPolygon(targetPoint.boxAround(Distance.meters(1)));
-        boundaries.put(antarctica, antarcticaBoundary);
+        final List<Polygon> ataPolygons = new ArrayList<>();
+        ataPolygons
+                .add(new JtsPolygonConverter().convert(targetPoint.boxAround(Distance.meters(1))));
+        boundaries.put(antarctica, ataPolygons);
 
         // Create a country boundary map with the fake Antarctica country boundary
         final CountryBoundaryMap antarticaBoundary = CountryBoundaryMap.fromBoundaryMap(boundaries);

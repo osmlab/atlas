@@ -1,7 +1,9 @@
 package org.openstreetmap.atlas.geography.atlas.pbf;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -27,6 +29,8 @@ import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
 import org.openstreetmap.atlas.geography.atlas.raw.sectioning.AtlasSectionProcessor;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
@@ -77,12 +81,15 @@ public class OsmPbfIngestTest
                 Location.forString("37.331308755038414,-122.0297384262085"),
                 Location.forString("37.34051308677875,-122.02124118804932"),
                 Location.forString("37.3447096829136,-122.03505992889404"));
-        this.countryShape1 = MultiPolygon.forPolygon(polygon1);
-        this.countryShape2 = MultiPolygon.forPolygon(polygon2);
-        final Map<String, MultiPolygon> boundaries = new HashMap<>();
-        boundaries.put(COUNTRY_1_NAME, this.countryShape1);
+
+        final Map<String, List<org.locationtech.jts.geom.Polygon>> boundaries = new HashMap<>();
+        final List<org.locationtech.jts.geom.Polygon> country1Boundaries = new ArrayList<>();
+        final List<org.locationtech.jts.geom.Polygon> country2Boundaries = new ArrayList<>();
+        country1Boundaries.add(new JtsPolygonConverter().convert(polygon1));
+        country2Boundaries.add(new JtsPolygonConverter().convert(polygon2));
+        boundaries.put(COUNTRY_1_NAME, country1Boundaries);
         this.countryBoundaries1 = CountryBoundaryMap.fromBoundaryMap(boundaries);
-        boundaries.put(COUNTRY_2_NAME, this.countryShape2);
+        boundaries.put(COUNTRY_2_NAME, country2Boundaries);
         this.countryBoundariesAll = CountryBoundaryMap.fromBoundaryMap(boundaries);
         this.store = new AtlasPrimitiveObjectStore();
 
@@ -173,8 +180,8 @@ public class OsmPbfIngestTest
         new OsmFileParser().update(osmFromJosm, osmFile);
         new OsmFileToPbf().update(osmFile, pbfFile);
         final CountryBoundaryMap countryBoundaryMap = CountryBoundaryMap.fromPlainText(boundaries);
-        final MultiPolygon boundary = countryBoundaryMap.countryBoundary("AIA").get(0)
-                .getBoundary();
+        final MultiPolygon boundary = new JtsPolygonToMultiPolygonConverter()
+                .convert(countryBoundaryMap.countryBoundary("AIA").get(0));
         final AtlasLoadingOption option = AtlasLoadingOption
                 .createOptionWithAllEnabled(countryBoundaryMap);
         option.setEdgeFilter(new BridgeConfiguredFilter("", "edge-filter",

@@ -122,6 +122,7 @@ public class RelationToMultiPolygonCommand extends AtlasLoaderCommand
             {
                 this.outputDelegate
                         .printlnWarnMessage("warning: relation multipolygon is not OGC valid!");
+
                 if (!atlasMultiPolygon.isOSMValid())
                 {
                     this.outputDelegate.printlnErrorMessage(

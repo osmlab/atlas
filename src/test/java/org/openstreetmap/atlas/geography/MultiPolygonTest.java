@@ -34,6 +34,11 @@ public class MultiPolygonTest
                     + "((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),"
                     + "(30 20, 20 15, 20 25, 30 20)))");
 
+    public static MultiPolygon getFrom(final String name)
+    {
+        return getFrom(name, MultiPolygonTest.class);
+    }
+
     public static MultiPolygon getFrom(final String name, final Class<?> clazz)
     {
         if (name.endsWith(FileSuffix.WKT.toString()))
@@ -51,33 +56,12 @@ public class MultiPolygonTest
         throw new CoreException("Unknown File Type {}", name);
     }
 
-    public static MultiPolygon getFrom(final String name)
-    {
-        return getFrom(name, MultiPolygonTest.class);
-    }
-
     @Test
     public void testAsGeoJsonGeometry()
     {
         final String geoJson = "{\"type\":\"MultiPolygon\",\"coordinates\":[[[[40.0,40.0],[20.0,45.0],[45.0,30.0],[40.0,40.0]]],[[[20.0,35.0],[10.0,30.0],[10.0,10.0],[30.0,5.0],[45.0,20.0],[20.0,35.0]],[[30.0,20.0],[20.0,15.0],[20.0,25.0],[30.0,20.0]]]]}";
         final JsonObject geometry = DEFAULT_MULTIPOLYGON.asGeoJsonGeometry();
         Assert.assertEquals(geoJson, geometry.toString());
-    }
-
-    @Test
-    public void testCoversPolyLine()
-    {
-        final PolyLine nonCoveredLine = new PolyLine(Location.forString("19.507134, 23.999584"),
-                Location.forString("32.062144, 32.049430"));
-        Assert.assertFalse(DEFAULT_MULTIPOLYGON.fullyGeometricallyEncloses(nonCoveredLine));
-        final PolyLine coveredLine = new PolyLine(Location.forString("32.095270, 19.955880"),
-                Location.forString("22.175213, 36.610574"));
-        Assert.assertTrue(DEFAULT_MULTIPOLYGON.fullyGeometricallyEncloses(coveredLine));
-        final PolyLine outside = PolyLine.TEST_POLYLINE;
-        Assert.assertFalse(DEFAULT_MULTIPOLYGON.fullyGeometricallyEncloses(outside));
-        final PolyLine jumpyLine = new PolyLine(Location.forString("32.095270, 19.955880"),
-                Location.forString("39.927387, 32.842205"));
-        Assert.assertFalse(DEFAULT_MULTIPOLYGON.fullyGeometricallyEncloses(jumpyLine));
     }
 
     @Test
@@ -114,6 +98,22 @@ public class MultiPolygonTest
         logger.info("intersectingOuterPolygon: {}", intersectingOuterPolygon.toWkt());
         Assert.assertTrue(DEFAULT_MULTIPOLYGON.overlaps(intersectingInnerPolygon));
         Assert.assertTrue(DEFAULT_MULTIPOLYGON.intersects(intersectingInnerPolygon));
+    }
+
+    @Test
+    public void testCoverssPolyline()
+    {
+        final PolyLine nonCoveredLine = new PolyLine(Location.forString("19.507134, 23.999584"),
+                Location.forString("32.062144, 32.049430"));
+        Assert.assertFalse(DEFAULT_MULTIPOLYGON.fullyGeometricallyEncloses(nonCoveredLine));
+        final PolyLine coveredLine = new PolyLine(Location.forString("32.095270, 19.955880"),
+                Location.forString("22.175213, 36.610574"));
+        Assert.assertTrue(DEFAULT_MULTIPOLYGON.fullyGeometricallyEncloses(coveredLine));
+        final PolyLine outside = PolyLine.TEST_POLYLINE;
+        Assert.assertFalse(DEFAULT_MULTIPOLYGON.fullyGeometricallyEncloses(outside));
+        final PolyLine jumpyLine = new PolyLine(Location.forString("32.095270, 19.955880"),
+                Location.forString("39.927387, 32.842205"));
+        Assert.assertFalse(DEFAULT_MULTIPOLYGON.fullyGeometricallyEncloses(jumpyLine));
     }
 
     @Test
@@ -274,7 +274,7 @@ public class MultiPolygonTest
         Assert.assertTrue(multiPolygon.isOSMValid());
     }
 
-    @Test
+    @Test(expected = CoreException.class)
     public void testValidity5()
     {
         // One of the inners intersects an outer
@@ -310,7 +310,7 @@ public class MultiPolygonTest
         Assert.assertFalse(multiPolygon.isOSMValid());
     }
 
-    @Test
+    @Test(expected = CoreException.class)
     public void testValidity9()
     {
         // Inner outside outer, hugging it along a segment

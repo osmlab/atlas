@@ -31,6 +31,7 @@ import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
 import org.openstreetmap.atlas.geography.atlas.raw.sectioning.AtlasSectionProcessor;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.AbstractResource;
 import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
@@ -113,9 +114,12 @@ public class TestAtlasHandler implements FieldHandler
         final AtlasLoadingOption loadingOption = AtlasLoadingOption.withNoFilter();
         if (iso.isPresent())
         {
+            final List<org.locationtech.jts.geom.Polygon> boundaries = new ArrayList<>();
+            MultiPolygon.MAXIMUM.outers()
+                    .forEach(outer -> boundaries.add(new JtsPolygonConverter().convert(outer)));
             loadingOption.setCountrySlicing(true);
             loadingOption.setCountryBoundaryMap(CountryBoundaryMap
-                    .fromBoundaryMap(Collections.singletonMap(iso.get(), MultiPolygon.MAXIMUM)));
+                    .fromBoundaryMap(Collections.singletonMap(iso.get(), boundaries)));
         }
         final Atlas rawAtlas = new RawAtlasGenerator(pbfResource, loadingOption,
                 MultiPolygon.MAXIMUM).build();

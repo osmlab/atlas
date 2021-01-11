@@ -24,6 +24,7 @@ import org.openstreetmap.atlas.geography.atlas.raw.sectioning.AtlasSectionProces
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.clipping.Clip.ClipType;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
@@ -237,7 +238,8 @@ public class OsmPbfIngestIntegrationTest extends AtlasIntegrationTest
                         .getResourceAsStream("CUB_osm_boundaries.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
         final SlippyTile tile = SlippyTile.forName("8-72-111");
-        final MultiPolygon boundary = map.countryBoundary("CUB").get(0).getBoundary();
+        final MultiPolygon boundary = new JtsPolygonToMultiPolygonConverter()
+                .convert(map.countryBoundary("CUB").get(0));
         final MultiPolygon loadingArea = tile.bounds().clip(boundary, ClipType.AND)
                 .getClipMultiPolygon();
 
