@@ -24,7 +24,7 @@ gradle.taskGraph.whenReady { taskGraph ->
 
 signing
 {
-    useGpgCmd()
+    // useGpgCmd()
     sign configurations.archives
 }
 
