@@ -20,4 +20,4 @@ echo ""
 echo ""
 echo ""
 
-./gradlew -d -s sign -x check
+./gradlew -i -s sign
