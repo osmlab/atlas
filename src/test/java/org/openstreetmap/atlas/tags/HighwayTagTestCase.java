@@ -16,19 +16,19 @@ public class HighwayTagTestCase
     @Test
     public void highwayTagTests()
     {
-        final Taggable emergencyBayTaggable = Taggable.with("highway", "emergency_bay");
+        final Taggable emergencyBayTaggable = Taggable.with(HighwayTag.KEY, "emergency_bay");
         Assert.assertTrue(Validators.hasValuesFor(emergencyBayTaggable, HighwayTag.class));
 
-        final TestTaggable falseNodeOnlyTag = new TestTaggable(HighwayTag.KEY, "trunk");
+        final TestTaggable falseNodeOnlyTag = new TestTaggable(HighwayTag.KEY, HighwayTag.TRUNK.toString());
         Assert.assertFalse(HighwayTag.isNodeOnlyTag(falseNodeOnlyTag));
 
-        final TestTaggable falseWayOnlyTag = new TestTaggable(HighwayTag.KEY, "bus_stop");
+        final TestTaggable falseWayOnlyTag = new TestTaggable(HighwayTag.KEY, HighwayTag.BUS_STOP.toString());
         Assert.assertFalse(HighwayTag.isWayOnlyTag(falseWayOnlyTag));
 
         final TestTaggable trueNodeOnlyTag = new TestTaggable(HighwayTag.KEY, "traffic_mirror");
         Assert.assertTrue(HighwayTag.isNodeOnlyTag(trueNodeOnlyTag));
 
-        final TestTaggable trueWayOnlyTag = new TestTaggable(HighwayTag.KEY, "primary");
+        final TestTaggable trueWayOnlyTag = new TestTaggable(HighwayTag.KEY, HighwayTag.PRIMARY.toString());
         Assert.assertTrue(HighwayTag.isWayOnlyTag(trueWayOnlyTag));
 
         final Taggable trafficMirrorTaggable = Taggable.with(HighwayTag.KEY, "traffic_mirror");
