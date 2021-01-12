@@ -23,8 +23,7 @@ public class HighwayTagTestCase
     @Test
     public void testFalseNodeOnlyHighwayTag()
     {
-        final TestTaggable falseNodeOnlyTag = new TestTaggable(HighwayTag.KEY,
-                "trunk");
+        final TestTaggable falseNodeOnlyTag = new TestTaggable(HighwayTag.KEY, "trunk");
 
         Assert.assertFalse(HighwayTag.isNodeOnlyTag(falseNodeOnlyTag));
     }
@@ -32,8 +31,7 @@ public class HighwayTagTestCase
     @Test
     public void testFalseWayOnlyHighwayTag()
     {
-        final TestTaggable falseWayOnlyTag = new TestTaggable(HighwayTag.KEY,
-                "bus_stop");
+        final TestTaggable falseWayOnlyTag = new TestTaggable(HighwayTag.KEY, "bus_stop");
 
         Assert.assertFalse(HighwayTag.isWayOnlyTag(falseWayOnlyTag));
     }
@@ -41,18 +39,15 @@ public class HighwayTagTestCase
     @Test
     public void testTrueNodeOnlyHighwayTag()
     {
-        final TestTaggable trueNodeOnlyTag = new TestTaggable(HighwayTag.KEY,
-                "emergency_bay");
+        final TestTaggable trueNodeOnlyTag = new TestTaggable(HighwayTag.KEY, "emergency_bay");
 
         Assert.assertTrue(HighwayTag.isNodeOnlyTag(trueNodeOnlyTag));
     }
 
-
     @Test
     public void testTrueWayOnlyHighwayTag()
     {
-        final TestTaggable trueWayOnlyTag = new TestTaggable(HighwayTag.KEY,
-                "primary");
+        final TestTaggable trueWayOnlyTag = new TestTaggable(HighwayTag.KEY, "primary");
 
         Assert.assertTrue(HighwayTag.isWayOnlyTag(trueWayOnlyTag));
     }
