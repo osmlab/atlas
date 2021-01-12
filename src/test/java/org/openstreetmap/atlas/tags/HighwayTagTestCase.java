@@ -35,19 +35,19 @@ public class HighwayTagTestCase {
     @Test
     public void testFalseWayOnlyHighwayTag()
     {
-        final TestTaggable falseNodeOnlyTag = new TestTaggable(HighwayTag.KEY,
+        final TestTaggable falseWayOnlyTag = new TestTaggable(HighwayTag.KEY,
                 "bus_stop");
 
-        Assert.assertFalse(HighwayTag.isNodeOnlyTag(falseNodeOnlyTag));
+        Assert.assertFalse(HighwayTag.isWayOnlyTag(falseWayOnlyTag));
     }
 
     @Test
     public void testTrueWayOnlyHighwayTag()
     {
-        final TestTaggable trueNodeOnlyTag = new TestTaggable(HighwayTag.KEY,
+        final TestTaggable trueWayOnlyTag = new TestTaggable(HighwayTag.KEY,
                 "primary");
 
-        Assert.assertTrue(HighwayTag.isNodeOnlyTag(trueNodeOnlyTag));
+        Assert.assertTrue(HighwayTag.isWayOnlyTag(trueWayOnlyTag));
     }
 
     @Test
