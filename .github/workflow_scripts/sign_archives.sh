@@ -1,7 +1,6 @@
 #!/bin/sh
 
-GPG_HOME="$HOME/.gnupg"
-GPG_KEY_LOCATION="$GPG_HOME/secring.gpg"
+GPG_KEY_LOCATION="secring.gpg"
 
 echo "GPG Key location: $GPG_KEY_LOCATION"
 echo "GPG Key id: $GPG_KEY_ID"
@@ -21,7 +20,7 @@ echo ""
 echo ""
 
 ./gradlew -s \
-    -Psigning.keyId=$GPG_KEY_ID \
-    -Psigning.secretKeyRingFile=$GPG_KEY_LOCATION \
-    -Psigning.password=$GPG_PASSPHRASE \
+    # -Psigning.keyId=$GPG_KEY_ID \
+    # -Psigning.secretKeyRingFile="$GPG_KEY_LOCATION" \
+    # -Psigning.password=$GPG_PASSPHRASE \
     properties sign
