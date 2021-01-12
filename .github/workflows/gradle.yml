@@ -31,6 +31,7 @@ jobs:
 # Sign and Build
     - name: Decrypt GPG key (To sign artifacts)
       env:
+        GPG_KEY_LOCATION: secring.gpg
         GPG_AES256_PASSPHRASE: ${{ secrets.GPG_AES256_PASSPHRASE }}
       run: .github/workflow_scripts/decrypt_gpg_key.sh
     - name: Sign Artifacts
