@@ -20,8 +20,8 @@ echo ""
 echo ""
 echo ""
 
-./gradlew -i -s \
-    -Dsigning.keyId=$GPG_KEY_ID \
-    -Dsigning.secretKeyRingFile=$GPG_KEY_LOCATION \
-    -Dsigning.password=$GPG_PASSPHRASE \
-    sign
+./gradlew -s \
+    -Psigning.keyId=$GPG_KEY_ID \
+    -Psigning.secretKeyRingFile=$GPG_KEY_LOCATION \
+    -Psigning.password=$GPG_PASSPHRASE \
+    printProps sign
