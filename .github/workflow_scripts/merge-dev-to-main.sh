@@ -24,7 +24,7 @@ then
     exit 0;
 fi
 
-: ${MERGE_TAG_MERGE_TAG_GITHUB_SECRET_TOKEN:?"MERGE_TAG_MERGE_TAG_GITHUB_SECRET_TOKEN needs to be set in the workflow yml file!"}
+: ${MERGE_TAG_GITHUB_SECRET_TOKEN:?"MERGE_TAG_GITHUB_SECRET_TOKEN needs to be set in the workflow yml file!"}
 : ${GITHUB_SHA:?"GITHUB_SHA needs to be available to tag the right commit!"}
 
 TEMPORARY_REPOSITORY=$(mktemp -d)

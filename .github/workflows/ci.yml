@@ -1,13 +1,13 @@
 # This workflow will build a Java project with Gradle
 # For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
 
-name: CI Quality Check
+name: Continuous Integration
 
 on:
   push:
-    branches: [ actions-test ]
+    branches: [ main, dev ]
   pull_request:
-    branches: [ actions-test ]
+    branches: [ dev ]
   workflow_dispatch:
     inputs:
       MANUAL_RELEASE_TRIGGERED:
@@ -18,7 +18,7 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     steps:
 
@@ -51,7 +51,7 @@ jobs:
 # Merge to Main
     - name: Merge dev to main
       env:
-        MERGE_TAG_MERGE_TAG_GITHUB_SECRET_TOKEN: ${{ secrets.MERGE_TAG_GITHUB_SECRET_TOKEN }}
+        MERGE_TAG_GITHUB_SECRET_TOKEN: ${{ secrets.MERGE_TAG_GITHUB_SECRET_TOKEN }}
       run: .github/workflow_scripts/merge-dev-to-main.sh
 
 # Sign and Publish
