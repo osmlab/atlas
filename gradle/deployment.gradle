@@ -20,6 +20,7 @@ gradle.taskGraph.whenReady { taskGraph ->
 
 signing
 {
+    // usePgpCmd()
     sign configurations.archives
 }
 
