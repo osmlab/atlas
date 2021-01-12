@@ -10,7 +10,10 @@ on:
     branches: [ actions-test ]
   workflow_dispatch:
     inputs:
-      MANUAL_RELEASE_TRIGGERED: "true"
+      MANUAL_RELEASE_TRIGGERED:
+        description: "Environment Variable used to trigger a Maven Central release"
+        required: false
+        default: "true"
 
 jobs:
   build:
