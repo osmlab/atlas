@@ -20,7 +20,7 @@ echo ""
 echo ""
 
 ./gradlew -s \
+    properties sign
     # -Psigning.keyId=$GPG_KEY_ID \
     # -Psigning.secretKeyRingFile="$GPG_KEY_LOCATION" \
     # -Psigning.password=$GPG_PASSPHRASE \
-    properties sign
