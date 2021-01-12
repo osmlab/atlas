@@ -12,20 +12,20 @@ echo "$FUNCTION_NAME: GITHUB_HEAD_REF = $GITHUB_HEAD_REF"
 
 if [ "$CURRENT_BRANCH" != "$RELEASE_BRANCH" ];
 then
-	echo "$FUNCTION_NAME: Exiting! Branch is not $RELEASE_BRANCH: ($CURRENT_BRANCH)"
+    echo "$FUNCTION_NAME: Exiting! Branch is not $RELEASE_BRANCH: ($CURRENT_BRANCH)"
     exit 0;
 fi
 
 if [ -n "$GITHUB_HEAD_REF" ];
 then
-	PULL_REQUEST_NUMBER=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
-	echo "$FUNCTION_NAME: Exiting! This is a Pull Request: $PULL_REQUEST_NUMBER"
+    PULL_REQUEST_NUMBER=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
+    echo "$FUNCTION_NAME: Exiting! This is a Pull Request: $PULL_REQUEST_NUMBER"
     exit 0;
 fi
 
 if [ "$MANUAL_RELEASE_TRIGGERED" != "true" ];
 then
-	echo "$FUNCTION_NAME: Exiting! This is not a release build."
+    echo "$FUNCTION_NAME: Exiting! This is not a release build."
     exit 0;
 fi
 
