@@ -5,7 +5,13 @@ import org.junit.Test;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 import org.openstreetmap.atlas.utilities.testing.TestTaggable;
 
-public class HighwayTagTestCase {
+/**
+ * Test for {@link org.openstreetmap.atlas.tags.HighwayTag}
+ *
+ * @author v-garei
+ */
+public class HighwayTagTestCase
+{
 
     @Test
     public void emergencyBayIsHighwayTestCase()
@@ -24,6 +30,15 @@ public class HighwayTagTestCase {
     }
 
     @Test
+    public void testFalseWayOnlyHighwayTag()
+    {
+        final TestTaggable falseWayOnlyTag = new TestTaggable(HighwayTag.KEY,
+                "bus_stop");
+
+        Assert.assertFalse(HighwayTag.isWayOnlyTag(falseWayOnlyTag));
+    }
+
+    @Test
     public void testTrueNodeOnlyHighwayTag()
     {
         final TestTaggable trueNodeOnlyTag = new TestTaggable(HighwayTag.KEY,
@@ -32,14 +47,6 @@ public class HighwayTagTestCase {
         Assert.assertTrue(HighwayTag.isNodeOnlyTag(trueNodeOnlyTag));
     }
 
-    @Test
-    public void testFalseWayOnlyHighwayTag()
-    {
-        final TestTaggable falseWayOnlyTag = new TestTaggable(HighwayTag.KEY,
-                "bus_stop");
-
-        Assert.assertFalse(HighwayTag.isWayOnlyTag(falseWayOnlyTag));
-    }
 
     @Test
     public void testTrueWayOnlyHighwayTag()
