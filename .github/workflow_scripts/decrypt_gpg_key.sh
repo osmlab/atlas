@@ -1,7 +1,5 @@
 #!/bin/sh
 
-GPG_KEY_LOCATION="secring.gpg"
-
 # Decrypt the file
 
 # --batch to prevent interactive command
