@@ -39,7 +39,7 @@ public class HighwayTagTestCase
     @Test
     public void testTrueNodeOnlyHighwayTag()
     {
-        final TestTaggable trueNodeOnlyTag = new TestTaggable(HighwayTag.KEY, "emergency_bay");
+        final TestTaggable trueNodeOnlyTag = new TestTaggable(HighwayTag.KEY, "traffic_mirror");
 
         Assert.assertTrue(HighwayTag.isNodeOnlyTag(trueNodeOnlyTag));
     }
