@@ -36,15 +36,23 @@ jobs:
 # Quality Checks
     - name: ShellCheck PyAtlas
       run: shellcheck pyatlas/*.sh
+    - name: Build PyAtlas
+      run: ./gradlew cleanPyatlas buildPyatlas
     - name: Quality checks (No tests)
       run: ./gradlew jar check -x test -x integrationTest
     - name: Tests
-      run: ./gradlew check
+      run: ./gradlew check build
     - name: Sonar
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_PR_DECORATION_GITHUB_TOKEN: ${{ secrets.SONAR_PR_DECORATION_GITHUB_TOKEN }}
       run: .github/workflow_scripts/sonar.sh
+
+# Merge to Main
+    - name: Merge dev to main
+      env:
+        MERGE_TAG_MERGE_TAG_GITHUB_SECRET_TOKEN: ${{ secrets.MERGE_TAG_GITHUB_SECRET_TOKEN }}
+      run: .github/workflow_scripts/merge-dev-to-main.sh
 
 # Sign and Publish
     - name: Decrypt GPG key (To sign artifacts)

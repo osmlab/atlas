@@ -8,7 +8,7 @@ CURRENT_BRANCH=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
 
 echo "$FUNCTION_NAME: $GITHUB_REPO"
 echo "$FUNCTION_NAME: CURRENT_BRANCH = $CURRENT_BRANCH"
-echo "$FUNCTION_NAME: TRAVIS_PULL_REQUEST = $TRAVIS_PULL_REQUEST"
+echo "$FUNCTION_NAME: GITHUB_HEAD_REF = $GITHUB_HEAD_REF"
 
 if [ "$CURRENT_BRANCH" != "$RELEASE_BRANCH" ];
 then
@@ -29,11 +29,11 @@ then
     exit 0;
 fi
 
-: ${MERGE_TAG_GITHUB_SECRET_TOKEN:?"MERGE_TAG_GITHUB_SECRET_TOKEN needs to be set in .travis.yml!"}
+: ${MERGE_TAG_MERGE_TAG_GITHUB_SECRET_TOKEN:?"MERGE_TAG_MERGE_TAG_GITHUB_SECRET_TOKEN needs to be set in the workflow yml file!"}
 : ${GITHUB_SHA:?"GITHUB_SHA needs to be available to tag the right commit!"}
 
-export GIT_COMMITTER_EMAIL="travis@travis.org"
-export GIT_COMMITTER_NAME="Travis CI"
+export GIT_COMMITTER_EMAIL="github-actions@github.com"
+export GIT_COMMITTER_NAME="Github Actions CI"
 
 TEMPORARY_REPOSITORY=$(mktemp -d)
 git clone "https://github.com/$GITHUB_REPO" "$TEMPORARY_REPOSITORY"
