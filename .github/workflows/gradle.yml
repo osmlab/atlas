@@ -8,6 +8,9 @@ on:
     branches: [ actions-test ]
   pull_request:
     branches: [ actions-test ]
+  workflow_dispatch:
+    inputs:
+      MANUAL_RELEASE_TRIGGERED: "true"
 
 jobs:
   build:
@@ -28,18 +31,21 @@ jobs:
       run: chmod -R ug+x .github/workflow_scripts
 
 # TODO: Move this below Quality Checks
-# Sign and Build
+# Sign and Publish
     - name: Decrypt GPG key (To sign artifacts)
       env:
         GPG_KEY_LOCATION: secring.gpg
         GPG_AES256_PASSPHRASE: ${{ secrets.GPG_AES256_PASSPHRASE }}
       run: .github/workflow_scripts/decrypt_gpg_key.sh
-    - name: Sign Artifacts
+    - name: Sign and Upload Archives
       env:
         GPG_KEY_LOCATION: secring.gpg
         GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
         GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-      run: .github/workflow_scripts/sign_archives.sh
+        SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+        SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+        MANUAL_RELEASE_TRIGGERED: ${{ github.event.inputs.MANUAL_RELEASE_TRIGGERED }}
+      run: ./gradlew uploadArchives publishToNexusAndClose
 
 # Quality Checks
     - name: ShellCheck PyAtlas
