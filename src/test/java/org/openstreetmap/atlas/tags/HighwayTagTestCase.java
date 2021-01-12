@@ -14,7 +14,7 @@ public class HighwayTagTestCase
 {
 
     @Test
-    public void HighwayTagTests()
+    public void highwayTagTests()
     {
         final Taggable emergencyBayTaggable = Taggable.with("highway", "emergency_bay");
         Assert.assertTrue(Validators.hasValuesFor(emergencyBayTaggable, HighwayTag.class));
