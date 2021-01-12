@@ -33,7 +33,19 @@ jobs:
     - name: Grant execute permission for Github Actions Workflows
       run: chmod -R ug+x .github/workflow_scripts
 
-# TODO: Move this below Quality Checks
+# Quality Checks
+    - name: ShellCheck PyAtlas
+      run: shellcheck pyatlas/*.sh
+    - name: Quality checks (No tests)
+      run: ./gradlew jar check -x test -x integrationTest
+    - name: Tests
+      run: ./gradlew check
+    - name: Sonar
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_PR_DECORATION_GITHUB_TOKEN: ${{ secrets.SONAR_PR_DECORATION_GITHUB_TOKEN }}
+      run: .github/workflow_scripts/sonar.sh
+
 # Sign and Publish
     - name: Decrypt GPG key (To sign artifacts)
       env:
@@ -49,20 +61,8 @@ jobs:
         SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
         MANUAL_RELEASE_TRIGGERED: ${{ github.event.inputs.MANUAL_RELEASE_TRIGGERED }}
       run: .github/workflow_scripts/deploy.sh
-
-# Quality Checks
-    - name: ShellCheck PyAtlas
-      run: shellcheck pyatlas/*.sh
-    - name: Quality checks (No tests)
-      run: ./gradlew jar check -x test -x integrationTest
-    - name: Tests
-      run: ./gradlew check
-    - name: Sonar
+    - name: Tag main branch
       env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_PR_DECORATION_GITHUB_TOKEN: ${{ secrets.SONAR_PR_DECORATION_GITHUB_TOKEN }}
-      run: .github/workflow_scripts/sonar.sh
-
-
-
-# Publish
+        MANUAL_RELEASE_TRIGGERED: ${{ github.event.inputs.MANUAL_RELEASE_TRIGGERED }}
+        MERGE_TAG_GITHUB_SECRET_TOKEN: ${{ secrets.MERGE_TAG_GITHUB_SECRET_TOKEN }}
+      run: .github/workflow_scripts/tag-main.sh

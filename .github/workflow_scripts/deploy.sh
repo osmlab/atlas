@@ -19,4 +19,6 @@ then
     else
         echo "Not publishing artifacts, since MANUAL_RELEASE_TRIGGERED=$MANUAL_RELEASE_TRIGGERED"
 	fi
+else
+    echo "Not publishing artifacts, since not on branch main, or in a Pull Request"
 fi
