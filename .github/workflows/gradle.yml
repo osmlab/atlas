@@ -48,7 +48,7 @@ jobs:
         SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
         SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
         MANUAL_RELEASE_TRIGGERED: ${{ github.event.inputs.MANUAL_RELEASE_TRIGGERED }}
-      run: ./gradlew uploadArchives publishToNexusAndClose
+      run: .github/workflow_scripts/deploy.sh
 
 # Quality Checks
     - name: ShellCheck PyAtlas
