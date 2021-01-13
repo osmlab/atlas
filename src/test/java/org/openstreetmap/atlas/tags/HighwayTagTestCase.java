@@ -28,17 +28,20 @@ public class HighwayTagTestCase
                 HighwayTag.BUS_STOP.toString());
         Assert.assertFalse(HighwayTag.isWayOnlyTag(falseWayOnlyTag));
 
-        final TestTaggable trueNodeOnlyTag = new TestTaggable(HighwayTag.KEY, "traffic_mirror");
+        final TestTaggable trueNodeOnlyTag = new TestTaggable(HighwayTag.KEY,
+                HighwayTag.TRAFFIC_MIRROR.toString());
         Assert.assertTrue(HighwayTag.isNodeOnlyTag(trueNodeOnlyTag));
 
         final TestTaggable trueWayOnlyTag = new TestTaggable(HighwayTag.KEY,
                 HighwayTag.PRIMARY.toString());
         Assert.assertTrue(HighwayTag.isWayOnlyTag(trueWayOnlyTag));
 
-        final Taggable trafficMirrorTaggable = Taggable.with(HighwayTag.KEY, "traffic_mirror");
+        final Taggable trafficMirrorTaggable = Taggable.with(HighwayTag.KEY,
+                HighwayTag.TRAFFIC_MIRROR.toString());
         Assert.assertTrue(Validators.hasValuesFor(trafficMirrorTaggable, HighwayTag.class));
 
-        final Taggable trailheadTaggable = Taggable.with(HighwayTag.KEY, "trailhead");
+        final Taggable trailheadTaggable = Taggable.with(HighwayTag.KEY,
+                HighwayTag.TRAILHEAD.toString());
         Assert.assertTrue(Validators.hasValuesFor(trailheadTaggable, HighwayTag.class));
     }
 }
