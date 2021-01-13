@@ -37,6 +37,10 @@ jobs:
       run: chmod +x gradlew
     - name: Grant execute permission for Github Actions Workflows
       run: chmod -R ug+x .github/workflow_scripts
+    - name: For release builds, remove -SNAPSHOT
+      env:
+        MANUAL_RELEASE_TRIGGERED: ${{ github.event.inputs.MANUAL_RELEASE_TRIGGERED }}
+      run: .github/workflow_scripts/update_project_version.sh
 
 # Quality Checks
     - name: ShellCheck PyAtlas
