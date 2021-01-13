@@ -55,7 +55,7 @@ public class CountryBoundaryMapTest
                 .createJtsGeometryFromWKT("LINESTRING ( -179 18.84927, 179 18.84927 )");
 
         // HTI is the closest to the line
-        Assert.assertEquals("DOM,HTI", map.getCountryCodeISO3(lineString).getIso3CountryCode());
+        Assert.assertEquals("HTI,DOM", map.getCountryCodeISO3(lineString).getIso3CountryCode());
     }
 
     @Test
@@ -226,7 +226,7 @@ public class CountryBoundaryMapTest
 
         point = JTS_POINT_CONVERTER.convert(Location.forString("19.0681781, -71.7075623"));
         countryDetails = map.getCountryCodeISO3(point);
-        Assert.assertEquals("DOM,HTI", countryDetails.getIso3CountryCode());
+        Assert.assertEquals("HTI,DOM", countryDetails.getIso3CountryCode());
     }
 
     private String firstCountryName(final CountryBoundaryMap map)

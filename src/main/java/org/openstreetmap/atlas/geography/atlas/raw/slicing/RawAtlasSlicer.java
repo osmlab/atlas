@@ -26,7 +26,7 @@ import org.locationtech.jts.geom.prep.PreparedGeometry;
 import org.locationtech.jts.geom.prep.PreparedGeometryFactory;
 import org.locationtech.jts.geom.prep.PreparedPolygon;
 import org.locationtech.jts.operation.linemerge.LineMerger;
-import org.locationtech.jts.precision.GeometryPrecisionReducer;
+import org.locationtech.jts.operation.overlayng.OverlayNG;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -1409,9 +1409,8 @@ public class RawAtlasSlicer
                 {
                     results.put(countryCode, new HashSet<>());
                 }
-                final Geometry clipped = GeometryPrecisionReducer.reduce(
-                        geometry.intersection(boundaryPolygon.getGeometry()),
-                        JtsPrecisionManager.getPrecisionModel());
+                final Geometry clipped = OverlayNG.overlay(geometry, boundaryPolygon.getGeometry(),
+                        OverlayNG.INTERSECTION, JtsPrecisionManager.getPrecisionModel());
                 if (clipped instanceof GeometryCollection)
                 {
                     CountryBoundaryMap.geometries((GeometryCollection) clipped)

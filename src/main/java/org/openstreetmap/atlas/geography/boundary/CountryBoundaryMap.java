@@ -38,6 +38,7 @@ import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.geom.prep.PreparedGeometry;
 import org.locationtech.jts.geom.prep.PreparedGeometryFactory;
 import org.locationtech.jts.geom.prep.PreparedPolygon;
+import org.locationtech.jts.index.strtree.STRtree;
 import org.locationtech.jts.io.WKTReader;
 import org.locationtech.jts.precision.GeometryPrecisionReducer;
 import org.opengis.feature.Feature;
@@ -122,6 +123,8 @@ public class CountryBoundaryMap implements Serializable, GeoJson
     private boolean useExpandedPolygonLimit = true;
     private final transient GeometryPrecisionReducer reducer;
     private final CountryListTwoWayStringConverter countryListConverter = new CountryListTwoWayStringConverter();
+
+    private transient STRtree spatialIndex;
 
     /**
      * @param countryGeometries
@@ -345,6 +348,7 @@ public class CountryBoundaryMap implements Serializable, GeoJson
         this.reducer = new GeometryPrecisionReducer(JtsPrecisionManager.getPrecisionModel());
         this.reducer.setPointwise(true);
         this.reducer.setChangePrecisionModel(true);
+        this.spatialIndex = new STRtree();
     }
 
     public void addCountry(final String country, final Polygon polygon)
@@ -354,6 +358,7 @@ public class CountryBoundaryMap implements Serializable, GeoJson
         this.countryNameToPreparedBoundaryPolyonMap.add(country, prepared);
         setGeometryProperty(prepared.getGeometry(), ISOCountryTag.KEY, country);
         setGeometryProperty(prepared.getGeometry(), POLYGON_ID_KEY, "0");
+        this.spatialIndex.insert(prepared.getGeometry().getEnvelopeInternal(), prepared);
     }
 
     public void addCountryWithoutPolygonIdKey(final String country, final Polygon polygon)
@@ -362,6 +367,7 @@ public class CountryBoundaryMap implements Serializable, GeoJson
         this.countryNameToBoundaryMap.add(country, polygon);
         this.countryNameToPreparedBoundaryPolyonMap.add(country, prepared);
         setGeometryProperty(prepared.getGeometry(), ISOCountryTag.KEY, country);
+        this.spatialIndex.insert(prepared.getGeometry().getEnvelopeInternal(), prepared);
     }
 
     /**
@@ -597,6 +603,7 @@ public class CountryBoundaryMap implements Serializable, GeoJson
         return this.query(JtsPrecisionManager.getGeometryFactory().toGeometry(envelope));
     }
 
+    @SuppressWarnings("unchecked")
     public List<PreparedPolygon> query(final Geometry geometry)
     {
         final Geometry target;
@@ -611,14 +618,14 @@ public class CountryBoundaryMap implements Serializable, GeoJson
             target = geometry;
         }
         final List<PreparedPolygon> result = new ArrayList<>();
-        for (final PreparedPolygon boundary : this.countryNameToPreparedBoundaryPolyonMap
-                .allValues())
+        this.spatialIndex.query(target.getEnvelopeInternal()).forEach(boundaryPolygon ->
         {
+            final PreparedPolygon boundary = (PreparedPolygon) boundaryPolygon;
             if (boundary.intersects(target))
             {
                 result.add(boundary);
             }
-        }
+        });
         return result;
     }
 
@@ -657,6 +664,7 @@ public class CountryBoundaryMap implements Serializable, GeoJson
                 }
             }
         }
+        this.spatialIndex.build();
     }
 
     /**
@@ -719,6 +727,7 @@ public class CountryBoundaryMap implements Serializable, GeoJson
                 throw new CoreException("Invalid country boundary text file format.", e);
             }
         }
+        this.spatialIndex.build();
     }
 
     /**
@@ -765,6 +774,7 @@ public class CountryBoundaryMap implements Serializable, GeoJson
                 store.dispose();
             }
         }
+        this.spatialIndex.build();
     }
 
     /**
@@ -888,13 +898,20 @@ public class CountryBoundaryMap implements Serializable, GeoJson
         {
             this.countryNameToPreparedBoundaryPolyonMap = new MultiMap<>();
         }
+        if (this.spatialIndex == null)
+        {
+            this.spatialIndex = new STRtree();
+        }
         this.countryNameToBoundaryMap.entrySet()
                 .forEach(entry -> entry.getValue().forEach(polygon ->
                 {
                     final PreparedPolygon prepared = (PreparedPolygon) PreparedGeometryFactory
                             .prepare(polygon);
                     this.countryNameToPreparedBoundaryPolyonMap.add(entry.getKey(), prepared);
+                    this.spatialIndex.insert(prepared.getGeometry().getEnvelopeInternal(),
+                            prepared);
                 }));
+        this.spatialIndex.build();
     }
 
     private void writeCountryBoundaries(final BufferedWriter output) throws IOException
