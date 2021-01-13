@@ -1,8 +1,8 @@
 package org.openstreetmap.atlas.geography;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,7 +22,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 /**
- * A MultiPolyLine is a set of {@link PolyLine}s in a specific order
+ * A MultiPolyLine is a set of distinct {@link PolyLine}s in a specific order
  *
  * @author yalimu
  */
@@ -55,7 +55,7 @@ public class MultiPolyLine
         {
             throw new CoreException("Cannot have an empty list of PolyLine or Polygon.");
         }
-        this.polyLineList = new ArrayList<>(polyLines);
+        this.polyLineList = polyLines.stream().distinct().collect(Collectors.toList());
     }
 
     public MultiPolyLine(final PolyLine... polyLines)
@@ -89,9 +89,36 @@ public class MultiPolyLine
     }
 
     @Override
+    public boolean equals(final Object other)
+    {
+        if (!(other instanceof MultiPolyLine))
+        {
+            return false;
+        }
+        final MultiPolyLine otherItem = (MultiPolyLine) other;
+        return new HashSet<>(this.polyLineList).equals(new HashSet<>(otherItem.getPolyLineList()));
+    }
+
+    @Override
     public GeoJsonType getGeoJsonType()
     {
         return GeoJsonType.MULTI_LINESTRING;
+    }
+
+    public List<PolyLine> getPolyLineList()
+    {
+        return this.polyLineList;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        final StringBuilder stringBuilder = new StringBuilder();
+        for (final PolyLine polyLine : this.polyLineList)
+        {
+            stringBuilder.append(polyLine.hashCode());
+        }
+        return stringBuilder.toString().hashCode();
     }
 
     @Override

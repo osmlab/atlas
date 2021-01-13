@@ -72,6 +72,19 @@ public class OsmWayWalkerTest
     }
 
     @Test
+    public void testStatisticsBeginningReverseStart()
+    {
+        final MockEdgeHandler statisticsHandler = new MockEdgeHandler();
+
+        final Edge startingEdge = this.setup.getIsolatedEdge().edge(-1000001L);
+        new OsmWayWalker(startingEdge, statisticsHandler).collectEdges();
+
+        Assert.assertEquals("Wrong number of edges counted", 4, statisticsHandler.getEdges());
+        Assert.assertEquals("Wrong number of boundaries counted", 2,
+                statisticsHandler.getBoundaries());
+    }
+
+    @Test
     public void testStatisticsBeginningStart()
     {
         final MockEdgeHandler statisticsHandler = new MockEdgeHandler();

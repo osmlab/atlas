@@ -34,6 +34,8 @@ public class OsmWayWalkerTestRule extends CoreTestRule
             edges = {
                     @Edge(id = "1000001", coordinates = { @Loc(value = ONE),
                             @Loc(value = TWO) }, tags = { "highway=secondary" }),
+                    @Edge(id = "-1000001", coordinates = { @Loc(value = ONE),
+                            @Loc(value = TWO) }, tags = { "highway=secondary" }),
                     @Edge(id = "1000002", coordinates = { @Loc(value = TWO),
                             @Loc(value = THREE) }, tags = { "highway=secondary" }),
                     @Edge(id = "1000003", coordinates = { @Loc(value = THREE),

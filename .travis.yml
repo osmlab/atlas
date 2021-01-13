@@ -38,7 +38,7 @@ script:
   - set +e
   - .travis/build.sh
   - .travis/build-pyatlas-gate.sh
-  - .travis/sonar-gate.sh
-  - .travis/merge-dev-to-main-gate.sh
+  # - .travis/sonar-gate.sh
+  # - .travis/merge-dev-to-main-gate.sh
   - .travis/deploy-gate.sh
   - .travis/tag-main-gate.sh

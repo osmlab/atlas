@@ -154,4 +154,26 @@ public class MergedConfiguration implements Configuration
     {
         return new MergedConfigurable<>(key, defaultValue, Function.identity());
     }
+
+    @Override
+    public Optional<Configuration> subConfiguration(final String key)
+    {
+        final Object all = this.get("").value();
+        if (all == null)
+        {
+            return Optional.empty();
+        }
+        final Map<String, Object> map;
+        if (all instanceof Map)
+        {
+            map = (Map<String, Object>) all;
+        }
+        else
+        {
+            map = new HashMap<>();
+            map.put("", all);
+        }
+        final StandardConfiguration standardConfiguration = new StandardConfiguration("", map);
+        return standardConfiguration.subConfiguration(key);
+    }
 }

@@ -24,7 +24,7 @@ public class MultiPolygon extends
     {
         super(map, null);
         this.coordinates = Coordinates
-                .forMultiPolygon((List<List<List<List<Double>>>>) extractRawCoordinates(map))
+                .forMultiPolygon((List<List<List<List<Number>>>>) extractRawCoordinates(map))
                 .getValue();
     }
 

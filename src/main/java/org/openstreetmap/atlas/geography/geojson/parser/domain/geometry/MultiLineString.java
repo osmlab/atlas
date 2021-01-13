@@ -23,7 +23,7 @@ public class MultiLineString
     {
         super(map, null);
         this.coordinates = Coordinates
-                .forMultiLineString((List<List<List<Double>>>) extractRawCoordinates(map))
+                .forMultiLineString((List<List<List<Number>>>) extractRawCoordinates(map))
                 .getValue();
     }
 
