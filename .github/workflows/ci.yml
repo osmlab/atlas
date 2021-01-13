@@ -64,6 +64,7 @@ jobs:
       env:
         GPG_KEY_LOCATION: secring.gpg
         GPG_AES256_PASSPHRASE: ${{ secrets.GPG_AES256_PASSPHRASE }}
+        MANUAL_RELEASE_TRIGGERED: ${{ github.event.inputs.MANUAL_RELEASE_TRIGGERED }}
       run: .github/workflow_scripts/decrypt_gpg_key.sh
     - name: Sign and Upload Archives
       env:
