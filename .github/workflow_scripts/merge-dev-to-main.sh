@@ -5,7 +5,7 @@ MERGE_BRANCH=main
 SOURCE_BRANCH=dev
 
 FUNCTION_NAME="merge-$SOURCE_BRANCH-to-$MERGE_BRANCH"
-CURRENT_BRANCH=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
+CURRENT_BRANCH=$(echo "$GITHUB_REF" | awk 'BEGIN { FS = "/" } ; { print $3 }')
 
 echo "$FUNCTION_NAME: $GITHUB_REPO"
 echo "$FUNCTION_NAME: CURRENT_BRANCH = $CURRENT_BRANCH"
@@ -29,18 +29,18 @@ fi
 
 TEMPORARY_REPOSITORY=$(mktemp -d)
 git clone "https://github.com/$GITHUB_REPO" "$TEMPORARY_REPOSITORY"
-cd $TEMPORARY_REPOSITORY
+cd "$TEMPORARY_REPOSITORY"
 
 echo "Checking out $SOURCE_BRANCH"
 git checkout $SOURCE_BRANCH
-git checkout -b tomerge $GITHUB_SHA
+git checkout -b tomerge "$GITHUB_SHA"
 
 echo "Checking out $MERGE_BRANCH"
-git checkout $MERGE_BRANCH
+git checkout "$MERGE_BRANCH"
 
 echo "Merging temporary branch tomerge ($GITHUB_SHA) from $SOURCE_BRANCH into $MERGE_BRANCH"
 git merge --ff-only "tomerge"
 
 echo "Pushing to $GITHUB_REPO"
 # Redirect to /dev/null to avoid secret leakage
-git push "https://$MERGE_TAG_GITHUB_SECRET_TOKEN@github.com/$GITHUB_REPO" $MERGE_BRANCH > /dev/null 2>&1
+git push "https://$MERGE_TAG_GITHUB_SECRET_TOKEN@github.com/$GITHUB_REPO" "$MERGE_BRANCH" > /dev/null 2>&1

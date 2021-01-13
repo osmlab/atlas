@@ -1,6 +1,6 @@
 #!/bin/sh
 
-CURRENT_BRANCH=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
+CURRENT_BRANCH=$(echo "$GITHUB_REF" | awk 'BEGIN { FS = "/" } ; { print $3 }')
 echo "Criterion for Publishing artifacts to Maven Central:"
 echo "Current Branch (Should be main): $CURRENT_BRANCH"
 echo "Pull Request (Should be empty): $GITHUB_HEAD_REF"

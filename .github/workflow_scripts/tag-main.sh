@@ -37,7 +37,7 @@ export GIT_COMMITTER_NAME="Github Actions CI"
 
 TEMPORARY_REPOSITORY=$(mktemp -d)
 git clone "https://github.com/$GITHUB_REPO" "$TEMPORARY_REPOSITORY"
-cd $TEMPORARY_REPOSITORY
+cd "$TEMPORARY_REPOSITORY"
 
 echo "Checking out $RELEASE_BRANCH (commit $GITHUB_SHA)"
 git checkout $GITHUB_SHA
@@ -50,4 +50,4 @@ git tag -a $PROJECT_VERSION -m "Release $PROJECT_VERSION"
 
 echo "Pushing tag $PROJECT_VERSION to $GITHUB_REPO"
 # Redirect to /dev/null to avoid secret leakage
-git push "https://$MERGE_TAG_GITHUB_SECRET_TOKEN@github.com/$GITHUB_REPO" $PROJECT_VERSION > /dev/null 2>&1
+git push "https://$MERGE_TAG_GITHUB_SECRET_TOKEN@github.com/$GITHUB_REPO" "$PROJECT_VERSION" > /dev/null 2>&1
