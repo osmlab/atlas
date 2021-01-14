@@ -38,7 +38,6 @@ configurations
 dependencies
 {
     compile packages.slf4j.api
-    compile packages.junit
     compile packages.opencsv
     compile packages.gson
     compile packages.http
@@ -61,6 +60,8 @@ dependencies
     compile packages.jackson.core
     compile packages.jackson.databind
     compile packages.jackson.dataformat
+    // Support JUnit 3/4 tests
+    compile packages.junit.junit4
     compile packages.protobuf_java
     compile packages.protoc
     compile packages.artifact
@@ -78,9 +79,10 @@ dependencies
     shaded project.configurations.getByName('compile')
     shaded packages.slf4j.log4j12
     shaded packages.log4j
+
 }
 
-task shaded(type: Jar){
+task shaded(type: Jar) {
     baseName = project.name
     classifier = 'shaded'
     from
