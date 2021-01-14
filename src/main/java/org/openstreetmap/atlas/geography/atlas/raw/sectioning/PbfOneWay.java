@@ -2,9 +2,9 @@ package org.openstreetmap.atlas.geography.atlas.raw.sectioning;
 
 import org.openstreetmap.atlas.tags.HighwayTag;
 import org.openstreetmap.atlas.tags.JunctionTag;
-import org.openstreetmap.atlas.tags.OneWayTag;
 import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
+import org.openstreetmap.atlas.tags.oneway.OneWayTag;
 
 /**
  * One way attribute of an OSM Way
