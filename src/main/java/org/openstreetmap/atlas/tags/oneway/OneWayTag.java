@@ -97,22 +97,23 @@ public enum OneWayTag
 
     public static boolean isMotorVehicleOneWayForward(final Taggable taggable)
     {
-        return OneWayMotorcarTag.isOneWayForward(taggable)
+        return isOneWayForward(taggable) || OneWayMotorcarTag.isOneWayForward(taggable)
                 || OneWayMotorVehicleTag.isOneWayForward(taggable)
                 || OneWayVehicleTag.isOneWayForward(taggable);
     }
 
     public static boolean isMotorVehicleOneWayReversed(final Taggable taggable)
     {
-        return OneWayMotorcarTag.isOneWayReversed(taggable)
+        return isOneWayReversed(taggable) || OneWayMotorcarTag.isOneWayReversed(taggable)
                 || OneWayMotorVehicleTag.isOneWayReversed(taggable)
                 || OneWayVehicleTag.isOneWayReversed(taggable);
     }
 
     public static boolean isMotorVehicleTwoWay(final Taggable taggable)
     {
-        return OneWayMotorcarTag.isTwoWay(taggable) || OneWayMotorVehicleTag.isTwoWay(taggable)
-                || OneWayVehicleTag.isTwoWay(taggable);
+        // All the motor related tags need to be two way (including not set)
+        return OneWayTag.isTwoWay(taggable) && OneWayMotorcarTag.isTwoWay(taggable)
+                && OneWayMotorVehicleTag.isTwoWay(taggable) && OneWayVehicleTag.isTwoWay(taggable);
     }
 
     public static boolean isOneWayForward(final OneWayTag tag)
