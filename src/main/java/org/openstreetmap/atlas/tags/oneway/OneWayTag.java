@@ -54,31 +54,34 @@ public enum OneWayTag
     protected static final Set<OneWayTag> ONE_WAYS_REVERSED = EnumSet.of(MINUS_1, REVERSE);
     protected static final Set<OneWayTag> TWO_WAYS = EnumSet.of(NO, FALSE, ZERO);
 
-    public static boolean isBicycleOneWayForward(final Taggable taggable,
-            final boolean rightHandDrive)
+    /**
+     * @param taggable
+     *            The taggable
+     * @return True if the feature is oneway forward, OR bicycle oneway forward.
+     */
+    public static boolean isBicycleOneWayForward(final Taggable taggable)
     {
-        return BicycleOneWayTag.isOneWayForward(taggable)
-                || CyclewayOneWayTag.isOneWayForward(taggable)
-                || OneWayBicycleTag.isOneWayForward(taggable)
-                || (rightHandDrive && CyclewayRightOneWayTag.isOneWayForward(taggable))
-                || (!rightHandDrive && CyclewayLeftOneWayTag.isOneWayForward(taggable));
+        return isOneWayForward(taggable) || isBicycleTagSpecificallyOneWayForward(taggable);
     }
 
-    public static boolean isBicycleOneWayReversed(final Taggable taggable,
-            final boolean rightHandDrive)
+    /**
+     * @param taggable
+     *            The taggable
+     * @return True if the feature is oneway reverse, OR bicycle oneway reverse.
+     */
+    public static boolean isBicycleOneWayReversed(final Taggable taggable)
     {
-        return BicycleOneWayTag.isOneWayReversed(taggable)
-                || CyclewayOneWayTag.isOneWayReversed(taggable)
-                || OneWayBicycleTag.isOneWayReversed(taggable)
-                || (rightHandDrive && CyclewayRightOneWayTag.isOneWayReversed(taggable))
-                || (!rightHandDrive && CyclewayLeftOneWayTag.isOneWayReversed(taggable));
+        return isOneWayReversed(taggable) || isBicycleTagSpecificallyOneWayReversed(taggable);
     }
 
+    /**
+     * @param taggable
+     *            The taggable
+     * @return True if the feature is two way, AND bicycle two way.
+     */
     public static boolean isBicycleTwoWay(final Taggable taggable)
     {
-        return BicycleOneWayTag.isTwoWay(taggable) || CyclewayOneWayTag.isTwoWay(taggable)
-                || OneWayBicycleTag.isTwoWay(taggable) || CyclewayRightOneWayTag.isTwoWay(taggable)
-                || CyclewayLeftOneWayTag.isTwoWay(taggable);
+        return OneWayTag.isTwoWay(taggable) && isBicycleTagSpecificallyTwoWay(taggable);
     }
 
     /**
@@ -163,5 +166,30 @@ public enum OneWayTag
     public static Optional<OneWayTag> tag(final Taggable taggable)
     {
         return Validators.from(OneWayTag.class, taggable);
+    }
+
+    private static boolean isBicycleTagSpecificallyOneWayForward(final Taggable taggable)
+    {
+        return BicycleOneWayTag.isOneWayForward(taggable)
+                || CyclewayOneWayTag.isOneWayForward(taggable)
+                || OneWayBicycleTag.isOneWayForward(taggable)
+                || CyclewayRightOneWayTag.isOneWayForward(taggable)
+                || CyclewayLeftOneWayTag.isOneWayForward(taggable);
+    }
+
+    private static boolean isBicycleTagSpecificallyOneWayReversed(final Taggable taggable)
+    {
+        return BicycleOneWayTag.isOneWayReversed(taggable)
+                || CyclewayOneWayTag.isOneWayReversed(taggable)
+                || OneWayBicycleTag.isOneWayReversed(taggable)
+                || CyclewayRightOneWayTag.isOneWayReversed(taggable)
+                || CyclewayLeftOneWayTag.isOneWayReversed(taggable);
+    }
+
+    private static boolean isBicycleTagSpecificallyTwoWay(final Taggable taggable)
+    {
+        return BicycleOneWayTag.isTwoWay(taggable) && CyclewayOneWayTag.isTwoWay(taggable)
+                && OneWayBicycleTag.isTwoWay(taggable) && CyclewayRightOneWayTag.isTwoWay(taggable)
+                && CyclewayLeftOneWayTag.isTwoWay(taggable);
     }
 }

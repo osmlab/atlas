@@ -4,6 +4,11 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.tags.HighwayTag;
 import org.openstreetmap.atlas.tags.Taggable;
+import org.openstreetmap.atlas.tags.oneway.bicycle.BicycleOneWayTag;
+import org.openstreetmap.atlas.tags.oneway.bicycle.CyclewayLeftOneWayTag;
+import org.openstreetmap.atlas.tags.oneway.bicycle.CyclewayOneWayTag;
+import org.openstreetmap.atlas.tags.oneway.bicycle.CyclewayRightOneWayTag;
+import org.openstreetmap.atlas.tags.oneway.bicycle.OneWayBicycleTag;
 import org.openstreetmap.atlas.tags.oneway.motor.OneWayMotorVehicleTag;
 import org.openstreetmap.atlas.tags.oneway.motor.OneWayMotorcarTag;
 import org.openstreetmap.atlas.tags.oneway.motor.OneWayVehicleTag;
@@ -59,6 +64,176 @@ public class OneWayTagTest
             OneWayMotorcarTag.NO.toString());
     public static final Taggable ONE_WAY_MOTORCAR_MINUS_ONE = Taggable.with(OneWayMotorcarTag.KEY,
             OneWayMotorcarTag.MINUS_1.toString());
+
+    // BicycleOneWay
+    public static final Taggable BICYCLE_ONE_WAY_YES = Taggable.with(BicycleOneWayTag.KEY,
+            BicycleOneWayTag.YES.toString());
+    public static final Taggable BICYCLE_ONE_WAY_NO = Taggable.with(BicycleOneWayTag.KEY,
+            BicycleOneWayTag.NO.toString());
+    public static final Taggable BICYCLE_ONE_WAY_MINUS_ONE = Taggable.with(BicycleOneWayTag.KEY,
+            BicycleOneWayTag.MINUS_1.toString());
+
+    // OneWayBicycle
+    public static final Taggable ONE_WAY_BICYCLE_YES = Taggable.with(OneWayBicycleTag.KEY,
+            OneWayBicycleTag.YES.toString());
+    public static final Taggable ONE_WAY_BICYCLE_NO = Taggable.with(OneWayBicycleTag.KEY,
+            OneWayBicycleTag.NO.toString());
+    public static final Taggable ONE_WAY_BICYCLE_ONE = Taggable.with(OneWayBicycleTag.KEY,
+            OneWayBicycleTag.ONE.toString());
+    public static final Taggable ONE_WAY_BICYCLE_MINUS_ONE = Taggable.with(OneWayBicycleTag.KEY,
+            OneWayBicycleTag.MINUS_1.toString());
+    public static final Taggable ONE_WAY_BICYCLE_OPPOSITE = Taggable.with(OneWayBicycleTag.KEY,
+            OneWayBicycleTag.OPPOSITE.toString());
+
+    // CyclewayOneWay
+    public static final Taggable CYCLEWAY_ONE_WAY_YES = Taggable.with(CyclewayOneWayTag.KEY,
+            CyclewayOneWayTag.YES.toString());
+    public static final Taggable CYCLEWAY_ONE_WAY_NO = Taggable.with(CyclewayOneWayTag.KEY,
+            CyclewayOneWayTag.NO.toString());
+    public static final Taggable CYCLEWAY_ONE_WAY_MINUS_ONE = Taggable.with(CyclewayOneWayTag.KEY,
+            CyclewayOneWayTag.MINUS_1.toString());
+
+    // CyclewayRightOneWay
+    public static final Taggable CYCLEWAY_RIGHT_ONE_WAY_YES = Taggable
+            .with(CyclewayRightOneWayTag.KEY, CyclewayRightOneWayTag.YES.toString());
+    public static final Taggable CYCLEWAY_RIGHT_ONE_WAY_NO = Taggable
+            .with(CyclewayRightOneWayTag.KEY, CyclewayRightOneWayTag.NO.toString());
+    public static final Taggable CYCLEWAY_RIGHT_ONE_WAY_ONE = Taggable
+            .with(CyclewayRightOneWayTag.KEY, CyclewayRightOneWayTag.ONE.toString());
+    public static final Taggable CYCLEWAY_RIGHT_ONE_WAY_MINUS_ONE = Taggable
+            .with(CyclewayRightOneWayTag.KEY, CyclewayRightOneWayTag.MINUS_1.toString());
+    public static final Taggable CYCLEWAY_RIGHT_ONE_WAY_LANE = Taggable
+            .with(CyclewayRightOneWayTag.KEY, CyclewayRightOneWayTag.LANE.toString());
+    public static final Taggable CYCLEWAY_RIGHT_ONE_WAY_DESIGNATED = Taggable
+            .with(CyclewayRightOneWayTag.KEY, CyclewayRightOneWayTag.DESIGNATED.toString());
+
+    // CyclewayLeftOneWay
+    public static final Taggable CYCLEWAY_LEFT_ONE_WAY_YES = Taggable
+            .with(CyclewayLeftOneWayTag.KEY, CyclewayLeftOneWayTag.YES.toString());
+    public static final Taggable CYCLEWAY_LEFT_ONE_WAY_NO = Taggable.with(CyclewayLeftOneWayTag.KEY,
+            CyclewayLeftOneWayTag.NO.toString());
+    public static final Taggable CYCLEWAY_LEFT_ONE_WAY_ONE = Taggable
+            .with(CyclewayLeftOneWayTag.KEY, CyclewayLeftOneWayTag.ONE.toString());
+    public static final Taggable CYCLEWAY_LEFT_ONE_WAY_MINUS_ONE = Taggable
+            .with(CyclewayLeftOneWayTag.KEY, CyclewayLeftOneWayTag.MINUS_1.toString());
+    public static final Taggable CYCLEWAY_LEFT_ONE_WAY_LANE = Taggable
+            .with(CyclewayLeftOneWayTag.KEY, CyclewayLeftOneWayTag.LANE.toString());
+    public static final Taggable CYCLEWAY_LEFT_ONE_WAY_OPPOSITE = Taggable
+            .with(CyclewayLeftOneWayTag.KEY, CyclewayLeftOneWayTag.OPPOSITE.toString());
+    public static final Taggable CYCLEWAY_LEFT_ONE_WAY_FALSE = Taggable
+            .with(CyclewayLeftOneWayTag.KEY, CyclewayLeftOneWayTag.FALSE.toString());
+
+    @Test
+    public void testOneWayBicycleForwardFalse()
+    {
+        // Splitting between true and false methods for Sonar
+        Assert.assertFalse(OneWayTag.isBicycleOneWayForward(UNTAGGED));
+
+        Assert.assertFalse(OneWayTag.isBicycleOneWayForward(BICYCLE_ONE_WAY_NO));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayForward(BICYCLE_ONE_WAY_MINUS_ONE));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayForward(ONE_WAY_BICYCLE_NO));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayForward(ONE_WAY_BICYCLE_MINUS_ONE));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayForward(ONE_WAY_BICYCLE_OPPOSITE));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayForward(CYCLEWAY_ONE_WAY_NO));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayForward(CYCLEWAY_ONE_WAY_MINUS_ONE));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayForward(CYCLEWAY_RIGHT_ONE_WAY_NO));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayForward(CYCLEWAY_RIGHT_ONE_WAY_MINUS_ONE));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayForward(CYCLEWAY_LEFT_ONE_WAY_NO));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayForward(CYCLEWAY_LEFT_ONE_WAY_MINUS_ONE));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayForward(CYCLEWAY_LEFT_ONE_WAY_OPPOSITE));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayForward(CYCLEWAY_LEFT_ONE_WAY_FALSE));
+    }
+
+    @Test
+    public void testOneWayBicycleForwardTrue()
+    {
+        // Splitting between true and false methods for Sonar
+        Assert.assertTrue(OneWayTag.isBicycleOneWayForward(ONE_WAY_YES));
+        Assert.assertTrue(OneWayTag.isBicycleOneWayForward(ONE_WAY_TRUE));
+        Assert.assertTrue(OneWayTag.isBicycleOneWayForward(ONE_WAY_ONE));
+
+        Assert.assertTrue(OneWayTag.isBicycleOneWayForward(BICYCLE_ONE_WAY_YES));
+        Assert.assertTrue(OneWayTag.isBicycleOneWayForward(ONE_WAY_BICYCLE_YES));
+        Assert.assertTrue(OneWayTag.isBicycleOneWayForward(ONE_WAY_BICYCLE_ONE));
+        Assert.assertTrue(OneWayTag.isBicycleOneWayForward(CYCLEWAY_ONE_WAY_YES));
+        Assert.assertTrue(OneWayTag.isBicycleOneWayForward(CYCLEWAY_RIGHT_ONE_WAY_YES));
+        Assert.assertTrue(OneWayTag.isBicycleOneWayForward(CYCLEWAY_RIGHT_ONE_WAY_ONE));
+        Assert.assertTrue(OneWayTag.isBicycleOneWayForward(CYCLEWAY_RIGHT_ONE_WAY_LANE));
+        Assert.assertTrue(OneWayTag.isBicycleOneWayForward(CYCLEWAY_RIGHT_ONE_WAY_DESIGNATED));
+        Assert.assertTrue(OneWayTag.isBicycleOneWayForward(CYCLEWAY_LEFT_ONE_WAY_YES));
+        Assert.assertTrue(OneWayTag.isBicycleOneWayForward(CYCLEWAY_LEFT_ONE_WAY_ONE));
+        Assert.assertTrue(OneWayTag.isBicycleOneWayForward(CYCLEWAY_LEFT_ONE_WAY_LANE));
+    }
+
+    @Test
+    public void testOneWayBicycleReverseFalse()
+    {
+        // Splitting between true and false methods for Sonar
+        Assert.assertFalse(OneWayTag.isBicycleOneWayReversed(UNTAGGED));
+
+        Assert.assertFalse(OneWayTag.isBicycleOneWayReversed(BICYCLE_ONE_WAY_YES));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayReversed(BICYCLE_ONE_WAY_NO));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayReversed(ONE_WAY_BICYCLE_YES));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayReversed(ONE_WAY_BICYCLE_NO));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayReversed(ONE_WAY_BICYCLE_ONE));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayReversed(CYCLEWAY_ONE_WAY_YES));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayReversed(CYCLEWAY_ONE_WAY_NO));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayReversed(CYCLEWAY_RIGHT_ONE_WAY_YES));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayReversed(CYCLEWAY_RIGHT_ONE_WAY_NO));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayReversed(CYCLEWAY_RIGHT_ONE_WAY_ONE));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayReversed(CYCLEWAY_RIGHT_ONE_WAY_LANE));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayReversed(CYCLEWAY_RIGHT_ONE_WAY_DESIGNATED));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayReversed(CYCLEWAY_LEFT_ONE_WAY_YES));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayReversed(CYCLEWAY_LEFT_ONE_WAY_NO));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayReversed(CYCLEWAY_LEFT_ONE_WAY_ONE));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayReversed(CYCLEWAY_LEFT_ONE_WAY_LANE));
+        Assert.assertFalse(OneWayTag.isBicycleOneWayReversed(CYCLEWAY_LEFT_ONE_WAY_FALSE));
+    }
+
+    @Test
+    public void testOneWayBicycleReverseTrue()
+    {
+        // Splitting between true and false methods for Sonar
+        Assert.assertTrue(OneWayTag.isBicycleOneWayReversed(BICYCLE_ONE_WAY_MINUS_ONE));
+        Assert.assertTrue(OneWayTag.isBicycleOneWayReversed(ONE_WAY_BICYCLE_MINUS_ONE));
+        Assert.assertTrue(OneWayTag.isBicycleOneWayReversed(ONE_WAY_BICYCLE_OPPOSITE));
+        Assert.assertTrue(OneWayTag.isBicycleOneWayReversed(CYCLEWAY_ONE_WAY_MINUS_ONE));
+        Assert.assertTrue(OneWayTag.isBicycleOneWayReversed(CYCLEWAY_RIGHT_ONE_WAY_MINUS_ONE));
+        Assert.assertTrue(OneWayTag.isBicycleOneWayReversed(CYCLEWAY_LEFT_ONE_WAY_MINUS_ONE));
+        Assert.assertTrue(OneWayTag.isBicycleOneWayReversed(CYCLEWAY_LEFT_ONE_WAY_OPPOSITE));
+    }
+
+    @Test
+    public void testOneWayBicycleTwoWay()
+    {
+        Assert.assertTrue(OneWayTag.isBicycleTwoWay(UNTAGGED));
+
+        Assert.assertTrue(OneWayTag.isBicycleTwoWay(BICYCLE_ONE_WAY_NO));
+        Assert.assertTrue(OneWayTag.isBicycleTwoWay(ONE_WAY_BICYCLE_NO));
+        Assert.assertTrue(OneWayTag.isBicycleTwoWay(CYCLEWAY_ONE_WAY_NO));
+        Assert.assertTrue(OneWayTag.isBicycleTwoWay(CYCLEWAY_RIGHT_ONE_WAY_NO));
+        Assert.assertTrue(OneWayTag.isBicycleTwoWay(CYCLEWAY_LEFT_ONE_WAY_NO));
+        Assert.assertTrue(OneWayTag.isBicycleTwoWay(CYCLEWAY_LEFT_ONE_WAY_FALSE));
+
+        Assert.assertFalse(OneWayTag.isBicycleTwoWay(BICYCLE_ONE_WAY_YES));
+        Assert.assertFalse(OneWayTag.isBicycleTwoWay(BICYCLE_ONE_WAY_MINUS_ONE));
+        Assert.assertFalse(OneWayTag.isBicycleTwoWay(ONE_WAY_BICYCLE_YES));
+        Assert.assertFalse(OneWayTag.isBicycleTwoWay(ONE_WAY_BICYCLE_ONE));
+        Assert.assertFalse(OneWayTag.isBicycleTwoWay(ONE_WAY_BICYCLE_MINUS_ONE));
+        Assert.assertFalse(OneWayTag.isBicycleTwoWay(ONE_WAY_BICYCLE_OPPOSITE));
+        Assert.assertFalse(OneWayTag.isBicycleTwoWay(CYCLEWAY_ONE_WAY_YES));
+        Assert.assertFalse(OneWayTag.isBicycleTwoWay(CYCLEWAY_ONE_WAY_MINUS_ONE));
+        Assert.assertFalse(OneWayTag.isBicycleTwoWay(CYCLEWAY_RIGHT_ONE_WAY_YES));
+        Assert.assertFalse(OneWayTag.isBicycleTwoWay(CYCLEWAY_RIGHT_ONE_WAY_ONE));
+        Assert.assertFalse(OneWayTag.isBicycleTwoWay(CYCLEWAY_RIGHT_ONE_WAY_MINUS_ONE));
+        Assert.assertFalse(OneWayTag.isBicycleTwoWay(CYCLEWAY_RIGHT_ONE_WAY_LANE));
+        Assert.assertFalse(OneWayTag.isBicycleTwoWay(CYCLEWAY_RIGHT_ONE_WAY_DESIGNATED));
+        Assert.assertFalse(OneWayTag.isBicycleTwoWay(CYCLEWAY_LEFT_ONE_WAY_YES));
+        Assert.assertFalse(OneWayTag.isBicycleTwoWay(CYCLEWAY_LEFT_ONE_WAY_ONE));
+        Assert.assertFalse(OneWayTag.isBicycleTwoWay(CYCLEWAY_LEFT_ONE_WAY_MINUS_ONE));
+        Assert.assertFalse(OneWayTag.isBicycleTwoWay(CYCLEWAY_LEFT_ONE_WAY_LANE));
+        Assert.assertFalse(OneWayTag.isBicycleTwoWay(CYCLEWAY_LEFT_ONE_WAY_OPPOSITE));
+    }
 
     @Test
     public void testOneWayMotorTagsForward()
