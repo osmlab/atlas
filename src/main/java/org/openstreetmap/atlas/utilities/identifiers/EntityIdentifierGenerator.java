@@ -26,8 +26,103 @@ import org.openstreetmap.atlas.utilities.collections.StringList;
  */
 public class EntityIdentifierGenerator
 {
+    /**
+     * A config class for {@link EntityIdentifierGenerator} to set various configuration parameters.
+     * 
+     * @author lcram
+     */
+    public static class Configuration
+    {
+        private boolean useGeometry;
+        private boolean useTags;
+        private boolean useRelationMembers;
+
+        public Configuration()
+        {
+            this.useGeometry = false;
+            this.useTags = false;
+            this.useRelationMembers = false;
+        }
+
+        public Configuration excludeGeometry()
+        {
+            this.useGeometry = false;
+            return this;
+        }
+
+        public Configuration excludeRelationMembers()
+        {
+            this.useRelationMembers = false;
+            return this;
+        }
+
+        public Configuration excludeTags()
+        {
+            this.useTags = false;
+            return this;
+        }
+
+        public EntityIdentifierGenerator getGenerator()
+        {
+            return new EntityIdentifierGenerator(this);
+        }
+
+        public Configuration useDefaults()
+        {
+            this.useGeometry = true;
+            this.useTags = true;
+            this.useRelationMembers = true;
+            return this;
+        }
+
+        public Configuration useGeometry()
+        {
+            this.useGeometry = true;
+            return this;
+        }
+
+        public Configuration useRelationMembers()
+        {
+            this.useRelationMembers = true;
+            return this;
+        }
+
+        public Configuration useTags()
+        {
+            this.useTags = true;
+            return this;
+        }
+
+        boolean usingGeometry()
+        {
+            return this.useGeometry;
+        }
+
+        boolean usingRelationMembers()
+        {
+            return this.useRelationMembers;
+        }
+
+        boolean usingTags()
+        {
+            return this.useTags;
+        }
+    }
+
     private static final long HIGHEST_ATLAS_ID = 9999999999999999L;
     private static final long LOWEST_ATLAS_ID = -9999999999999999L;
+
+    private final Configuration configuration;
+
+    public EntityIdentifierGenerator()
+    {
+        this(new Configuration().useDefaults());
+    }
+
+    public EntityIdentifierGenerator(final Configuration configuration)
+    {
+        this.configuration = configuration;
+    }
 
     /**
      * Generate a 64 bit hash for a given non-{@link Edge} {@link CompleteEntity}. The entity must
@@ -71,23 +166,33 @@ public class EntityIdentifierGenerator
      */
     String getBasicPropertyString(final CompleteEntity<?> entity)
     {
-        final String wkt = entity.toWkt();
-        if (wkt == null && !(entity instanceof CompleteRelation))
+        final StringBuilder builder = new StringBuilder();
+
+        if (this.configuration.usingGeometry())
         {
-            throw new CoreException("Geometry must be set for entity {}", entity.prettify());
+            final String wkt = entity.toWkt();
+            if (wkt == null && !(entity instanceof CompleteRelation))
+            {
+                throw new CoreException("Geometry must be set for entity {}", entity.prettify());
+            }
+            builder.append(wkt);
+        }
+        if (this.configuration.usingTags())
+        {
+            final Map<String, String> tags = entity.getTags();
+            if (tags == null)
+            {
+                throw new CoreException("Tags must be set for entity {}", entity.prettify());
+            }
+            final SortedSet<String> sortedTags = tags.entrySet().stream()
+                    .map(entry -> entry.getKey() + "=" + entry.getValue())
+                    .collect(Collectors.toCollection(TreeSet::new));
+            final String tagString = new StringList(sortedTags).join(",");
+            builder.append(";");
+            builder.append(tagString);
         }
 
-        final Map<String, String> tags = entity.getTags();
-        if (tags == null)
-        {
-            throw new CoreException("Tags must be set for entity {}", entity.prettify());
-        }
-        final SortedSet<String> sortedTags = tags.entrySet().stream()
-                .map(entry -> entry.getKey() + "=" + entry.getValue())
-                .collect(Collectors.toCollection(TreeSet::new));
-        final String tagString = new StringList(sortedTags).join(",");
-
-        return wkt + ";" + tagString;
+        return builder.toString();
     }
 
     /**
@@ -100,10 +205,16 @@ public class EntityIdentifierGenerator
      */
     String getTypeSpecificPropertyString(final CompleteEntity<?> entity)
     {
-        final StringBuilder builder = new StringBuilder();
-        builder.append(";");
-        if (entity.getType() == ItemType.RELATION)
+        if (entity.getType() != ItemType.RELATION)
         {
+            return "";
+        }
+
+        if (this.configuration.usingRelationMembers())
+        {
+            final StringBuilder builder = new StringBuilder();
+            builder.append(";");
+
             final CompleteRelation relation = (CompleteRelation) entity;
             if (relation.members() != null)
             {
@@ -125,7 +236,6 @@ public class EntityIdentifierGenerator
             return builder.toString();
         }
 
-        // Otherwise no extra data
         return "";
     }
 
