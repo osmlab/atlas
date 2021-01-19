@@ -62,16 +62,32 @@ public class EntityIdentifierGenerator
             return this;
         }
 
+        /**
+         * Get an {@link EntityIdentifierGenerator} built with this {@link Configuration}.
+         * 
+         * @return a configured {@link EntityIdentifierGenerator}
+         */
         public EntityIdentifierGenerator getGenerator()
         {
             return new EntityIdentifierGenerator(this);
         }
 
         /**
+         * This {@link Configuration} is empty if all fields are false. Empty {@link Configuration}s
+         * are generally not valid.
+         *
+         * @return if this {@link Configuration} is empty
+         */
+        public boolean isEmpty()
+        {
+            return !this.useGeometry && !this.useTags && !this.useRelationMembers;
+        }
+
+        /**
          * Check if this {@link Configuration} is non-relation invariant. A non-relation invariant
          * {@link Configuration} is one that will generate the same ID for any non-relation type
          * entity.
-         * 
+         *
          * @return if this {@link Configuration} is non-relation invariant.
          */
         public boolean isNonRelationInvariant()
@@ -79,6 +95,27 @@ public class EntityIdentifierGenerator
             return !this.useGeometry && !this.useTags;
         }
 
+        public boolean isUsingGeometry()
+        {
+            return this.useGeometry;
+        }
+
+        public boolean isUsingRelationMembers()
+        {
+            return this.useRelationMembers;
+        }
+
+        public boolean isUsingTags()
+        {
+            return this.useTags;
+        }
+
+        /**
+         * Set all fields to true. This imitates the behaviour of the default
+         * {@link EntityIdentifierGenerator} constructor without any configuration.
+         *
+         * @return a {@link Configuration} set with the defaults
+         */
         public Configuration useDefaults()
         {
             this.useGeometry = true;
@@ -103,26 +140,6 @@ public class EntityIdentifierGenerator
         {
             this.useTags = true;
             return this;
-        }
-
-        boolean empty()
-        {
-            return !this.useGeometry && !this.useTags && !this.useRelationMembers;
-        }
-
-        boolean usingGeometry()
-        {
-            return this.useGeometry;
-        }
-
-        boolean usingRelationMembers()
-        {
-            return this.useRelationMembers;
-        }
-
-        boolean usingTags()
-        {
-            return this.useTags;
         }
     }
 
@@ -185,7 +202,7 @@ public class EntityIdentifierGenerator
     {
         final StringBuilder builder = new StringBuilder();
 
-        if (this.configuration.usingGeometry())
+        if (this.configuration.isUsingGeometry())
         {
             final String wkt = entity.toWkt();
             if (wkt == null && !(entity instanceof CompleteRelation))
@@ -194,7 +211,7 @@ public class EntityIdentifierGenerator
             }
             builder.append(wkt);
         }
-        if (this.configuration.usingTags())
+        if (this.configuration.isUsingTags())
         {
             final Map<String, String> tags = entity.getTags();
             if (tags == null)
@@ -227,7 +244,7 @@ public class EntityIdentifierGenerator
             return "";
         }
 
-        if (this.configuration.usingRelationMembers())
+        if (this.configuration.isUsingRelationMembers())
         {
             final StringBuilder builder = new StringBuilder();
             builder.append(";");
@@ -273,7 +290,7 @@ public class EntityIdentifierGenerator
      */
     private long generate(final CompleteEntity<?> entity, final boolean allowNegativeIdentifiers)
     {
-        if (this.configuration.empty())
+        if (this.configuration.isEmpty())
         {
             throw new CoreException(
                     "EntityIdentifierGenerator.Configuration was empty! Please set at least one of geometry, tags, or relation members.");
