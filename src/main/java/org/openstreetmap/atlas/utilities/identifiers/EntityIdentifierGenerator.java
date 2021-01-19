@@ -67,6 +67,18 @@ public class EntityIdentifierGenerator
             return new EntityIdentifierGenerator(this);
         }
 
+        /**
+         * Check if this {@link Configuration} is non-relation invariant. A non-relation invariant
+         * {@link Configuration} is one that will generate the same ID for any non-relation type
+         * entity.
+         * 
+         * @return if this {@link Configuration} is non-relation invariant.
+         */
+        public boolean isNonRelationInvariant()
+        {
+            return !this.useGeometry && !this.useTags;
+        }
+
         public Configuration useDefaults()
         {
             this.useGeometry = true;
@@ -91,6 +103,11 @@ public class EntityIdentifierGenerator
         {
             this.useTags = true;
             return this;
+        }
+
+        boolean empty()
+        {
+            return !this.useGeometry && !this.useTags && !this.useRelationMembers;
         }
 
         boolean usingGeometry()
@@ -134,10 +151,10 @@ public class EntityIdentifierGenerator
      */
     public long generateIdentifier(final CompleteEntity<?> entity)
     {
-        if (entity instanceof CompleteEdge)
+        if (entity.getType() == ItemType.EDGE)
         {
             throw new IllegalArgumentException(
-                    "For CompleteEdge, please use generatePositiveIdentifierForEdge");
+                    "For type EDGE, please use generatePositiveIdentifierForEdge");
         }
         return generate(entity, true);
     }
@@ -216,23 +233,27 @@ public class EntityIdentifierGenerator
             builder.append(";");
 
             final CompleteRelation relation = (CompleteRelation) entity;
-            if (relation.members() != null)
+
+            if (relation.members() == null)
             {
-                final RelationBean bean = relation.members().asBean();
-                builder.append("RelationBean[");
-                // Here use sorted list to ensure determinism
-                for (final RelationBean.RelationBeanItem beanItem : bean.asSortedList())
-                {
-                    builder.append("(");
-                    builder.append(beanItem.getType());
-                    builder.append(",");
-                    builder.append(beanItem.getIdentifier());
-                    builder.append(",");
-                    builder.append(beanItem.getRole());
-                    builder.append(")");
-                }
-                builder.append("]");
+                throw new CoreException("Relation members must be set for entity {}",
+                        entity.prettify());
             }
+
+            final RelationBean bean = relation.members().asBean();
+            builder.append("RelationBean[");
+            // Here use sorted list to ensure determinism
+            for (final RelationBean.RelationBeanItem beanItem : bean.asSortedList())
+            {
+                builder.append("(");
+                builder.append(beanItem.getType());
+                builder.append(",");
+                builder.append(beanItem.getIdentifier());
+                builder.append(",");
+                builder.append(beanItem.getRole());
+                builder.append(")");
+            }
+            builder.append("]");
             return builder.toString();
         }
 
@@ -252,6 +273,18 @@ public class EntityIdentifierGenerator
      */
     private long generate(final CompleteEntity<?> entity, final boolean allowNegativeIdentifiers)
     {
+        if (this.configuration.empty())
+        {
+            throw new CoreException(
+                    "EntityIdentifierGenerator.Configuration was empty! Please set at least one of geometry, tags, or relation members.");
+        }
+
+        if (entity.getType() != ItemType.RELATION && this.configuration.isNonRelationInvariant())
+        {
+            throw new CoreException(
+                    "EntityIdentifierGenerator.Configuration was non-relation invariant! Please set at least one of geometry or tags to generate IDs for non-relation type entities.");
+        }
+
         int iterations = 0;
         final int maximumIterations = 1000;
 
@@ -267,9 +300,16 @@ public class EntityIdentifierGenerator
 
             if (iterations > maximumIterations)
             {
+                /*
+                 * If this happens, we have a problem. It means that, within 1000 tries, we could
+                 * not generate an ID that was both safe to use (outside of OSM ID boundary) and
+                 * within the sign constraints (positive vs. negative allowed IDs). Realistically,
+                 * this should never happen. If for some reason it did, a possible solution would be
+                 * to simply bump up the iteration threshold.
+                 */
                 throw new CoreException(
-                        "Exceeded maximum iterations ({}) when attempting to generate hash",
-                        maximumIterations);
+                        "Exceeded maximum iterations ({}) when attempting to generate hash for {}",
+                        maximumIterations, entity.prettify());
             }
             iterations++;
         }

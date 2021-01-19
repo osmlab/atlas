@@ -1,13 +1,14 @@
 package org.openstreetmap.atlas.utilities.identifiers;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
-import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
-import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
@@ -20,45 +21,37 @@ import org.openstreetmap.atlas.utilities.collections.Sets;
  */
 public class EntityIdentifierGeneratorTest
 {
+    @Rule
+    public final ExpectedException expectedException = ExpectedException.none();
+
     @Test
-    public void testEmptyConfig()
+    public void testEmptyConfigException()
     {
         final CompletePoint point = new CompletePoint(1L, Location.CENTER,
                 Maps.hashMap("a", "b", "c", "d"), Sets.hashSet());
-        final CompleteEdge edge1 = new CompleteEdge(2L, PolyLine.SIMPLE_POLYLINE,
-                Maps.hashMap("e", "f", "g", "h"), 2L, 3L, Sets.hashSet());
-        final CompleteEdge edge2 = new CompleteEdge(3L, PolyLine.TEST_POLYLINE_2,
-                Maps.hashMap("hello", "world"), 200L, 300L, Sets.hashSet());
-        final CompleteArea area = new CompleteArea(3L, Polygon.SILICON_VALLEY,
-                Maps.hashMap("i", "j", "k", "l"), Sets.hashSet());
 
         Assert.assertTrue((new EntityIdentifierGenerator.Configuration().getGenerator()
                 .getBasicPropertyString(point)
                 + new EntityIdentifierGenerator.Configuration().getGenerator()
                         .getTypeSpecificPropertyString(point)).isEmpty());
-        Assert.assertTrue((new EntityIdentifierGenerator.Configuration().getGenerator()
-                .getBasicPropertyString(edge1)
-                + new EntityIdentifierGenerator.Configuration().getGenerator()
-                        .getTypeSpecificPropertyString(edge1)).isEmpty());
-        Assert.assertTrue((new EntityIdentifierGenerator.Configuration().getGenerator()
-                .getBasicPropertyString(edge2)
-                + new EntityIdentifierGenerator.Configuration().getGenerator()
-                        .getTypeSpecificPropertyString(edge2)).isEmpty());
-        Assert.assertTrue((new EntityIdentifierGenerator.Configuration().getGenerator()
-                .getBasicPropertyString(area)
-                + new EntityIdentifierGenerator.Configuration().getGenerator()
-                        .getTypeSpecificPropertyString(area)).isEmpty());
 
-        Assert.assertEquals(
-                new EntityIdentifierGenerator.Configuration().getGenerator()
-                        .generateIdentifier(point),
-                new EntityIdentifierGenerator.Configuration().getGenerator()
-                        .generateIdentifier(area));
-        Assert.assertEquals(
-                new EntityIdentifierGenerator.Configuration().getGenerator()
-                        .generatePositiveIdentifierForEdge(edge1),
-                new EntityIdentifierGenerator.Configuration().getGenerator()
-                        .generatePositiveIdentifierForEdge(edge2));
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage(
+                "EntityIdentifierGenerator.Configuration was empty! Please set at least one of geometry, tags, or relation members.");
+        new EntityIdentifierGenerator.Configuration().getGenerator().generateIdentifier(point);
+    }
+
+    @Test
+    public void testForcePositiveIDForEdge()
+    {
+        final CompleteEdge edge = new CompleteEdge(1L, PolyLine.SIMPLE_POLYLINE,
+                Maps.hashMap("a", "b", "c", "d"), 2L, 3L, Sets.hashSet());
+
+        this.expectedException.expect(IllegalArgumentException.class);
+        this.expectedException
+                .expectMessage("For type EDGE, please use generatePositiveIdentifierForEdge");
+        new EntityIdentifierGenerator.Configuration().useDefaults().getGenerator()
+                .generateIdentifier(edge);
     }
 
     @Test
@@ -157,5 +150,87 @@ public class EntityIdentifierGeneratorTest
         Assert.assertEquals(goldenHash4,
                 new EntityIdentifierGenerator.Configuration().useDefaults().excludeGeometry()
                         .excludeRelationMembers().getGenerator().generateIdentifier(point));
+    }
+
+    @Test
+    public void testNonRelationInvariantConfigException()
+    {
+        final EntityIdentifierGenerator nonRelationInvariantGenerator = new EntityIdentifierGenerator.Configuration()
+                .useRelationMembers().getGenerator();
+
+        final RelationBean bean1 = new RelationBean();
+        bean1.addItem(1L, "role", ItemType.POINT);
+        bean1.addItem(10L, "role", ItemType.AREA);
+        final CompleteRelation relation1 = new CompleteRelation(1L,
+                Maps.hashMap("a", "b", "c", "d"), Rectangle.MINIMUM, bean1, null, null, null,
+                Sets.hashSet());
+        Assert.assertEquals(6707509058043000459L,
+                nonRelationInvariantGenerator.generateIdentifier(relation1));
+
+        final CompletePoint point = new CompletePoint(1L, Location.CENTER,
+                Maps.hashMap("a", "b", "c", "d"), Sets.hashSet());
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage(
+                "EntityIdentifierGenerator.Configuration was non-relation invariant! Please set at least one of geometry or tags to generate IDs for non-relation type entities.");
+        nonRelationInvariantGenerator.generateIdentifier(point);
+    }
+
+    @Test
+    public void testUnsetGeometryException()
+    {
+        final CompletePoint pointNoGeometry = new CompletePoint(1L, null,
+                Maps.hashMap("a", "b", "c", "d"), Sets.hashSet());
+        final CompletePoint pointNoTags = new CompletePoint(1L, Location.CENTER, null,
+                Sets.hashSet());
+
+        new EntityIdentifierGenerator.Configuration().useTags().getGenerator()
+                .generateIdentifier(pointNoGeometry);
+        new EntityIdentifierGenerator.Configuration().useGeometry().getGenerator()
+                .generateIdentifier(pointNoTags);
+
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("Geometry must be set for entity");
+        new EntityIdentifierGenerator().generateIdentifier(pointNoGeometry);
+    }
+
+    @Test
+    public void testUnsetRelationMembersException()
+    {
+        final RelationBean bean1 = new RelationBean();
+        bean1.addItem(1L, "role", ItemType.POINT);
+        bean1.addItem(10L, "role", ItemType.AREA);
+        final CompleteRelation relationWithMembers = new CompleteRelation(1L,
+                Maps.hashMap("a", "b", "c", "d"), Rectangle.MINIMUM, bean1, null, null, null,
+                Sets.hashSet());
+        final CompleteRelation relationNoMembers = new CompleteRelation(1L,
+                Maps.hashMap("a", "b", "c", "d"), Rectangle.MINIMUM, null, null, null, null,
+                Sets.hashSet());
+
+        new EntityIdentifierGenerator.Configuration().useDefaults().getGenerator()
+                .generateIdentifier(relationWithMembers);
+        new EntityIdentifierGenerator.Configuration().useDefaults().excludeRelationMembers()
+                .getGenerator().generateIdentifier(relationNoMembers);
+
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("Relation members must be set for entity");
+        new EntityIdentifierGenerator().generateIdentifier(relationNoMembers);
+    }
+
+    @Test
+    public void testUnsetTagsException()
+    {
+        final CompletePoint pointNoGeometry = new CompletePoint(1L, null,
+                Maps.hashMap("a", "b", "c", "d"), Sets.hashSet());
+        final CompletePoint pointNoTags = new CompletePoint(1L, Location.CENTER, null,
+                Sets.hashSet());
+
+        new EntityIdentifierGenerator.Configuration().useTags().getGenerator()
+                .generateIdentifier(pointNoGeometry);
+        new EntityIdentifierGenerator.Configuration().useGeometry().getGenerator()
+                .generateIdentifier(pointNoTags);
+
+        this.expectedException.expect(CoreException.class);
+        this.expectedException.expectMessage("Tags must be set for entity");
+        new EntityIdentifierGenerator().generateIdentifier(pointNoTags);
     }
 }
