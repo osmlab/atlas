@@ -15,7 +15,7 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.streaming.readers.GeoJsonReader;
 import org.openstreetmap.atlas.streaming.resource.Resource;
-import org.openstreetmap.atlas.tags.OneWayTag;
+import org.openstreetmap.atlas.tags.oneway.OneWayTag;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 
 import com.google.gson.JsonElement;

@@ -8,10 +8,10 @@ import org.openstreetmap.atlas.tags.HighwayTag;
 import org.openstreetmap.atlas.tags.JunctionTag;
 import org.openstreetmap.atlas.tags.MotorVehicleTag;
 import org.openstreetmap.atlas.tags.MotorcarTag;
-import org.openstreetmap.atlas.tags.OneWayTag;
 import org.openstreetmap.atlas.tags.RouteTag;
 import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.tags.VehicleTag;
+import org.openstreetmap.atlas.tags.oneway.OneWayTag;
 
 /**
  * Testing {@link PbfOneWay} functionality.
