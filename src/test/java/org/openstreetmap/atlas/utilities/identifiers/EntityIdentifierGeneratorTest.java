@@ -4,8 +4,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
+import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
@@ -18,6 +20,47 @@ import org.openstreetmap.atlas.utilities.collections.Sets;
  */
 public class EntityIdentifierGeneratorTest
 {
+    @Test
+    public void testEmptyConfig()
+    {
+        final CompletePoint point = new CompletePoint(1L, Location.CENTER,
+                Maps.hashMap("a", "b", "c", "d"), Sets.hashSet());
+        final CompleteEdge edge1 = new CompleteEdge(2L, PolyLine.SIMPLE_POLYLINE,
+                Maps.hashMap("e", "f", "g", "h"), 2L, 3L, Sets.hashSet());
+        final CompleteEdge edge2 = new CompleteEdge(3L, PolyLine.TEST_POLYLINE_2,
+                Maps.hashMap("hello", "world"), 200L, 300L, Sets.hashSet());
+        final CompleteArea area = new CompleteArea(3L, Polygon.SILICON_VALLEY,
+                Maps.hashMap("i", "j", "k", "l"), Sets.hashSet());
+
+        Assert.assertTrue((new EntityIdentifierGenerator.Configuration().getGenerator()
+                .getBasicPropertyString(point)
+                + new EntityIdentifierGenerator.Configuration().getGenerator()
+                        .getTypeSpecificPropertyString(point)).isEmpty());
+        Assert.assertTrue((new EntityIdentifierGenerator.Configuration().getGenerator()
+                .getBasicPropertyString(edge1)
+                + new EntityIdentifierGenerator.Configuration().getGenerator()
+                        .getTypeSpecificPropertyString(edge1)).isEmpty());
+        Assert.assertTrue((new EntityIdentifierGenerator.Configuration().getGenerator()
+                .getBasicPropertyString(edge2)
+                + new EntityIdentifierGenerator.Configuration().getGenerator()
+                        .getTypeSpecificPropertyString(edge2)).isEmpty());
+        Assert.assertTrue((new EntityIdentifierGenerator.Configuration().getGenerator()
+                .getBasicPropertyString(area)
+                + new EntityIdentifierGenerator.Configuration().getGenerator()
+                        .getTypeSpecificPropertyString(area)).isEmpty());
+
+        Assert.assertEquals(
+                new EntityIdentifierGenerator.Configuration().getGenerator()
+                        .generateIdentifier(point),
+                new EntityIdentifierGenerator.Configuration().getGenerator()
+                        .generateIdentifier(area));
+        Assert.assertEquals(
+                new EntityIdentifierGenerator.Configuration().getGenerator()
+                        .generatePositiveIdentifierForEdge(edge1),
+                new EntityIdentifierGenerator.Configuration().getGenerator()
+                        .generatePositiveIdentifierForEdge(edge2));
+    }
+
     @Test
     public void testGetFullPropertyString()
     {
@@ -105,9 +148,14 @@ public class EntityIdentifierGeneratorTest
         final long goldenHash3 = -2934213421148195810L;
         Assert.assertEquals(goldenHash3, new EntityIdentifierGenerator.Configuration().useGeometry()
                 .getGenerator().generateIdentifier(point));
+        Assert.assertEquals(goldenHash3, new EntityIdentifierGenerator.Configuration().useDefaults()
+                .excludeTags().excludeRelationMembers().getGenerator().generateIdentifier(point));
 
         final long goldenHash4 = 3739460904040018219L;
         Assert.assertEquals(goldenHash4, new EntityIdentifierGenerator.Configuration().useTags()
                 .getGenerator().generateIdentifier(point));
+        Assert.assertEquals(goldenHash4,
+                new EntityIdentifierGenerator.Configuration().useDefaults().excludeGeometry()
+                        .excludeRelationMembers().getGenerator().generateIdentifier(point));
     }
 }
