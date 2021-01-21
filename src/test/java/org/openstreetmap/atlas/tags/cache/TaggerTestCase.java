@@ -7,7 +7,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.tags.HighwayTag;
-import org.openstreetmap.atlas.tags.OneWayTag;
+import org.openstreetmap.atlas.tags.oneway.OneWayTag;
 
 /**
  * Tagger tests.

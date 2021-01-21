@@ -37,6 +37,10 @@ jobs:
       run: chmod +x gradlew
     - name: Grant execute permission for Github Actions Workflows
       run: chmod -R ug+x .github/workflow_scripts
+    - name: For release builds, remove -SNAPSHOT
+      env:
+        MANUAL_RELEASE_TRIGGERED: ${{ github.event.inputs.MANUAL_RELEASE_TRIGGERED }}
+      run: .github/workflow_scripts/update_project_version.sh
 
 # Quality Checks
     - name: ShellCheck PyAtlas
@@ -64,6 +68,7 @@ jobs:
       env:
         GPG_KEY_LOCATION: secring.gpg
         GPG_AES256_PASSPHRASE: ${{ secrets.GPG_AES256_PASSPHRASE }}
+        MANUAL_RELEASE_TRIGGERED: ${{ github.event.inputs.MANUAL_RELEASE_TRIGGERED }}
       run: .github/workflow_scripts/decrypt_gpg_key.sh
     - name: Sign and Upload Archives
       env:
