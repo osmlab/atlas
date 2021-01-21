@@ -51,7 +51,7 @@ public class RawAtlasSlicerTest
     {
         boundary = CountryBoundaryMap
                 .fromPlainText(new InputStreamResource(() -> RawAtlasSlicerTest.class
-                        .getResourceAsStream("CIV_GIN_LBR_osm_boundaries_with_grid_index.txt.gz"))
+                        .getResourceAsStream("CIV_GIN_LBR_osm_boundaries.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
         converter = new RelationOrAreaToMultiPolygonConverter();
         jtsConverter = new JtsMultiPolygonToMultiPolygonConverter();

@@ -90,6 +90,17 @@ public enum HighwayTag
     private static final EnumSet<HighwayTag> PEDESTRIAN_NAVIGABLE_HIGHWAYS = EnumSet.of(PEDESTRIAN,
             FOOTWAY, STEPS, PATH, CROSSING, PLATFORM, ELEVATOR, CORRIDOR);
 
+    private static final EnumSet<HighwayTag> NODE_ONLY_HIGHWAYTAGS = EnumSet.of(BUS_STOP, CROSSING,
+            EMERGENCY_ACCESS_POINT, GIVE_WAY, MILESTONE, MINI_ROUNDABOUT, MOTORWAY_JUNCTION,
+            PASSING_PLACE, SPEED_CAMERA, STREET_LAMP, STOP, TRAFFIC_MIRROR, TRAFFIC_SIGNALS,
+            TRAILHEAD, TURNING_LOOP, TOLL_GANTRY);
+
+    private static final EnumSet<HighwayTag> WAY_ONLY_HIGHWAYTAGS = EnumSet.of(MOTORWAY, TRUNK,
+            PRIMARY, SECONDARY, TERTIARY, UNCLASSIFIED, RESIDENTIAL, MOTORWAY_LINK, TRUNK_LINK,
+            PRIMARY_LINK, SECONDARY_LINK, TERTIARY_LINK, LIVING_STREET, SERVICE, PEDESTRIAN, TRACK,
+            BUS_GUIDEWAY, ESCAPE, RACEWAY, ROAD, FOOTWAY, BRIDLEWAY, STEPS, CORRIDOR, PATH,
+            CYCLEWAY, PROPOSED, CONSTRUCTION);
+
     private static final EnumBiMap<HighwayTag, HighwayTag> HIGHWAY_LINKS = EnumBiMap
             .create(HighwayTag.class, HighwayTag.class);
 
@@ -163,6 +174,12 @@ public enum HighwayTag
         return highway.isPresent() && METRICS_HIGHWAYS.contains(highway.get());
     }
 
+    public static boolean isNodeOnlyTag(final Taggable taggable)
+    {
+        final Optional<HighwayTag> highway = highwayTag(taggable);
+        return highway.isPresent() && NODE_ONLY_HIGHWAYTAGS.contains(highway.get());
+    }
+
     public static boolean isPedestrianCrossing(final Taggable taggable)
     {
         return Validators.isOfType(taggable, HighwayTag.class, CROSSING);
@@ -172,6 +189,12 @@ public enum HighwayTag
     {
         final Optional<HighwayTag> highway = highwayTag(taggable);
         return highway.isPresent() && PEDESTRIAN_NAVIGABLE_HIGHWAYS.contains(highway.get());
+    }
+
+    public static boolean isWayOnlyTag(final Taggable taggable)
+    {
+        final Optional<HighwayTag> highway = highwayTag(taggable);
+        return highway.isPresent() && WAY_ONLY_HIGHWAYTAGS.contains(highway.get());
     }
 
     public static Optional<HighwayTag> tag(final Taggable taggable)

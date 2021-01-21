@@ -1,7 +1,9 @@
 package org.openstreetmap.atlas.geography.atlas.command;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.io.FilenameUtils;
@@ -13,6 +15,7 @@ import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
 import org.openstreetmap.atlas.geography.atlas.raw.sectioning.AtlasSectionProcessor;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.tags.filters.ConfiguredTaggableFilter;
 import org.openstreetmap.atlas.utilities.configuration.StandardConfiguration;
@@ -192,8 +195,11 @@ public class OsmPbfToAtlasSubCommand implements FlexibleSubCommand
     {
         final Optional<File> countryMapOption = (Optional<File>) map
                 .getOption(COUNTRY_MAP_PARAMETER);
+        final List<org.locationtech.jts.geom.Polygon> boundaries = new ArrayList<>();
+        MultiPolygon.MAXIMUM.outers()
+                .forEach(outer -> boundaries.add(new JtsPolygonConverter().convert(outer)));
         CountryBoundaryMap countryMap = CountryBoundaryMap
-                .fromBoundaryMap(Collections.singletonMap("UNK", MultiPolygon.MAXIMUM));
+                .fromBoundaryMap(Collections.singletonMap("UNK", boundaries));
         if (countryMapOption.isPresent())
         {
             final File countryMapFile = countryMapOption.get();

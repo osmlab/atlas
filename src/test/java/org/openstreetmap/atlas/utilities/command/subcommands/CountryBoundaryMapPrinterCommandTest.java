@@ -50,12 +50,12 @@ public class CountryBoundaryMapPrinterCommandTest
                     outputWkt.child("ABC.wkt").all());
             Assert.assertEquals(
                     "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"geometry\""
-                            + ":{\"type\":\"MultiPolygon\",\"coordinates\":"
-                            + "[[[[4.2038896,38.8273784],[4.2132564,38.8330031],"
+                            + ":{\"type\":\"Polygon\",\"coordinates\":"
+                            + "[[[4.2038896,38.8273784],[4.2132564,38.8330031],"
                             + "[4.2308843,38.8337631],[4.2451948,38.8205877],"
                             + "[4.2422676,38.811769],[4.226396,38.8072578],"
                             + "[4.2102643,38.8082716],[4.2021333,38.8176483],"
-                            + "[4.2038896,38.8273784]]]]},\"properties\":{}}]}",
+                            + "[4.2038896,38.8273784]]]},\"properties\":{}}]}",
                     outputGeojson.child("ABC.geojson").all());
         }
         catch (final IOException exception)

@@ -13,11 +13,11 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.geom.prep.PreparedPolygon;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
-import org.openstreetmap.atlas.geography.boundary.CountryBoundary;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
@@ -36,6 +36,7 @@ import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
+import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -271,10 +272,10 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
 
         if (countryBoundaryMap != null)
         {
-            final List<CountryBoundary> boundaries = countryBoundaryMap.boundaries(polyline);
-            for (final CountryBoundary boundary : boundaries)
+            final MultiMap<String, Polygon> boundaries = countryBoundaryMap.boundaries(polyline);
+            for (final String country : boundaries.keySet())
             {
-                this.outputDelegate.printlnStdout(boundary.getCountryName(), TTYAttribute.GREEN);
+                this.outputDelegate.printlnStdout(country, TTYAttribute.GREEN);
             }
         }
     }
@@ -294,10 +295,10 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         }
         if (countryBoundaryMap != null)
         {
-            final List<CountryBoundary> boundaries = countryBoundaryMap.boundaries(location);
-            for (final CountryBoundary boundary : boundaries)
+            final MultiMap<String, Polygon> boundaries = countryBoundaryMap.boundaries(location);
+            for (final String country : boundaries.keySet())
             {
-                this.outputDelegate.printlnStdout(boundary.getCountryName(), TTYAttribute.GREEN);
+                this.outputDelegate.printlnStdout(country, TTYAttribute.GREEN);
             }
         }
     }
@@ -329,12 +330,12 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
              * case. In the future, we may want to fix CountryBoundaryMap to handle this case in
              * some way.
              */
-            final List<org.locationtech.jts.geom.Polygon> polygons = countryBoundaryMap
+            final List<PreparedPolygon> polygons = countryBoundaryMap
                     .query(geometry.getEnvelopeInternal()).stream().distinct()
                     .collect(Collectors.toList());
             final Set<String> countries = new HashSet<>();
-            polygons.forEach(polygon2 -> countries
-                    .add(CountryBoundaryMap.getGeometryProperty(polygon2, ISOCountryTag.KEY)));
+            polygons.forEach(polygon2 -> countries.add(CountryBoundaryMap
+                    .getGeometryProperty(polygon2.getGeometry(), ISOCountryTag.KEY)));
             for (final String country : countries)
             {
                 this.outputDelegate.printlnStdout(country, TTYAttribute.GREEN);
