@@ -24,6 +24,7 @@ sourceSets
 
 test
 {
+    useJUnitPlatform()
     testLogging
     {
         events "failed"
@@ -68,9 +69,15 @@ dependencies
 {
     testCompile packages.slf4j.log4j12
     testCompile packages.log4j
-    testCompile packages.junit
+    // Support Junit 5 tests
+    testImplementation packages.junit.api
+    testRuntimeOnly packages.junit.engine
+    // Support JUnit 3/4 tests
+    testCompile packages.junit.junit4
+    testRuntimeOnly packages.junit.vintage
 
-    integrationTestCompile packages.junit
+    integrationTestCompile packages.junit.junit4
+    testRuntimeOnly packages.junit.vintage
 }
 
 spotless {

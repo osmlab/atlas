@@ -1,6 +1,7 @@
 project.ext.versions = [
     checkstyle: '8.18',
-    junit: '4.12',
+    junit4: '4.13.1',
+    junit5: '5.7.0',
     jacoco: '0.8.3',
     slf4j: '1.7.12',
     log4j: '1.2.17',
@@ -34,7 +35,12 @@ project.ext.versions = [
 ]
 
 project.ext.packages = [
-    junit: "junit:junit:${versions.junit}",
+    junit: [
+        junit4: "junit:junit:${versions.junit4}",
+        vintage: "org.junit.vintage:junit-vintage-engine:${versions.junit5}",
+        api: "org.junit.jupiter:junit-jupiter-api:${versions.junit5}",
+        engine: "org.junit.jupiter:junit-jupiter-engine:${versions.junit5}",
+    ],
     slf4j: [
         api: "org.slf4j:slf4j-api:${versions.slf4j}",
         simple: "org.slf4j:slf4j-simple:${versions.slf4j}",

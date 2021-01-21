@@ -10,7 +10,7 @@ sourceSets
 }
 
 protobuf {
-    generatedFilesBaseDir = 'src/generated/'
+    generatedFilesBaseDir = "${projectDir}/src/generated/"
 
     protoc {
         artifact = "${packages.protoc}"

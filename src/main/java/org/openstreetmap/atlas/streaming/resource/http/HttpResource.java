@@ -24,6 +24,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.streaming.StringInputStream;
 import org.openstreetmap.atlas.streaming.resource.AbstractResource;
+import org.openstreetmap.atlas.streaming.resource.ResourceCloseable;
 
 /**
  * Base Http resource object that will handle most of the http request information. Sub classes
@@ -35,7 +36,7 @@ import org.openstreetmap.atlas.streaming.resource.AbstractResource;
  *
  * @author cuthbertm
  */
-public abstract class HttpResource extends AbstractResource
+public abstract class HttpResource extends AbstractResource implements ResourceCloseable
 {
     private HttpRequestBase request;
     private final URI uri;
@@ -67,6 +68,7 @@ public abstract class HttpResource extends AbstractResource
         this.uri = uri;
     }
 
+    @Override
     public void close()
     {
         HttpClientUtils.closeQuietly(this.response);
