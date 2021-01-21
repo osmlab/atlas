@@ -1,14 +1,18 @@
 package org.openstreetmap.atlas.geography.atlas.change.serializer;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
 import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
@@ -19,9 +23,12 @@ import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
+import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
 
@@ -35,6 +42,23 @@ public class FeatureChangeGeoJsonSerializerTest
     private static final Map<String, String> TAGS = Maps.hashMap("tagKey1", "tagValue1", "tagKey2",
             "tagValue2");
     private static final Set<Long> RELATIONS = Sets.hashSet(444L, 555L);
+
+    @Rule
+    public FeatureChangeGeoJsonSerializerTestRule rule = new FeatureChangeGeoJsonSerializerTestRule();
+
+    @Test
+    public void testBigFeatureChange()
+    {
+        final Atlas longWaterWay = this.rule.longWaterWayAtlas();
+        final Line waterway = longWaterWay.line(374902834L);
+        final List<Location> points = Iterables.stream(waterway).collectToList();
+        Collections.reverse(points);
+        final FeatureChange featureChange = FeatureChange.add(
+                (AtlasEntity) CompleteLine.shallowFrom(waterway).withGeometry(points),
+                longWaterWay);
+
+        assertResourceEquals(featureChange, "serializedReverseWay.json", true);
+    }
 
     @Test
     public void testDescriptionSerializationAddEdge()
