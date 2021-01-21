@@ -16,6 +16,7 @@ import org.openstreetmap.atlas.geography.atlas.routing.AStarRouter;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.boundary.converters.CountryListTwoWayStringConverter;
 import org.openstreetmap.atlas.geography.converters.MultiPolygonStringConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.runtime.Command;
@@ -93,7 +94,8 @@ public class AtlasDebugTool extends Command
                 {
                     if (new CountryListTwoWayStringConverter().convert(country).size() == 1)
                     {
-                        multiPolygon = boundaryMap.countryBoundary(country).get(0).getBoundary();
+                        multiPolygon = new JtsPolygonToMultiPolygonConverter()
+                                .convert(boundaryMap.countryBoundary(country).get(0));
                     }
                     option.setCountryCode(country);
                 }

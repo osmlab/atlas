@@ -8,11 +8,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.locationtech.jts.geom.Polygon;
 import org.openstreetmap.atlas.exception.CoreException;
-import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Rectangle;
-import org.openstreetmap.atlas.geography.boundary.CountryBoundary;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
@@ -56,7 +56,7 @@ public class CountryBoundaryMapPrinterCommand extends AbstractAtlasShellToolsCom
         for (final String country : countrySet)
         {
             final Time start = Time.now();
-            final List<CountryBoundary> boundaries = map.countryBoundary(country);
+            final List<Polygon> boundaries = map.countryBoundary(country);
             for (int i = 0; i < boundaries.size(); i++)
             {
                 String name = country;
@@ -64,10 +64,10 @@ public class CountryBoundaryMapPrinterCommand extends AbstractAtlasShellToolsCom
                 {
                     name += "_" + i;
                 }
-                final MultiPolygon multiPolygon = boundaries.get(i).getBoundary();
-                save(wkt.child(country + FileSuffix.WKT), multiPolygon.toWkt());
+                save(wkt.child(country + FileSuffix.WKT), boundaries.get(i).toText());
                 final File countryFile = geojson.child(name + FileSuffix.GEO_JSON);
-                multiPolygon.asGeoJsonFeatureCollection().save(countryFile);
+                new JtsPolygonConverter().backwardConvert(boundaries.get(i))
+                        .saveAsGeoJson(countryFile);
             }
             if (getOptionAndArgumentDelegate().hasVerboseOption())
             {

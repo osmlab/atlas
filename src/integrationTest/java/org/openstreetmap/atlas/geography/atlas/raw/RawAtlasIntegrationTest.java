@@ -1,7 +1,9 @@
 package org.openstreetmap.atlas.geography.atlas.raw;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -11,8 +13,8 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.locationtech.jts.geom.Polygon;
 import org.openstreetmap.atlas.geography.Location;
-import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.ShardFileOverlapsPolygonTest;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -21,6 +23,7 @@ import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
 import org.openstreetmap.atlas.geography.atlas.raw.sectioning.AtlasSectionProcessor;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.sharding.DynamicTileSharding;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
@@ -70,11 +73,12 @@ public class RawAtlasIntegrationTest
         final String antarctica = "ATA";
 
         // Create a fake boundary as a bounding box around the target point
-        final Map<String, MultiPolygon> boundaries = new HashMap<>();
+        final Map<String, List<Polygon>> boundaries = new HashMap<>();
         final Location targetPoint = Location.forString("-81.2022146, 51.6408578");
-        final MultiPolygon antarcticaBoundary = MultiPolygon
-                .forPolygon(targetPoint.boxAround(Distance.meters(1)));
-        boundaries.put(antarctica, antarcticaBoundary);
+        final List<Polygon> ataPolygons = new ArrayList<>();
+        ataPolygons
+                .add(new JtsPolygonConverter().convert(targetPoint.boxAround(Distance.meters(1))));
+        boundaries.put(antarctica, ataPolygons);
 
         // Create a country boundary map with the fake Antarctica country boundary
         final CountryBoundaryMap antarticaBoundary = CountryBoundaryMap.fromBoundaryMap(boundaries);
@@ -173,7 +177,6 @@ public class RawAtlasIntegrationTest
         Assert.assertEquals(20, atlasFromz7x62y61.numberOfEdges());
     }
 
-    @Ignore
     @Test
     public void testPbfToSlicedRawAtlas()
     {
@@ -187,20 +190,20 @@ public class RawAtlasIntegrationTest
 
         Assert.assertEquals(0, rawAtlas.numberOfNodes());
         Assert.assertEquals(0, rawAtlas.numberOfEdges());
-        Assert.assertEquals(0, rawAtlas.numberOfAreas());
+        Assert.assertEquals(5119, rawAtlas.numberOfAreas());
         Assert.assertEquals(74342, rawAtlas.numberOfPoints());
 
-        Assert.assertEquals(7818, rawAtlas.numberOfLines());
+        Assert.assertEquals(2699, rawAtlas.numberOfLines());
         Assert.assertEquals(17, rawAtlas.numberOfRelations());
 
         final Atlas slicedRawAtlas = new RawAtlasSlicer(loadingOptionAll, rawAtlas).slice();
 
         Assert.assertEquals(0, slicedRawAtlas.numberOfNodes());
         Assert.assertEquals(0, slicedRawAtlas.numberOfEdges());
-        Assert.assertEquals(0, slicedRawAtlas.numberOfAreas());
-        Assert.assertEquals(74850, slicedRawAtlas.numberOfPoints());
-        Assert.assertEquals(8086, slicedRawAtlas.numberOfLines());
-        Assert.assertEquals(23, slicedRawAtlas.numberOfRelations());
+        Assert.assertEquals(5132, slicedRawAtlas.numberOfAreas());
+        Assert.assertEquals(32524, slicedRawAtlas.numberOfPoints());
+        Assert.assertEquals(2956, slicedRawAtlas.numberOfLines());
+        Assert.assertEquals(17, slicedRawAtlas.numberOfRelations());
 
         // Assert all raw Atlas entities have a country code
         assertAllEntitiesHaveCountryCode(slicedRawAtlas);
@@ -209,9 +212,9 @@ public class RawAtlasIntegrationTest
 
         Assert.assertEquals(0, ivoryCoast.numberOfNodes());
         Assert.assertEquals(0, ivoryCoast.numberOfEdges());
-        Assert.assertEquals(0, ivoryCoast.numberOfAreas());
-        Assert.assertEquals(34962, ivoryCoast.numberOfPoints());
-        Assert.assertEquals(3637, ivoryCoast.numberOfLines());
+        Assert.assertEquals(2400, ivoryCoast.numberOfAreas());
+        Assert.assertEquals(15075, ivoryCoast.numberOfPoints());
+        Assert.assertEquals(1236, ivoryCoast.numberOfLines());
         Assert.assertEquals(12, ivoryCoast.numberOfRelations());
 
         // Assert all raw Atlas entities have a country code
@@ -222,10 +225,10 @@ public class RawAtlasIntegrationTest
 
         Assert.assertEquals(5011, finalAtlas.numberOfNodes());
         Assert.assertEquals(9764, finalAtlas.numberOfEdges());
-        Assert.assertEquals(5133, finalAtlas.numberOfAreas());
+        Assert.assertEquals(5132, finalAtlas.numberOfAreas());
         Assert.assertEquals(184, finalAtlas.numberOfPoints());
-        Assert.assertEquals(326, finalAtlas.numberOfLines());
-        Assert.assertEquals(23, finalAtlas.numberOfRelations());
+        Assert.assertEquals(329, finalAtlas.numberOfLines());
+        Assert.assertEquals(17, finalAtlas.numberOfRelations());
     }
 
     @Ignore

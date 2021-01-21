@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.geom.prep.PreparedPolygon;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
@@ -41,18 +42,19 @@ public class CountryBoundaryMapGeoJsonConverter implements Converter<CountryBoun
     @Override
     public JsonObject convert(final CountryBoundaryMap map)
     {
-        final MultiMap<String, Polygon> countryNameToBoundaryMap = map
+        final MultiMap<String, PreparedPolygon> countryNameToBoundaryMap = map
                 .getCountryNameToBoundaryMap();
         final JsonObject featureCollectionObject = new JsonObject();
         featureCollectionObject.addProperty("type", "FeatureCollection");
         final JsonArray features = new JsonArray();
-        for (final Map.Entry<String, List<Polygon>> entry : countryNameToBoundaryMap.entrySet())
+        for (final Map.Entry<String, List<PreparedPolygon>> entry : countryNameToBoundaryMap
+                .entrySet())
         {
             final String countryCode = entry.getKey();
-            final List<Polygon> polygons = entry.getValue();
-            if ((this.countryDenyList != null && this.countryDenyList.contains(countryCode))
-                    || (this.countryAllowList != null
-                            && !this.countryAllowList.contains(countryCode)))
+            final List<PreparedPolygon> polygons = entry.getValue();
+            if (this.countryDenyList != null && this.countryDenyList.contains(countryCode)
+                    || this.countryAllowList != null
+                            && !this.countryAllowList.contains(countryCode))
             {
                 continue;
             }
@@ -63,13 +65,13 @@ public class CountryBoundaryMapGeoJsonConverter implements Converter<CountryBoun
                 if (this.usePolygons)
                 {
                     final org.openstreetmap.atlas.geography.Polygon atlasPolygon = new JtsPolygonConverter()
-                            .backwardConvert(polygon);
+                            .backwardConvert((Polygon) polygon.getGeometry());
                     featureObject.add("geometry", atlasPolygon.asGeoJsonGeometry());
                 }
                 else
                 {
                     final org.openstreetmap.atlas.geography.Polygon atlasPolygon = new JtsPolygonConverter()
-                            .backwardConvert(polygon);
+                            .backwardConvert((Polygon) polygon.getGeometry());
                     featureObject.add("geometry",
                             new PolyLine(atlasPolygon.closedLoop()).asGeoJsonGeometry());
                 }
@@ -88,7 +90,7 @@ public class CountryBoundaryMapGeoJsonConverter implements Converter<CountryBoun
     /**
      * Convert a {@link CountryBoundaryMap} directly to a GeoJSON string. This method will respect
      * the 'prettyPrint' parameter.
-     * 
+     *
      * @param map
      *            the {@link CountryBoundaryMap}
      * @return the GeoJSON string form of the {@link CountryBoundaryMap}
@@ -106,7 +108,7 @@ public class CountryBoundaryMapGeoJsonConverter implements Converter<CountryBoun
      * Specify if the GeoJSON should be pretty printed. Otherwise, it will all be on a single line.
      * This parameter only affects the
      * {@link CountryBoundaryMapGeoJsonConverter#convertToString(CountryBoundaryMap)} method.
-     * 
+     *
      * @param prettyPrint
      *            pretty print the GeoJSON
      * @return a modified instance of {@link CountryBoundaryMapGeoJsonConverter}
@@ -121,7 +123,7 @@ public class CountryBoundaryMapGeoJsonConverter implements Converter<CountryBoun
      * Use polygons instead of linestrings in the GeoJSON representation of the
      * {@link CountryBoundaryMap}. This may be useful if the GeoJSON is being used in visualization
      * software.
-     * 
+     *
      * @param usePolygons
      *            use polygons
      * @return a modified instance of {@link CountryBoundaryMapGeoJsonConverter}

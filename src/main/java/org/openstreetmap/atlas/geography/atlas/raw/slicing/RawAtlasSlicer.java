@@ -20,11 +20,13 @@ import java.util.stream.Collectors;
 
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryCollection;
-import org.locationtech.jts.geom.IntersectionMatrix;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.LinearRing;
+import org.locationtech.jts.geom.prep.PreparedGeometry;
+import org.locationtech.jts.geom.prep.PreparedGeometryFactory;
+import org.locationtech.jts.geom.prep.PreparedPolygon;
 import org.locationtech.jts.operation.linemerge.LineMerger;
-import org.locationtech.jts.precision.GeometryPrecisionReducer;
+import org.locationtech.jts.operation.overlayng.OverlayNG;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -146,6 +148,7 @@ public class RawAtlasSlicer
             .newSetFromMap(new ConcurrentHashMap<FeatureChange, Boolean>());
     private final Set<Long> pointsBelongingToEdge = Collections
             .newSetFromMap(new ConcurrentHashMap<Long, Boolean>());
+    private final PreparedGeometryFactory preparer = new PreparedGeometryFactory();
 
     /**
      * This constructor will build a RawAtlasSlicer for use on a single Atlas with no dynamic
@@ -373,8 +376,7 @@ public class RawAtlasSlicer
      * @param countryMultiPolygon
      */
     private void addCountryMembersToSplitRelation(final CompleteRelation newRelation,
-            final CompleteRelation oldRelation,
-            final org.locationtech.jts.geom.MultiPolygon countryMultiPolygon)
+            final CompleteRelation oldRelation, final PreparedPolygon countryMultiPolygon)
     {
         oldRelation.membersMatching(member -> member.getEntity().getType().equals(ItemType.LINE)
                 && Validators.isOfSameType(this.stagedLines.get(member.getEntity().getIdentifier()),
@@ -387,8 +389,8 @@ public class RawAtlasSlicer
                     // geometry, in which case it definitely belongs in the relation, or that it was
                     // sliced but intersects the output multipolygon
                     if (lineForMember.getTag(SyntheticGeometrySlicedTag.KEY).isEmpty()
-                            || JTS_POLYLINE_CONVERTER.convert(lineForMember.asPolyLine())
-                                    .intersects(countryMultiPolygon))
+                            || countryMultiPolygon.intersects(
+                                    JTS_POLYLINE_CONVERTER.convert(lineForMember.asPolyLine())))
                     {
                         newRelation.withAddedMember(lineForMember, member.getRole());
                         lineForMember.withAddedRelationIdentifier(newRelation.getIdentifier());
@@ -718,20 +720,20 @@ public class RawAtlasSlicer
      *            The sliced MultiPolygon geometry for that Relation
      */
     private void createSyntheticRelationMembers(final CompleteRelation newRelation,
-            final org.locationtech.jts.geom.MultiPolygon newMultiPolygon)
+            final PreparedPolygon newMultiPolygon)
     {
         final SortedSet<String> syntheticIds = new TreeSet<>();
         // add in remaining synthetic segments
-        for (int polygonIndex = 0; polygonIndex < newMultiPolygon
+        for (int polygonIndex = 0; polygonIndex < newMultiPolygon.getGeometry()
                 .getNumGeometries(); polygonIndex++)
         {
             final org.locationtech.jts.geom.Polygon geometry = (org.locationtech.jts.geom.Polygon) newMultiPolygon
-                    .getGeometryN(polygonIndex);
+                    .getGeometry().getGeometryN(polygonIndex);
             Geometry remainderExterior = geometry.getExteriorRing().norm();
             if (newRelation.members() != null)
             {
                 remainderExterior = cutOutExistingMembers(newRelation,
-                        geometry.getExteriorRing().norm(), true);
+                        this.preparer.create(remainderExterior), true);
             }
             else
             {
@@ -749,7 +751,7 @@ public class RawAtlasSlicer
             for (int i = 0; i < geometry.getNumInteriorRing(); i++)
             {
                 final Geometry remainderInterior = cutOutExistingMembers(newRelation,
-                        geometry.getInteriorRingN(i), false);
+                        this.preparer.create(geometry.getInteriorRingN(i)), false);
                 if (remainderInterior.isEmpty())
                 {
                     continue;
@@ -773,9 +775,9 @@ public class RawAtlasSlicer
      *         slicedPolygonOuter geometry
      */
     private Geometry cutOutExistingMembers(final CompleteRelation newRelation,
-            final Geometry slicedPolygonOuter, final boolean isOuter)
+            final PreparedGeometry slicedPolygonOuter, final boolean isOuter)
     {
-        Geometry remainder = slicedPolygonOuter;
+        Geometry remainder = slicedPolygonOuter.getGeometry();
         final RelationMemberList relationMembersToCheck = isOuter ? newRelation.members()
                 : newRelation.membersMatching(
                         member -> member.getRole().equals(RelationTypeTag.MULTIPOLYGON_ROLE_INNER));
@@ -792,7 +794,7 @@ public class RawAtlasSlicer
                 outerLineString = JTS_POLYLINE_CONVERTER.convert(
                         this.stagedAreas.get(member.getEntity().getIdentifier()).asPolygon());
             }
-            if (outerLineString.intersects(slicedPolygonOuter))
+            if (slicedPolygonOuter.intersects(outerLineString))
             {
                 remainder = remainder.difference(outerLineString);
                 if (isOuter && member.getRole().equals(RelationTypeTag.MULTIPOLYGON_ROLE_INNER))
@@ -909,10 +911,10 @@ public class RawAtlasSlicer
      *            The geometry being queried
      * @return All Polygons from the country boundary map that intersect its internal envelope
      */
-    private Set<org.locationtech.jts.geom.Polygon> getIntersectingBoundaryPolygons(
-            final Geometry targetGeometry)
+    private Set<PreparedPolygon> getIntersectingBoundaryPolygons(final Geometry targetGeometry)
     {
         return this.boundary.query(targetGeometry.getEnvelopeInternal()).stream().distinct()
+                .filter(preparedPolygon -> preparedPolygon.intersects(targetGeometry))
                 .collect(Collectors.toSet());
     }
 
@@ -972,15 +974,16 @@ public class RawAtlasSlicer
      *         geometryComparison, false otherwise
      */
     private boolean isCoveredBy(final Set<Geometry> geometries,
-            final Set<Geometry> geometriesComparison)
+            final Set<PreparedGeometry> geometriesComparison)
     {
-        for (final Geometry comparisonGeometry : geometriesComparison)
+        for (final PreparedGeometry comparisonGeometry : geometriesComparison)
         {
             for (final Geometry geometry : geometries)
             {
-                if (geometry.equals(comparisonGeometry) || geometry.covers(comparisonGeometry)
-                        || geometry.intersects(comparisonGeometry)
-                                && geometry.intersection(comparisonGeometry).getDimension() > 0)
+                if (geometry.equals(comparisonGeometry.getGeometry())
+                        || comparisonGeometry.coveredBy(geometry)
+                        || comparisonGeometry.intersects(geometry) && geometry
+                                .intersection(comparisonGeometry.getGeometry()).getDimension() > 0)
                 {
                     return true;
                 }
@@ -1200,7 +1203,7 @@ public class RawAtlasSlicer
     private org.locationtech.jts.geom.MultiPolygon removeOsmValidOverlappingInners(
             final Relation relation, final org.locationtech.jts.geom.MultiPolygon multipolygon)
     {
-        final Set<Geometry> slicedInnerLines = new HashSet<>();
+        final Set<PreparedGeometry> slicedInnerLines = new HashSet<>();
         relation.membersMatching(
                 member -> member.getRole().equals(RelationTypeTag.MULTIPOLYGON_ROLE_INNER)
                         && member.getEntity().getType().equals(ItemType.LINE))
@@ -1209,8 +1212,8 @@ public class RawAtlasSlicer
                     final Line innerLine = this.stagedLines.get(member.getEntity().getIdentifier());
                     if (innerLine.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
                     {
-                        slicedInnerLines
-                                .add(JTS_POLYLINE_CONVERTER.convert(innerLine.asPolyLine()));
+                        slicedInnerLines.add(this.preparer
+                                .create(JTS_POLYLINE_CONVERTER.convert(innerLine.asPolyLine())));
                     }
                 });
 
@@ -1224,7 +1227,8 @@ public class RawAtlasSlicer
 
             for (int j = 0; j < currentPolygon.getNumInteriorRing(); j++)
             {
-                final Geometry currentInner = currentPolygon.getInteriorRingN(j);
+                final PreparedGeometry currentInner = this.preparer
+                        .create(currentPolygon.getInteriorRingN(j));
                 boolean remove = false;
                 for (int k = j + 1; k < currentPolygon.getNumInteriorRing(); k++)
                 {
@@ -1232,7 +1236,7 @@ public class RawAtlasSlicer
                     if (currentInner.intersects(comparisonInner))
                     {
                         final Set<Geometry> inners = new HashSet<>();
-                        inners.add(currentInner);
+                        inners.add(currentInner.getGeometry());
                         inners.add(comparisonInner);
                         if (isCoveredBy(inners, slicedInnerLines))
                         {
@@ -1244,7 +1248,7 @@ public class RawAtlasSlicer
                 }
                 if (!remove)
                 {
-                    holes.add((LinearRing) currentInner);
+                    holes.add((LinearRing) currentInner.getGeometry());
                 }
             }
             modifiedPolygons[i] = new org.locationtech.jts.geom.Polygon(
@@ -1268,13 +1272,14 @@ public class RawAtlasSlicer
         final Time time = Time.now();
         final org.locationtech.jts.geom.Polygon jtsPolygon = JTS_POLYGON_CONVERTER
                 .convert(area.asPolygon());
-        final Set<org.locationtech.jts.geom.Polygon> intersectingBoundaryPolygons = getIntersectingBoundaryPolygons(
+        final Set<PreparedPolygon> intersectingBoundaryPolygons = getIntersectingBoundaryPolygons(
                 jtsPolygon);
         if (intersectingBoundaryPolygons.size() == 1
                 || CountryBoundaryMap.isSameCountry(intersectingBoundaryPolygons))
         {
             final String countryCode = CountryBoundaryMap.getGeometryProperty(
-                    intersectingBoundaryPolygons.iterator().next(), ISOCountryTag.KEY);
+                    intersectingBoundaryPolygons.iterator().next().getGeometry(),
+                    ISOCountryTag.KEY);
             this.stagedAreas.get(area.getIdentifier()).withAddedTag(ISOCountryTag.KEY, countryCode);
             if (!this.isInCountry.test(this.stagedAreas.get(area.getIdentifier())))
             {
@@ -1292,8 +1297,8 @@ public class RawAtlasSlicer
                         this.shardOrAtlasName, jtsPolygon.toText());
             }
             final SortedSet<String> countries = new TreeSet<>();
-            intersectingBoundaryPolygons.forEach(polygon -> countries
-                    .add(CountryBoundaryMap.getGeometryProperty(polygon, ISOCountryTag.KEY)));
+            intersectingBoundaryPolygons.forEach(polygon -> countries.add(CountryBoundaryMap
+                    .getGeometryProperty(polygon.getGeometry(), ISOCountryTag.KEY)));
             final String countryCodes = String.join(",", countries);
             this.stagedAreas.get(area.getIdentifier()).withAddedTag(ISOCountryTag.KEY,
                     countryCodes);
@@ -1379,20 +1384,18 @@ public class RawAtlasSlicer
      *         polygons
      */
     private Map<String, Set<org.locationtech.jts.geom.Geometry>> sliceGeometry(
-            final Geometry geometry,
-            final Set<org.locationtech.jts.geom.Polygon> countryBoundaryPolygons,
+            final Geometry geometry, final Set<PreparedPolygon> countryBoundaryPolygons,
             final long identifier)
     {
         final Set<Geometry> filteredPieces = new HashSet<>();
         final Map<String, Set<org.locationtech.jts.geom.Geometry>> results = new HashMap<>();
-        for (final org.locationtech.jts.geom.Polygon boundaryPolygon : countryBoundaryPolygons)
+        for (final PreparedPolygon boundaryPolygon : countryBoundaryPolygons)
         {
-            final String countryCode = CountryBoundaryMap.getGeometryProperty(boundaryPolygon,
-                    ISOCountryTag.KEY);
-            final IntersectionMatrix matrix = geometry.relate(boundaryPolygon);
+            final String countryCode = CountryBoundaryMap
+                    .getGeometryProperty(boundaryPolygon.getGeometry(), ISOCountryTag.KEY);
             // occasionally, the geometry's internal envelope will intersect multiple boundary
             // polygons but the geometry doesn't. in this case, just tag the geometry entirely
-            if (matrix.isWithin())
+            if (boundaryPolygon.contains(geometry))
             {
                 CountryBoundaryMap.setGeometryProperty(geometry, ISOCountryTag.KEY, countryCode);
                 results.clear();
@@ -1400,15 +1403,14 @@ public class RawAtlasSlicer
                 results.get(countryCode).add(geometry);
                 return results;
             }
-            else if (matrix.isIntersects())
+            else if (boundaryPolygon.intersects(geometry))
             {
                 if (!results.containsKey(countryCode))
                 {
                     results.put(countryCode, new HashSet<>());
                 }
-                final Geometry clipped = GeometryPrecisionReducer.reduce(
-                        geometry.intersection(boundaryPolygon),
-                        JtsPrecisionManager.getPrecisionModel());
+                final Geometry clipped = OverlayNG.overlay(geometry, boundaryPolygon.getGeometry(),
+                        OverlayNG.INTERSECTION, JtsPrecisionManager.getPrecisionModel());
                 if (clipped instanceof GeometryCollection)
                 {
                     CountryBoundaryMap.geometries((GeometryCollection) clipped)
@@ -1482,12 +1484,13 @@ public class RawAtlasSlicer
                     .forEach(point -> this.pointsBelongingToEdge.add(point.getIdentifier())));
         }
 
-        final Set<org.locationtech.jts.geom.Polygon> intersectingBoundaryPolygons = getIntersectingBoundaryPolygons(
+        final Set<PreparedPolygon> intersectingBoundaryPolygons = getIntersectingBoundaryPolygons(
                 jtsLine);
         if (CountryBoundaryMap.isSameCountry(intersectingBoundaryPolygons))
         {
             final String countryCode = CountryBoundaryMap.getGeometryProperty(
-                    intersectingBoundaryPolygons.iterator().next(), ISOCountryTag.KEY);
+                    intersectingBoundaryPolygons.iterator().next().getGeometry(),
+                    ISOCountryTag.KEY);
             this.stagedLines.get(line.getIdentifier()).withAddedTag(ISOCountryTag.KEY, countryCode);
             if (!this.isInCountry.test(this.stagedLines.get(line.getIdentifier())))
             {
@@ -1505,8 +1508,8 @@ public class RawAtlasSlicer
                         this.shardOrAtlasName, jtsLine.toText());
             }
             final SortedSet<String> countries = new TreeSet<>();
-            intersectingBoundaryPolygons.forEach(polygon -> countries
-                    .add(CountryBoundaryMap.getGeometryProperty(polygon, ISOCountryTag.KEY)));
+            intersectingBoundaryPolygons.forEach(polygon -> countries.add(CountryBoundaryMap
+                    .getGeometryProperty(polygon.getGeometry(), ISOCountryTag.KEY)));
             final String countryCodes = String.join(",", countries);
             this.stagedLines.get(line.getIdentifier()).withAddedTag(ISOCountryTag.KEY,
                     countryCodes);
@@ -1558,8 +1561,7 @@ public class RawAtlasSlicer
      */
     @SuppressWarnings("unchecked")
     private SortedMap<String, Set<LineString>> sliceLineStringGeometry(final LineString line,
-            final Set<org.locationtech.jts.geom.Polygon> intersectingBoundaryPolygons,
-            final long identifier)
+            final Set<PreparedPolygon> intersectingBoundaryPolygons, final long identifier)
     {
         final Map<String, Set<Geometry>> currentResults = sliceGeometry(line,
                 intersectingBoundaryPolygons, identifier);
@@ -1601,7 +1603,7 @@ public class RawAtlasSlicer
      */
     private SortedMap<String, org.locationtech.jts.geom.MultiPolygon> sliceMultiPolygonGeometry(
             final long identifier, final org.locationtech.jts.geom.MultiPolygon geometry,
-            final Set<org.locationtech.jts.geom.Polygon> intersectingBoundaryPolygons)
+            final Set<PreparedPolygon> intersectingBoundaryPolygons)
     {
         final Map<String, Set<org.locationtech.jts.geom.Geometry>> currentResults = sliceGeometry(
                 geometry, intersectingBoundaryPolygons, identifier);
@@ -1665,13 +1667,13 @@ public class RawAtlasSlicer
         }
 
         // Check to see if the relation is one country only, short circuit if it is
-        final Set<org.locationtech.jts.geom.Polygon> polygons = this.boundary
-                .query(jtsMp.getEnvelopeInternal()).stream().distinct().collect(Collectors.toSet());
+        final Set<PreparedPolygon> polygons = this.boundary.query(jtsMp.getEnvelopeInternal())
+                .stream().distinct().collect(Collectors.toSet());
 
         if (CountryBoundaryMap.isSameCountry(polygons))
         {
-            final String country = CountryBoundaryMap
-                    .getGeometryProperty(polygons.iterator().next(), ISOCountryTag.KEY);
+            final String country = CountryBoundaryMap.getGeometryProperty(
+                    polygons.iterator().next().getGeometry(), ISOCountryTag.KEY);
             // just tag with the country code and move on, no slicing needed
             relation.withAddedTag(ISOCountryTag.KEY, country);
             return;
@@ -1708,6 +1710,7 @@ public class RawAtlasSlicer
             return;
         }
 
+        final SortedMap<String, PreparedPolygon> preparedClippedPolygons = new TreeMap<>();
         for (final Map.Entry<String, org.locationtech.jts.geom.MultiPolygon> entry : clippedMultiPolygons
                 .entrySet())
         {
@@ -1721,6 +1724,8 @@ public class RawAtlasSlicer
                 relation.withAddedTag(ISOCountryTag.KEY, country);
                 return;
             }
+            preparedClippedPolygons.put(country,
+                    (PreparedPolygon) this.preparer.create(countryMultipolygon));
         }
 
         // because this is a SortedSet, iterating over the keys guarantees that we will split our
@@ -1733,7 +1738,7 @@ public class RawAtlasSlicer
                 relation.getIdentifier());
         final List<Long> newRelationIds = new ArrayList<>();
         final Map<String, CompleteRelation> newRelations = new HashMap<>();
-        clippedMultiPolygons.keySet().forEach(countryCode ->
+        preparedClippedPolygons.keySet().forEach(countryCode ->
         {
             final CompleteRelation newRelation = CompleteRelation.shallowFrom(relation)
                     .withIdentifier(relationIdentifierFactory.nextIdentifier())
@@ -1747,8 +1752,9 @@ public class RawAtlasSlicer
             if (this.isInCountry.test(newRelation))
             {
                 addCountryMembersToSplitRelation(newRelation, relation,
-                        clippedMultiPolygons.get(countryCode));
-                createSyntheticRelationMembers(newRelation, clippedMultiPolygons.get(countryCode));
+                        preparedClippedPolygons.get(countryCode));
+                createSyntheticRelationMembers(newRelation,
+                        preparedClippedPolygons.get(countryCode));
                 final SortedSet<String> syntheticIds = new TreeSet<>();
                 if (!syntheticIds.isEmpty())
                 {
@@ -1832,7 +1838,7 @@ public class RawAtlasSlicer
      */
     private SortedMap<String, Set<org.locationtech.jts.geom.Polygon>> slicePolygonGeometry(
             final long identifier, final org.locationtech.jts.geom.Polygon polygon,
-            final Set<org.locationtech.jts.geom.Polygon> intersectingBoundaryPolygon)
+            final Set<PreparedPolygon> intersectingBoundaryPolygon)
     {
         final Map<String, Set<Geometry>> currentResults = sliceGeometry(polygon,
                 intersectingBoundaryPolygon, identifier);

@@ -6,6 +6,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.IntStream;
 
+import org.locationtech.jts.geom.Polygon;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.utilities.maps.MultiMapWithSet;
@@ -29,7 +30,7 @@ public final class CountryShardListing
             final Sharding sharding)
     {
         // Extract country boundaries and queue them
-        final BlockingQueue<CountryBoundary> queue = new LinkedBlockingQueue<>();
+        final BlockingQueue<Polygon> queue = new LinkedBlockingQueue<>();
         final MultiMapWithSet<String, Shard> countryToShardMap = new MultiMapWithSet<>();
         countries.forEach(country ->
         {
@@ -37,7 +38,7 @@ public final class CountryShardListing
             countryToShardMap.put(country, new HashSet<>());
 
             // Fetch boundaries
-            final List<CountryBoundary> countryBoundaries = boundaries.countryBoundary(country);
+            final List<Polygon> countryBoundaries = boundaries.countryBoundary(country);
             if (countryBoundaries == null)
             {
                 logger.error("No boundaries found for {}!", country);

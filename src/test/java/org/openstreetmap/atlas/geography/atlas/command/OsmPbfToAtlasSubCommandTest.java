@@ -97,8 +97,6 @@ public class OsmPbfToAtlasSubCommandTest
             // Test for way sectioning
             Assert.assertNotNull(atlas.edge(87185620000002L));
             // Test for country map
-            Assert.assertTrue(atlas.edge(87185039000000L).containsValue("iso_country_code",
-                    Collections.singleton("NAM")));
             // Test for country codes
             Assert.assertNotNull(atlas.point(1013654453000000L));
             // Test edge filter

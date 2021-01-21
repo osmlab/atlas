@@ -8,6 +8,7 @@ import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
 import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
@@ -37,8 +38,9 @@ public class RawAtlasTest
         new OsmFileParser().update(osmFromJosm, osmFile);
         new OsmFileToPbf().update(osmFile, pbfFile);
         final CountryBoundaryMap countryBoundaryMap = CountryBoundaryMap.fromPlainText(boundaries);
-        final MultiPolygon boundary = countryBoundaryMap.countryBoundary("DMA").get(0)
-                .getBoundary();
+        final JtsPolygonToMultiPolygonConverter converter = new JtsPolygonToMultiPolygonConverter();
+        final MultiPolygon boundary = converter
+                .convert(countryBoundaryMap.countryBoundary("DMA").get(0));
         logger.debug("Boundary: {}", boundary.toWkt());
         final AtlasLoadingOption option = AtlasLoadingOption
                 .createOptionWithAllEnabled(countryBoundaryMap);
@@ -66,6 +68,6 @@ public class RawAtlasTest
 
         // Line totally outside, but connected
         // 39002000000
-        Assert.assertNotNull(slicedAtlas.line(39002000000L));
+        Assert.assertNull(slicedAtlas.line(39002000000L));
     }
 }
