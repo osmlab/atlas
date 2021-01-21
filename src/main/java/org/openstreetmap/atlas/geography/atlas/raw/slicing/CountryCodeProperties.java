@@ -12,12 +12,10 @@ import org.openstreetmap.atlas.tags.ISOCountryTag;
 public class CountryCodeProperties
 {
     private final String iso3CountryCode;
-    private final boolean usingNearestNeighbor;
 
-    public CountryCodeProperties(final String iso3CountryCode, final boolean usingNearestNeighbor)
+    public CountryCodeProperties(final String iso3CountryCode)
     {
         this.iso3CountryCode = iso3CountryCode;
-        this.usingNearestNeighbor = usingNearestNeighbor;
     }
 
     /**
@@ -35,14 +33,5 @@ public class CountryCodeProperties
     public boolean inMultipleCountries()
     {
         return this.iso3CountryCode.contains(ISOCountryTag.COUNTRY_DELIMITER);
-    }
-
-    /**
-     * @return a boolean to determine if nearest neighbor logic was applied when determining the
-     *         country code.
-     */
-    public boolean usingNearestNeighbor()
-    {
-        return this.usingNearestNeighbor;
     }
 }

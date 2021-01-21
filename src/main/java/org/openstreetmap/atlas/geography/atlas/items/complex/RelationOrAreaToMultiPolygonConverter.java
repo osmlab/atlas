@@ -1,7 +1,11 @@
 package org.openstreetmap.atlas.geography.atlas.items.complex;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.locationtech.jts.geom.prep.PreparedGeometryFactory;
+import org.locationtech.jts.geom.prep.PreparedPolygon;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
@@ -9,6 +13,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.Relation.Ring;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.utilities.conversion.Converter;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 
@@ -54,14 +59,21 @@ public class RelationOrAreaToMultiPolygonConverter implements Converter<AtlasEnt
                 {
                     throw new CoreException("Unable to find outer polygon.");
                 }
+                final Map<Polygon, PreparedPolygon> preparedOuters = new HashMap<>();
+                final JtsPolygonConverter converter = new JtsPolygonConverter();
+                outerToInners.keySet().forEach(
+                        outer -> preparedOuters.put(outer, (PreparedPolygon) PreparedGeometryFactory
+                                .prepare(converter.convert(outer))));
                 for (final Polygon inner : this.innerConverter.convert(relation))
                 {
                     boolean added = false;
-                    for (final Polygon outer : outerToInners.keySet())
+                    for (final Map.Entry<Polygon, PreparedPolygon> entry : preparedOuters
+                            .entrySet())
                     {
-                        if (outer.overlaps(inner) && !inner.fullyGeometricallyEncloses(outer))
+                        final org.locationtech.jts.geom.Polygon inner2 = converter.convert(inner);
+                        if (entry.getValue().containsProperly(inner2))
                         {
-                            outerToInners.add(outer, inner);
+                            outerToInners.add(entry.getKey(), inner);
                             added = true;
                             break;
                         }

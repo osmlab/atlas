@@ -3,7 +3,6 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 import java.util.List;
 
 import org.openstreetmap.atlas.geography.Polygon;
-import org.openstreetmap.atlas.geography.boundary.CountryBoundary;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.converters.WktPolygonConverter;
 import org.openstreetmap.atlas.geography.sharding.GeoHashSharding;
@@ -142,7 +141,7 @@ public class CountryShardToBoundsCommand extends AbstractAtlasShellToolsCommand
         {
             final String countryCode = countryCodes.get(i).toUpperCase();
             this.outputDelegate.printlnStdout(countryCode + " boundary:", TTYAttribute.BOLD);
-            final List<CountryBoundary> boundaries = countryBoundaryMap
+            final List<org.locationtech.jts.geom.Polygon> boundaries = countryBoundaryMap
                     .countryBoundary(countryCode);
             if (boundaries == null || boundaries.isEmpty())
             {
@@ -150,10 +149,9 @@ public class CountryShardToBoundsCommand extends AbstractAtlasShellToolsCommand
             }
             else
             {
-                for (final CountryBoundary boundary : boundaries)
+                for (final org.locationtech.jts.geom.Polygon boundary : boundaries)
                 {
-                    this.outputDelegate.printlnStdout(boundary.getBoundary().toWkt(),
-                            TTYAttribute.GREEN);
+                    this.outputDelegate.printlnStdout(boundary.toText(), TTYAttribute.GREEN);
                 }
             }
 
