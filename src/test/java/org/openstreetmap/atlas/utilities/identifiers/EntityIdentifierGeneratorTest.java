@@ -8,11 +8,14 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
 
@@ -84,6 +87,27 @@ public class EntityIdentifierGeneratorTest
     {
         final CompletePoint point = new CompletePoint(1L, Location.CENTER,
                 Maps.hashMap("a", "b", "c", "d"), Sets.hashSet());
+
+        final File atlas1File = new File("/Users/lucascram/Desktop/ARG_7-41-77.atlas");
+        final File atlas2File = new File("/Users/lucascram/Desktop/ARG_7-41-78.atlas");
+        final File atlas3File = new File("/Users/lucascram/Desktop/ARG_7-39-82.atlas");
+        final EntityIdentifierGenerator generator = new EntityIdentifierGenerator();
+        final Atlas atlas1 = new AtlasResourceLoader().load(atlas1File);
+        final Atlas atlas2 = new AtlasResourceLoader().load(atlas2File);
+        final Atlas atlas3 = new AtlasResourceLoader().load(atlas3File);
+
+        final CompleteRelation relation1 = CompleteRelation
+                .from(atlas1.relation(5464611279205775725L));
+        final CompleteRelation relation2 = CompleteRelation
+                .from(atlas2.relation(5464611279205775725L));
+        final CompleteRelation relation3 = CompleteRelation
+                .from(atlas3.relation(5464611279205775725L));
+        System.err.println(new EntityIdentifierGenerator().getBasicPropertyString(relation1) + ";"
+                + new EntityIdentifierGenerator().getTypeSpecificPropertyString(relation1));
+        System.err.println(new EntityIdentifierGenerator().getBasicPropertyString(relation2) + ";"
+                + new EntityIdentifierGenerator().getTypeSpecificPropertyString(relation2));
+        System.err.println(new EntityIdentifierGenerator().getBasicPropertyString(relation3) + ";"
+                + new EntityIdentifierGenerator().getTypeSpecificPropertyString(relation3));
 
         final String goldenPropertyString = "POINT (0 0);a=b,c=d";
         Assert.assertEquals(goldenPropertyString,
