@@ -7,6 +7,9 @@ import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.identifiers.EntityIdentifierGenerator;
 
+/**
+ * @author lcram
+ */
 public class RandomTest
 {
     @Test
