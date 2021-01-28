@@ -106,7 +106,7 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
         }
     }
 
-    static final String NO_CHANGE = "Atlases are effectively identical";
+    static final String NO_CHANGE = "atlases are effectively identical";
 
     private static final String BEFORE_ATLAS_ARGUMENT = "before-atlas(es)";
     private static final String AFTER_ATLAS_ARGUMENT = "after-atlas(es)";
@@ -437,7 +437,10 @@ public class AtlasDiffCommand extends AbstractAtlasShellToolsCommand
         }
         else
         {
-            this.outputDelegate.printlnStdout(NO_CHANGE);
+            if (this.optionAndArgumentDelegate.hasVerboseOption())
+            {
+                this.outputDelegate.printlnCommandMessage(NO_CHANGE);
+            }
             return 0;
         }
     }
