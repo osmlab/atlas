@@ -16,7 +16,7 @@ import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 /**
  * @author lcram
  */
-public class AtlasMetaDataReaderCommand extends AtlasLoaderCommand
+public class AtlasMetadataReaderCommand extends AtlasLoaderCommand
 {
     private static final String SIZE_OPTION_LONG = "size";
     private static final String SIZE_OPTION_DESCRIPTION = "Show feature array sizes.";
@@ -44,10 +44,10 @@ public class AtlasMetaDataReaderCommand extends AtlasLoaderCommand
 
     public static void main(final String[] args)
     {
-        new AtlasMetaDataReaderCommand().runSubcommandAndExit(args);
+        new AtlasMetadataReaderCommand().runSubcommandAndExit(args);
     }
 
-    public AtlasMetaDataReaderCommand()
+    public AtlasMetadataReaderCommand()
     {
         this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
@@ -68,10 +68,10 @@ public class AtlasMetaDataReaderCommand extends AtlasLoaderCommand
     @Override
     public void registerManualPageSections()
     {
-        addManualPageSection("DESCRIPTION", AtlasMetaDataReaderCommand.class
-                .getResourceAsStream("AtlasMetaDataReaderCommandDescriptionSection.txt"));
-        addManualPageSection("EXAMPLES", AtlasMetaDataReaderCommand.class
-                .getResourceAsStream("AtlasMetaDataReaderCommandExamplesSection.txt"));
+        addManualPageSection("DESCRIPTION", AtlasMetadataReaderCommand.class
+                .getResourceAsStream("AtlasMetadataReaderCommandDescriptionSection.txt"));
+        addManualPageSection("EXAMPLES", AtlasMetadataReaderCommand.class
+                .getResourceAsStream("AtlasMetadataReaderCommandExamplesSection.txt"));
         super.registerManualPageSections();
     }
 

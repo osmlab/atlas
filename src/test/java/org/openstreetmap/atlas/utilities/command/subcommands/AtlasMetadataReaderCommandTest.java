@@ -22,7 +22,7 @@ import com.google.common.jimfs.Jimfs;
 /**
  * @author lcram
  */
-public class AtlasMetaDataReaderCommandTest
+public class AtlasMetadataReaderCommandTest
 {
     @Test
     public void test()
@@ -32,7 +32,7 @@ public class AtlasMetaDataReaderCommandTest
             setupFilesystem1(filesystem);
             final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
             final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
-            final AtlasMetaDataReaderCommand command = new AtlasMetaDataReaderCommand();
+            final AtlasMetadataReaderCommand command = new AtlasMetadataReaderCommand();
             command.setNewFileSystem(filesystem);
             command.setNewOutStream(new PrintStream(outContent));
             command.setNewErrStream(new PrintStream(errContent));
@@ -61,7 +61,7 @@ public class AtlasMetaDataReaderCommandTest
             setupFilesystem1(filesystem);
             final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
             final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
-            final AtlasMetaDataReaderCommand command = new AtlasMetaDataReaderCommand();
+            final AtlasMetadataReaderCommand command = new AtlasMetadataReaderCommand();
             command.setNewFileSystem(filesystem);
             command.setNewOutStream(new PrintStream(outContent));
             command.setNewErrStream(new PrintStream(errContent));
