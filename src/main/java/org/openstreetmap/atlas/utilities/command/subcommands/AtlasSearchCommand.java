@@ -75,7 +75,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         /**
          * Check if this constraint matches at least one member of a given {@link Relation}'s member
          * list.
-         * 
+         *
          * @param relation
          *            the {@link Relation} against which to check
          * @return if there is a match
