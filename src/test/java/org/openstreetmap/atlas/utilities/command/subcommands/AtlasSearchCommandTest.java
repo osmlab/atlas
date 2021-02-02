@@ -190,7 +190,7 @@ public class AtlasSearchCommandTest
                     "Found entity matching criteria in /Users/foo/test.atlas:\n"
                             + "CompleteArea [\n" + "identifier: 7000000, \n"
                             + "polygon: POLYGON ((20 20, 21 20, 21 21, 20 20)), \n"
-                            + "tags: {baz=bat}, \n" + "parentRelations: [], \n"
+                            + "tags: {baz=bat}, \n" + "parentRelations: [12000000], \n"
                             + "bounds: POLYGON ((20 20, 20 21, 21 21, 21 20, 20 20)), \n" + "]\n\n",
                     outContent3.toString());
             Assert.assertEquals(
@@ -343,19 +343,23 @@ public class AtlasSearchCommandTest
             command.runSubcommand("/Users/foo/test.atlas", "--verbose",
                     "--parent-relations=12000000");
 
-            Assert.assertEquals(
-                    "Found entity matching criteria in /Users/foo/test.atlas:\n"
-                            + "CompleteEdge [\n" + "identifier: 11000000, \n"
-                            + "polyLine: LINESTRING (30 30, 31 30, 32 32), \n"
-                            + "startNode: 8000000, \n" + "endNode: 9000000, \n"
-                            + "tags: {foo=bar}, \n" + "parentRelations: [12000000], \n"
-                            + "bounds: POLYGON ((30 30, 30 32, 32 32, 32 30, 30 30)), \n" + "]\n"
-                            + "\n" + "Found entity matching criteria in /Users/foo/test.atlas:\n"
-                            + "CompleteEdge [\n" + "identifier: 11000001, \n"
-                            + "polyLine: LINESTRING (32 32, 32 33, 34 34), \n"
-                            + "startNode: 9000000, \n" + "endNode: 10000000, \n"
-                            + "tags: {baz=bat}, \n" + "parentRelations: [12000000], \n"
-                            + "bounds: POLYGON ((32 32, 32 34, 34 34, 34 32, 32 32)), \n" + "]\n\n",
+            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas:\n"
+                    + "CompleteEdge [\n" + "identifier: 11000000, \n"
+                    + "polyLine: LINESTRING (30 30, 31 30, 32 32), \n" + "startNode: 8000000, \n"
+                    + "endNode: 9000000, \n" + "tags: {foo=bar}, \n"
+                    + "parentRelations: [12000000], \n"
+                    + "bounds: POLYGON ((30 30, 30 32, 32 32, 32 30, 30 30)), \n" + "]\n" + "\n"
+                    + "Found entity matching criteria in /Users/foo/test.atlas:\n"
+                    + "CompleteEdge [\n" + "identifier: 11000001, \n"
+                    + "polyLine: LINESTRING (32 32, 32 33, 34 34), \n" + "startNode: 9000000, \n"
+                    + "endNode: 10000000, \n" + "tags: {baz=bat}, \n"
+                    + "parentRelations: [12000000], \n"
+                    + "bounds: POLYGON ((32 32, 32 34, 34 34, 34 32, 32 32)), \n" + "]\n" + "\n"
+                    + "Found entity matching criteria in /Users/foo/test.atlas:\n"
+                    + "CompleteArea [\n" + "identifier: 7000000, \n"
+                    + "polygon: POLYGON ((20 20, 21 20, 21 21, 20 20)), \n" + "tags: {baz=bat}, \n"
+                    + "parentRelations: [12000000], \n"
+                    + "bounds: POLYGON ((20 20, 20 21, 21 21, 21 20, 20 20)), \n" + "]\n" + "\n",
                     outContent.toString());
             Assert.assertEquals(
                     "find: loading /Users/foo/test.atlas\n"
@@ -385,24 +389,142 @@ public class AtlasSearchCommandTest
                     "--predicate=!e.relations().isEmpty() && e.relations().collect { it.getIdentifier() }.containsAll(Sets.hashSet(12000000L))",
                     "--imports=org.openstreetmap.atlas.utilities.command.parsing");
 
-            Assert.assertEquals(
-                    "Found entity matching criteria in /Users/foo/test.atlas:\n"
-                            + "CompleteEdge [\n" + "identifier: 11000000, \n"
-                            + "polyLine: LINESTRING (30 30, 31 30, 32 32), \n"
-                            + "startNode: 8000000, \n" + "endNode: 9000000, \n"
-                            + "tags: {foo=bar}, \n" + "parentRelations: [12000000], \n"
-                            + "bounds: POLYGON ((30 30, 30 32, 32 32, 32 30, 30 30)), \n" + "]\n"
-                            + "\n" + "Found entity matching criteria in /Users/foo/test.atlas:\n"
-                            + "CompleteEdge [\n" + "identifier: 11000001, \n"
-                            + "polyLine: LINESTRING (32 32, 32 33, 34 34), \n"
-                            + "startNode: 9000000, \n" + "endNode: 10000000, \n"
-                            + "tags: {baz=bat}, \n" + "parentRelations: [12000000], \n"
-                            + "bounds: POLYGON ((32 32, 32 34, 34 34, 34 32, 32 32)), \n" + "]\n\n",
+            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas:\n"
+                    + "CompleteEdge [\n" + "identifier: 11000000, \n"
+                    + "polyLine: LINESTRING (30 30, 31 30, 32 32), \n" + "startNode: 8000000, \n"
+                    + "endNode: 9000000, \n" + "tags: {foo=bar}, \n"
+                    + "parentRelations: [12000000], \n"
+                    + "bounds: POLYGON ((30 30, 30 32, 32 32, 32 30, 30 30)), \n" + "]\n" + "\n"
+                    + "Found entity matching criteria in /Users/foo/test.atlas:\n"
+                    + "CompleteEdge [\n" + "identifier: 11000001, \n"
+                    + "polyLine: LINESTRING (32 32, 32 33, 34 34), \n" + "startNode: 9000000, \n"
+                    + "endNode: 10000000, \n" + "tags: {baz=bat}, \n"
+                    + "parentRelations: [12000000], \n"
+                    + "bounds: POLYGON ((32 32, 32 34, 34 34, 34 32, 32 32)), \n" + "]\n" + "\n"
+                    + "Found entity matching criteria in /Users/foo/test.atlas:\n"
+                    + "CompleteArea [\n" + "identifier: 7000000, \n"
+                    + "polygon: POLYGON ((20 20, 21 20, 21 21, 20 20)), \n" + "tags: {baz=bat}, \n"
+                    + "parentRelations: [12000000], \n"
+                    + "bounds: POLYGON ((20 20, 20 21, 21 21, 21 20, 20 20)), \n" + "]\n" + "\n",
                     outContent.toString());
             Assert.assertEquals(
                     "find: loading /Users/foo/test.atlas\n"
                             + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
                     errContent.toString());
+        }
+        catch (final IOException exception)
+        {
+            throw new CoreException("FileSystem operation failed", exception);
+        }
+    }
+
+    @Test
+    public void testRelationMemberAND()
+    {
+        try (FileSystem filesystem = Jimfs.newFileSystem(Configuration.osX()))
+        {
+            setupFilesystem1(filesystem);
+            final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+            final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
+            AtlasSearchCommand command = new AtlasSearchCommand();
+            command.setNewFileSystem(filesystem);
+            command.setNewOutStream(new PrintStream(outContent));
+            command.setNewErrStream(new PrintStream(errContent));
+
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose",
+                    "--and-relation-members=EDGE,11000000,role0;EDGE,11000001,role1");
+
+            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas:\n"
+                    + "CompleteRelation [\n" + "identifier: 12000000, \n"
+                    + "bounds: POLYGON ((20 20, 20 34, 34 34, 34 20, 20 20)), \n"
+                    + "members: RelationBean [[[EDGE, 11000000, role0], [EDGE, 11000001, role1], [AREA, 7000000, role2]]], \n"
+                    + "tags: {route=bike}, \n" + "parentRelations: [], \n"
+                    + "bounds: POLYGON ((20 20, 20 34, 34 34, 34 20, 20 20)), \n" + "]\n" + "\n",
+                    outContent.toString());
+            Assert.assertEquals(
+                    "find: loading /Users/foo/test.atlas\n"
+                            + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
+                    errContent.toString());
+
+            final ByteArrayOutputStream outContent2 = new ByteArrayOutputStream();
+            final ByteArrayOutputStream errContent2 = new ByteArrayOutputStream();
+            command = new AtlasSearchCommand();
+            command.setNewFileSystem(filesystem);
+            command.setNewOutStream(new PrintStream(outContent2));
+            command.setNewErrStream(new PrintStream(errContent2));
+
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose",
+                    "--and-relation-members=EDGE,asd,*");
+
+            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas:\n"
+                    + "CompleteRelation [\n" + "identifier: 12000000, \n"
+                    + "bounds: POLYGON ((20 20, 20 34, 34 34, 34 20, 20 20)), \n"
+                    + "members: RelationBean [[[EDGE, 11000000, role0], [EDGE, 11000001, role1], [AREA, 7000000, role2]]], \n"
+                    + "tags: {route=bike}, \n" + "parentRelations: [], \n"
+                    + "bounds: POLYGON ((20 20, 20 34, 34 34, 34 20, 20 20)), \n" + "]\n" + "\n",
+                    outContent2.toString());
+            Assert.assertEquals(
+                    "find: warn: could not parse ID `asd' from member `EDGE,asd,*', using `*' instead\n"
+                            + "find: loading /Users/foo/test.atlas\n"
+                            + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
+                    errContent2.toString());
+        }
+        catch (final IOException exception)
+        {
+            throw new CoreException("FileSystem operation failed", exception);
+        }
+    }
+
+    @Test
+    public void testRelationMemberOR()
+    {
+        try (FileSystem filesystem = Jimfs.newFileSystem(Configuration.osX()))
+        {
+            setupFilesystem1(filesystem);
+            final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+            final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
+            AtlasSearchCommand command = new AtlasSearchCommand();
+            command.setNewFileSystem(filesystem);
+            command.setNewOutStream(new PrintStream(outContent));
+            command.setNewErrStream(new PrintStream(errContent));
+
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose",
+                    "--relation-members=POINT,*,*;EDGE,11000001,*");
+
+            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas:\n"
+                    + "CompleteRelation [\n" + "identifier: 12000000, \n"
+                    + "bounds: POLYGON ((20 20, 20 34, 34 34, 34 20, 20 20)), \n"
+                    + "members: RelationBean [[[EDGE, 11000000, role0], [EDGE, 11000001, role1], [AREA, 7000000, role2]]], \n"
+                    + "tags: {route=bike}, \n" + "parentRelations: [], \n"
+                    + "bounds: POLYGON ((20 20, 20 34, 34 34, 34 20, 20 20)), \n" + "]\n" + "\n",
+                    outContent.toString());
+            Assert.assertEquals(
+                    "find: loading /Users/foo/test.atlas\n"
+                            + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
+                    errContent.toString());
+
+            final ByteArrayOutputStream outContent2 = new ByteArrayOutputStream();
+            final ByteArrayOutputStream errContent2 = new ByteArrayOutputStream();
+            command = new AtlasSearchCommand();
+            command.setNewFileSystem(filesystem);
+            command.setNewOutStream(new PrintStream(outContent2));
+            command.setNewErrStream(new PrintStream(errContent2));
+
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose",
+                    "--relation-members=asd,*,*");
+
+            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas:\n"
+                    + "CompleteRelation [\n" + "identifier: 12000000, \n"
+                    + "bounds: POLYGON ((20 20, 20 34, 34 34, 34 20, 20 20)), \n"
+                    + "members: RelationBean [[[EDGE, 11000000, role0], [EDGE, 11000001, role1], [AREA, 7000000, role2]]], \n"
+                    + "tags: {route=bike}, \n" + "parentRelations: [], \n"
+                    + "bounds: POLYGON ((20 20, 20 34, 34 34, 34 20, 20 20)), \n" + "]\n" + "\n",
+                    outContent2.toString());
+            Assert.assertEquals(
+                    "find: warn: could not parse ItemType `asd' from member `asd,*,*', using `*' instead\n"
+                            + "find: loading /Users/foo/test.atlas\n"
+                            + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
+                    errContent2.toString());
         }
         catch (final IOException exception)
         {
@@ -602,10 +724,10 @@ public class AtlasSearchCommandTest
 
             Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas:\n"
                     + "CompleteRelation [\n" + "identifier: 12000000, \n"
-                    + "bounds: POLYGON ((30 30, 30 34, 34 34, 34 30, 30 30)), \n"
-                    + "members: RelationBean [[[EDGE, 11000000, role0], [EDGE, 11000001, role1]]], \n"
+                    + "bounds: POLYGON ((20 20, 20 34, 34 34, 34 20, 20 20)), \n"
+                    + "members: RelationBean [[[EDGE, 11000000, role0], [EDGE, 11000001, role1], [AREA, 7000000, role2]]], \n"
                     + "tags: {route=bike}, \n" + "parentRelations: [], \n"
-                    + "bounds: POLYGON ((30 30, 30 34, 34 34, 34 30, 30 30)), \n" + "]\n\n",
+                    + "bounds: POLYGON ((20 20, 20 34, 34 34, 34 20, 20 20)), \n" + "]\n" + "\n",
                     outContent.toString());
             Assert.assertEquals(
                     "find: loading /Users/foo/test.atlas\n"
@@ -650,6 +772,7 @@ public class AtlasSearchCommandTest
         final RelationBean bean = new RelationBean();
         bean.addItem(11000000L, "role0", ItemType.EDGE);
         bean.addItem(11000001L, "role1", ItemType.EDGE);
+        bean.addItem(7000000L, "role2", ItemType.AREA);
         builder.addRelation(12000000L, 12L, bean, Maps.hashMap("route", "bike"));
 
         final Atlas atlas = builder.get();

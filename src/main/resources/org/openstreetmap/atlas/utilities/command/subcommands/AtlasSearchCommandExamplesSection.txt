@@ -14,3 +14,7 @@ Find features with OSM ID 123, then collect all containing atlases and save with
 #$ find ~/Desktop/*.atlas --osmid 123 --collect-matching
 Find all roads that lie withing a given bounding box:
 #$ find foo.atlas --bounding-polygon='POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))' --taggableFilter='highway->*'
+Find all relations that contain all of some given members:
+#$ find foo.atlas --and-relation-members 'LINE,1234,*;AREA,456,role1'
+Find all relations that contain a member node or edge with role 'via':
+#$ find foo.atlas --relation-members 'NODE,*,via;EDGE,*,via'

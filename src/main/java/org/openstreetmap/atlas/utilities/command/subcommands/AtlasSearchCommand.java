@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -18,6 +19,7 @@ import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEntity;
 import org.openstreetmap.atlas.geography.atlas.complete.PrettifyStringFormat;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
@@ -57,6 +59,82 @@ import org.openstreetmap.atlas.utilities.conversion.StringToPredicateConverter;
  */
 public class AtlasSearchCommand extends AtlasLoaderCommand
 {
+    /**
+     * @author lcram
+     */
+    private static class RelationMemberSearchConstraint
+    {
+        ItemType type = null;
+        Long id = null;
+        String role = null;
+
+        RelationMemberSearchConstraint()
+        {
+        }
+
+        /**
+         * Check if this constraint matches at least one member of a given {@link Relation}'s member
+         * list.
+         * 
+         * @param relation
+         *            the {@link Relation} against which to check
+         * @return if there is a match
+         */
+        boolean matches(final Relation relation)
+        {
+            boolean constraintMatchedAnItem = false;
+            for (final RelationBean.RelationBeanItem item : relation.getBean())
+            {
+                boolean constraintMatchedType = true;
+                if (this.type != null && !this.type.equals(item.getType()))
+                {
+                    constraintMatchedType = false;
+                }
+                boolean constraintMatchedId = true;
+                if (this.id != null && !this.id.equals(item.getIdentifier()))
+                {
+                    constraintMatchedId = false;
+                }
+                boolean constraintMatchedRole = true;
+                if (this.role != null && !this.role.equals(item.getRole()))
+                {
+                    constraintMatchedRole = false;
+                }
+
+                constraintMatchedAnItem = constraintMatchedType && constraintMatchedId
+                        && constraintMatchedRole;
+
+                /*
+                 * Break early if we match an item, since we don't need to check any more.
+                 */
+                if (constraintMatchedAnItem)
+                {
+                    break;
+                }
+            }
+
+            return constraintMatchedAnItem;
+        }
+
+        RelationMemberSearchConstraint withId(final Long id)
+        {
+            this.id = id;
+            return this;
+        }
+
+        RelationMemberSearchConstraint withRole(final String role)
+        {
+            this.role = role;
+            return this;
+        }
+
+        RelationMemberSearchConstraint withType(final ItemType type)
+        {
+            this.type = type;
+            return this;
+        }
+    }
+
     private static final List<String> ITEM_TYPE_STRINGS = Arrays.stream(ItemType.values())
             .map(ItemType::toString).collect(Collectors.toList());
     private static final String TYPES_OPTION_LONG = "type";
@@ -85,25 +163,39 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     private static final String TAGGABLEMATCHER_OPTION_DESCRIPTION = "A TaggableMatcher by which to filter the search space.";
     private static final String TAGGABLEMATCHER_OPTION_HINT = "matcher";
 
-    private static final String STARTNODE_OPTION_LONG = "start-node";
+    private static final String STARTNODE_OPTION_LONG = "start-nodes";
     private static final String STARTNODE_OPTION_DESCRIPTION = "A comma separated list of start node identifiers for which to search.";
     private static final String STARTNODE_OPTION_HINT = "ids";
 
-    private static final String ENDNODE_OPTION_LONG = "end-node";
+    private static final String ENDNODE_OPTION_LONG = "end-nodes";
     private static final String ENDNODE_OPTION_DESCRIPTION = "A comma separated list of end node identifiers for which to search.";
     private static final String ENDNODE_OPTION_HINT = "ids";
 
-    private static final String INEDGE_OPTION_LONG = "in-edge";
+    private static final String INEDGE_OPTION_LONG = "in-edges";
     private static final String INEDGE_OPTION_DESCRIPTION = "A comma separated list of in edge identifiers for which to search.";
     private static final String INEDGE_OPTION_HINT = "ids";
 
-    private static final String OUTEDGE_OPTION_LONG = "out-edge";
+    private static final String OUTEDGE_OPTION_LONG = "out-edges";
     private static final String OUTEDGE_OPTION_DESCRIPTION = "A comma separated list of out edge identifiers for which to search.";
     private static final String OUTEDGE_OPTION_HINT = "ids";
 
     private static final String PARENT_RELATIONS_OPTION_LONG = "parent-relations";
     private static final String PARENT_RELATIONS_OPTION_DESCRIPTION = "A comma separated list of parent relation identifiers for which to search.";
     private static final String PARENT_RELATIONS_OPTION_HINT = "ids";
+
+    private static final String RELATION_MEMBERS_OR_OPTION_LONG = "relation-members";
+    private static final String RELATION_MEMBERS_OR_OPTION_DESCRIPTION = "Filter to relations that contain at least one of the given semicolon separated members."
+            + " Members can be specified like e.g. `AREA,1234,myrole;EDGE,4567,*;*,9012,*'."
+            + " Here you can see you may optionally supply a `*' wildcard to broaden the search constraints."
+            + " This example string filters for relations that contain an Area with ID 1234 and role `myrole', OR an Edge with ID 4567 and any role, OR any feature type with ID 9012 and any role.";
+    private static final String RELATION_MEMBERS_OR_OPTION_HINT = "member[;member]...";
+
+    private static final String RELATION_MEMBERS_AND_OPTION_LONG = "and-relation-members";
+    private static final String RELATION_MEMBERS_AND_OPTION_DESCRIPTION = "Filter to relations that contain all of the given semicolon separated members."
+            + " Members can be specified like e.g. `EDGE,*,to;EDGE,*,from;NODE,1234,via'."
+            + " Here you can see you may optionally supply a `*' wildcard to broaden the search constraints."
+            + " This example string filters for relations that contain a `to' AND `from' Edge with any ID, as well as a Node 1234 with role `via'.";
+    private static final String RELATION_MEMBERS_AND_OPTION_HINT = "member[;member]...";
 
     private static final String ID_OPTION_LONG = "id";
     private static final String ID_OPTION_DESCRIPTION = "A comma separated list of Atlas ids for which to search.";
@@ -128,6 +220,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     private static final Integer ALL_TYPES_CONTEXT = 3;
     private static final Integer EDGE_ONLY_CONTEXT = 4;
     private static final Integer NODE_ONLY_CONTEXT = 5;
+    private static final Integer RELATION_ONLY_CONTEXT = 6;
 
     private static final String COULD_NOT_PARSE = "could not parse %s '%s': skipping...";
 
@@ -138,6 +231,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             "org.openstreetmap.atlas.tags.annotations.extraction", "org.openstreetmap.atlas.tags",
             "org.openstreetmap.atlas.tags.names", "org.openstreetmap.atlas.geography",
             "org.openstreetmap.atlas.utilities.collections");
+    private static final String WILDCARD = "*";
 
     private Set<String> geometryWkts;
     private Set<String> subGeometryWkts;
@@ -149,6 +243,8 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     private Set<Long> inEdgeIds;
     private Set<Long> outEdgeIds;
     private Set<Long> parentRelations;
+    private Set<RelationMemberSearchConstraint> relationMemberConstraintsOR;
+    private Set<RelationMemberSearchConstraint> relationMemberConstraintsAND;
     private Predicate<AtlasEntity> predicate;
 
     private Set<Long> ids;
@@ -169,12 +265,20 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     {
         this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
-        this.typesToCheck = new HashSet<>();
+        this.geometryWkts = new HashSet<>();
+        this.subGeometryWkts = new HashSet<>();
+        this.boundingWkts = new HashSet<>();
         this.startNodeIds = new HashSet<>();
         this.endNodeIds = new HashSet<>();
         this.inEdgeIds = new HashSet<>();
         this.outEdgeIds = new HashSet<>();
         this.parentRelations = new HashSet<>();
+        this.relationMemberConstraintsOR = new HashSet<>();
+        this.relationMemberConstraintsAND = new HashSet<>();
+
+        this.ids = new HashSet<>();
+        this.osmIds = new HashSet<>();
+        this.typesToCheck = new HashSet<>();
     }
 
     @Override
@@ -206,6 +310,10 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             }
         }
 
+        if (this.matchingAtlases.isEmpty())
+        {
+            return 1;
+        }
         return 0;
     }
 
@@ -242,21 +350,22 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         registerOptionWithRequiredArgument(BOUNDING_POLYGON_OPTION_LONG,
                 BOUNDING_POLYGON_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
                 BOUNDING_POLYGON_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT,
-                NODE_ONLY_CONTEXT);
+                NODE_ONLY_CONTEXT, RELATION_ONLY_CONTEXT);
         registerOptionWithRequiredArgument(GEOMETRY_OPTION_LONG, GEOMETRY_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, GEOMETRY_OPTION_HINT, ALL_TYPES_CONTEXT,
-                EDGE_ONLY_CONTEXT, NODE_ONLY_CONTEXT);
+                EDGE_ONLY_CONTEXT, NODE_ONLY_CONTEXT, RELATION_ONLY_CONTEXT);
         registerOptionWithRequiredArgument(SUB_GEOMETRY_OPTION_LONG,
                 SUB_GEOMETRY_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
-                SUB_GEOMETRY_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT, NODE_ONLY_CONTEXT);
+                SUB_GEOMETRY_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT, NODE_ONLY_CONTEXT,
+                RELATION_ONLY_CONTEXT);
         registerOptionWithRequiredArgument(TAGGABLEFILTER_OPTION_LONG,
                 TAGGABLEFILTER_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
-                TAGGABLEFILTER_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT,
-                NODE_ONLY_CONTEXT);
+                TAGGABLEFILTER_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT, NODE_ONLY_CONTEXT,
+                RELATION_ONLY_CONTEXT);
         registerOptionWithRequiredArgument(TAGGABLEMATCHER_OPTION_LONG,
                 TAGGABLEMATCHER_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
                 TAGGABLEMATCHER_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT,
-                NODE_ONLY_CONTEXT);
+                NODE_ONLY_CONTEXT, RELATION_ONLY_CONTEXT);
         registerOptionWithRequiredArgument(STARTNODE_OPTION_LONG, STARTNODE_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, STARTNODE_OPTION_HINT, EDGE_ONLY_CONTEXT);
         registerOptionWithRequiredArgument(ENDNODE_OPTION_LONG, ENDNODE_OPTION_DESCRIPTION,
@@ -268,21 +377,27 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         registerOptionWithRequiredArgument(PARENT_RELATIONS_OPTION_LONG,
                 PARENT_RELATIONS_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
                 PARENT_RELATIONS_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT,
-                NODE_ONLY_CONTEXT);
+                NODE_ONLY_CONTEXT, RELATION_ONLY_CONTEXT);
+        registerOptionWithRequiredArgument(RELATION_MEMBERS_OR_OPTION_LONG,
+                RELATION_MEMBERS_OR_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
+                RELATION_MEMBERS_OR_OPTION_HINT, RELATION_ONLY_CONTEXT);
+        registerOptionWithRequiredArgument(RELATION_MEMBERS_AND_OPTION_LONG,
+                RELATION_MEMBERS_AND_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
+                RELATION_MEMBERS_AND_OPTION_HINT, RELATION_ONLY_CONTEXT);
         registerOptionWithRequiredArgument(PREDICATE_OPTION_LONG, PREDICATE_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, PREDICATE_OPTION_HINT, ALL_TYPES_CONTEXT,
-                EDGE_ONLY_CONTEXT, NODE_ONLY_CONTEXT);
+                EDGE_ONLY_CONTEXT, NODE_ONLY_CONTEXT, RELATION_ONLY_CONTEXT);
         registerOptionWithRequiredArgument(PREDICATE_IMPORTS_OPTION_LONG,
                 PREDICATE_IMPORTS_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
                 PREDICATE_IMPORTS_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT,
-                NODE_ONLY_CONTEXT);
+                NODE_ONLY_CONTEXT, RELATION_ONLY_CONTEXT);
 
         registerOptionWithRequiredArgument(ID_OPTION_LONG, ID_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, ID_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT,
-                NODE_ONLY_CONTEXT);
+                NODE_ONLY_CONTEXT, RELATION_ONLY_CONTEXT);
         registerOptionWithRequiredArgument(OSMID_OPTION_LONG, OSMID_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, OSMID_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT,
-                NODE_ONLY_CONTEXT);
+                NODE_ONLY_CONTEXT, RELATION_ONLY_CONTEXT);
 
         registerOption(COLLECT_OPTION_LONG, COLLECT_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL);
         super.registerOptionsAndArguments();
@@ -339,6 +454,18 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                     .getOptionArgument(OUTEDGE_OPTION_LONG, this::parseCommaSeparatedLongs)
                     .orElse(new HashSet<>());
         }
+        if (this.optionAndArgumentDelegate.getParserContext() == RELATION_ONLY_CONTEXT)
+        {
+            this.typesToCheck.add(ItemType.RELATION);
+            this.relationMemberConstraintsOR = this.optionAndArgumentDelegate
+                    .getOptionArgument(RELATION_MEMBERS_OR_OPTION_LONG,
+                            this::parseSemicolonSeparatedRelationMembers)
+                    .orElse(new HashSet<>());
+            this.relationMemberConstraintsAND = this.optionAndArgumentDelegate
+                    .getOptionArgument(RELATION_MEMBERS_AND_OPTION_LONG,
+                            this::parseSemicolonSeparatedRelationMembers)
+                    .orElse(new HashSet<>());
+        }
         this.parentRelations = this.optionAndArgumentDelegate
                 .getOptionArgument(PARENT_RELATIONS_OPTION_LONG, this::parseCommaSeparatedLongs)
                 .orElse(new HashSet<>());
@@ -365,7 +492,9 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                 && this.geometryWkts.isEmpty() && this.subGeometryWkts.isEmpty()
                 && this.taggableFilter == null && this.startNodeIds.isEmpty()
                 && this.endNodeIds.isEmpty() && this.parentRelations.isEmpty() && this.ids.isEmpty()
-                && this.osmIds.isEmpty() && this.predicate == null)
+                && this.osmIds.isEmpty() && this.predicate == null
+                && this.relationMemberConstraintsOR.isEmpty()
+                && this.relationMemberConstraintsAND.isEmpty())
         {
             this.outputDelegate
                     .printlnErrorMessage("no filtering objects were successfully constructed");
@@ -488,6 +617,39 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                 }
                 if (!this.endNodeIds.isEmpty()
                         && !this.endNodeIds.contains(edge.end().getIdentifier()))
+                {
+                    entityMatchesAllCriteriaSoFar = false;
+                }
+            }
+            if (entityMatchesAllCriteriaSoFar
+                    && this.optionAndArgumentDelegate.getParserContext() == RELATION_ONLY_CONTEXT
+                    && !this.relationMemberConstraintsAND.isEmpty())
+            {
+                final Relation relation = (Relation) entity;
+                for (final RelationMemberSearchConstraint constraint : this.relationMemberConstraintsAND)
+                {
+                    if (!constraint.matches(relation))
+                    {
+                        entityMatchesAllCriteriaSoFar = false;
+                        break;
+                    }
+                }
+            }
+            if (entityMatchesAllCriteriaSoFar
+                    && this.optionAndArgumentDelegate.getParserContext() == RELATION_ONLY_CONTEXT
+                    && !this.relationMemberConstraintsOR.isEmpty())
+            {
+                final Relation relation = (Relation) entity;
+                boolean foundMemberMatch = false;
+                for (final RelationMemberSearchConstraint constraint : this.relationMemberConstraintsOR)
+                {
+                    if (constraint.matches(relation))
+                    {
+                        foundMemberMatch = true;
+                        break;
+                    }
+                }
+                if (!foundMemberMatch)
                 {
                     entityMatchesAllCriteriaSoFar = false;
                 }
@@ -702,6 +864,68 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         return false;
     }
 
+    private Optional<Long> extractIdFromMemberElement(final String element, final String member)
+    {
+        if (WILDCARD.equals(element))
+        {
+            return Optional.empty();
+        }
+
+        final long id;
+        try
+        {
+            id = Long.parseLong(element);
+            return Optional.of(id);
+        }
+        catch (final NumberFormatException exception)
+        {
+            this.outputDelegate.printlnWarnMessage("could not parse ID `" + element
+                    + "' from member `" + member + "', using `*' instead");
+            return Optional.empty();
+        }
+    }
+
+    private Optional<ItemType> extractItemTypeFromMemberElement(final String element,
+            final String member)
+    {
+        if (WILDCARD.equals(element))
+        {
+            return Optional.empty();
+        }
+
+        final ItemType type;
+        try
+        {
+            type = ItemType.valueOf(element.toUpperCase());
+            return Optional.of(type);
+        }
+        catch (final IllegalArgumentException exception)
+        {
+            this.outputDelegate.printlnWarnMessage("could not parse ItemType `" + element
+                    + "' from member `" + member + "', using `*' instead");
+            return Optional.empty();
+        }
+    }
+
+    private Optional<String> extractRoleFromMemberElement(final String element)
+    {
+        if (WILDCARD.equals(element))
+        {
+            return Optional.empty();
+        }
+
+        /*
+         * Allow users to specify escape sequence '\*' if they want the role to be a literal '*'
+         * character and not a wildcard.
+         */
+        if (("\\" + WILDCARD).equals(element))
+        {
+            return Optional.of(WILDCARD);
+        }
+
+        return Optional.of(element);
+    }
+
     private Predicate<AtlasEntity> getPredicateFromString(final String string)
     {
         List<String> userImports = new ArrayList<>();
@@ -796,6 +1020,37 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             }
         }
         return idSet;
+    }
+
+    private Set<RelationMemberSearchConstraint> parseSemicolonSeparatedRelationMembers(
+            final String memberString)
+    {
+        final Set<RelationMemberSearchConstraint> constraints = new HashSet<>();
+
+        if (memberString.isEmpty())
+        {
+            return constraints;
+        }
+
+        final String[] memberStringSplit = memberString.split(";");
+        for (final String member : memberStringSplit)
+        {
+            final String[] memberElements = member.split(",");
+            if (memberElements.length != 3)
+            {
+                this.outputDelegate.printlnWarnMessage("invalid syntax for member string "
+                        + Arrays.asList(memberElements) + ", skipping...");
+            }
+
+            final RelationMemberSearchConstraint constraint = new RelationMemberSearchConstraint();
+            extractItemTypeFromMemberElement(memberElements[0], member)
+                    .ifPresent(constraint::withType);
+            extractIdFromMemberElement(memberElements[1], member).ifPresent(constraint::withId);
+            extractRoleFromMemberElement(memberElements[2]).ifPresent(constraint::withRole);
+            constraints.add(constraint);
+        }
+
+        return constraints;
     }
 
     private Geometry parseWkt(final String wkt)
