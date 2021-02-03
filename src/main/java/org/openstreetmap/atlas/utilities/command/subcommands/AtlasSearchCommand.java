@@ -1039,8 +1039,9 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             final String[] memberElements = member.split(",");
             if (memberElements.length != expectedElementLength)
             {
-                this.outputDelegate.printlnWarnMessage("invalid syntax for member string "
-                        + Arrays.asList(memberElements) + ", skipping...");
+                this.outputDelegate.printlnWarnMessage(
+                        "invalid syntax for member string `" + memberString + "', skipping...");
+                continue;
             }
 
             final RelationMemberSearchConstraint constraint = new RelationMemberSearchConstraint();
