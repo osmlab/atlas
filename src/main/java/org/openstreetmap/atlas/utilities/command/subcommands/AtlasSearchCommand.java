@@ -64,9 +64,9 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
      */
     private static class RelationMemberSearchConstraint
     {
-        ItemType type = null;
-        Long id = null;
-        String role = null;
+        private ItemType type = null;
+        private Long identifier = null;
+        private String role = null;
 
         RelationMemberSearchConstraint()
         {
@@ -91,7 +91,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                     constraintMatchedType = false;
                 }
                 boolean constraintMatchedId = true;
-                if (this.id != null && !this.id.equals(item.getIdentifier()))
+                if (this.identifier != null && !this.identifier.equals(item.getIdentifier()))
                 {
                     constraintMatchedId = false;
                 }
@@ -116,9 +116,9 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             return constraintMatchedAnItem;
         }
 
-        RelationMemberSearchConstraint withId(final Long id)
+        RelationMemberSearchConstraint withId(final Long identifier)
         {
-            this.id = id;
+            this.identifier = identifier;
             return this;
         }
 
@@ -871,11 +871,11 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             return Optional.empty();
         }
 
-        final long id;
+        final long identifier;
         try
         {
-            id = Long.parseLong(element);
-            return Optional.of(id);
+            identifier = Long.parseLong(element);
+            return Optional.of(identifier);
         }
         catch (final NumberFormatException exception)
         {
@@ -1035,8 +1035,9 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         final String[] memberStringSplit = memberString.split(";");
         for (final String member : memberStringSplit)
         {
+            final int expectedElementLength = 3;
             final String[] memberElements = member.split(",");
-            if (memberElements.length != 3)
+            if (memberElements.length != expectedElementLength)
             {
                 this.outputDelegate.printlnWarnMessage("invalid syntax for member string "
                         + Arrays.asList(memberElements) + ", skipping...");
