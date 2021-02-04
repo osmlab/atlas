@@ -60,7 +60,6 @@ import org.openstreetmap.atlas.utilities.tuples.Tuple;
  */
 // Some future improvements
 // + fix RelationMember delimiting so that roles with ';' won't break everything?
-// + Increase test coverage to ensure everything works
 public class AtlasSearchCommand extends AtlasLoaderCommand
 {
     /**
@@ -226,7 +225,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     private static final Integer NODE_ONLY_CONTEXT = 5;
     private static final Integer RELATION_ONLY_CONTEXT = 6;
 
-    private static final String COULD_NOT_PARSE = "could not parse %s '%s': skipping...";
+    private static final String COULD_NOT_PARSE = "could not parse %s '%s'";
 
     private static final List<String> IMPORTS_ALLOW_LIST = Arrays.asList(
             "org.openstreetmap.atlas.geography.atlas.items",
@@ -253,7 +252,8 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
 
     private Set<Long> ids;
     private Set<Long> osmIds;
-    private Set<ItemType> typesToCheck;
+    private Set<ItemType> typesToCheckFromOption;
+    private final Set<ItemType> impliedTypesToCheck;
 
     private Set<Atlas> matchingAtlases;
 
@@ -282,7 +282,8 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
 
         this.ids = new HashSet<>();
         this.osmIds = new HashSet<>();
-        this.typesToCheck = new HashSet<>();
+        this.typesToCheckFromOption = new HashSet<>();
+        this.impliedTypesToCheck = new HashSet<>();
     }
 
     @Override
@@ -416,14 +417,30 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
          */
         if (this.optionAndArgumentDelegate.getParserContext() == ALL_TYPES_CONTEXT)
         {
-            this.typesToCheck = this.optionAndArgumentDelegate
-                    .getOptionArgument(TYPES_OPTION_LONG, this::parseCommaSeparatedItemTypes)
-                    .orElse(Sets.hashSet(ItemType.values()));
+            this.impliedTypesToCheck.addAll(Sets.hashSet(ItemType.values()));
+        }
+        else if (this.optionAndArgumentDelegate.getParserContext() == NODE_ONLY_CONTEXT)
+        {
+            this.impliedTypesToCheck.add(ItemType.NODE);
+        }
+        else if (this.optionAndArgumentDelegate.getParserContext() == EDGE_ONLY_CONTEXT)
+        {
+            this.impliedTypesToCheck.add(ItemType.EDGE);
+        }
+        else if (this.optionAndArgumentDelegate.getParserContext() == RELATION_ONLY_CONTEXT)
+        {
+            this.impliedTypesToCheck.add(ItemType.RELATION);
         }
 
         /*
          * Handle the various search properties.
          */
+        if (this.optionAndArgumentDelegate.getParserContext() == ALL_TYPES_CONTEXT)
+        {
+            this.typesToCheckFromOption = this.optionAndArgumentDelegate
+                    .getOptionArgument(TYPES_OPTION_LONG, this::parseCommaSeparatedItemTypes)
+                    .orElse(new HashSet<>());
+        }
         this.boundingWkts = this.optionAndArgumentDelegate
                 .getOptionArgument(BOUNDING_POLYGON_OPTION_LONG, this::parseColonSeparatedWkts)
                 .orElse(new HashSet<>());
@@ -489,7 +506,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
 
         this.matchingAtlases = new HashSet<>();
 
-        if (this.typesToCheck.isEmpty() && this.boundingWkts.isEmpty()
+        if (this.typesToCheckFromOption.isEmpty() && this.boundingWkts.isEmpty()
                 && this.geometryWkts.isEmpty() && this.subGeometryWkts.isEmpty()
                 && this.taggableFilter == null && this.taggableMatcher == null
                 && this.startNodeIds.isEmpty() && this.endNodeIds.isEmpty()
@@ -522,27 +539,20 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             entitiesWeAreChecking = boundedEntities;
         }
 
-        if (this.optionAndArgumentDelegate.getParserContext() == NODE_ONLY_CONTEXT)
-        {
-            this.typesToCheck.add(ItemType.NODE);
-        }
-        else if (this.optionAndArgumentDelegate.getParserContext() == EDGE_ONLY_CONTEXT)
-        {
-            this.typesToCheck.add(ItemType.EDGE);
-        }
-        if (this.optionAndArgumentDelegate.getParserContext() == RELATION_ONLY_CONTEXT)
-        {
-            this.typesToCheck.add(ItemType.RELATION);
-        }
-
         /*
          * This loop is O(N) (where N is the number of atlas entities), assuming the lists of
-         * provided evaluation properties are much smaller than the size of the entity set.
+         * provided evaluation properties are much smaller than the size of the entity set. We try
+         * every condition to see if we can falsify this entity as a match candidate.
          */
         for (final AtlasEntity entity : entitiesWeAreChecking) // NOSONAR
         {
             boolean entityMatchesAllCriteriaSoFar = true;
-            if (!this.typesToCheck.contains(entity.getType()))
+            if (!this.impliedTypesToCheck.contains(entity.getType()))
+            {
+                entityMatchesAllCriteriaSoFar = false;
+            }
+            if (entityMatchesAllCriteriaSoFar && !this.typesToCheckFromOption.isEmpty()
+                    && !this.typesToCheckFromOption.contains(entity.getType()))
             {
                 entityMatchesAllCriteriaSoFar = false;
             }
@@ -990,7 +1000,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             }
             catch (final ParseException exception)
             {
-                this.outputDelegate.printlnWarnMessage(String.format(COULD_NOT_PARSE, "wkt", wkt));
+                this.outputDelegate.printlnErrorMessage(String.format(COULD_NOT_PARSE, "wkt", wkt));
                 return new HashSet<>();
             }
         }
@@ -1018,7 +1028,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             }
             catch (final IllegalArgumentException exception)
             {
-                this.outputDelegate.printlnWarnMessage(
+                this.outputDelegate.printlnErrorMessage(
                         String.format(COULD_NOT_PARSE, "ItemType", typeElement));
                 return new HashSet<>();
             }
@@ -1047,7 +1057,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             catch (final NumberFormatException exception)
             {
                 this.outputDelegate
-                        .printlnWarnMessage(String.format(COULD_NOT_PARSE, "id", idElement));
+                        .printlnErrorMessage(String.format(COULD_NOT_PARSE, "id", idElement));
                 return new HashSet<>();
             }
         }
