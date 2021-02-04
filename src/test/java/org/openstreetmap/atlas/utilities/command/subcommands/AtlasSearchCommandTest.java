@@ -456,17 +456,10 @@ public class AtlasSearchCommandTest
             command.runSubcommand("/Users/foo/test.atlas", "--verbose",
                     "--and-relation-members=EDGE,asd,*");
 
-            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas:\n"
-                    + "CompleteRelation [\n" + "identifier: 12000000, \n"
-                    + "bounds: POLYGON ((20 20, 20 34, 34 34, 34 20, 20 20)), \n"
-                    + "members: RelationBean [[[EDGE, 11000000, role0], [EDGE, 11000001, role1], [AREA, 7000000, role2]]], \n"
-                    + "tags: {route=bike}, \n" + "parentRelations: [], \n"
-                    + "bounds: POLYGON ((20 20, 20 34, 34 34, 34 20, 20 20)), \n" + "]\n" + "\n",
-                    outContent2.toString());
+            Assert.assertEquals("", outContent2.toString());
             Assert.assertEquals(
-                    "find: warn: could not parse ID `asd' from member `EDGE,asd,*', using `*' instead\n"
-                            + "find: loading /Users/foo/test.atlas\n"
-                            + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
+                    "find: error: could not parse ID `asd' from member `EDGE,asd,*'\n"
+                            + "find: error: no filtering objects were successfully constructed\n",
                     errContent2.toString());
         }
         catch (final IOException exception)
@@ -513,17 +506,10 @@ public class AtlasSearchCommandTest
             command.runSubcommand("/Users/foo/test.atlas", "--verbose",
                     "--relation-members=asd,*,*");
 
-            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas:\n"
-                    + "CompleteRelation [\n" + "identifier: 12000000, \n"
-                    + "bounds: POLYGON ((20 20, 20 34, 34 34, 34 20, 20 20)), \n"
-                    + "members: RelationBean [[[EDGE, 11000000, role0], [EDGE, 11000001, role1], [AREA, 7000000, role2]]], \n"
-                    + "tags: {route=bike}, \n" + "parentRelations: [], \n"
-                    + "bounds: POLYGON ((20 20, 20 34, 34 34, 34 20, 20 20)), \n" + "]\n" + "\n",
-                    outContent2.toString());
+            Assert.assertEquals("", outContent2.toString());
             Assert.assertEquals(
-                    "find: warn: could not parse ItemType `asd' from member `asd,*,*', using `*' instead\n"
-                            + "find: loading /Users/foo/test.atlas\n"
-                            + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
+                    "find: error: could not parse ItemType `asd' from member `asd,*,*'\n"
+                            + "find: error: no filtering objects were successfully constructed\n",
                     errContent2.toString());
         }
         catch (final IOException exception)

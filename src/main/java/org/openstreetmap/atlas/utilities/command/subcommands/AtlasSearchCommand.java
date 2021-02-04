@@ -47,6 +47,7 @@ import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.subcommands.templates.AtlasLoaderCommand;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 import org.openstreetmap.atlas.utilities.conversion.StringToPredicateConverter;
+import org.openstreetmap.atlas.utilities.tuples.Tuple;
 
 /**
  * Search atlases for some given feature identifiers or properties, with various options and
@@ -57,6 +58,9 @@ import org.openstreetmap.atlas.utilities.conversion.StringToPredicateConverter;
  * @author cstaylor
  * @author bbreithaupt
  */
+// Some future improvements
+// + fix RelationMember delimiting so that roles with ';' won't break everything?
+// + Increase test coverage to ensure everything works
 public class AtlasSearchCommand extends AtlasLoaderCommand
 {
     /**
@@ -436,7 +440,6 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                 .getOptionArgument(TAGGABLEMATCHER_OPTION_LONG, TaggableMatcher::from).orElse(null);
         if (this.optionAndArgumentDelegate.getParserContext() == EDGE_ONLY_CONTEXT)
         {
-            this.typesToCheck.add(ItemType.EDGE);
             this.startNodeIds = this.optionAndArgumentDelegate
                     .getOptionArgument(STARTNODE_OPTION_LONG, this::parseCommaSeparatedLongs)
                     .orElse(new HashSet<>());
@@ -446,7 +449,6 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         }
         if (this.optionAndArgumentDelegate.getParserContext() == NODE_ONLY_CONTEXT)
         {
-            this.typesToCheck.add(ItemType.NODE);
             this.inEdgeIds = this.optionAndArgumentDelegate
                     .getOptionArgument(INEDGE_OPTION_LONG, this::parseCommaSeparatedLongs)
                     .orElse(new HashSet<>());
@@ -456,7 +458,6 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         }
         if (this.optionAndArgumentDelegate.getParserContext() == RELATION_ONLY_CONTEXT)
         {
-            this.typesToCheck.add(ItemType.RELATION);
             this.relationMemberConstraintsOR = this.optionAndArgumentDelegate
                     .getOptionArgument(RELATION_MEMBERS_OR_OPTION_LONG,
                             this::parseSemicolonSeparatedRelationMembers)
@@ -490,11 +491,12 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
 
         if (this.typesToCheck.isEmpty() && this.boundingWkts.isEmpty()
                 && this.geometryWkts.isEmpty() && this.subGeometryWkts.isEmpty()
-                && this.taggableFilter == null && this.startNodeIds.isEmpty()
-                && this.endNodeIds.isEmpty() && this.parentRelations.isEmpty() && this.ids.isEmpty()
-                && this.osmIds.isEmpty() && this.predicate == null
+                && this.taggableFilter == null && this.taggableMatcher == null
+                && this.startNodeIds.isEmpty() && this.endNodeIds.isEmpty()
+                && this.inEdgeIds.isEmpty() && this.outEdgeIds.isEmpty()
                 && this.relationMemberConstraintsOR.isEmpty()
-                && this.relationMemberConstraintsAND.isEmpty())
+                && this.relationMemberConstraintsAND.isEmpty() && this.parentRelations.isEmpty()
+                && this.predicate == null && this.ids.isEmpty() && this.osmIds.isEmpty())
         {
             this.outputDelegate
                     .printlnErrorMessage("no filtering objects were successfully constructed");
@@ -519,6 +521,20 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         {
             entitiesWeAreChecking = boundedEntities;
         }
+
+        if (this.optionAndArgumentDelegate.getParserContext() == NODE_ONLY_CONTEXT)
+        {
+            this.typesToCheck.add(ItemType.NODE);
+        }
+        else if (this.optionAndArgumentDelegate.getParserContext() == EDGE_ONLY_CONTEXT)
+        {
+            this.typesToCheck.add(ItemType.EDGE);
+        }
+        if (this.optionAndArgumentDelegate.getParserContext() == RELATION_ONLY_CONTEXT)
+        {
+            this.typesToCheck.add(ItemType.RELATION);
+        }
+
         /*
          * This loop is O(N) (where N is the number of atlas entities), assuming the lists of
          * provided evaluation properties are much smaller than the size of the entity set.
@@ -864,66 +880,77 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         return false;
     }
 
-    private Optional<Long> extractIdFromMemberElement(final String element, final String member)
+    private Optional<Tuple<String, Long>> extractIdFromMemberElement(final String element,
+            final String member)
     {
         if (WILDCARD.equals(element))
         {
-            return Optional.empty();
+            return Optional.of(new Tuple<>(WILDCARD, null));
         }
 
         final long identifier;
         try
         {
             identifier = Long.parseLong(element);
-            return Optional.of(identifier);
+            return Optional.of(new Tuple<>(element, identifier));
         }
         catch (final NumberFormatException exception)
         {
-            this.outputDelegate.printlnWarnMessage("could not parse ID `" + element
-                    + "' from member `" + member + "', using `*' instead");
+            this.outputDelegate.printlnErrorMessage(
+                    "could not parse ID `" + element + "' from member `" + member + "'");
             return Optional.empty();
         }
     }
 
-    private Optional<ItemType> extractItemTypeFromMemberElement(final String element,
+    private Optional<Tuple<String, ItemType>> extractItemTypeFromMemberElement(final String element,
             final String member)
     {
         if (WILDCARD.equals(element))
         {
-            return Optional.empty();
+            return Optional.of(new Tuple<>(WILDCARD, null));
         }
 
         final ItemType type;
         try
         {
             type = ItemType.valueOf(element.toUpperCase());
-            return Optional.of(type);
+            return Optional.of(new Tuple<>(element, type));
         }
         catch (final IllegalArgumentException exception)
         {
-            this.outputDelegate.printlnWarnMessage("could not parse ItemType `" + element
-                    + "' from member `" + member + "', using `*' instead");
+            this.outputDelegate.printlnErrorMessage(
+                    "could not parse ItemType `" + element + "' from member `" + member + "'");
             return Optional.empty();
         }
     }
 
-    private Optional<String> extractRoleFromMemberElement(final String element)
+    private Optional<Tuple<String, String>> extractRoleFromMemberElement(final String element)
     {
         if (WILDCARD.equals(element))
         {
-            return Optional.empty();
+            return Optional.of(new Tuple<>(WILDCARD, null));
         }
 
         /*
-         * Allow users to specify escape sequence '\*' if they want the role to be a literal '*'
-         * character and not a wildcard.
+         * Allow users to specify escape sequences. This way, they may escape the '*', or escape the
+         * '\' if they want to include these characters literally.
          */
-        if (("\\" + WILDCARD).equals(element))
+        final StringBuilder builder = new StringBuilder();
+        for (final int codePoint : element.codePoints().toArray())
         {
-            return Optional.of(WILDCARD);
+            /*
+             * Only check for backslash when we see a BMP code point. This way, our role string will
+             * support emojis and other non-BMP characters.
+             */
+            if (Character.isBmpCodePoint(codePoint) && ((char) codePoint) == '\\')
+            {
+                continue;
+            }
+
+            builder.appendCodePoint(codePoint);
         }
 
-        return Optional.of(element);
+        return Optional.of(new Tuple<>(element, builder.toString()));
     }
 
     private Predicate<AtlasEntity> getPredicateFromString(final String string)
@@ -953,7 +980,8 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         }
 
         final WKTReader reader = new WKTReader();
-        Arrays.stream(wktString.split(":")).forEach(wkt ->
+        final String[] wktStringSplit = wktString.split(":");
+        for (final String wkt : wktStringSplit)
         {
             try
             {
@@ -963,8 +991,10 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             catch (final ParseException exception)
             {
                 this.outputDelegate.printlnWarnMessage(String.format(COULD_NOT_PARSE, "wkt", wkt));
+                return new HashSet<>();
             }
-        });
+        }
+
         return wktSet;
     }
 
@@ -990,6 +1020,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             {
                 this.outputDelegate.printlnWarnMessage(
                         String.format(COULD_NOT_PARSE, "ItemType", typeElement));
+                return new HashSet<>();
             }
         }
         return typeSet;
@@ -1017,6 +1048,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             {
                 this.outputDelegate
                         .printlnWarnMessage(String.format(COULD_NOT_PARSE, "id", idElement));
+                return new HashSet<>();
             }
         }
         return idSet;
@@ -1039,16 +1071,26 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             final String[] memberElements = member.split(",");
             if (memberElements.length != expectedElementLength)
             {
-                this.outputDelegate.printlnWarnMessage(
-                        "invalid syntax for member string `" + memberString + "', skipping...");
-                continue;
+                this.outputDelegate.printlnErrorMessage(
+                        "invalid syntax for member string `" + memberString + "'");
+                return new HashSet<>();
+            }
+
+            final Optional<Tuple<String, ItemType>> itemType = extractItemTypeFromMemberElement(
+                    memberElements[0], member);
+            final Optional<Tuple<String, Long>> identifier = extractIdFromMemberElement(
+                    memberElements[1], member);
+            final Optional<Tuple<String, String>> role = extractRoleFromMemberElement(
+                    memberElements[2]);
+
+            if (itemType.isEmpty() || identifier.isEmpty() || role.isEmpty())
+            {
+                return new HashSet<>();
             }
 
             final RelationMemberSearchConstraint constraint = new RelationMemberSearchConstraint();
-            extractItemTypeFromMemberElement(memberElements[0], member)
-                    .ifPresent(constraint::withType);
-            extractIdFromMemberElement(memberElements[1], member).ifPresent(constraint::withId);
-            extractRoleFromMemberElement(memberElements[2]).ifPresent(constraint::withRole);
+            constraint.withType(itemType.get().getSecond()).withId(identifier.get().getSecond())
+                    .withRole(role.get().getSecond());
             constraints.add(constraint);
         }
 
@@ -1066,7 +1108,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         }
         catch (final ParseException exception)
         {
-            this.outputDelegate.printlnErrorMessage("unable to parse '" + wkt + "' as WKT");
+            this.outputDelegate.printlnErrorMessage("unable to parse `" + wkt + "' as WKT");
             return null;
         }
     }
