@@ -128,12 +128,12 @@ public class AtlasDiffCommandTest
         command.setNewFileSystem(this.memoryFileSystem);
         command.setNewOutStream(new PrintStream(outContent));
         command.setNewErrStream(new PrintStream(errContent));
-        command.runSubcommand(ATLAS_BEFORE, ATLAS_AFTER, "--ldgeojson", "--recursive");
+        command.runSubcommand(ATLAS_BEFORE, ATLAS_AFTER, "--ldgeojson", "--recursive", "--verbose");
         Assert.assertEquals("atlasA.atlas\n" + this.atlas1to2Diff + "\n" + "atlasB.atlas\n"
-                + AtlasDiffCommand.NO_CHANGE + "\n" + "x/atlasC.atlas\n"
-                + AtlasDiffCommand.NO_CHANGE + "\n" + "x/atlasD.atlas\n"
-                + AtlasDiffCommand.NO_CHANGE + "\n", outContent.toString());
-        Assert.assertEquals("", errContent.toString());
+                + "x/atlasC.atlas\n" + "x/atlasD.atlas\n", outContent.toString());
+        Assert.assertEquals("atlas-diff: atlases are effectively identical\n"
+                + "atlas-diff: atlases are effectively identical\n"
+                + "atlas-diff: atlases are effectively identical\n", errContent.toString());
     }
 
     @Test

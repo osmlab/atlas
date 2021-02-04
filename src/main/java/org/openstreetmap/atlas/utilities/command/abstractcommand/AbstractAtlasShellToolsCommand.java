@@ -166,6 +166,17 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     public abstract int execute();
 
     /**
+     * Force the current command to exit with a given exit code.
+     *
+     * @param exitCode
+     *            the exit code
+     */
+    public void forceExit(final int exitCode)
+    {
+        System.exit(exitCode);
+    }
+
+    /**
      * The simple name of the command. This should be easy to type for ease of command line use.
      *
      * @return the simple name of the command

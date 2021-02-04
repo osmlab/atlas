@@ -1,0 +1,6 @@
+Dump metadata to stdout for all atlases in the current directory:
+#$ atlas-metadata-reader *.atlas
+Display only the tag metadata for atlases in a given directory:
+#$ atlas-metadata-reader dir/*.atlas --tags
+Display the code and data versions of some atlases:
+#$ atlas-metadata-reader 1.atlas 2.atlas --code-version --data-version

@@ -1,0 +1,5 @@
+Read selected fields from the metadata of some given input atlases. By default, the reader
+will read all fields and dump them to stdout. The user may supply additional options to filter
+for specific fields. For example, if the user only cares about the 'size' field, they may
+supply the '--size' option to filter for that field. Or if the user would only like to see the
+'code-version' and 'data-version' fields, they may supply '--code-version' and '--data-version'.
