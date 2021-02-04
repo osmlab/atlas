@@ -1,5 +1,5 @@
 Display all features in an atlas:
-#$ find foo.atlas
+#$ find foo.atlas --all
 Display all edges in an atlas:
 #$ find foo.atlas --type EDGE
 Find features with Atlas ID 123 or 456 in an atlas:

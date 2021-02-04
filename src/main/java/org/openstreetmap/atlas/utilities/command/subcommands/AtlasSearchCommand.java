@@ -216,6 +216,9 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     private static final String OSMID_OPTION_DESCRIPTION = "A comma separated list of OSM ids for which to search.";
     private static final String OSMID_OPTION_HINT = "osmids";
 
+    private static final String ALL_OPTION_LONG = "all";
+    private static final String ALL_OPTION_DESCRIPTION = "Ignore all other criteria and just print all entities.";
+
     private static final String OUTPUT_ATLAS = "collected-multi.atlas";
     private static final String COLLECT_OPTION_LONG = "collect-matching";
     private static final String COLLECT_OPTION_DESCRIPTION = "Collect all matching atlas files and save to a file using the MultiAtlas.";
@@ -224,6 +227,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     private static final Integer EDGE_ONLY_CONTEXT = 4;
     private static final Integer NODE_ONLY_CONTEXT = 5;
     private static final Integer RELATION_ONLY_CONTEXT = 6;
+    private static final Integer SHOW_ALL_CONTEXT = 7;
 
     private static final String COULD_NOT_PARSE = "could not parse %s '%s'";
 
@@ -255,7 +259,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     private Set<ItemType> typesToCheckFromOption;
     private final Set<ItemType> impliedTypesToCheck;
 
-    private Set<Atlas> matchingAtlases;
+    private final Set<Atlas> matchingAtlases;
 
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
     private final CommandOutputDelegate outputDelegate;
@@ -284,6 +288,8 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         this.osmIds = new HashSet<>();
         this.typesToCheckFromOption = new HashSet<>();
         this.impliedTypesToCheck = new HashSet<>();
+
+        this.matchingAtlases = new HashSet<>();
     }
 
     @Override
@@ -404,6 +410,9 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                 OptionOptionality.OPTIONAL, OSMID_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT,
                 NODE_ONLY_CONTEXT, RELATION_ONLY_CONTEXT);
 
+        registerOption(ALL_OPTION_LONG, ALL_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
+                SHOW_ALL_CONTEXT);
+
         registerOption(COLLECT_OPTION_LONG, COLLECT_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL);
         super.registerOptionsAndArguments();
     }
@@ -412,8 +421,9 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     public int start()
     {
         /*
-         * Parse typesToCheck first. We will overwrite this if necessary in the case that the user
-         * provides a type specific search criteria (e.g. --startNode).
+         * Get the types we will need to search for, implied by the option context. So for example,
+         * if the user supplied an option that indicates they are only interested in Relations (e.g.
+         * --relation-members), then we can set the impliedTypesToCheck to contain only RELATION.
          */
         if (this.optionAndArgumentDelegate.getParserContext() == ALL_TYPES_CONTEXT)
         {
@@ -430,6 +440,14 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         else if (this.optionAndArgumentDelegate.getParserContext() == RELATION_ONLY_CONTEXT)
         {
             this.impliedTypesToCheck.add(ItemType.RELATION);
+        }
+        else if (this.optionAndArgumentDelegate.getParserContext() == SHOW_ALL_CONTEXT)
+        {
+            this.impliedTypesToCheck.addAll(Sets.hashSet(ItemType.values()));
+            /*
+             * If our context is from --all, we don't need to do anything else.
+             */
+            return 0;
         }
 
         /*
@@ -503,8 +521,6 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         this.osmIds = this.optionAndArgumentDelegate
                 .getOptionArgument(OSMID_OPTION_LONG, this::parseCommaSeparatedLongs)
                 .orElse(new HashSet<>());
-
-        this.matchingAtlases = new HashSet<>();
 
         if (this.typesToCheckFromOption.isEmpty() && this.boundingWkts.isEmpty()
                 && this.geometryWkts.isEmpty() && this.subGeometryWkts.isEmpty()

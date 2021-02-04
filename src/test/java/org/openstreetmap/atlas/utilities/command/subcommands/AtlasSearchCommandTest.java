@@ -587,6 +587,37 @@ public class AtlasSearchCommandTest
     }
 
     @Test
+    public void testShowAll()
+    {
+        try (FileSystem filesystem = Jimfs.newFileSystem(Configuration.osX()))
+        {
+            setupFilesystem1(filesystem);
+            final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+            final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
+            final AtlasSearchCommand command = new AtlasSearchCommand();
+            command.setNewFileSystem(filesystem);
+            command.setNewOutStream(new PrintStream(outContent));
+            command.setNewErrStream(new PrintStream(errContent));
+
+            command.runSubcommand("/Users/foo/test2.atlas", "--verbose", "--all");
+
+            Assert.assertEquals("Found entity matching criteria in /Users/foo/test2.atlas:\n"
+                    + "CompletePoint [\n" + "identifier: 1000000, \n" + "location: POINT (1 1), \n"
+                    + "tags: {foo=bar}, \n" + "parentRelations: [], \n"
+                    + "bounds: POLYGON ((1 1, 1 1, 1 1, 1 1, 1 1)), \n" + "]\n" + "\n",
+                    outContent.toString());
+            Assert.assertEquals(
+                    "find: loading /Users/foo/test2.atlas\n"
+                            + "find: processing atlas /Users/foo/test2.atlas (1/1)\n",
+                    errContent.toString());
+        }
+        catch (final IOException exception)
+        {
+            throw new CoreException("FileSystem operation failed", exception);
+        }
+    }
+
+    @Test
     public void testStartEndNodeSearch()
     {
         try (FileSystem filesystem = Jimfs.newFileSystem(Configuration.osX()))
@@ -842,5 +873,12 @@ public class AtlasSearchCommandTest
         final File atlasFile = new File("/Users/foo/test.atlas", filesystem);
         assert atlas != null;
         atlas.save(atlasFile);
+
+        final PackedAtlasBuilder builder2 = new PackedAtlasBuilder();
+        builder2.addPoint(1000000L, Location.forWkt("POINT(1 1)"), Maps.hashMap("foo", "bar"));
+        final Atlas atlas2 = builder2.get();
+        final File atlasFile2 = new File("/Users/foo/test2.atlas", filesystem);
+        assert atlas2 != null;
+        atlas2.save(atlasFile2);
     }
 }
