@@ -2,13 +2,14 @@ Search a collection of atlases for entities that match given criteria, including
 identifiers (both Atlas and OSM), tags, geometry, and more.
 
 Specifying multiple criteria will result in an AND-like operation, where only features that match
-all provided criteria are reported. (For example, specifying --id=3 AND --taggableFilter='highway->*'
+all provided criteria are reported. (For example, specifying --id=3 AND --taggable-matcher='highway=*'
 will show only those features that have an ID 3 and some kind of highway tag). However, specifying
 multiple options within a given criterion will result in an OR-like operation within that criterion.
-(For example, specifying --id=1,2 will show features that have either ID 1 or ID 2).
+For example, specifying --id=1,2 will show features that have either ID 1 or ID 2. Note that the
+`--and-relation-members' option is a special exception to this rule. See more details in the OPTIONS section.
 
 The final feature report will display matching entities in string form, along with the
 atlas file that contained them. You can narrow the search to specific ItemTypes
-by specifying the '--types' option. The '--collect-matching' option will use
-the MultiAtlas to save all matching atlases to a file called 'collected-multi.atlas'. See the OPTIONS
+by specifying the `--types' option. The `--collect-matching' option will use
+the MultiAtlas to save all matching atlases to a file called `collected-multi.atlas'. See the OPTIONS
 and EXAMPLES section for more information on the various search criteria.
