@@ -398,8 +398,11 @@ public class MultiplePolyLineToPolygonsConverter
             // Get results
             final List<org.locationtech.jts.geom.Polygon> result = (List<org.locationtech.jts.geom.Polygon>) polygonizer
                     .getPolygons();
-            return result.stream().map(JTS_POLYGON_CONVERTER::backwardConvert)
-                    .collect(Collectors.toList());
+            return result.stream().map(polygon ->
+            {
+                polygon.normalize();
+                return JTS_POLYGON_CONVERTER.backwardConvert(polygon);
+            }).collect(Collectors.toList());
         }
         else
         {
