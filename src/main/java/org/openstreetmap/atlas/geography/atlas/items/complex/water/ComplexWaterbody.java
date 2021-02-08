@@ -22,7 +22,8 @@ public class ComplexWaterbody extends ComplexWaterEntity
 {
     private static final long serialVersionUID = -666543090371777011L;
 
-    private static final RelationOrAreaToMultiPolygonConverter RELATION_OR_AREA_TO_MULTI_POLYGON_CONVERTER = new RelationOrAreaToMultiPolygonConverter();
+    private static final RelationOrAreaToMultiPolygonConverter RELATION_OR_AREA_TO_MULTI_POLYGON_CONVERTER = new RelationOrAreaToMultiPolygonConverter(
+            true);
 
     private static final Logger logger = LoggerFactory.getLogger(ComplexWaterbody.class);
 
