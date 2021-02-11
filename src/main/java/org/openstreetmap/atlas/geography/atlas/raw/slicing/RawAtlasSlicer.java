@@ -1319,7 +1319,9 @@ public class RawAtlasSlicer
             final Set<Long> relationIds = new HashSet<>();
             area.relations().forEach(relation -> relationIds.add(relation.getIdentifier()));
             final CompleteLine lineFromArea = new CompleteLine(area.getIdentifier(),
-                    area.asPolygon(), area.getTags(), relationIds);
+                    JTS_POLYLINE_CONVERTER.backwardConvert(
+                            JTS_POLYGON_CONVERTER.convert(area.asPolygon()).getExteriorRing()),
+                    area.getTags(), relationIds);
             area.relations().forEach(relation -> this.stagedRelations.get(relation.getIdentifier())
                     .withAddedMember(lineFromArea, area));
             removeArea(area);
