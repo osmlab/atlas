@@ -56,6 +56,9 @@ public class WaySectionProcessorTestRule extends CoreTestRule
     @TestAtlas(loadFromTextResource = "lineWithRepeatedLocation.atlas.txt")
     private Atlas lineWithRepeatedLocation;
 
+    @TestAtlas(loadFromTextResource = "lineWithLessThanTwoNodesDueToRepeatedLocationAtEndOfLine.atlas.txt")
+    private Atlas lineWithLessThanTwoNodesDueToRepeatedLocationAtEndOfLine;
+
     @TestAtlas(loadFromTextResource = "loopWithRepeatedLocation.atlas.txt")
     private Atlas loopWithRepeatedLocation;
 
@@ -92,6 +95,11 @@ public class WaySectionProcessorTestRule extends CoreTestRule
         return this.lineWithInvalidOverlappingGeometry;
     }
 
+    public Atlas getLineWithLessThanTwoNodesDueToRepeatedLocationAtEndOfLineAtlas()
+    {
+        return this.lineWithLessThanTwoNodesDueToRepeatedLocationAtEndOfLine;
+    }
+
     public Atlas getLineWithLoopAtEndAtlas()
     {
         return this.lineWithLoopAtEnd;
@@ -112,14 +120,14 @@ public class WaySectionProcessorTestRule extends CoreTestRule
         return this.lineWithRepeatedLocation;
     }
 
-    public Atlas getLoopWithRepeatedLocationAtlas()
-    {
-        return this.loopWithRepeatedLocation;
-    }
-
     public Atlas getLoopingWayWithIntersectionAtlas()
     {
         return this.loopingWayWithIntersection;
+    }
+
+    public Atlas getLoopWithRepeatedLocationAtlas()
+    {
+        return this.loopWithRepeatedLocation;
     }
 
     public Atlas getMalformedPolyLineAtlas()
