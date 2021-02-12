@@ -580,10 +580,12 @@ public class AtlasSectionProcessor
         {
             logger.error("Edge {} hass less than {} nodes, cannot be sectioned!",
                     line.getIdentifier(), MINIMUM_NODES_TO_QUALIFY_AS_A_EDGE);
-            this.changes.add(FeatureChange.add(
-                    CompleteLine.shallowFrom(line).withTags(line.getTags()).withAddedTag(SyntheticInvalidWaySectionTag.KEY,
-                            SyntheticInvalidWaySectionTag.YES.toString()),
-                    this.inputAtlas));
+            this.changes
+                    .add(FeatureChange.add(
+                            CompleteLine.shallowFrom(line).withTags(line.getTags()).withAddedTag(
+                                    SyntheticInvalidWaySectionTag.KEY,
+                                    SyntheticInvalidWaySectionTag.YES.toString()),
+                            this.inputAtlas));
             return;
         }
 

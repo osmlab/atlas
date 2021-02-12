@@ -120,14 +120,14 @@ public class WaySectionProcessorTestRule extends CoreTestRule
         return this.lineWithRepeatedLocation;
     }
 
-    public Atlas getLoopingWayWithIntersectionAtlas()
-    {
-        return this.loopingWayWithIntersection;
-    }
-
     public Atlas getLoopWithRepeatedLocationAtlas()
     {
         return this.loopWithRepeatedLocation;
+    }
+
+    public Atlas getLoopingWayWithIntersectionAtlas()
+    {
+        return this.loopingWayWithIntersection;
     }
 
     public Atlas getMalformedPolyLineAtlas()
