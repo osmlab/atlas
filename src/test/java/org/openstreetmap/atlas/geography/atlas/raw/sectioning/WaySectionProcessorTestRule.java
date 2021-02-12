@@ -56,6 +56,9 @@ public class WaySectionProcessorTestRule extends CoreTestRule
     @TestAtlas(loadFromTextResource = "lineWithRepeatedLocation.atlas.txt")
     private Atlas lineWithRepeatedLocation;
 
+    @TestAtlas(loadFromTextResource = "lineWithLessThanTwoNodesDueToRepeatedLocationAtEndOfLine.atlas.txt")
+    private Atlas lineWithLessThanTwoNodesDueToRepeatedLocationAtEndOfLine;
+
     @TestAtlas(loadFromTextResource = "loopWithRepeatedLocation.atlas.txt")
     private Atlas loopWithRepeatedLocation;
 
@@ -90,6 +93,11 @@ public class WaySectionProcessorTestRule extends CoreTestRule
     public Atlas getLineWithInvalidOverlappingGeometry()
     {
         return this.lineWithInvalidOverlappingGeometry;
+    }
+
+    public Atlas getLineWithLessThanTwoNodesDueToRepeatedLocationAtEndOfLineAtlas()
+    {
+        return this.lineWithLessThanTwoNodesDueToRepeatedLocationAtEndOfLine;
     }
 
     public Atlas getLineWithLoopAtEndAtlas()
