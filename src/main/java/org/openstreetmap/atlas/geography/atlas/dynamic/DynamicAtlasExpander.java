@@ -386,9 +386,8 @@ class DynamicAtlasExpander
     private void browseForPotentialNewShardsFromAggressiveRelations()
     {
         // In case we want to aggressively explore relations, we constrain it to only when the
-        // policy is to not extend indefinitely, and to defer loading.
-        if (this.policy.isAggressivelyExploreRelations() && !this.policy.isExtendIndefinitely()
-                && this.policy.isDeferLoading())
+        // policy is to defer loading.
+        if (this.policy.isAggressivelyExploreRelations() && this.policy.isDeferLoading())
         {
             // Get all the neighboring shards
             final Set<Shard> onlyNeighboringShards = new HashSet<>();
