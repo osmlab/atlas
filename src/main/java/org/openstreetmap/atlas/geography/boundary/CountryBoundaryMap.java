@@ -40,6 +40,7 @@ import org.locationtech.jts.geom.prep.PreparedGeometryFactory;
 import org.locationtech.jts.geom.prep.PreparedPolygon;
 import org.locationtech.jts.index.strtree.STRtree;
 import org.locationtech.jts.io.WKTReader;
+import org.locationtech.jts.io.WKTWriter;
 import org.locationtech.jts.precision.GeometryPrecisionReducer;
 import org.opengis.feature.Feature;
 import org.opengis.feature.Property;
@@ -59,7 +60,6 @@ import org.openstreetmap.atlas.geography.boundary.converters.CountryListTwoWaySt
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
-import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPrecisionManager;
 import org.openstreetmap.atlas.geography.geojson.GeoJson;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
@@ -104,6 +104,9 @@ public class CountryBoundaryMap implements Serializable, GeoJson
     private static final String COUNTRY_CODE = "cntry_code";
     private static final List<String> COUNTRY_CODE_FIELDS = Arrays.asList(ISO_COUNTRY,
             COUNTRY_CODE);
+
+    // WKT Helpers
+    private static final WKTWriter WKT_WRITER = new WKTWriter();
 
     private static final String GEOMETRY_FIELD = "the_geom";
     private static final String LIST_SEPARATOR = "#";
@@ -925,8 +928,7 @@ public class CountryBoundaryMap implements Serializable, GeoJson
             {
                 output.write(country);
                 output.write(COUNTRY_BOUNDARY_DELIMITER);
-                output.write(new JtsPolygonConverter()
-                        .backwardConvert((Polygon) polygon.getGeometry()).toWkt());
+                output.write(WKT_WRITER.write(polygon.getGeometry()));
                 output.write(LIST_SEPARATOR);
                 output.write(System.lineSeparator());
             }
