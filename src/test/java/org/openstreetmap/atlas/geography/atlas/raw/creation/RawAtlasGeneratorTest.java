@@ -133,8 +133,8 @@ public class RawAtlasGeneratorTest
         // Verify Atlas Entities
         assertBasicRawAtlasPrinciples(atlas);
         Assert.assertEquals(457863, atlas.numberOfPoints());
-        Assert.assertEquals(13334, atlas.numberOfAreas());
-        Assert.assertEquals(32522, atlas.numberOfLines());
+        Assert.assertEquals(13335, atlas.numberOfAreas());
+        Assert.assertEquals(32521, atlas.numberOfLines());
         Assert.assertEquals(408, atlas.numberOfRelations());
         Assert.assertEquals(49, Iterables.size(atlas.points(
                 point -> Validators.hasValuesFor(point, SyntheticDuplicateOsmNodeTag.class))));

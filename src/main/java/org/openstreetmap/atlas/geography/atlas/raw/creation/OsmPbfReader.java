@@ -562,8 +562,9 @@ public class OsmPbfReader implements Sink
         }
         else
         {
+            final PolyLine wayPolyLine = constructWayPolyline(way);
             final TagMap wayTags = populateEntityTags(way);
-            if (way.isClosed())
+            if (wayPolyLine.first().equals(wayPolyLine.last()))
             {
                 boolean kept = false;
                 if (this.loadingOption.getAreaFilter().test(wayTags))
@@ -575,7 +576,7 @@ public class OsmPbfReader implements Sink
                 }
                 if (this.loadingOption.getEdgeFilter().test(wayTags))
                 {
-                    this.builder.addLine(padIdentifier(way.getId()), constructWayPolyline(way),
+                    this.builder.addLine(padIdentifier(way.getId()), wayPolyLine,
                             wayTags.getTags());
                     this.statistics.recordCreatedLine();
                     kept = true;
@@ -587,8 +588,7 @@ public class OsmPbfReader implements Sink
             }
             else
             {
-                this.builder.addLine(padIdentifier(way.getId()), constructWayPolyline(way),
-                        wayTags.getTags());
+                this.builder.addLine(padIdentifier(way.getId()), wayPolyLine, wayTags.getTags());
                 this.statistics.recordCreatedLine();
             }
         }
