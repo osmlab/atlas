@@ -527,11 +527,15 @@ public class AtlasSectionProcessor
         for (int i = 0; i < linePolyLine.size(); i++)
         {
             final Location location = linePolyLine.get(i);
-            if (location.equals(previousLocation))
+            if (i == 0 || i == linePolyLine.size() - 1)
+            {
+                nodesForEdge.add(i);
+            }
+            else if (location.equals(previousLocation))
             {
                 // NOOP
             }
-            else if (i == 0 || i == linePolyLine.size() - 1 || selfIntersections.contains(location)
+            else if (selfIntersections.contains(location)
                     || shouldSectionAtLocation(location, line))
             {
                 nodesForEdge.add(i);
