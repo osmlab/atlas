@@ -51,12 +51,10 @@ import org.openstreetmap.atlas.utilities.tuples.Tuple;
 
 /**
  * Search atlases for some given feature identifiers or properties, with various options and
- * restrictions. Draws some inspiration from similar identifier locater commands by cstaylor and
+ * restrictions. Draws some inspiration from similar identifier locator commands by cstaylor and
  * bbreithaupt.
  *
  * @author lcram
- * @author cstaylor
- * @author bbreithaupt
  */
 // Some future improvements
 // + fix RelationMember delimiting so that roles with ';' won't break everything?
