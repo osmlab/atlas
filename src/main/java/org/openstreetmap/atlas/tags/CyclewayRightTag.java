@@ -14,7 +14,10 @@ public enum CyclewayRightTag
     LANE,
     TRACK,
     OPPOSITE_LANE,
-    OPPOSITE_SHARE_BUSWAY;
+    OPPOSITE_SHARE_BUSWAY,
+    SHARED_LANE,
+    SHARED,
+    SHARED_BUSWAY;
 
     @TagKey
     public static final String KEY = "cycleway:right";
