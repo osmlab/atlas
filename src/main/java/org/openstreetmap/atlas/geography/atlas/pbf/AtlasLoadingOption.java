@@ -147,6 +147,7 @@ public final class AtlasLoadingOption implements Serializable
         this.loadAtlasRelation = true;
         this.loadOsmBound = true;
         this.countrySlicing = false;
+        this.keepAll = false;
         this.waySectioning = false;
         this.loadWaysSpanningCountryBoundaries = true;
         this.countryBoundaryMap = null;

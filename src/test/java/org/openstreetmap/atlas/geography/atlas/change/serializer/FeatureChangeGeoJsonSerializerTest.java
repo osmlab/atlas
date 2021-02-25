@@ -50,7 +50,7 @@ public class FeatureChangeGeoJsonSerializerTest
     public void testBigFeatureChange()
     {
         final Atlas longWaterWay = this.rule.longWaterWayAtlas();
-        final Line waterway = longWaterWay.line(374902834L);
+        final Line waterway = longWaterWay.line(374902834000000L);
         final List<Location> points = Iterables.stream(waterway).collectToList();
         Collections.reverse(points);
         final FeatureChange featureChange = FeatureChange.add(

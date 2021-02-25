@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.change.description;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -24,11 +25,12 @@ import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.geography.atlas.items.LocationItem;
 
 /**
  * A helper class for generating a list of {@link ChangeDescriptor}s based on some
  * {@link AtlasEntity} beforeView and afterView.
- * 
+ *
  * @author lcram
  */
 public final class ChangeDescriptorGenerator
@@ -39,13 +41,55 @@ public final class ChangeDescriptorGenerator
     private final AtlasEntity beforeView;
     private final AtlasEntity afterView;
     private final ChangeDescriptorType changeDescriptorType;
+    /**
+     * Expected nodes for a way. This may be empty.
+     */
+    private final List<LocationItem> nodes = new ArrayList<>(0);
 
     ChangeDescriptorGenerator(final AtlasEntity beforeView, final AtlasEntity afterView,
             final ChangeDescriptorType changeDescriptorType)
     {
+        this(beforeView, afterView, changeDescriptorType, null);
+    }
+
+    /**
+     * Create a new change description
+     *
+     * @param beforeView
+     *            The object prior to the change
+     * @param afterView
+     *            The view after the change
+     * @param changeDescriptorType
+     *            The change type
+     * @param nodes
+     *            If modifying a way geometry, this <i>must</i> contain <i>all</i> nodes needed for
+     *            the way, if openStreetChange is needed (MapRoulette challenges can use this for
+     *            quick fixes).
+     */
+    ChangeDescriptorGenerator(final AtlasEntity beforeView, final AtlasEntity afterView,
+            final ChangeDescriptorType changeDescriptorType, final Collection<LocationItem> nodes)
+    {
         this.beforeView = beforeView;
         this.afterView = afterView;
         this.changeDescriptorType = changeDescriptorType;
+        this.setNodes(nodes);
+    }
+
+    /**
+     * Set nodes needed for a full OSC file
+     *
+     * @param nodes
+     *            The nodes needed for an OSC.
+     * @return this, for easy chaining
+     */
+    public ChangeDescriptorGenerator setNodes(final Collection<LocationItem> nodes)
+    {
+        this.nodes.clear();
+        if (nodes != null)
+        {
+            this.nodes.addAll(nodes);
+        }
+        return this;
     }
 
     List<ChangeDescriptor> generate()

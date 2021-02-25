@@ -18,6 +18,7 @@ import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
 import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescription;
@@ -26,13 +27,17 @@ import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.Ch
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.TagChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteArea;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteEntity;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteLine;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
+import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.validators.FeatureChangeUsefulnessValidator;
 import org.openstreetmap.atlas.tags.names.NameTag;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
 
@@ -204,6 +209,84 @@ public class FeatureChangeTest
                 + "GEOMETRY(REMOVE, 1/7, POINT (2 2))\n" + "]";
 
         Assert.assertEquals(goldenString, description.toString());
+    }
+
+    @Test
+    public void testChangeDescriptionGeometryAtlasAddGeometry()
+    {
+        final Atlas atlas = this.rule.getGeometryChangeAtlas();
+        final Line line = atlas.line(1000000);
+        final CompleteEntity<CompleteLine> reversedLine = (CompleteEntity<CompleteLine>) CompleteEntity
+                .shallowFrom(line);
+        final List<Location> locations = Iterables.asList(line.asPolyLine());
+        locations.add(1, Location.CENTER);
+        reversedLine.withGeometry(locations);
+
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
+                (AtlasEntity) reversedLine);
+        featureChange1.withAtlasContext(atlas);
+
+        final ChangeDescription description = featureChange1.explain();
+
+        final String goldenString = "{\"type\":\"UPDATE\"," + "\"descriptors\":["
+                + "{\"name\":\"GEOMETRY\",\"type\":\"ADD\",\"position\":\"1/3\","
+                + "\"afterView\":\"POINT (0 0)\"}],"
+                // The OSC changes
+                + "\"osc\":{\"create\":[{\"id\":-1,\"type\":\"node\",\"lat\":0.0,\"lon\":0.0,\"visible\":true}],"
+                + "\"modify\":[{\"id\":1,\"type\":\"way\",\"nd\":[1,-1,2,3],\"visible\":true}]}"
+                + "}";
+
+        Assert.assertEquals(goldenString, description.toJsonElement().toString());
+    }
+
+    @Test
+    public void testChangeDescriptionGeometryAtlasChangeGeometry()
+    {
+        final Atlas atlas = this.rule.getGeometryChangeAtlas();
+        final Line line = atlas.line(1000000);
+        final CompleteEntity<CompleteLine> reversedLine = (CompleteEntity<CompleteLine>) CompleteEntity
+                .shallowFrom(line);
+        final List<Location> locations = Iterables.asList(line.asPolyLine());
+        Collections.reverse(locations);
+        reversedLine.withGeometry(locations);
+
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.ADD,
+                (AtlasEntity) reversedLine);
+        featureChange1.withAtlasContext(atlas);
+
+        final ChangeDescription description = featureChange1.explain();
+
+        final String goldenString = "{\"type\":\"UPDATE\"," + "\"descriptors\":["
+                + "{\"name\":\"GEOMETRY\",\"type\":\"ADD\",\"position\":\"3/3\","
+                + "\"afterView\":\"LINESTRING (-61.33285 15.429499, -61.336198 15.420563)\"},"
+                + "{\"name\":\"GEOMETRY\",\"type\":\"REMOVE\",\"position\":\"0/3\","
+                + "\"beforeView\":\"LINESTRING (-61.336198 15.420563, -61.33285 15.429499)\"}],"
+                // The OSC changes
+                + "\"osc\":{\"modify\":[{\"id\":1,\"type\":\"way\",\"nd\":[3,2,1],\"visible\":true}]}"
+                + "}";
+
+        Assert.assertEquals(goldenString, description.toJsonElement().toString());
+    }
+
+    @Test
+    public void testChangeDescriptionGeometryAtlasDeleteGeometry()
+    {
+        final Atlas atlas = this.rule.getGeometryChangeAtlas();
+        final Line line = atlas.line(1000000);
+
+        final FeatureChange featureChange1 = new FeatureChange(ChangeType.REMOVE,
+                CompleteEntity.shallowFrom(line));
+        featureChange1.withAtlasContext(atlas);
+
+        final ChangeDescription description = featureChange1.explain();
+
+        final String goldenString = "{\"type\":\"REMOVE\"," + "\"descriptors\":[],\"osc\":"
+                + "{\"delete\":[{\"id\":1,\"type\":\"way\",\"nd\":[1,2,3],\"visible\":false,\"if-unused\":true},"
+                + "{\"id\":1,\"type\":\"node\",\"visible\":false,\"if-unused\":true},"
+                + "{\"id\":2,\"type\":\"node\",\"visible\":false,\"if-unused\":true},"
+                + "{\"id\":3,\"type\":\"node\",\"visible\":false,\"if-unused\":true}]}" + "}";
+
+        Assert.assertEquals(goldenString, description.toJsonElement().toString());
     }
 
     @Test
