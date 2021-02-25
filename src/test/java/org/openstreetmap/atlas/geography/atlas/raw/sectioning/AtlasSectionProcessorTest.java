@@ -92,6 +92,24 @@ public class AtlasSectionProcessorTest
     }
 
     @Test
+    public void testLineWithLessThanTwoNodesDueToRepeatedLocationAtEndOfLine()
+    {
+        // Based on a prior version of https://www.openstreetmap.org/way/488453376
+        final Atlas slicedRawAtlas = this.setup
+                .getLineWithLessThanTwoNodesDueToRepeatedLocationAtEndOfLineAtlas();
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
+                AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
+
+        Assert.assertNotNull("Line has been converted to an Edge",
+                finalAtlas.edge(488453376000000L));
+        Assert.assertNull("Line has not been converted to an Edge",
+                finalAtlas.line(488453376000000L));
+        final Map<String, String> originalTags = slicedRawAtlas.line(488453376000000L).getTags();
+        final Map<String, String> finalTags = finalAtlas.edge(488453376000000L).getTags();
+        Assert.assertEquals("Edge has no other tag changes", originalTags, finalTags);
+    }
+
+    @Test
     public void testLineWithLoopAtEnd()
     {
         // Based on https://www.openstreetmap.org/way/461101743

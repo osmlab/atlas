@@ -527,11 +527,15 @@ public class AtlasSectionProcessor
         for (int i = 0; i < linePolyLine.size(); i++)
         {
             final Location location = linePolyLine.get(i);
-            if (location.equals(previousLocation))
+            if (i == 0 || i == linePolyLine.size() - 1)
+            {
+                nodesForEdge.add(i);
+            }
+            else if (location.equals(previousLocation))
             {
                 // NOOP
             }
-            else if (i == 0 || i == linePolyLine.size() - 1 || selfIntersections.contains(location)
+            else if (selfIntersections.contains(location)
                     || shouldSectionAtLocation(location, line))
             {
                 nodesForEdge.add(i);
@@ -580,10 +584,12 @@ public class AtlasSectionProcessor
         {
             logger.error("Edge {} hass less than {} nodes, cannot be sectioned!",
                     line.getIdentifier(), MINIMUM_NODES_TO_QUALIFY_AS_A_EDGE);
-            this.changes.add(FeatureChange.add(
-                    CompleteLine.shallowFrom(line).withAddedTag(SyntheticInvalidWaySectionTag.KEY,
-                            SyntheticInvalidWaySectionTag.YES.toString()),
-                    this.inputAtlas));
+            this.changes
+                    .add(FeatureChange.add(
+                            CompleteLine.shallowFrom(line).withTags(line.getTags()).withAddedTag(
+                                    SyntheticInvalidWaySectionTag.KEY,
+                                    SyntheticInvalidWaySectionTag.YES.toString()),
+                            this.inputAtlas));
             return;
         }
 

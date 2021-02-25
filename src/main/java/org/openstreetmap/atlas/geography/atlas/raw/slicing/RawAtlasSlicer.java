@@ -22,6 +22,7 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryCollection;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.LinearRing;
+import org.locationtech.jts.geom.TopologyException;
 import org.locationtech.jts.geom.prep.PreparedGeometry;
 import org.locationtech.jts.geom.prep.PreparedGeometryFactory;
 import org.locationtech.jts.geom.prep.PreparedPolygon;
@@ -1411,8 +1412,19 @@ public class RawAtlasSlicer
                 {
                     results.put(countryCode, new HashSet<>());
                 }
-                final Geometry clipped = OverlayNG.overlay(geometry, boundaryPolygon.getGeometry(),
-                        OverlayNG.INTERSECTION, JtsPrecisionManager.getPrecisionModel());
+                Geometry clipped;
+                try
+                {
+                    clipped = geometry.intersection(boundaryPolygon.getGeometry());
+                }
+                catch (final TopologyException exc)
+                {
+                    logger.warn(
+                            "Topology exception using regular intersection, falling back to snap overlay");
+                    clipped = OverlayNG.overlay(geometry, boundaryPolygon.getGeometry(),
+                            OverlayNG.INTERSECTION, JtsPrecisionManager.getPrecisionModel());
+                }
+
                 if (clipped instanceof GeometryCollection)
                 {
                     CountryBoundaryMap.geometries((GeometryCollection) clipped)
