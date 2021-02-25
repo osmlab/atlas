@@ -16,8 +16,13 @@ import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagChangeEvent;
 import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 /**
  * Independent {@link Node} that may contain its own altered data. At scale, use at your own risk.
@@ -261,7 +266,12 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         builder.append(separator);
         if (this.location != null)
         {
-            builder.append("location: " + this.location + ", ");
+            builder.append("geometry: " + this.location + ", ");
+            builder.append(separator);
+        }
+        if (this.tags != null)
+        {
+            builder.append("tags: " + new TreeMap<>(this.tags) + ", ");
             builder.append(separator);
         }
         if (this.inEdgeIdentifiers != null)
@@ -286,11 +296,6 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         {
             builder.append("explicitlyExcludedOutEdges: "
                     + new TreeSet<>(this.explicitlyExcludedOutEdgeIdentifiers) + ", ");
-            builder.append(separator);
-        }
-        if (this.tags != null)
-        {
-            builder.append("tags: " + new TreeMap<>(this.tags) + ", ");
             builder.append(separator);
         }
         if (this.relationIdentifiers != null)
@@ -346,6 +351,45 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     public void setTags(final Map<String, String> tags)
     {
         this.tags = tags != null ? new HashMap<>(tags) : null;
+    }
+
+    @Override
+    public JsonObject toJson()
+    {
+        final JsonObject nodeObject = new JsonObject();
+        nodeObject.addProperty("identifier", this.identifier);
+        nodeObject.addProperty("type", ItemType.NODE.toString());
+        nodeObject.addProperty("geometry", this.location.toString());
+
+        final JsonObject tagsObject = new JsonObject();
+        for (final String tagKey : new TreeSet<>(this.tags.keySet()))
+        {
+            tagsObject.addProperty(tagKey, this.tags.get(tagKey));
+        }
+        nodeObject.add("tags", tagsObject);
+
+        final JsonArray inEdgeIdentifiersArray = new JsonArray();
+        for (final Long inEdgeIdentifier : new TreeSet<>(this.inEdgeIdentifiers))
+        {
+            inEdgeIdentifiersArray.add(new JsonPrimitive(inEdgeIdentifier));
+        }
+        final JsonArray outEdgeIdentifiersArray = new JsonArray();
+        for (final Long outEdgeIdentifier : new TreeSet<>(this.outEdgeIdentifiers))
+        {
+            outEdgeIdentifiersArray.add(new JsonPrimitive(outEdgeIdentifier));
+        }
+        nodeObject.add("inEdges", inEdgeIdentifiersArray);
+        nodeObject.add("outEdges", outEdgeIdentifiersArray);
+
+        final JsonArray parentRelationsObject = new JsonArray();
+        for (final Long parentRelationId : new TreeSet<>(this.relationIdentifiers))
+        {
+            parentRelationsObject.add(new JsonPrimitive(parentRelationId));
+        }
+        nodeObject.add("parentRelations", parentRelationsObject);
+
+        nodeObject.addProperty("bounds", this.bounds.toString());
+        return nodeObject;
     }
 
     @Override

@@ -14,8 +14,13 @@ import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagChangeEvent;
 import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
+import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 /**
  * Independent {@link Line} that contains its own data. At scale, use at your own risk.
@@ -255,6 +260,32 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
     public void setTags(final Map<String, String> tags)
     {
         this.tags = tags != null ? new HashMap<>(tags) : null;
+    }
+
+    @Override
+    public JsonObject toJson()
+    {
+        final JsonObject lineObject = new JsonObject();
+        lineObject.addProperty("identifier", this.identifier);
+        lineObject.addProperty("type", ItemType.LINE.toString());
+        lineObject.addProperty("geometry", this.polyLine.toString());
+
+        final JsonObject tagsObject = new JsonObject();
+        for (final String tagKey : new TreeSet<>(this.tags.keySet()))
+        {
+            tagsObject.addProperty(tagKey, this.tags.get(tagKey));
+        }
+        lineObject.add("tags", tagsObject);
+
+        final JsonArray parentRelationsArray = new JsonArray();
+        for (final Long parentRelationId : new TreeSet<>(this.relationIdentifiers))
+        {
+            parentRelationsArray.add(new JsonPrimitive(parentRelationId));
+        }
+        lineObject.add("parentRelations", parentRelationsArray);
+
+        lineObject.addProperty("bounds", this.bounds.toString());
+        return lineObject;
     }
 
     @Override

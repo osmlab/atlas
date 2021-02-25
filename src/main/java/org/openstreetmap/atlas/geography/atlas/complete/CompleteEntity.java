@@ -21,6 +21,8 @@ import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
+import com.google.gson.JsonObject;
+
 /**
  * Simple interface for all the Complete entities. As each one extends its parent class already
  * (Node, Edge, Area, ...) this cannot be an abstract class.
@@ -305,6 +307,8 @@ public interface CompleteEntity<C extends CompleteEntity<C>> extends TagChangeLi
     Set<Long> relationIdentifiers();
 
     void setTags(Map<String, String> tags);
+
+    JsonObject toJson();
 
     /**
      * Get the WKT for this entity's geometry.

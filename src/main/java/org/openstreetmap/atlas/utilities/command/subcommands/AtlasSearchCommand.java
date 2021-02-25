@@ -49,6 +49,9 @@ import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 import org.openstreetmap.atlas.utilities.conversion.StringToPredicateConverter;
 import org.openstreetmap.atlas.utilities.tuples.Tuple;
 
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+
 /**
  * Search atlases for some given feature identifiers or properties, with various options and
  * restrictions. Draws some inspiration from similar identifier locator commands by cstaylor and
@@ -216,6 +219,9 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
 
     private static final String ALL_OPTION_LONG = "all";
     private static final String ALL_OPTION_DESCRIPTION = "Ignore all other criteria and just print all entities.";
+
+    private static final String JSON_OPTION_LONG = "json";
+    private static final String JSON_OPTION_DESCRIPTION = "Print matches in a parsable JSON format. For e.g., try chaining output into `jq' for more flexibility.";
 
     private static final String OUTPUT_ATLAS = "collected-multi.atlas";
     private static final String COLLECT_OPTION_LONG = "collect-matching";
@@ -409,6 +415,9 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                 NODE_ONLY_CONTEXT, RELATION_ONLY_CONTEXT);
 
         registerOption(ALL_OPTION_LONG, ALL_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
+                SHOW_ALL_CONTEXT);
+        registerOption(JSON_OPTION_LONG, JSON_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
+                ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT, NODE_ONLY_CONTEXT, RELATION_ONLY_CONTEXT,
                 SHOW_ALL_CONTEXT);
 
         registerOption(COLLECT_OPTION_LONG, COLLECT_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL);
@@ -711,15 +720,15 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
              */
             if (entityMatchesAllCriteriaSoFar)
             {
-                this.outputDelegate.printlnStdout(
-                        "Found entity matching criteria in " + atlasResource.getPathString() + ":",
-                        TTYAttribute.BOLD);
-                this.outputDelegate.printlnStdout(
-                        ((CompleteEntity) CompleteEntity.from(entity))
-                                .prettify(PrettifyStringFormat.MINIMAL_MULTI_LINE, false),
-                        TTYAttribute.GREEN);
-                this.outputDelegate.printlnStdout("");
                 this.matchingAtlases.add(atlas);
+                if (this.optionAndArgumentDelegate.hasOption(JSON_OPTION_LONG))
+                {
+                    printEntityWithJSONFormat(entity, atlasResource, atlas);
+                }
+                else
+                {
+                    printEntityWithHumanReadableFormat(entity, atlasResource);
+                }
             }
         }
     }
@@ -1135,5 +1144,29 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
             this.outputDelegate.printlnErrorMessage("unable to parse `" + wkt + "' as WKT");
             return null;
         }
+    }
+
+    private void printEntityWithHumanReadableFormat(final AtlasEntity entity,
+            final File atlasResource)
+    {
+        this.outputDelegate.printlnStdout(
+                "Found entity matching criteria in " + atlasResource.getPathString() + ":",
+                TTYAttribute.BOLD);
+        this.outputDelegate.printlnStdout(((CompleteEntity) CompleteEntity.from(entity))
+                .prettify(PrettifyStringFormat.MINIMAL_MULTI_LINE, false), TTYAttribute.GREEN);
+        this.outputDelegate.printlnStdout("");
+    }
+
+    private void printEntityWithJSONFormat(final AtlasEntity entity, final File atlasResource,
+            final Atlas atlas)
+    {
+        final JsonObject outputObject = new JsonObject();
+        outputObject.addProperty("shard", atlas.metaData().getCountry().orElse("XUK") + "_"
+                + atlas.metaData().getShardName().orElse("0-0-0"));
+        outputObject.addProperty("path", atlasResource.getPathString());
+        outputObject.add("entity", ((CompleteEntity) CompleteEntity.from(entity)).toJson());
+        this.outputDelegate.printlnStdout(
+                new GsonBuilder().disableHtmlEscaping().create().toJson(outputObject),
+                TTYAttribute.GREEN);
     }
 }
