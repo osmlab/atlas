@@ -283,6 +283,51 @@ public class AtlasSearchCommandTest
     }
 
     @Test
+    public void testJsonOption()
+    {
+        try (FileSystem filesystem = Jimfs.newFileSystem(Configuration.osX()))
+        {
+            setupFilesystem1(filesystem);
+            final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+            final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
+            final AtlasSearchCommand command = new AtlasSearchCommand();
+            command.setNewFileSystem(filesystem);
+            command.setNewOutStream(new PrintStream(outContent));
+            command.setNewErrStream(new PrintStream(errContent));
+
+            command.runSubcommand("/Users/foo/test.atlas", "--verbose", "--all", "--json");
+
+            Assert.assertEquals(
+                    "{\"shard\":\"unknown_unknown\",\"path\":\"/Users/foo/test.atlas\",\"entity\":{\"identifier\":8000000,\"type\":\"NODE\",\"geometry\":\"POINT (30 30)\",\"tags\":{\"foo\":\"bar\"},\"inEdges\":[],\"outEdges\":[11000000],\"parentRelations\":[],\"bounds\":\"POLYGON ((30 30, 30 30, 30 30, 30 30, 30 30))\"}}\n"
+                            + "{\"shard\":\"unknown_unknown\",\"path\":\"/Users/foo/test.atlas\",\"entity\":{\"identifier\":9000000,\"type\":\"NODE\",\"geometry\":\"POINT (32 32)\",\"tags\":{\"baz\":\"bat\"},\"inEdges\":[11000000],\"outEdges\":[11000001],\"parentRelations\":[],\"bounds\":\"POLYGON ((32 32, 32 32, 32 32, 32 32, 32 32))\"}}\n"
+                            + "{\"shard\":\"unknown_unknown\",\"path\":\"/Users/foo/test.atlas\",\"entity\":{\"identifier\":10000000,\"type\":\"NODE\",\"geometry\":\"POINT (34 34)\",\"tags\":{\"another\":\"tag2\"},\"inEdges\":[11000001],\"outEdges\":[],\"parentRelations\":[],\"bounds\":\"POLYGON ((34 34, 34 34, 34 34, 34 34, 34 34))\"}}\n"
+                            + "{\"shard\":\"unknown_unknown\",\"path\":\"/Users/foo/test.atlas\",\"entity\":{\"identifier\":11000000,\"type\":\"EDGE\",\"geometry\":\"LINESTRING (30 30, 31 30, 32 32)\",\"tags\":{\"foo\":\"bar\"},\"startNode\":8000000,\"endNode\":9000000,\"parentRelations\":[12000000],\"bounds\":\"POLYGON ((30 30, 30 32, 32 32, 32 30, 30 30))\"}}\n"
+                            + "{\"shard\":\"unknown_unknown\",\"path\":\"/Users/foo/test.atlas\",\"entity\":{\"identifier\":11000001,\"type\":\"EDGE\",\"geometry\":\"LINESTRING (32 32, 32 33, 34 34)\",\"tags\":{\"baz\":\"bat\"},\"startNode\":9000000,\"endNode\":10000000,\"parentRelations\":[12000000],\"bounds\":\"POLYGON ((32 32, 32 34, 34 34, 34 32, 32 32))\"}}\n"
+                            + "{\"shard\":\"unknown_unknown\",\"path\":\"/Users/foo/test.atlas\",\"entity\":{\"identifier\":7000000,\"type\":\"AREA\",\"geometry\":\"POLYGON ((20 20, 21 20, 21 21, 20 20))\",\"tags\":{\"baz\":\"bat\"},\"parentRelations\":[12000000],\"bounds\":\"POLYGON ((20 20, 20 21, 21 21, 21 20, 20 20))\"}}\n"
+                            + "{\"shard\":\"unknown_unknown\",\"path\":\"/Users/foo/test.atlas\",\"entity\":{\"identifier\":4000000,\"type\":\"LINE\",\"geometry\":\"LINESTRING (10 10, 11 11, 12 12)\",\"tags\":{\"this_is\":\"a_line\"},\"parentRelations\":[],\"bounds\":\"POLYGON ((10 10, 10 12, 12 12, 12 10, 10 10))\"}}\n"
+                            + "{\"shard\":\"unknown_unknown\",\"path\":\"/Users/foo/test.atlas\",\"entity\":{\"identifier\":5000000,\"type\":\"LINE\",\"geometry\":\"LINESTRING (13 13, 14 14, 15 15)\",\"tags\":{\"foo\":\"bar\",\"this_is\":\"a_line\"},\"parentRelations\":[],\"bounds\":\"POLYGON ((13 13, 13 15, 15 15, 15 13, 13 13))\"}}\n"
+                            + "{\"shard\":\"unknown_unknown\",\"path\":\"/Users/foo/test.atlas\",\"entity\":{\"identifier\":6000000,\"type\":\"LINE\",\"geometry\":\"LINESTRING (16 16, 17 17, 18 18)\",\"tags\":{\"another\":\"tag1\",\"hello\":\"world\"},\"parentRelations\":[],\"bounds\":\"POLYGON ((16 16, 16 18, 18 18, 18 16, 16 16))\"}}\n"
+                            + "{\"shard\":\"unknown_unknown\",\"path\":\"/Users/foo/test.atlas\",\"entity\":{\"identifier\":1000000,\"type\":\"POINT\",\"geometry\":\"POINT (1 1)\",\"tags\":{\"foo\":\"bar\"},\"parentRelations\":[],\"bounds\":\"POLYGON ((1 1, 1 1, 1 1, 1 1, 1 1))\"}}\n"
+                            + "{\"shard\":\"unknown_unknown\",\"path\":\"/Users/foo/test.atlas\",\"entity\":{\"identifier\":2000000,\"type\":\"POINT\",\"geometry\":\"POINT (2 2)\",\"tags\":{\"baz\":\"bat\"},\"parentRelations\":[],\"bounds\":\"POLYGON ((2 2, 2 2, 2 2, 2 2, 2 2))\"}}\n"
+                            + "{\"shard\":\"unknown_unknown\",\"path\":\"/Users/foo/test.atlas\",\"entity\":{\"identifier\":3000000,\"type\":\"POINT\",\"geometry\":\"POINT (3 3)\",\"tags\":{\"baz\":\"bat\",\"foo\":\"bar\"},\"parentRelations\":[],\"bounds\":\"POLYGON ((3 3, 3 3, 3 3, 3 3, 3 3))\"}}\n"
+                            + "{\"shard\":\"unknown_unknown\",\"path\":\"/Users/foo/test.atlas\",\"entity\":{\"identifier\":4000000,\"type\":\"POINT\",\"geometry\":\"POINT (4 5)\",\"tags\":{\"a\":\"b\"},\"parentRelations\":[1300000],\"bounds\":\"POLYGON ((4 5, 4 5, 4 5, 4 5, 4 5))\"}}\n"
+                            + "{\"shard\":\"unknown_unknown\",\"path\":\"/Users/foo/test.atlas\",\"entity\":{\"identifier\":5000000,\"type\":\"POINT\",\"geometry\":\"POINT (30 30)\",\"tags\":{\"a\":\"b\"},\"parentRelations\":[1400000],\"bounds\":\"POLYGON ((30 30, 30 30, 30 30, 30 30, 30 30))\"}}\n"
+                            + "{\"shard\":\"unknown_unknown\",\"path\":\"/Users/foo/test.atlas\",\"entity\":{\"identifier\":12000000,\"type\":\"RELATION\",\"geometry\":\"null\",\"tags\":{\"route\":\"bike\"},\"members\":[{\"type\":\"EDGE\",\"identifier\":11000000,\"role\":\"role0\"},{\"type\":\"EDGE\",\"identifier\":11000001,\"role\":\"role1\"},{\"type\":\"AREA\",\"identifier\":7000000,\"role\":\"role2\"}],\"parentRelations\":[],\"bounds\":\"POLYGON ((20 20, 20 34, 34 34, 34 20, 20 20))\"}}\n"
+                            + "{\"shard\":\"unknown_unknown\",\"path\":\"/Users/foo/test.atlas\",\"entity\":{\"identifier\":1300000,\"type\":\"RELATION\",\"geometry\":\"null\",\"tags\":{\"some\":\"relation\"},\"members\":[{\"type\":\"POINT\",\"identifier\":4000000,\"role\":\"*\"}],\"parentRelations\":[],\"bounds\":\"POLYGON ((4 5, 4 5, 4 5, 4 5, 4 5))\"}}\n"
+                            + "{\"shard\":\"unknown_unknown\",\"path\":\"/Users/foo/test.atlas\",\"entity\":{\"identifier\":1400000,\"type\":\"RELATION\",\"geometry\":\"null\",\"tags\":{\"some2\":\"relation2\"},\"members\":[{\"type\":\"POINT\",\"identifier\":5000000,\"role\":\"💯\"}],\"parentRelations\":[],\"bounds\":\"POLYGON ((30 30, 30 30, 30 30, 30 30, 30 30))\"}}\n",
+                    outContent.toString());
+            Assert.assertEquals(
+                    "find: loading /Users/foo/test.atlas\n"
+                            + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
+                    errContent.toString());
+        }
+        catch (final IOException exception)
+        {
+            throw new CoreException("FileSystem operation failed", exception);
+        }
+    }
+
+    @Test
     public void testOsmIdSearch()
     {
         try (FileSystem filesystem = Jimfs.newFileSystem(Configuration.osX()))
