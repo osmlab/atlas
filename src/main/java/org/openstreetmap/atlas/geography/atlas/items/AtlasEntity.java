@@ -256,26 +256,26 @@ public abstract class AtlasEntity
         final JsonObject object = new JsonObject();
         object.addProperty("identifier", this.getIdentifier());
         object.addProperty("type", this.getType().toString());
+        final String geometry = "geometry";
         if (this instanceof LocationItem)
         {
             final LocationItem thisItem = (LocationItem) this;
-            object.addProperty("geometry", thisItem.getLocation().toWkt());
+            object.addProperty(geometry, thisItem.getLocation().toWkt());
         }
         else if (this instanceof LineItem)
         {
             final LineItem thisItem = (LineItem) this;
-            object.addProperty("geometry", thisItem.asPolyLine().toWkt());
+            object.addProperty(geometry, thisItem.asPolyLine().toWkt());
         }
         else if (this instanceof Area)
         {
             final Area thisItem = (Area) this;
-            object.addProperty("geometry", thisItem.asPolygon().toWkt());
+            object.addProperty(geometry, thisItem.asPolygon().toWkt());
         }
         else if (this instanceof Relation)
         {
-            final Relation thisItem = (Relation) this;
-            // TODO handle relation geometry for certain cases?
-            object.addProperty("geometry", "null");
+            // TODO handle relation geometry for certain cases? // NOSONAR
+            object.addProperty(geometry, "null");
         }
 
         final JsonObject tagsObject = new JsonObject();
