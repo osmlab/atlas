@@ -13,3 +13,10 @@ atlas file that contained them. You can narrow the search to specific ItemTypes
 by specifying the `--types' option. The `--collect-matching' option will use
 the MultiAtlas to save all matching atlases to a file called `collected-multi.atlas'. See the OPTIONS
 and EXAMPLES section for more information on the various search criteria.
+
+The '--json' option will output all matches line-by-line in a JSON format. This is ideal for use
+with JSON parsing tools like `jq'. For example, users could perform advanced operations like:
+#$ find foo/*.atlas --relation-member 'AREA,*,outer' --json | jq -r '[.path, .entity.identifier] | @tsv' | xargs -n2 sh -c 'atlas relation2multipolygon --id=$2 $1' sh
+This command would find all relations with an `outer' AREA member in the `foo' directory of atlases,
+then pipe those relation IDs into the `relation2multipolygon' command to create a separate atlas
+and WKT text file for each of the multipolygon relations.

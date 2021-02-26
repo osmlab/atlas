@@ -26,6 +26,9 @@ import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
 /**
  * Independent {@link Relation} that contains its own data. At scale, use at your own risk.
  *
@@ -283,19 +286,14 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
         builder.append(separator);
         builder.append("identifier: " + this.identifier + ", ");
         builder.append(separator);
-        if (this.bounds != null)
+        if (this.tags != null)
         {
-            builder.append("bounds: " + this.bounds + ", ");
+            builder.append("tags: " + new TreeMap<>(this.tags) + ", ");
             builder.append(separator);
         }
         if (this.members != null && !this.members.isEmpty())
         {
             builder.append("members: " + this.members + ", ");
-            builder.append(separator);
-        }
-        if (this.tags != null)
-        {
-            builder.append("tags: " + new TreeMap<>(this.tags) + ", ");
             builder.append(separator);
         }
         if (this.relationIdentifiers != null)
@@ -341,6 +339,25 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     public void setTags(final Map<String, String> tags)
     {
         this.tags = tags != null ? new HashMap<>(tags) : null;
+    }
+
+    @Override
+    public JsonObject toJson()
+    {
+        final JsonObject relationObject = super.toJson();
+
+        final JsonArray membersArray = new JsonArray();
+        for (final RelationBeanItem item : this.members)
+        {
+            final JsonObject memberObject = new JsonObject();
+            memberObject.addProperty("type", item.getType().toString());
+            memberObject.addProperty("identifier", item.getIdentifier());
+            memberObject.addProperty("role", item.getRole());
+            membersArray.add(memberObject);
+        }
+        relationObject.add("members", membersArray);
+
+        return relationObject;
     }
 
     @Override

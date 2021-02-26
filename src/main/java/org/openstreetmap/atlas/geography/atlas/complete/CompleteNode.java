@@ -19,6 +19,10 @@ import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+
 /**
  * Independent {@link Node} that may contain its own altered data. At scale, use at your own risk.
  *
@@ -261,7 +265,12 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         builder.append(separator);
         if (this.location != null)
         {
-            builder.append("location: " + this.location + ", ");
+            builder.append("geometry: " + this.location + ", ");
+            builder.append(separator);
+        }
+        if (this.tags != null)
+        {
+            builder.append("tags: " + new TreeMap<>(this.tags) + ", ");
             builder.append(separator);
         }
         if (this.inEdgeIdentifiers != null)
@@ -286,11 +295,6 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         {
             builder.append("explicitlyExcludedOutEdges: "
                     + new TreeSet<>(this.explicitlyExcludedOutEdgeIdentifiers) + ", ");
-            builder.append(separator);
-        }
-        if (this.tags != null)
-        {
-            builder.append("tags: " + new TreeMap<>(this.tags) + ", ");
             builder.append(separator);
         }
         if (this.relationIdentifiers != null)
@@ -346,6 +350,27 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     public void setTags(final Map<String, String> tags)
     {
         this.tags = tags != null ? new HashMap<>(tags) : null;
+    }
+
+    @Override
+    public JsonObject toJson()
+    {
+        final JsonObject nodeObject = super.toJson();
+
+        final JsonArray inEdgeIdentifiersArray = new JsonArray();
+        for (final Long inEdgeIdentifier : new TreeSet<>(this.inEdgeIdentifiers))
+        {
+            inEdgeIdentifiersArray.add(new JsonPrimitive(inEdgeIdentifier));
+        }
+        final JsonArray outEdgeIdentifiersArray = new JsonArray();
+        for (final Long outEdgeIdentifier : new TreeSet<>(this.outEdgeIdentifiers))
+        {
+            outEdgeIdentifiersArray.add(new JsonPrimitive(outEdgeIdentifier));
+        }
+        nodeObject.add("inEdges", inEdgeIdentifiersArray);
+        nodeObject.add("outEdges", outEdgeIdentifiersArray);
+
+        return nodeObject;
     }
 
     @Override

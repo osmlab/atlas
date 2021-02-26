@@ -18,6 +18,8 @@ import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
+import com.google.gson.JsonObject;
+
 /**
  * Independent {@link Edge} that contains its own data. At scale, use at your own risk.
  *
@@ -35,7 +37,6 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
     private Long startNodeIdentifier;
     private Long endNodeIdentifier;
     private Set<Long> relationIdentifiers;
-
     private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     /**
@@ -227,11 +228,11 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
         {
             if (truncate)
             {
-                builder.append("polyLine: " + truncate(this.polyLine.toString()) + ", ");
+                builder.append("geometry: " + truncate(this.polyLine.toString()) + ", ");
             }
             else
             {
-                builder.append("polyLine: " + this.polyLine.toString() + ", ");
+                builder.append("geometry: " + this.polyLine.toString() + ", ");
             }
             builder.append(separator);
         }
@@ -308,6 +309,17 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
     public Long startNodeIdentifier()
     {
         return this.startNodeIdentifier;
+    }
+
+    @Override
+    public JsonObject toJson()
+    {
+        final JsonObject edgeObject = super.toJson();
+
+        edgeObject.addProperty("startNode", this.startNodeIdentifier);
+        edgeObject.addProperty("endNode", this.endNodeIdentifier);
+
+        return edgeObject;
     }
 
     @Override

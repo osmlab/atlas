@@ -31,7 +31,6 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
     private Location location;
     private Map<String, String> tags;
     private Set<Long> relationIdentifiers;
-
     private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     /**
@@ -196,7 +195,7 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
         builder.append(separator);
         if (this.location != null)
         {
-            builder.append("location: " + this.location + ", ");
+            builder.append("geometry: " + this.location + ", ");
             builder.append(separator);
         }
         if (this.tags != null)

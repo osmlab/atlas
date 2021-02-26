@@ -209,11 +209,11 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
         {
             if (truncate)
             {
-                builder.append("polygon: " + truncate(this.polygon.toString()) + ", ");
+                builder.append("geometry: " + truncate(this.polygon.toString()) + ", ");
             }
             else
             {
-                builder.append("polygon: " + this.polygon.toString() + ", ");
+                builder.append("geometry: " + this.polygon.toString() + ", ");
             }
             builder.append(separator);
         }
