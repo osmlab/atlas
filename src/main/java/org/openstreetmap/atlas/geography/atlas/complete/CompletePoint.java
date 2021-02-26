@@ -13,13 +13,8 @@ import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagChangeEvent;
 import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
-import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 
 /**
  * Independent {@link Point} that contains its own data. At scale, use at your own risk.
@@ -252,32 +247,6 @@ public class CompletePoint extends Point implements CompleteLocationItem<Complet
     public void setTags(final Map<String, String> tags)
     {
         this.tags = tags != null ? new HashMap<>(tags) : null;
-    }
-
-    @Override
-    public JsonObject toJson()
-    {
-        final JsonObject pointObject = new JsonObject();
-        pointObject.addProperty("identifier", this.identifier);
-        pointObject.addProperty("type", ItemType.POINT.toString());
-        pointObject.addProperty("geometry", this.location.toString());
-
-        final JsonObject tagsObject = new JsonObject();
-        for (final String tagKey : new TreeSet<>(this.tags.keySet()))
-        {
-            tagsObject.addProperty(tagKey, this.tags.get(tagKey));
-        }
-        pointObject.add("tags", tagsObject);
-
-        final JsonArray parentRelationsArray = new JsonArray();
-        for (final Long parentRelationId : new TreeSet<>(this.relationIdentifiers))
-        {
-            parentRelationsArray.add(new JsonPrimitive(parentRelationId));
-        }
-        pointObject.add("parentRelations", parentRelationsArray);
-
-        pointObject.addProperty("bounds", this.bounds.toString());
-        return pointObject;
     }
 
     @Override

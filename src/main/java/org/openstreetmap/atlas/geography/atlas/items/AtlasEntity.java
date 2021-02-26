@@ -3,6 +3,8 @@ package org.openstreetmap.atlas.geography.atlas.items;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.openstreetmap.atlas.geography.GeometricSurface;
@@ -248,6 +250,52 @@ public abstract class AtlasEntity
      * @return The {@link LocationIterableProperties} for this {@link AtlasEntity}
      */
     public abstract LocationIterableProperties toGeoJsonBuildingBlock();
+
+    public JsonObject toJson()
+    {
+        final JsonObject object = new JsonObject();
+        object.addProperty("identifier", this.getIdentifier());
+        object.addProperty("type", this.getType().toString());
+        if (this instanceof LocationItem)
+        {
+            final LocationItem thisItem = (LocationItem) this;
+            object.addProperty("geometry", thisItem.getLocation().toWkt());
+        }
+        else if (this instanceof LineItem)
+        {
+            final LineItem thisItem = (LineItem) this;
+            object.addProperty("geometry", thisItem.asPolyLine().toWkt());
+        }
+        else if (this instanceof Area)
+        {
+            final Area thisItem = (Area) this;
+            object.addProperty("geometry", thisItem.asPolygon().toWkt());
+        }
+        else if (this instanceof Relation)
+        {
+            final Relation thisItem = (Relation) this;
+            // TODO handle relation geometry for certain cases?
+            object.addProperty("geometry", "null");
+        }
+
+        final JsonObject tagsObject = new JsonObject();
+        for (final String tagKey : new TreeSet<>(this.getTags().keySet()))
+        {
+            tagsObject.addProperty(tagKey, this.getTags().get(tagKey));
+        }
+        object.add("tags", tagsObject);
+
+        final JsonArray parentRelationsArray = new JsonArray();
+        for (final Long parentRelationId : new TreeSet<>(
+                this.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet())))
+        {
+            parentRelationsArray.add(new JsonPrimitive(parentRelationId));
+        }
+        object.add("parentRelations", parentRelationsArray);
+
+        object.addProperty("bounds", this.bounds().toString());
+        return object;
+    }
 
     protected String tagString()
     {

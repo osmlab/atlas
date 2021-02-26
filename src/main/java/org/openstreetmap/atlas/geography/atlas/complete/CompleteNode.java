@@ -16,7 +16,6 @@ import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagChangeEvent;
 import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
-import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
@@ -356,17 +355,7 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
     @Override
     public JsonObject toJson()
     {
-        final JsonObject nodeObject = new JsonObject();
-        nodeObject.addProperty("identifier", this.identifier);
-        nodeObject.addProperty("type", ItemType.NODE.toString());
-        nodeObject.addProperty("geometry", this.location.toString());
-
-        final JsonObject tagsObject = new JsonObject();
-        for (final String tagKey : new TreeSet<>(this.tags.keySet()))
-        {
-            tagsObject.addProperty(tagKey, this.tags.get(tagKey));
-        }
-        nodeObject.add("tags", tagsObject);
+        final JsonObject nodeObject = super.toJson();
 
         final JsonArray inEdgeIdentifiersArray = new JsonArray();
         for (final Long inEdgeIdentifier : new TreeSet<>(this.inEdgeIdentifiers))
@@ -381,14 +370,6 @@ public class CompleteNode extends Node implements CompleteLocationItem<CompleteN
         nodeObject.add("inEdges", inEdgeIdentifiersArray);
         nodeObject.add("outEdges", outEdgeIdentifiersArray);
 
-        final JsonArray parentRelationsObject = new JsonArray();
-        for (final Long parentRelationId : new TreeSet<>(this.relationIdentifiers))
-        {
-            parentRelationsObject.add(new JsonPrimitive(parentRelationId));
-        }
-        nodeObject.add("parentRelations", parentRelationsObject);
-
-        nodeObject.addProperty("bounds", this.bounds.toString());
         return nodeObject;
     }
 

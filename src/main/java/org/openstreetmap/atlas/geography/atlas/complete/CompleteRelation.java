@@ -21,7 +21,6 @@ import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBean
 import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagChangeEvent;
 import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
-import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
@@ -29,7 +28,6 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 
 /**
  * Independent {@link Relation} that contains its own data. At scale, use at your own risk.
@@ -346,17 +344,7 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     @Override
     public JsonObject toJson()
     {
-        final JsonObject relationObject = new JsonObject();
-        relationObject.addProperty("identifier", this.identifier);
-        relationObject.addProperty("type", ItemType.RELATION.toString());
-        relationObject.addProperty("geometry", "null");
-
-        final JsonObject tagsObject = new JsonObject();
-        for (final String tagKey : new TreeSet<>(this.tags.keySet()))
-        {
-            tagsObject.addProperty(tagKey, this.tags.get(tagKey));
-        }
-        relationObject.add("tags", tagsObject);
+        final JsonObject relationObject = super.toJson();
 
         final JsonArray membersArray = new JsonArray();
         for (final RelationBeanItem item : this.members)
@@ -369,14 +357,6 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
         }
         relationObject.add("members", membersArray);
 
-        final JsonArray parentRelationsArray = new JsonArray();
-        for (final Long parentRelationId : new TreeSet<>(this.relationIdentifiers))
-        {
-            parentRelationsArray.add(new JsonPrimitive(parentRelationId));
-        }
-        relationObject.add("parentRelations", parentRelationsArray);
-
-        relationObject.addProperty("bounds", this.bounds.toString());
         return relationObject;
     }
 

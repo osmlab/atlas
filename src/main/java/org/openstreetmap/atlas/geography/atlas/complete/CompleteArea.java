@@ -16,12 +16,7 @@ import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagChangeEvent;
 import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
-import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 
 /**
  * Independent {@link Area} that contains its own data. At scale, use at your own risk.
@@ -270,32 +265,6 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
     public void setTags(final Map<String, String> tags)
     {
         this.tags = tags != null ? new HashMap<>(tags) : null;
-    }
-
-    @Override
-    public JsonObject toJson()
-    {
-        final JsonObject areaObject = new JsonObject();
-        areaObject.addProperty("identifier", this.identifier);
-        areaObject.addProperty("type", ItemType.AREA.toString());
-        areaObject.addProperty("geometry", this.polygon.toString());
-
-        final JsonObject tagsObject = new JsonObject();
-        for (final String tagKey : new TreeSet<>(this.tags.keySet()))
-        {
-            tagsObject.addProperty(tagKey, this.tags.get(tagKey));
-        }
-        areaObject.add("tags", tagsObject);
-
-        final JsonArray parentRelationsArray = new JsonArray();
-        for (final Long parentRelationId : new TreeSet<>(this.relationIdentifiers))
-        {
-            parentRelationsArray.add(new JsonPrimitive(parentRelationId));
-        }
-        areaObject.add("parentRelations", parentRelationsArray);
-
-        areaObject.addProperty("bounds", this.bounds.toString());
-        return areaObject;
     }
 
     @Override

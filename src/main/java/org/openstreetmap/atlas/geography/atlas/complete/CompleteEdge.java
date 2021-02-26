@@ -15,13 +15,10 @@ import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagChangeEvent;
 import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
-import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 
 /**
  * Independent {@link Edge} that contains its own data. At scale, use at your own risk.
@@ -317,29 +314,11 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
     @Override
     public JsonObject toJson()
     {
-        final JsonObject edgeObject = new JsonObject();
-        edgeObject.addProperty("identifier", this.identifier);
-        edgeObject.addProperty("type", ItemType.EDGE.toString());
-        edgeObject.addProperty("geometry", this.polyLine.toString());
-
-        final JsonObject tagsObject = new JsonObject();
-        for (final String tagKey : new TreeSet<>(this.tags.keySet()))
-        {
-            tagsObject.addProperty(tagKey, this.tags.get(tagKey));
-        }
-        edgeObject.add("tags", tagsObject);
+        final JsonObject edgeObject = super.toJson();
 
         edgeObject.addProperty("startNode", this.startNodeIdentifier);
         edgeObject.addProperty("endNode", this.endNodeIdentifier);
 
-        final JsonArray parentRelationsArray = new JsonArray();
-        for (final Long parentRelationId : new TreeSet<>(this.relationIdentifiers))
-        {
-            parentRelationsArray.add(new JsonPrimitive(parentRelationId));
-        }
-        edgeObject.add("parentRelations", parentRelationsArray);
-
-        edgeObject.addProperty("bounds", this.bounds.toString());
         return edgeObject;
     }
 
