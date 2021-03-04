@@ -724,6 +724,48 @@ public class FeatureChange implements Located, Taggable, Serializable, Comparabl
     }
 
     /**
+     * Build the nodes needed for this feature change
+     *
+     * @param atlas
+     *            The atlas with the required nodes
+     * @param locationsToFind
+     *            The locations to map to nodes in the atlas
+     */
+    private void buildNodes(final Atlas atlas, final Collection<Location> locationsToFind)
+    {
+        this.nodes = new ArrayList<>(locationsToFind.size());
+        long currentNewId = -1;
+        for (final Location point : locationsToFind)
+        {
+            final List<Node> localNodes = Iterables.asList(atlas.nodesAt(point));
+            final List<Point> nodePoints = Iterables.asList(atlas.pointsAt(point));
+            final List<LocationItem> locationItems = Stream
+                    .concat(localNodes.stream(), nodePoints.stream())
+                    .filter(LocationItem.class::isInstance).map(LocationItem.class::cast)
+                    .collect(Collectors.toList());
+            final long possibleNodes = locationItems.stream()
+                    .mapToLong(AtlasObject::getOsmIdentifier).distinct().count();
+            if (possibleNodes == 1)
+            {
+                this.nodes.add(locationItems.get(0));
+            }
+            else if (possibleNodes == 0)
+            {
+                // OK. New node.
+                this.nodes.add(new CompletePoint(currentNewId, point, Collections.emptyMap(),
+                        Collections.emptySet()));
+                currentNewId--;
+            }
+            else
+            {
+                // We cannot determine the nodes of the way. This will have to be manually edited.
+                localNodes.clear();
+                break;
+            }
+        }
+    }
+
+    /**
      * Compute the beforeView using a given afterView and Atlas context. The beforeView is always a
      * CompleteEntity. For ChangeType.ADD, the beforeView will only contain references to fields
      * that were updated in the afterView. For ChangeType.REMOVE, the beforeView will be fully
@@ -958,58 +1000,47 @@ public class FeatureChange implements Located, Taggable, Serializable, Comparabl
             {
                 return;
             }
-            for (final Location point : polyLine)
-            {
-                final List<Line> lines = Iterables.asList(atlas.linesContaining(point));
-                if (this.afterView instanceof LineItem)
-                {
-                    lines.removeIf(
-                            line -> line.getOsmIdentifier() == this.afterView.getOsmIdentifier());
-                }
-                final List<Relation> relations = Iterables
-                        .asList(atlas.relationsWithEntitiesIntersecting(point.bounds()));
-                atlas.relationsWithEntitiesWithin(point.bounds()).forEach(relations::add);
-                if (this.afterView instanceof Relation)
-                {
-                    relations.removeIf(relation -> relation.getOsmIdentifier() == this.afterView
-                            .getOsmIdentifier());
-                }
-                if (lines.isEmpty() && relations.isEmpty())
-                {
-                    locationsToFind.add(point);
-                }
-            }
+            findNodesToRemove(atlas, polyLine, locationsToFind);
         }
-        this.nodes = new ArrayList<>(locationsToFind.size());
-        long currentNewId = -1;
-        for (final Location point : locationsToFind)
+        buildNodes(atlas, locationsToFind);
+    }
+
+    /**
+     * Find nodes to remove
+     *
+     * @param atlas
+     *            The atlas with the information needed to determine if a node should be removed
+     * @param polyLine
+     *            The polyline that we are deleting -- we check if the only parent of a node is this
+     *            line, and if so, remove it.
+     * @param locationsToFind
+     *            The collection to add the locations to remove to
+     */
+    private void findNodesToRemove(final Atlas atlas, final PolyLine polyLine,
+            final Collection<Location> locationsToFind)
+    {
+        for (final Location point : polyLine)
         {
-            final List<Node> localNodes = Iterables.asList(atlas.nodesAt(point));
-            final List<Point> nodePoints = Iterables.asList(atlas.pointsAt(point));
-            final List<LocationItem> locationItems = Stream
-                    .concat(localNodes.stream(), nodePoints.stream())
-                    .filter(LocationItem.class::isInstance).map(LocationItem.class::cast)
-                    .collect(Collectors.toList());
-            final long possibleNodes = locationItems.stream()
-                    .mapToLong(AtlasObject::getOsmIdentifier).distinct().count();
-            if (possibleNodes == 1)
+            final List<Line> lines = Iterables.asList(atlas.linesContaining(point));
+            if (this.afterView instanceof LineItem)
             {
-                this.nodes.add(locationItems.get(0));
+                lines.removeIf(
+                        line -> line.getOsmIdentifier() == this.afterView.getOsmIdentifier());
             }
-            else if (possibleNodes == 0)
+            final List<Relation> relations = Iterables
+                    .asList(atlas.relationsWithEntitiesIntersecting(point.bounds()));
+            atlas.relationsWithEntitiesWithin(point.bounds()).forEach(relations::add);
+            if (this.afterView instanceof Relation)
             {
-                // OK. New node.
-                this.nodes.add(new CompletePoint(currentNewId, point, Collections.emptyMap(),
-                        Collections.emptySet()));
-                currentNewId--;
+                relations.removeIf(relation -> relation.getOsmIdentifier() == this.afterView
+                        .getOsmIdentifier());
             }
-            else
+            if (lines.isEmpty() && relations.isEmpty())
             {
-                // We cannot determine the nodes of the way. This will have to be manually edited.
-                localNodes.clear();
-                break;
+                locationsToFind.add(point);
             }
         }
+
     }
 
     /**

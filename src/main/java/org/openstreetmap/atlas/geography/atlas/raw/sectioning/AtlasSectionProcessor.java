@@ -203,8 +203,8 @@ public class AtlasSectionProcessor
             this.inputAtlas.points().forEach(point ->
             {
                 final CompleteNode possibleDupe = this.nodeMap.get(point.getLocation());
-                if (this.loadingOption.isKeepAll() && (possibleDupe == null
-                        || possibleDupe.getOsmIdentifier() != point.getOsmIdentifier()))
+                if (possibleDupe == null
+                        || possibleDupe.getOsmIdentifier() != point.getOsmIdentifier())
                 {
                     this.changes.add(FeatureChange.add(CompletePoint.from(point)));
                 }
@@ -264,10 +264,7 @@ public class AtlasSectionProcessor
         {
             return sectionedAtlas.cloneToPackedAtlas();
         }
-        else
-        {
-            return cutSubAtlasForOriginalShard(sectionedAtlas).cloneToPackedAtlas();
-        }
+        return cutSubAtlasForOriginalShard(sectionedAtlas).cloneToPackedAtlas();
     }
 
     /**
