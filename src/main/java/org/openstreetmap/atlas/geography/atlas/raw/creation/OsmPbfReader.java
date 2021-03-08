@@ -86,7 +86,12 @@ public class OsmPbfReader implements Sink
     public static boolean shouldProcessEntity(final AtlasLoadingOption loadingOption,
             final Entity entity)
     {
-        if (entity instanceof Node)
+        // The keepAll option is primarily used for QA purposes. Everything must stay.
+        if (loadingOption.isKeepAll())
+        {
+            return true;
+        }
+        else if (entity instanceof Node)
         {
             return loadingOption.getOsmPbfNodeFilter().test(Taggable.with(entity.getTags()));
         }

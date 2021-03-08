@@ -1,8 +1,13 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -10,11 +15,16 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.annotation.Nonnull;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.exception.change.FeatureChangeMergeException;
 import org.openstreetmap.atlas.exception.change.MergeFailureType;
 import org.openstreetmap.atlas.geography.Located;
+import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescription;
@@ -25,10 +35,12 @@ import org.openstreetmap.atlas.geography.atlas.complete.CompleteEntity;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteLineItem;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteLocationItem;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
+import org.openstreetmap.atlas.geography.atlas.complete.CompletePoint;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 import org.openstreetmap.atlas.geography.atlas.complete.PrettifyStringFormat;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
+import org.openstreetmap.atlas.geography.atlas.items.AtlasObject;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
@@ -39,6 +51,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.tags.Taggable;
+import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
  * Single feature change, does not include any consistency checks.
@@ -71,6 +84,10 @@ public class FeatureChange implements Located, Taggable, Serializable, Comparabl
     private AtlasEntity beforeView;
     private final AtlasEntity afterView;
     private final Map<String, String> metaData;
+    /**
+     * The collection will be empty, have one item, or have multiple items.
+     */
+    private Collection<LocationItem> nodes;
 
     /**
      * Create a new {@link ChangeType#ADD} {@link FeatureChange} with a given afterView. The
@@ -315,7 +332,7 @@ public class FeatureChange implements Located, Taggable, Serializable, Comparabl
     }
 
     @Override
-    public int compareTo(final FeatureChange otherFeatureChange)
+    public int compareTo(@Nonnull final FeatureChange otherFeatureChange)
     {
         return Comparator.comparing(FeatureChange::getChangeType)
                 .thenComparing(FeatureChange::getItemType)
@@ -347,7 +364,7 @@ public class FeatureChange implements Located, Taggable, Serializable, Comparabl
             throw new CoreException("Cannot explain a FeatureChange with a null afterView!");
         }
         return new ChangeDescription(getIdentifier(), getItemType(), this.beforeView,
-                this.afterView, this.changeType);
+                this.afterView, this.changeType, this.nodes);
     }
 
     public AtlasEntity getAfterView()
@@ -599,33 +616,22 @@ public class FeatureChange implements Located, Taggable, Serializable, Comparabl
         }
         final StringBuilder builder = new StringBuilder();
 
-        builder.append(this.getClass().getSimpleName() + " ");
-        builder.append("[");
-        builder.append(separator);
-        builder.append("changeType: " + this.getChangeType() + ", ");
-        builder.append(separator);
-        builder.append("itemType: " + this.getItemType() + ", ");
-        builder.append(separator);
-        builder.append("identifier: " + this.getIdentifier() + ", ");
-        builder.append(separator);
-        builder.append("bounds: " + this.bounds() + ", ");
-        builder.append(separator);
+        builder.append(this.getClass().getSimpleName()).append(" ").append("[").append(separator)
+                .append("changeType: ").append(this.getChangeType()).append(", ").append(separator)
+                .append("itemType: ").append(this.getItemType()).append(", ").append(separator)
+                .append("identifier: ").append(this.getIdentifier()).append(", ").append(separator)
+                .append("bounds: ").append(this.bounds()).append(", ").append(separator);
         if (this.beforeView != null)
         {
-            builder.append("bfView: "
-                    + ((CompleteEntity<?>) this.beforeView).prettify(completeEntityFormat, truncate)
-                    + ", ");
-            builder.append(separator);
+            builder.append("bfView: ").append(
+                    ((CompleteEntity<?>) this.beforeView).prettify(completeEntityFormat, truncate))
+                    .append(", ").append(separator);
         }
-        builder.append("afView: "
-                + ((CompleteEntity<?>) this.afterView).prettify(completeEntityFormat, truncate)
-                + ", ");
-        builder.append(separator);
-        builder.append("metadata: " + this.metaData);
-        builder.append(separator);
-        builder.append(this.explain());
-        builder.append(separator);
-        builder.append("]");
+        builder.append("afView: ")
+                .append(((CompleteEntity<?>) this.afterView).prettify(completeEntityFormat,
+                        truncate))
+                .append(", ").append(separator).append("metadata: ").append(this.metaData)
+                .append(separator).append(this.explain()).append(separator).append("]");
 
         return builder.toString();
     }
@@ -713,7 +719,50 @@ public class FeatureChange implements Located, Taggable, Serializable, Comparabl
     public FeatureChange withAtlasContext(final Atlas atlas)
     {
         computeBeforeViewUsingAtlasContext(atlas, this.changeType);
+        computeRequiredOpenStreetMapChangeInformation(atlas, this.changeType);
         return this;
+    }
+
+    /**
+     * Build the nodes needed for this feature change
+     *
+     * @param atlas
+     *            The atlas with the required nodes
+     * @param locationsToFind
+     *            The locations to map to nodes in the atlas
+     */
+    private void buildNodes(final Atlas atlas, final Collection<Location> locationsToFind)
+    {
+        this.nodes = new ArrayList<>(locationsToFind.size());
+        long currentNewId = -1;
+        for (final Location point : locationsToFind)
+        {
+            final List<Node> localNodes = Iterables.asList(atlas.nodesAt(point));
+            final List<Point> nodePoints = Iterables.asList(atlas.pointsAt(point));
+            final List<LocationItem> locationItems = Stream
+                    .concat(localNodes.stream(), nodePoints.stream())
+                    .filter(LocationItem.class::isInstance).map(LocationItem.class::cast)
+                    .collect(Collectors.toList());
+            final long possibleNodes = locationItems.stream()
+                    .mapToLong(AtlasObject::getOsmIdentifier).distinct().count();
+            if (possibleNodes == 1)
+            {
+                this.nodes.add(locationItems.get(0));
+            }
+            else if (possibleNodes == 0)
+            {
+                // OK. New node.
+                this.nodes.add(new CompletePoint(currentNewId, point, Collections.emptyMap(),
+                        Collections.emptySet()));
+                currentNewId--;
+            }
+            else
+            {
+                // We cannot determine the nodes of the way. This will have to be manually edited.
+                localNodes.clear();
+                break;
+            }
+        }
     }
 
     /**
@@ -908,6 +957,90 @@ public class FeatureChange implements Located, Taggable, Serializable, Comparabl
         }
 
         this.beforeView = beforeViewUpdatesOnly;
+    }
+
+    /**
+     * Compute information needed for an OpenStreetMap Change file
+     *
+     * @param atlas
+     *            The atlas with all the needed information (all nodes, etc.)
+     * @param changeType
+     *            The type of change
+     */
+    private void computeRequiredOpenStreetMapChangeInformation(final Atlas atlas,
+            final ChangeType changeType)
+    {
+        final Collection<Location> locationsToFind = new HashSet<>();
+        if (changeType == ChangeType.ADD)
+        {
+            if (Arrays.asList(ItemType.AREA, ItemType.EDGE, ItemType.LINE)
+                    .contains(this.afterView.getType()))
+            {
+                final PolyLine polyLine = this.afterView instanceof LineItem
+                        ? ((LineItem) this.afterView).asPolyLine()
+                        : ((Area) this.afterView).asPolygon();
+                if (polyLine == null)
+                {
+                    return;
+                }
+                locationsToFind.addAll(polyLine);
+            }
+        }
+        else if (changeType == ChangeType.REMOVE
+                && Arrays.asList(ItemType.AREA, ItemType.EDGE, ItemType.LINE)
+                        .contains(this.afterView.getType()))
+        // Only add remove points if there is <i>no</i> chance that a point is used by another
+        // object
+        {
+            // In contrast with ChangeType.ADD, we must use the beforeView.
+            final PolyLine polyLine = this.beforeView instanceof LineItem
+                    ? ((LineItem) this.beforeView).asPolyLine()
+                    : ((Area) this.beforeView).asPolygon();
+            if (polyLine == null)
+            {
+                return;
+            }
+            findNodesToRemove(atlas, polyLine, locationsToFind);
+        }
+        buildNodes(atlas, locationsToFind);
+    }
+
+    /**
+     * Find nodes to remove
+     *
+     * @param atlas
+     *            The atlas with the information needed to determine if a node should be removed
+     * @param polyLine
+     *            The polyline that we are deleting -- we check if the only parent of a node is this
+     *            line, and if so, remove it.
+     * @param locationsToFind
+     *            The collection to add the locations to remove to
+     */
+    private void findNodesToRemove(final Atlas atlas, final PolyLine polyLine,
+            final Collection<Location> locationsToFind)
+    {
+        for (final Location point : polyLine)
+        {
+            final List<Line> lines = Iterables.asList(atlas.linesContaining(point));
+            if (this.afterView instanceof LineItem)
+            {
+                lines.removeIf(
+                        line -> line.getOsmIdentifier() == this.afterView.getOsmIdentifier());
+            }
+            final List<Relation> relations = Iterables
+                    .asList(atlas.relationsWithEntitiesIntersecting(point.bounds()));
+            atlas.relationsWithEntitiesWithin(point.bounds()).forEach(relations::add);
+            if (this.afterView instanceof Relation)
+            {
+                relations.removeIf(relation -> relation.getOsmIdentifier() == this.afterView
+                        .getOsmIdentifier());
+            }
+            if (lines.isEmpty() && relations.isEmpty())
+            {
+                locationsToFind.add(point);
+            }
+        }
+
     }
 
     /**
