@@ -28,7 +28,7 @@ public enum CyclewayTag
     OPPOSITE_SHARE_BUSWAY,
     SEGREGATED,
     NONE,
-    SEPARATED;
+    SEPARATE;
 
     @TagKey
     public static final String KEY = "cycleway";
