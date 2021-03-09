@@ -76,8 +76,6 @@ public class AtlasSectionProcessor
     private static final String FINISHED_NODE_CREATION = "Finished creating Nodes for Atlas {} in {}}";
     private static final String STARTED_EXCESS_POINT_REMOVAL = "Started removing excess Points for Atlas {}";
     private static final String FINISHED_EXCESS_POINT_REMOVAL = "Finished removing excess Points for Atlas {} in {}}";
-    private static final String STARTED_POINT_ADDITION = "Started adding additional Points for Atlas {}";
-    private static final String FINISHED_POINT_ADDITION = "Finished adding additional Points for Atlas {} in {}";
 
     // Expand the initial shard boundary to capture any edges that are crossing the shard boundary
     private static final Distance SHARD_EXPANSION_DISTANCE = Distance.meters(20);
@@ -195,39 +193,18 @@ public class AtlasSectionProcessor
                 time.elapsedSince().asMilliseconds());
 
         time = Time.now();
-        // If this atlas is supposed to keep everything, add the points that are not also saved as a
-        // node.
-        if (this.loadingOption.isKeepAll())
+        logger.info(STARTED_EXCESS_POINT_REMOVAL, this.getShardOrAtlasName());
+        this.inputAtlas.points().forEach(point ->
         {
-            logger.info(STARTED_POINT_ADDITION, this.getShardOrAtlasName());
-            this.inputAtlas.points().forEach(point ->
-            {
-                final CompleteNode possibleDupe = this.nodeMap.get(point.getLocation());
-                if (possibleDupe == null
-                        || possibleDupe.getOsmIdentifier() != point.getOsmIdentifier())
-                {
-                    this.changes.add(FeatureChange.add(CompletePoint.from(point)));
-                }
-            });
-            logger.info(FINISHED_POINT_ADDITION, this.getShardOrAtlasName(),
-                    time.elapsedSince().asMilliseconds());
-        }
-        else
-        {
-            logger.info(STARTED_EXCESS_POINT_REMOVAL, this.getShardOrAtlasName());
-            this.inputAtlas.points().forEach(point ->
+            if (point.getOsmTags().isEmpty() && point.relations().isEmpty())
             {
                 // we care about a point if and only if it has pre-existing OSM tags OR it belongs
-                // to a future edge OR we are doing QA
-                if (!this.loadingOption.isKeepAll() && point.getOsmTags().isEmpty()
-                        && point.relations().isEmpty())
-                {
-                    this.changes.add(FeatureChange.remove(CompletePoint.shallowFrom(point)));
-                }
-            });
-            logger.info(FINISHED_EXCESS_POINT_REMOVAL, this.getShardOrAtlasName(),
-                    time.elapsedSince().asMilliseconds());
-        }
+                // to a future edge
+                this.changes.add(FeatureChange.remove(CompletePoint.shallowFrom(point)));
+            }
+        });
+        logger.info(FINISHED_EXCESS_POINT_REMOVAL, this.getShardOrAtlasName(),
+                time.elapsedSince().asMilliseconds());
 
         logger.info(FINISHED_SECTIONING, this.getShardOrAtlasName(),
                 overallTime.elapsedSince().asMilliseconds());
@@ -264,7 +241,10 @@ public class AtlasSectionProcessor
         {
             return sectionedAtlas.cloneToPackedAtlas();
         }
-        return cutSubAtlasForOriginalShard(sectionedAtlas).cloneToPackedAtlas();
+        else
+        {
+            return cutSubAtlasForOriginalShard(sectionedAtlas).cloneToPackedAtlas();
+        }
     }
 
     /**
@@ -396,8 +376,7 @@ public class AtlasSectionProcessor
             throw new CoreException("Couldn't find node while sectioning Line {} for Atlas {}",
                     line, getShardOrAtlasName());
         }
-        // Drop nodes that don't have tags when we don't need them for other purposes (e.g., QA)
-        if (!this.loadingOption.isKeepAll() && pointForNode.getOsmTags().isEmpty())
+        if (pointForNode.getOsmTags().isEmpty())
         {
             this.changes.add(FeatureChange.remove(CompletePoint.shallowFrom(pointForNode)));
         }

@@ -139,8 +139,6 @@ public class RawAtlasSlicer
     private final CountryBoundaryMap boundary;
     private final String shardOrAtlasName;
     private final String country;
-    /** See {@link AtlasLoadingOption#isKeepAll} */
-    private final boolean keepAll;
     private final Map<Long, CompleteArea> stagedAreas = new ConcurrentHashMap<>();
     private final Map<Long, CompleteRelation> stagedRelations = new ConcurrentHashMap<>();
     private final Map<Long, CompleteLine> stagedLines = new ConcurrentHashMap<>();
@@ -191,8 +189,6 @@ public class RawAtlasSlicer
                 line -> this.stagedLines.put(line.getIdentifier(), CompleteLine.from(line)));
         this.inputAtlas.relations().forEach(relation -> this.stagedRelations
                 .put(relation.getIdentifier(), CompleteRelation.from(relation)));
-
-        this.keepAll = loadingOption.isKeepAll();
     }
 
     /**
@@ -276,8 +272,6 @@ public class RawAtlasSlicer
                 line -> this.stagedLines.put(line.getIdentifier(), CompleteLine.from(line)));
         this.inputAtlas.relations().forEach(relation -> this.stagedRelations
                 .put(relation.getIdentifier(), CompleteRelation.from(relation)));
-
-        this.keepAll = loadingOption.isKeepAll();
     }
 
     /**
@@ -1814,11 +1808,11 @@ public class RawAtlasSlicer
      */
     private void slicePoint(final Point point)
     {
-        if (!this.keepAll && point.getOsmTags().isEmpty()
+        if (point.getOsmTags().isEmpty()
                 && !this.pointsBelongingToEdge.contains(point.getIdentifier()))
         {
             // we care about a point if and only if it has pre-existing OSM tags OR it belongs
-            // to a future edge OR we want to keep everything (i.e., for QA purposes)
+            // to a future edge
             this.stagedPoints.remove(point.getIdentifier());
             this.changes.add(FeatureChange.remove(CompletePoint.shallowFrom(point)));
         }
@@ -1835,8 +1829,7 @@ public class RawAtlasSlicer
                 updatedPoint.withAddedTag(SyntheticBoundaryNodeTag.KEY,
                         SyntheticBoundaryNodeTag.EXISTING.toString());
             }
-            // We need all nodes for QA purposes
-            if (!this.keepAll && !this.isInCountry.test(updatedPoint))
+            if (!this.isInCountry.test(updatedPoint))
             {
                 this.stagedPoints.remove(point.getIdentifier());
                 this.changes.add(FeatureChange.remove(updatedPoint, this.inputAtlas));
