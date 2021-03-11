@@ -28,7 +28,9 @@ import org.openstreetmap.atlas.utilities.tuples.Tuple;
  *
  * @author lcram
  * @author cstaylor
+ * @deprecated
  */
+@Deprecated
 public abstract class AtlasLoaderCommand extends MultipleOutputCommand
 {
     private static final String COMBINED_ATLAS_NAME = "combined.atlas";

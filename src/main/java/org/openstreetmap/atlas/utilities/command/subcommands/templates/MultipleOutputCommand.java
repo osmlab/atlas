@@ -16,7 +16,9 @@ import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
  * registers a '--output' option, the argument to which will be used as an output directory.
  *
  * @author lcram
+ * @deprecated
  */
+@Deprecated
 public abstract class MultipleOutputCommand extends AbstractAtlasShellToolsCommand
 {
     public static final String OUTPUT_DIRECTORY_OPTION_LONG = "output";
