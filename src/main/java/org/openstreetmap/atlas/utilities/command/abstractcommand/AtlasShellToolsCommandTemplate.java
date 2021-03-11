@@ -3,7 +3,7 @@ package org.openstreetmap.atlas.utilities.command.abstractcommand;
 import org.openstreetmap.atlas.utilities.command.subcommands.templates.ListOfNumbersTemplate;
 
 /**
- * An {@link AbstractAtlasShellToolsCommandTemplate} provides an easy way for implementations of
+ * An {@link AtlasShellToolsCommandTemplate} provides an easy way for implementations of
  * {@link AbstractAtlasShellToolsCommand} to share options, arguments, man page sections, and common
  * functionality. For example, by using a template implementation, command authors will not need to
  * re-declare a common option (with the accompanying duplicated option parsing code) across many
@@ -11,7 +11,7 @@ import org.openstreetmap.atlas.utilities.command.subcommands.templates.ListOfNum
  *
  * @author lcram
  */
-public interface AbstractAtlasShellToolsCommandTemplate
+public interface AtlasShellToolsCommandTemplate
 {
     /**
      * Register some manual page sections associated with this template.

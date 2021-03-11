@@ -370,14 +370,14 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     public abstract void registerManualPageSections();
 
     /**
-     * Register a {@link AbstractAtlasShellToolsCommandTemplate}'s manual pages for this command.
+     * Register a {@link AtlasShellToolsCommandTemplate}'s manual pages for this command.
      *
      * @param template
-     *            the {@link AbstractAtlasShellToolsCommandTemplate} whose man pages sections you
-     *            want to register
+     *            the {@link AtlasShellToolsCommandTemplate} whose man pages sections you want to
+     *            register
      */
     public void registerManualPageSectionsFromTemplate(
-            final AbstractAtlasShellToolsCommandTemplate template)
+            final AtlasShellToolsCommandTemplate template)
     {
         template.registerManualPageSections(this);
     }
@@ -606,15 +606,14 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     }
 
     /**
-     * Register a {@link AbstractAtlasShellToolsCommandTemplate}'s options and arguments for this
-     * command.
+     * Register a {@link AtlasShellToolsCommandTemplate}'s options and arguments for this command.
      *
      * @param template
-     *            the {@link AbstractAtlasShellToolsCommandTemplate} whose options and arguments you
-     *            want to register
+     *            the {@link AtlasShellToolsCommandTemplate} whose options and arguments you want to
+     *            register
      */
     public void registerOptionsAndArgumentsFromTemplate(
-            final AbstractAtlasShellToolsCommandTemplate template)
+            final AtlasShellToolsCommandTemplate template)
     {
         template.registerOptionsAndArguments(this);
     }

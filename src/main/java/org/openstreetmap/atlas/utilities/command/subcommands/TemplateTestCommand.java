@@ -3,13 +3,13 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 import java.util.List;
 
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
-import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommandTemplate;
+import org.openstreetmap.atlas.utilities.command.abstractcommand.AtlasShellToolsCommandTemplate;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.subcommands.templates.ListOfNumbersTemplate;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 
 /**
- * A command to test the {@link AbstractAtlasShellToolsCommandTemplate} feature.
+ * A command to test the {@link AtlasShellToolsCommandTemplate} feature.
  * 
  * @author lcram
  */

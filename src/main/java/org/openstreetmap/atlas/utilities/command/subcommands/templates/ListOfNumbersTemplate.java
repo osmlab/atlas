@@ -7,19 +7,19 @@ import java.util.List;
 
 import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
-import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommandTemplate;
+import org.openstreetmap.atlas.utilities.command.abstractcommand.AtlasShellToolsCommandTemplate;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.subcommands.TemplateTestCommand;
 
 /**
- * An example of how to implement an {@link AbstractAtlasShellToolsCommandTemplate}. This template
- * simply provides an option that accepts a comma separated list of numbers. Note that the code to
- * parse the option can be contained within the template itself! Check {@link TemplateTestCommand}
- * to see how to use the template in a command implementation.
+ * An example of how to implement an {@link AtlasShellToolsCommandTemplate}. This template simply
+ * provides an option that accepts a comma separated list of numbers. Note that the code to parse
+ * the option can be contained within the template itself! Check {@link TemplateTestCommand} to see
+ * how to use the template in a command implementation.
  * 
  * @author lcram
  */
-public class ListOfNumbersTemplate implements AbstractAtlasShellToolsCommandTemplate
+public class ListOfNumbersTemplate implements AtlasShellToolsCommandTemplate
 {
     private static final String LIST_OF_NUMBERS_OPTION_LONG = "list-of-numbers";
     private static final String COULD_NOT_PARSE = "could not parse %s '%s'";
