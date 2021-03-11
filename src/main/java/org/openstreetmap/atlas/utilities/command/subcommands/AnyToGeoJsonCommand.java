@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -18,7 +19,9 @@ import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
+import org.openstreetmap.atlas.utilities.command.subcommands.templates.CountryBoundaryMapTemplate;
 import org.openstreetmap.atlas.utilities.command.subcommands.templates.MultipleOutputCommand;
+import org.openstreetmap.atlas.utilities.command.subcommands.templates.ShardingTemplate;
 
 import com.google.gson.GsonBuilder;
 
@@ -33,14 +36,6 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
     private static final String ATLAS_OPTION_LONG = "atlas";
     private static final String ATLAS_OPTION_DESCRIPTION = "The path to an atlas file to be converted.";
     private static final String ATLAS_OPTION_HINT = "atlas-file";
-
-    private static final String SHARDING_OPTION_LONG = "sharding";
-    private static final String SHARDING_OPTION_DESCRIPTION = "The sharding to convert, e.g. dynamic@/Users/foo/my-tree.txt";
-    private static final String SHARDING_OPTION_HINT = "type@parameter";
-
-    private static final String COUNTRY_BOUNDARY_OPTION_LONG = "country-boundary";
-    private static final String COUNTRY_BOUNDARY_OPTION_DESCRIPTION = "The path to a boundary file to be converted.";
-    private static final String COUNTRY_BOUNDARY_OPTION_HINT = "boundary-file";
 
     private static final String COUNTRIES_OPTION_LONG = "countries";
     private static final Character COUNTRIES_OPTION_SHORT = 'c';
@@ -63,9 +58,8 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
     private static final String OUTPUT_FILE = "output";
     private static final String ATLAS_FILE = OUTPUT_FILE + "-" + ATLAS_OPTION_LONG
             + FileSuffix.GEO_JSON;
-    private static final String SHARDING_FILE = OUTPUT_FILE + "-" + SHARDING_OPTION_LONG
-            + FileSuffix.GEO_JSON;
-    private static final String BOUNDARY_FILE = OUTPUT_FILE + "-" + COUNTRY_BOUNDARY_OPTION_LONG
+    private static final String SHARDING_FILE = OUTPUT_FILE + "-sharding" + FileSuffix.GEO_JSON;
+    private static final String BOUNDARY_FILE = OUTPUT_FILE + "-country-boundary"
             + FileSuffix.GEO_JSON;
 
     private final OptionAndArgumentDelegate optionAndArgumentDelegate;
@@ -124,6 +118,9 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
                 .getResourceAsStream("AnyToGeoJsonCommandDescriptionSection.txt"));
         addManualPageSection("EXAMPLES", AtlasSearchCommand.class
                 .getResourceAsStream("AnyToGeoJsonCommandExamplesSection.txt"));
+        registerManualPageSectionsFromTemplate(new ShardingTemplate());
+        registerManualPageSectionsFromTemplate(new CountryBoundaryMapTemplate());
+
         super.registerManualPageSections();
     }
 
@@ -132,11 +129,8 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
     {
         registerOptionWithRequiredArgument(ATLAS_OPTION_LONG, ATLAS_OPTION_DESCRIPTION,
                 OptionOptionality.REQUIRED, ATLAS_OPTION_HINT, ATLAS_CONTEXT);
-        registerOptionWithRequiredArgument(SHARDING_OPTION_LONG, SHARDING_OPTION_DESCRIPTION,
-                OptionOptionality.REQUIRED, SHARDING_OPTION_HINT, SHARDING_CONTEXT);
-        registerOptionWithRequiredArgument(COUNTRY_BOUNDARY_OPTION_LONG,
-                COUNTRY_BOUNDARY_OPTION_DESCRIPTION, OptionOptionality.REQUIRED,
-                COUNTRY_BOUNDARY_OPTION_HINT, BOUNDARY_CONTEXT);
+        registerOptionsAndArgumentsFromTemplate(new ShardingTemplate(SHARDING_CONTEXT));
+        registerOptionsAndArgumentsFromTemplate(new CountryBoundaryMapTemplate(BOUNDARY_CONTEXT));
         registerOptionWithRequiredArgument(COUNTRIES_OPTION_LONG, COUNTRIES_OPTION_SHORT,
                 COUNTRIES_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL, COUNTRIES_OPTION_HINT,
                 BOUNDARY_CONTEXT);
@@ -195,14 +189,16 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
                     .orElse(new HashSet<>());
         }
 
-        if (this.optionAndArgumentDelegate.hasVerboseOption())
+        CountryBoundaryMap map = null;
+        final Optional<CountryBoundaryMap> mapOptional = CountryBoundaryMapTemplate
+                .getCountryBoundaryMap(this);
+        if (mapOptional.isEmpty())
         {
-            this.outputDelegate.printlnCommandMessage("reading CountryBoundaryMap from file...");
+            this.outputDelegate.printlnErrorMessage("failed to load country boundary");
+            return 1;
         }
-        final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new File(
-                this.optionAndArgumentDelegate.getOptionArgument(COUNTRY_BOUNDARY_OPTION_LONG)
-                        .orElseThrow(AtlasShellToolsException::new),
-                this.getFileSystem()));
+        map = mapOptional.get();
+
         final String boundaryJson;
         if (countries.isEmpty())
         {
@@ -236,19 +232,7 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
 
     private int executeShardingContext()
     {
-        final String shardingString = this.optionAndArgumentDelegate
-                .getOptionArgument(SHARDING_OPTION_LONG).orElseThrow(AtlasShellToolsException::new);
-        final Sharding sharding;
-        try
-        {
-            sharding = Sharding.forString(shardingString, this.getFileSystem());
-        }
-        catch (final Exception exception)
-        {
-            this.outputDelegate.printlnErrorMessage(exception.getMessage());
-            return 1;
-        }
-
+        final Sharding sharding = ShardingTemplate.getSharding(this);
         final String shardingJson = new GsonBuilder().setPrettyPrinting().create()
                 .toJson(sharding.asGeoJson());
         final Path concatenatedPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
