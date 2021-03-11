@@ -1,0 +1,3 @@
+The '--country-boundary' option should point to a valid country boundary file in the format
+expected by the CountryBoundaryMap class. The file will be loaded using CountryBoundaryMap's
+fromPlainText method, which can handle gzipped or uncompressed files.

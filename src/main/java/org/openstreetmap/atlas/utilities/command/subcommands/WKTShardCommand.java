@@ -35,6 +35,8 @@ import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgume
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
+import org.openstreetmap.atlas.utilities.command.subcommands.templates.CountryBoundaryMapTemplate;
+import org.openstreetmap.atlas.utilities.command.subcommands.templates.ShardingTemplate;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.slf4j.Logger;
@@ -47,17 +49,9 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
 {
     private static final Logger logger = LoggerFactory.getLogger(WKTShardCommand.class);
 
-    private static final String SHARDING_OPTION_LONG = "sharding";
-    private static final String SHARDING_OPTION_DESCRIPTION = "The sharding to use, e.g. dynamic@/Users/foo/my-tree.txt";
-    private static final String SHARDING_OPTION_HINT = "type@parameter";
-
     private static final String INPUT_FILE_OPTION_LONG = "input";
     private static final String INPUT_FILE_OPTION_DESCRIPTION = "An input file from which to source the WKT entities. See DESCRIPTION section for details.";
     private static final String INPUT_FILE_OPTION_HINT = "file";
-
-    private static final String COUNTRY_BOUNDARY_OPTION_LONG = "country-boundary";
-    private static final String COUNTRY_BOUNDARY_OPTION_DESCRIPTION = "A boundary file to use for intersection checks. See DESCRIPTION section for details.";
-    private static final String COUNTRY_BOUNDARY_OPTION_HINT = "boundary-file";
 
     private static final Integer SHARDING_CONTEXT = 3;
     private static final Integer COUNTRY_BOUNDARY_CONTEXT = 4;
@@ -99,15 +93,12 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         CountryBoundaryMap countryBoundaryMap = null;
         if (this.optionAndArgumentDelegate.getParserContext() == SHARDING_CONTEXT)
         {
-            sharding = Sharding
-                    .forString(
-                            this.optionAndArgumentDelegate.getOptionArgument(SHARDING_OPTION_LONG)
-                                    .orElseThrow(AtlasShellToolsException::new),
-                            this.getFileSystem());
+            sharding = ShardingTemplate.getSharding(this);
         }
         else if (this.optionAndArgumentDelegate.getParserContext() == COUNTRY_BOUNDARY_CONTEXT)
         {
-            final Optional<CountryBoundaryMap> mapOptional = loadCountryBoundaryMap();
+            final Optional<CountryBoundaryMap> mapOptional = CountryBoundaryMapTemplate
+                    .getCountryBoundaryMap(this);
             if (mapOptional.isEmpty())
             {
                 this.outputDelegate.printlnErrorMessage("failed to load country boundary");
@@ -154,6 +145,8 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
                 WKTShardCommand.class.getResourceAsStream("WKTShardCommandDescriptionSection.txt"));
         addManualPageSection("EXAMPLES",
                 WKTShardCommand.class.getResourceAsStream("WKTShardCommandExamplesSection.txt"));
+        registerManualPageSectionsFromTemplate(new ShardingTemplate());
+        registerManualPageSectionsFromTemplate(new CountryBoundaryMapTemplate());
     }
 
     @Override
@@ -164,37 +157,10 @@ public class WKTShardCommand extends AbstractAtlasShellToolsCommand
         registerOptionWithRequiredArgument(INPUT_FILE_OPTION_LONG, INPUT_FILE_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, INPUT_FILE_OPTION_HINT, SHARDING_CONTEXT,
                 COUNTRY_BOUNDARY_CONTEXT);
-        registerOptionWithRequiredArgument(SHARDING_OPTION_LONG, SHARDING_OPTION_DESCRIPTION,
-                OptionOptionality.REQUIRED, SHARDING_OPTION_HINT, SHARDING_CONTEXT);
-        registerOptionWithRequiredArgument(COUNTRY_BOUNDARY_OPTION_LONG,
-                COUNTRY_BOUNDARY_OPTION_DESCRIPTION, OptionOptionality.REQUIRED,
-                COUNTRY_BOUNDARY_OPTION_HINT, COUNTRY_BOUNDARY_CONTEXT);
+        registerOptionsAndArgumentsFromTemplate(new ShardingTemplate(SHARDING_CONTEXT));
+        registerOptionsAndArgumentsFromTemplate(
+                new CountryBoundaryMapTemplate(COUNTRY_BOUNDARY_CONTEXT));
         super.registerOptionsAndArguments();
-    }
-
-    private Optional<CountryBoundaryMap> loadCountryBoundaryMap()
-    {
-        final Optional<CountryBoundaryMap> countryBoundaryMap;
-        final File boundaryMapFile = new File(
-                this.optionAndArgumentDelegate.getOptionArgument(COUNTRY_BOUNDARY_OPTION_LONG)
-                        .orElseThrow(AtlasShellToolsException::new),
-                this.getFileSystem());
-        if (!boundaryMapFile.exists())
-        {
-            this.outputDelegate.printlnErrorMessage(
-                    "boundary file " + boundaryMapFile.getAbsolutePathString() + " does not exist");
-            return Optional.empty();
-        }
-        if (this.optionAndArgumentDelegate.hasVerboseOption())
-        {
-            this.outputDelegate.printlnCommandMessage("loading country boundary map...");
-        }
-        countryBoundaryMap = Optional.of(CountryBoundaryMap.fromPlainText(boundaryMapFile));
-        if (this.optionAndArgumentDelegate.hasVerboseOption())
-        {
-            this.outputDelegate.printlnCommandMessage("loaded boundary map");
-        }
-        return countryBoundaryMap;
     }
 
     private void parseWktOrShardAndPrintOutput(final String wktOrShard, final Sharding sharding,
