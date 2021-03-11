@@ -3,14 +3,20 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 import java.util.List;
 
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
+import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommandTemplate;
+import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.subcommands.templates.ListOfNumbersTemplate;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 
 /**
+ * A command to test the {@link AbstractAtlasShellToolsCommandTemplate} feature.
+ * 
  * @author lcram
  */
 public class TemplateTestCommand extends AbstractAtlasShellToolsCommand
 {
+    private static final int REVERSE_CONTEXT = 4;
+
     public static void main(final String[] args)
     {
         new TemplateTestCommand().runSubcommandAndExit(args);
@@ -19,13 +25,23 @@ public class TemplateTestCommand extends AbstractAtlasShellToolsCommand
     @Override
     public int execute()
     {
-        final List<Integer> listOfNumbers = ListOfNumbersTemplate.getListOfNumbers(this);
-        if (listOfNumbers.isEmpty())
+        if (this.getOptionAndArgumentDelegate()
+                .getParserContext() == AbstractAtlasShellToolsCommand.DEFAULT_CONTEXT)
         {
-            this.getCommandOutputDelegate().printlnErrorMessage("failed to parse number list!");
-            return 1;
+            final List<Integer> listOfNumbers = ListOfNumbersTemplate.getListOfNumbers(this);
+            if (listOfNumbers.isEmpty())
+            {
+                this.getCommandOutputDelegate().printlnErrorMessage("failed to parse number list!");
+                return 1;
+            }
+            this.getCommandOutputDelegate().printlnStdout(listOfNumbers.toString(),
+                    TTYAttribute.GREEN);
         }
-        this.getCommandOutputDelegate().printlnStdout(listOfNumbers.toString(), TTYAttribute.GREEN);
+        else
+        {
+            this.getCommandOutputDelegate().printlnStdout("Using reverse context!",
+                    TTYAttribute.GREEN);
+        }
         return 0;
     }
 
@@ -50,7 +66,10 @@ public class TemplateTestCommand extends AbstractAtlasShellToolsCommand
     @Override
     public void registerOptionsAndArguments()
     {
-        registerOptionsAndArgumentsFromTemplate(new ListOfNumbersTemplate());
+        registerOptionsAndArgumentsFromTemplate(
+                new ListOfNumbersTemplate(AbstractAtlasShellToolsCommand.DEFAULT_CONTEXT));
+        registerOption("reverse", "Perform this operation in reverse.", OptionOptionality.REQUIRED,
+                REVERSE_CONTEXT);
         super.registerOptionsAndArguments();
     }
 }

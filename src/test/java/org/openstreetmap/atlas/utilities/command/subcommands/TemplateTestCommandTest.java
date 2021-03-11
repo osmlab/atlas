@@ -43,4 +43,19 @@ public class TemplateTestCommandTest
                         + "template-test: error: failed to parse number list!\n",
                 errContent.toString());
     }
+
+    @Test
+    public void testReverseContext()
+    {
+        final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
+        final TemplateTestCommand command = new TemplateTestCommand();
+
+        command.setNewOutStream(new PrintStream(outContent));
+        command.setNewErrStream(new PrintStream(errContent));
+        command.runSubcommand("--reverse");
+
+        Assert.assertEquals("Using reverse context!\n", outContent.toString());
+        Assert.assertEquals("", errContent.toString());
+    }
 }

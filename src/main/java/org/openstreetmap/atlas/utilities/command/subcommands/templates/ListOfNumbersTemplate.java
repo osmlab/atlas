@@ -9,9 +9,13 @@ import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommandTemplate;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
+import org.openstreetmap.atlas.utilities.command.subcommands.TemplateTestCommand;
 
 /**
- * An example of how to implement an {@link AbstractAtlasShellToolsCommandTemplate}.
+ * An example of how to implement an {@link AbstractAtlasShellToolsCommandTemplate}. This template
+ * simply provides an option that accepts a comma separated list of numbers. Note that the code to
+ * parse the option can be contained within the template itself! Check {@link TemplateTestCommand}
+ * to see how to use the template in a command implementation.
  * 
  * @author lcram
  */
@@ -19,6 +23,12 @@ public class ListOfNumbersTemplate implements AbstractAtlasShellToolsCommandTemp
 {
     private static final String LIST_OF_NUMBERS_OPTION_LONG = "list-of-numbers";
     private static final String COULD_NOT_PARSE = "could not parse %s '%s'";
+
+    /**
+     * The parse contexts under which we want the options provided by this template to appear. Leave
+     * empty to use the default context.
+     */
+    private final Integer[] contexts;
 
     public static List<Integer> getListOfNumbers(final AbstractAtlasShellToolsCommand parentCommand)
     {
@@ -51,6 +61,20 @@ public class ListOfNumbersTemplate implements AbstractAtlasShellToolsCommandTemp
         return numberList;
     }
 
+    /**
+     * This constructor allows callers to specify under which contexts they want the options
+     * provided by this template to appear. If left blank, this template will only be applied to the
+     * default context.
+     * 
+     * @param contexts
+     *            the parse contexts under which you want the options provided by this template to
+     *            appear
+     */
+    public ListOfNumbersTemplate(final Integer... contexts)
+    {
+        this.contexts = contexts;
+    }
+
     @Override
     public void registerManualPageSections(final AbstractAtlasShellToolsCommand parentCommand)
     {
@@ -65,7 +89,7 @@ public class ListOfNumbersTemplate implements AbstractAtlasShellToolsCommandTemp
     public void registerOptionsAndArguments(final AbstractAtlasShellToolsCommand parentCommand)
     {
         parentCommand.registerOptionWithRequiredArgument(LIST_OF_NUMBERS_OPTION_LONG,
-                "Specify a comma separated list of numbers.", OptionOptionality.REQUIRED,
-                "numbers");
+                "Specify a comma separated list of numbers.", OptionOptionality.REQUIRED, "numbers",
+                this.contexts);
     }
 }
