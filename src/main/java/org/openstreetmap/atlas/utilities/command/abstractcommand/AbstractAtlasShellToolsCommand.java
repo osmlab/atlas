@@ -157,6 +157,22 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     private Map<String, String> environment = null;
 
     /**
+     * Add a section to this command's manual page. The section name will be made all capitalized.
+     * Also, use the supplied input stream to read contents into the section.
+     *
+     * @param section
+     *            the name of the section
+     * @param sectionResourceFileStream
+     *            an input stream to the section resource file (easily specified like
+     *            CommandName.class.getResourceAsStream("resourcefile.txt"))
+     */
+    public void addManualPageSection(final String section,
+            final InputStream sectionResourceFileStream)
+    {
+        this.registrar.addManualPageSection(section, sectionResourceFileStream);
+    }
+
+    /**
      * Execute the command logic. Subclasses of {@link AbstractAtlasShellToolsCommand} must
      * implement this method, but in general it should not be called directly. See
      * {@link AbstractAtlasShellToolsCommand#runSubcommandAndExit(String...)}.
@@ -182,6 +198,16 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      * @return the simple name of the command
      */
     public abstract String getCommandName();
+
+    /**
+     * Get a {@link CommandOutputDelegate} bound to this {@link AbstractAtlasShellToolsCommand}.
+     *
+     * @return a delegate bound to this command
+     */
+    public CommandOutputDelegate getCommandOutputDelegate()
+    {
+        return new CommandOutputDelegate(this);
+    }
 
     /**
      * Get the value of an environment variable. Command implementations should always defer to this
@@ -244,6 +270,17 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     }
 
     /**
+     * Get an {@link OptionAndArgumentDelegate} bound to this
+     * {@link AbstractAtlasShellToolsCommand}.
+     *
+     * @return a fetcher bound to this command
+     */
+    public OptionAndArgumentDelegate getOptionAndArgumentDelegate()
+    {
+        return new OptionAndArgumentDelegate(this);
+    }
+
+    /**
      * Get the {@link PrintStream} for this command's out stream.
      *
      * @return the {@link PrintStream} for this command's out stream.
@@ -282,6 +319,47 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     }
 
     /**
+     * Register an argument with a given arity. The argument hint is used as a key to retrieve the
+     * argument value(s) later. Additionally, documentation can use the hint to specify what the
+     * argument should be for.
+     *
+     * @param argumentHint
+     *            the hint for the argument
+     * @param arity
+     *            the argument arity
+     * @param optionality
+     *            whether the argument is optional or required
+     * @param contexts
+     *            the contexts
+     * @throws CoreException
+     *             if the argument could not be registered
+     */
+    public void registerArgument(final String argumentHint, final ArgumentArity arity,
+            final ArgumentOptionality optionality, final Integer... contexts)
+    {
+        if (contexts.length == 0)
+        {
+            this.parser.registerArgument(argumentHint, arity, optionality, DEFAULT_CONTEXT);
+        }
+        else
+        {
+            this.parser.registerArgument(argumentHint, arity, optionality, contexts);
+        }
+    }
+
+    /**
+     * Register an empty context. This is useful if you want to have a defined usage case where no
+     * options or arguments are passed.
+     *
+     * @param context
+     *            the context id
+     */
+    public void registerEmptyContext(final int context)
+    {
+        this.parser.registerEmptyContext(context);
+    }
+
+    /**
      * Register any desired manual page sections. An OPTIONS section will be automatically
      * generated, so it is recommended that you register at least a DESCRIPTION and EXAMPLES section
      * with some appropriate documentation. See other {@link AbstractAtlasShellToolsCommand}
@@ -290,6 +368,222 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
      * start).
      */
     public abstract void registerManualPageSections();
+
+    /**
+     * Register a {@link AtlasShellToolsCommandTemplate}'s manual pages for this command.
+     *
+     * @param template
+     *            the {@link AtlasShellToolsCommandTemplate} whose man pages sections you want to
+     *            register
+     */
+    public void registerManualPageSectionsFromTemplate(
+            final AtlasShellToolsCommandTemplate template)
+    {
+        template.registerManualPageSections(this);
+    }
+
+    /**
+     * Register an option with a given long and short form. The option will be a flag option, ie. it
+     * can take no arguments.
+     *
+     * @param longForm
+     *            the long form of the option, eg. --option
+     * @param shortForm
+     *            the short form of the option, eg. -o
+     * @param description
+     *            a simple description
+     * @param optionality
+     *            the optionality
+     * @param contexts
+     *            the contexts
+     * @throws CoreException
+     *             if the option could not be registered
+     */
+    public void registerOption(final String longForm, final Character shortForm,
+            final String description, final OptionOptionality optionality,
+            final Integer... contexts)
+    {
+        if (contexts.length == 0)
+        {
+            this.parser.registerOption(longForm, shortForm, description, optionality,
+                    DEFAULT_CONTEXT);
+        }
+        else
+        {
+            this.parser.registerOption(longForm, shortForm, description, optionality, contexts);
+        }
+    }
+
+    /**
+     * Register an option with a given long form. The option will be a flag option, ie. it can take
+     * no arguments.
+     *
+     * @param longForm
+     *            the long form of the option, eg. --option
+     * @param description
+     *            a simple description
+     * @param optionality
+     *            the optionality
+     * @param contexts
+     *            the contexts
+     * @throws CoreException
+     *             if the option could not be registered
+     */
+    public void registerOption(final String longForm, final String description,
+            final OptionOptionality optionality, final Integer... contexts)
+    {
+        if (contexts.length == 0)
+        {
+            this.parser.registerOption(longForm, description, optionality, DEFAULT_CONTEXT);
+        }
+        else
+        {
+            this.parser.registerOption(longForm, description, optionality, contexts);
+        }
+    }
+
+    /**
+     * Register an option with a given long and short form that takes an optional argument. The
+     * provided argument hint can be used for generated documentation, and should be a single word
+     * describing the argument. The parser will throw an exception at parse-time if the argument is
+     * not supplied.
+     *
+     * @param longForm
+     *            the long form of the option, eg. --option
+     * @param shortForm
+     *            the short form of the option, eg. -o
+     * @param description
+     *            a simple description
+     * @param optionality
+     *            the optionality
+     * @param argumentHint
+     *            the hint for the argument
+     * @param contexts
+     *            the contexts
+     * @throws CoreException
+     *             if the option could not be registered
+     */
+    public void registerOptionWithOptionalArgument(final String longForm, final Character shortForm,
+            final String description, final OptionOptionality optionality,
+            final String argumentHint, final Integer... contexts)
+    {
+        if (contexts.length == 0)
+        {
+            this.parser.registerOptionWithOptionalArgument(longForm, shortForm, description,
+                    optionality, argumentHint, DEFAULT_CONTEXT);
+        }
+        else
+        {
+            this.parser.registerOptionWithOptionalArgument(longForm, shortForm, description,
+                    optionality, argumentHint, contexts);
+        }
+    }
+
+    /**
+     * Register an option with a given long form that takes an optional argument. The provided
+     * argument hint can be used for generated documentation, and should be a single word describing
+     * the argument.
+     *
+     * @param longForm
+     *            the long form of the option, eg. --option
+     * @param description
+     *            a simple description
+     * @param optionality
+     *            the optionality
+     * @param argumentHint
+     *            the hint for the argument
+     * @param contexts
+     *            the contexts
+     * @throws CoreException
+     *             if the option could not be registered
+     */
+    public void registerOptionWithOptionalArgument(final String longForm, final String description,
+            final OptionOptionality optionality, final String argumentHint,
+            final Integer... contexts)
+    {
+        if (contexts.length == 0)
+        {
+            this.parser.registerOptionWithOptionalArgument(longForm, description, optionality,
+                    argumentHint, DEFAULT_CONTEXT);
+        }
+        else
+        {
+            this.parser.registerOptionWithOptionalArgument(longForm, description, optionality,
+                    argumentHint, contexts);
+        }
+    }
+
+    /**
+     * Register an option with a given long form that takes a required argument. The provided
+     * argument hint can be used for generated documentation, and should be a single word describing
+     * the argument. The parser will throw an exception at parse-time if the argument is not
+     * supplied.
+     *
+     * @param longForm
+     *            the long form of the option, eg. --option
+     * @param shortForm
+     *            the short form of the option, eg. -o
+     * @param description
+     *            a simple description
+     * @param optionality
+     *            the optionality
+     * @param argumentHint
+     *            the hint for the argument
+     * @param contexts
+     *            the contexts
+     * @throws CoreException
+     *             if the option could not be registered
+     */
+    public void registerOptionWithRequiredArgument(final String longForm, final Character shortForm,
+            final String description, final OptionOptionality optionality,
+            final String argumentHint, final Integer... contexts)
+    {
+        if (contexts.length == 0)
+        {
+            this.parser.registerOptionWithRequiredArgument(longForm, shortForm, description,
+                    optionality, argumentHint, DEFAULT_CONTEXT);
+        }
+        else
+        {
+            this.parser.registerOptionWithRequiredArgument(longForm, shortForm, description,
+                    optionality, argumentHint, contexts);
+        }
+    }
+
+    /**
+     * Register an option with a given long form that takes a required argument. The provided
+     * argument hint can be used for generated documentation, and should be a single word describing
+     * the argument. The parser will throw an exception if a required argument option is not
+     * supplied an argument at parse-time.
+     *
+     * @param longForm
+     *            the long form of the option, eg. --option
+     * @param description
+     *            a simple description
+     * @param optionality
+     *            the optionality
+     * @param argumentHint
+     *            the hint for the argument
+     * @param contexts
+     *            the contexts
+     * @throws CoreException
+     *             if the option could not be registered
+     */
+    public void registerOptionWithRequiredArgument(final String longForm, final String description,
+            final OptionOptionality optionality, final String argumentHint,
+            final Integer... contexts)
+    {
+        if (contexts.length == 0)
+        {
+            this.parser.registerOptionWithRequiredArgument(longForm, description, optionality,
+                    argumentHint, DEFAULT_CONTEXT);
+        }
+        else
+        {
+            this.parser.registerOptionWithRequiredArgument(longForm, description, optionality,
+                    argumentHint, contexts);
+        }
+    }
 
     /**
      * Register any necessary options and arguments for the command. Subclasses should override this
@@ -309,6 +603,19 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
         final Integer[] contexts = this.getFilteredRegisteredContexts().toArray(new Integer[0]);
         registerOption(VERBOSE_OPTION_LONG, VERBOSE_OPTION_SHORT, VERBOSE_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, contexts);
+    }
+
+    /**
+     * Register a {@link AtlasShellToolsCommandTemplate}'s options and arguments for this command.
+     *
+     * @param template
+     *            the {@link AtlasShellToolsCommandTemplate} whose options and arguments you want to
+     *            register
+     */
+    public void registerOptionsAndArgumentsFromTemplate(
+            final AtlasShellToolsCommandTemplate template)
+    {
+        template.registerOptionsAndArguments(this);
     }
 
     /**
@@ -531,22 +838,6 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     }
 
     /**
-     * Add a section to this command's manual page. The section name will be made all capitalized.
-     * Also, use the supplied input stream to read contents into the section.
-     *
-     * @param section
-     *            the name of the section
-     * @param sectionResourceFileStream
-     *            an input stream to the section resource file (easily specified like
-     *            CommandName.class.getResourceAsStream("resourcefile.txt"))
-     */
-    protected void addManualPageSection(final String section,
-            final InputStream sectionResourceFileStream)
-    {
-        this.registrar.addManualPageSection(section, sectionResourceFileStream);
-    }
-
-    /**
      * Add a given paragraph to a given manual page section.
      *
      * @param section
@@ -559,273 +850,6 @@ public abstract class AbstractAtlasShellToolsCommand implements AtlasShellToolsM
     protected void addParagraphToSection(final String section, final String paragraph)
     {
         this.registrar.addParagraphToSection(section, paragraph);
-    }
-
-    /**
-     * Get a {@link CommandOutputDelegate} bound to this {@link AbstractAtlasShellToolsCommand}.
-     *
-     * @return a delegate bound to this command
-     */
-    protected CommandOutputDelegate getCommandOutputDelegate()
-    {
-        return new CommandOutputDelegate(this);
-    }
-
-    /**
-     * Get an {@link OptionAndArgumentDelegate} bound to this
-     * {@link AbstractAtlasShellToolsCommand}.
-     *
-     * @return a fetcher bound to this command
-     */
-    protected OptionAndArgumentDelegate getOptionAndArgumentDelegate()
-    {
-        return new OptionAndArgumentDelegate(this);
-    }
-
-    /**
-     * Register an argument with a given arity. The argument hint is used as a key to retrieve the
-     * argument value(s) later. Additionally, documentation can use the hint to specify what the
-     * argument should be for.
-     *
-     * @param argumentHint
-     *            the hint for the argument
-     * @param arity
-     *            the argument arity
-     * @param optionality
-     *            whether the argument is optional or required
-     * @param contexts
-     *            the contexts
-     * @throws CoreException
-     *             if the argument could not be registered
-     */
-    protected void registerArgument(final String argumentHint, final ArgumentArity arity,
-            final ArgumentOptionality optionality, final Integer... contexts)
-    {
-        if (contexts.length == 0)
-        {
-            this.parser.registerArgument(argumentHint, arity, optionality, DEFAULT_CONTEXT);
-        }
-        else
-        {
-            this.parser.registerArgument(argumentHint, arity, optionality, contexts);
-        }
-    }
-
-    /**
-     * Register an empty context. This is useful if you want to have a defined usage case where no
-     * options or arguments are passed.
-     *
-     * @param context
-     *            the context id
-     */
-    protected void registerEmptyContext(final int context)
-    {
-        this.parser.registerEmptyContext(context);
-    }
-
-    /**
-     * Register an option with a given long and short form. The option will be a flag option, ie. it
-     * can take no arguments.
-     *
-     * @param longForm
-     *            the long form of the option, eg. --option
-     * @param shortForm
-     *            the short form of the option, eg. -o
-     * @param description
-     *            a simple description
-     * @param optionality
-     *            the optionality
-     * @param contexts
-     *            the contexts
-     * @throws CoreException
-     *             if the option could not be registered
-     */
-    protected void registerOption(final String longForm, final Character shortForm,
-            final String description, final OptionOptionality optionality,
-            final Integer... contexts)
-    {
-        if (contexts.length == 0)
-        {
-            this.parser.registerOption(longForm, shortForm, description, optionality,
-                    DEFAULT_CONTEXT);
-        }
-        else
-        {
-            this.parser.registerOption(longForm, shortForm, description, optionality, contexts);
-        }
-    }
-
-    /**
-     * Register an option with a given long form. The option will be a flag option, ie. it can take
-     * no arguments.
-     *
-     * @param longForm
-     *            the long form of the option, eg. --option
-     * @param description
-     *            a simple description
-     * @param optionality
-     *            the optionality
-     * @param contexts
-     *            the contexts
-     * @throws CoreException
-     *             if the option could not be registered
-     */
-    protected void registerOption(final String longForm, final String description,
-            final OptionOptionality optionality, final Integer... contexts)
-    {
-        if (contexts.length == 0)
-        {
-            this.parser.registerOption(longForm, description, optionality, DEFAULT_CONTEXT);
-        }
-        else
-        {
-            this.parser.registerOption(longForm, description, optionality, contexts);
-        }
-    }
-
-    /**
-     * Register an option with a given long and short form that takes an optional argument. The
-     * provided argument hint can be used for generated documentation, and should be a single word
-     * describing the argument. The parser will throw an exception at parse-time if the argument is
-     * not supplied.
-     *
-     * @param longForm
-     *            the long form of the option, eg. --option
-     * @param shortForm
-     *            the short form of the option, eg. -o
-     * @param description
-     *            a simple description
-     * @param optionality
-     *            the optionality
-     * @param argumentHint
-     *            the hint for the argument
-     * @param contexts
-     *            the contexts
-     * @throws CoreException
-     *             if the option could not be registered
-     */
-    protected void registerOptionWithOptionalArgument(final String longForm,
-            final Character shortForm, final String description,
-            final OptionOptionality optionality, final String argumentHint,
-            final Integer... contexts)
-    {
-        if (contexts.length == 0)
-        {
-            this.parser.registerOptionWithOptionalArgument(longForm, shortForm, description,
-                    optionality, argumentHint, DEFAULT_CONTEXT);
-        }
-        else
-        {
-            this.parser.registerOptionWithOptionalArgument(longForm, shortForm, description,
-                    optionality, argumentHint, contexts);
-        }
-    }
-
-    /**
-     * Register an option with a given long form that takes an optional argument. The provided
-     * argument hint can be used for generated documentation, and should be a single word describing
-     * the argument.
-     *
-     * @param longForm
-     *            the long form of the option, eg. --option
-     * @param description
-     *            a simple description
-     * @param optionality
-     *            the optionality
-     * @param argumentHint
-     *            the hint for the argument
-     * @param contexts
-     *            the contexts
-     * @throws CoreException
-     *             if the option could not be registered
-     */
-    protected void registerOptionWithOptionalArgument(final String longForm,
-            final String description, final OptionOptionality optionality,
-            final String argumentHint, final Integer... contexts)
-    {
-        if (contexts.length == 0)
-        {
-            this.parser.registerOptionWithOptionalArgument(longForm, description, optionality,
-                    argumentHint, DEFAULT_CONTEXT);
-        }
-        else
-        {
-            this.parser.registerOptionWithOptionalArgument(longForm, description, optionality,
-                    argumentHint, contexts);
-        }
-    }
-
-    /**
-     * Register an option with a given long form that takes a required argument. The provided
-     * argument hint can be used for generated documentation, and should be a single word describing
-     * the argument. The parser will throw an exception at parse-time if the argument is not
-     * supplied.
-     *
-     * @param longForm
-     *            the long form of the option, eg. --option
-     * @param shortForm
-     *            the short form of the option, eg. -o
-     * @param description
-     *            a simple description
-     * @param optionality
-     *            the optionality
-     * @param argumentHint
-     *            the hint for the argument
-     * @param contexts
-     *            the contexts
-     * @throws CoreException
-     *             if the option could not be registered
-     */
-    protected void registerOptionWithRequiredArgument(final String longForm,
-            final Character shortForm, final String description,
-            final OptionOptionality optionality, final String argumentHint,
-            final Integer... contexts)
-    {
-        if (contexts.length == 0)
-        {
-            this.parser.registerOptionWithRequiredArgument(longForm, shortForm, description,
-                    optionality, argumentHint, DEFAULT_CONTEXT);
-        }
-        else
-        {
-            this.parser.registerOptionWithRequiredArgument(longForm, shortForm, description,
-                    optionality, argumentHint, contexts);
-        }
-    }
-
-    /**
-     * Register an option with a given long form that takes a required argument. The provided
-     * argument hint can be used for generated documentation, and should be a single word describing
-     * the argument. The parser will throw an exception if a required argument option is not
-     * supplied an argument at parse-time.
-     *
-     * @param longForm
-     *            the long form of the option, eg. --option
-     * @param description
-     *            a simple description
-     * @param optionality
-     *            the optionality
-     * @param argumentHint
-     *            the hint for the argument
-     * @param contexts
-     *            the contexts
-     * @throws CoreException
-     *             if the option could not be registered
-     */
-    protected void registerOptionWithRequiredArgument(final String longForm,
-            final String description, final OptionOptionality optionality,
-            final String argumentHint, final Integer... contexts)
-    {
-        if (contexts.length == 0)
-        {
-            this.parser.registerOptionWithRequiredArgument(longForm, description, optionality,
-                    argumentHint, DEFAULT_CONTEXT);
-        }
-        else
-        {
-            this.parser.registerOptionWithRequiredArgument(longForm, description, optionality,
-                    argumentHint, contexts);
-        }
     }
 
     /**
