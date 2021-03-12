@@ -25,8 +25,8 @@ public class PredicateTemplate implements AtlasShellToolsCommandTemplate
 
     private final Integer[] contexts;
 
-    public static <T> Optional<Predicate<T>> getPredicate(
-            final AbstractAtlasShellToolsCommand parentCommand, final List<String> importsAllowList)
+    public static <T> Optional<Predicate<T>> getPredicate(final Class<T> clazz,
+            final List<String> importsAllowList, final AbstractAtlasShellToolsCommand parentCommand)
     {
         if (parentCommand.getOptionAndArgumentDelegate().hasOption(PREDICATE_OPTION_LONG))
         {

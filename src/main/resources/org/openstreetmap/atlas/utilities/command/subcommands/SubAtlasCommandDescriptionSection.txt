@@ -2,8 +2,8 @@ Cut a subatlas using some given parameters. The atlas can be cut to a
 polygon boundary given by a supplied WKT, and/or cut using a predicate.
 In cases where both a predicate and a polygon are supplied, the predicate
 cut will be applied before the polygon cut. This can be changed with the
-'--slice-first' option. For more information about predicates, see the
-PREDICATE section.
+'--slice-first' option. The predicate variable will be interpreted as an AtlasEntity.
+For more information about predicates in general, see the PREDICATE section.
 
 In addition to polygons and predicates, the type of cut can be specified using the '--cut-type' option.
 This utilizes the AtlasCutType enum with available cut types:
