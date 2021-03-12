@@ -216,19 +216,8 @@ public class SubAtlasCommand extends AtlasLoaderCommand
                 return 1;
             }
         }
-
-        try
-        {
-            final Optional<Predicate<AtlasEntity>> predicate = PredicateTemplate
-                    .getPredicate(AtlasEntity.class, IMPORTS_ALLOW_LIST, this);
-            this.matcher = predicate.orElse(null);
-        }
-        catch (final Exception exception)
-        {
-            this.outputDelegate.printlnErrorMessage("could not parse predicate");
-            logger.error("Could not parse predicate", exception);
-            return 1;
-        }
+        this.matcher = PredicateTemplate.getPredicate(AtlasEntity.class, IMPORTS_ALLOW_LIST, this)
+                .orElse(null);
 
         return 0;
     }
