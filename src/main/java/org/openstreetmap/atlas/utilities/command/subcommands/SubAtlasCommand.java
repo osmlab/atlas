@@ -25,6 +25,7 @@ import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDe
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.subcommands.templates.AtlasLoaderCommand;
+import org.openstreetmap.atlas.utilities.command.subcommands.templates.PredicateTemplate;
 import org.openstreetmap.atlas.utilities.conversion.StringToPredicateConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,11 +118,7 @@ public class SubAtlasCommand extends AtlasLoaderCommand
     {
         this.registerOptionWithRequiredArgument(POLYGON_OPTION_LONG, POLYGON_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, POLYGON_OPTION_HINT);
-        this.registerOptionWithRequiredArgument(PREDICATE_OPTION_LONG, PREDICATE_OPTION_DESCRIPTION,
-                OptionOptionality.OPTIONAL, PREDICATE_OPTION_HINT);
-        this.registerOptionWithRequiredArgument(PREDICATE_IMPORTS_OPTION_LONG,
-                PREDICATE_IMPORTS_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
-                PREDICATE_IMPORTS_OPTION_HINT);
+        this.registerOptionsAndArgumentsFromTemplate(new PredicateTemplate());
         this.registerOptionWithRequiredArgument(CUT_TYPE_OPTION_LONG, CUT_TYPE_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, CUT_TYPE_OPTION_HINT);
         this.registerOption(SLICE_FIRST_OPTION_LONG, SLICE_FIRST_OPTION_DESCRIPTION,

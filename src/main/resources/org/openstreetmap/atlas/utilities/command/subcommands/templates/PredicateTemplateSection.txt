@@ -1,0 +1,15 @@
+The 'find' command supports predicate matching using Groovy integration. When you supply
+code to the '--predicate' option, you are supplying a Groovy boolean expression which will be applied
+as a Predicate<AtlasEntity>. Your expression will be wrapped in some Groovy code that handles
+imports for you, as well as conversion from the expression to the Java Predicate<AtlasEntity>.
+If you need to import additional packages beyond the ones included by default, specify a comma
+separated list of package names to the '--imports' option like so:
+'--imports=com.hello.world,com.foo.bar'
+
+Note that the AtlasEntity against which you are testing is explicitly bound to a variable called
+'e'. See the following examples:
+
+Match all entities that are members of at least 3 relations:
+#--predicate 'e.relations().size() > 3'
+Match all edges that are connected to edge with ID 1:
+#--predicate 'e instanceof Edge && e.connectedEdges().collect { it.getIdentifier() }.contains(1L)'
