@@ -1,3 +1,4 @@
-Convert Java-serialized atlas(es) to Protocol Buffers format, in place. If desired, the reverse
-conversion can be performed using the '--reverse' option. Additionally, the format can be checked
-using the '--check' option. When checking the format, no conversion will take place.
+Convert Java-serialized atlas(es) to Protocol Buffers format in place or to a specified output
+directory. If desired, the reverse conversion can be performed using the '--reverse' option.
+Additionally, the format can be checked using the '--check' option. When checking the format, no
+conversion will take place.
