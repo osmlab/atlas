@@ -16,11 +16,12 @@ import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
+import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.subcommands.templates.CountryBoundaryMapTemplate;
-import org.openstreetmap.atlas.utilities.command.subcommands.templates.MultipleOutputCommand;
+import org.openstreetmap.atlas.utilities.command.subcommands.templates.OutputDirectoryTemplate;
 import org.openstreetmap.atlas.utilities.command.subcommands.templates.ShardingTemplate;
 
 import com.google.gson.GsonBuilder;
@@ -31,7 +32,7 @@ import com.google.gson.GsonBuilder;
  * 
  * @author lcram
  */
-public class AnyToGeoJsonCommand extends MultipleOutputCommand
+public class AnyToGeoJsonCommand extends AbstractAtlasShellToolsCommand
 {
     private static final String ATLAS_OPTION_LONG = "atlas";
     private static final String ATLAS_OPTION_DESCRIPTION = "The path to an atlas file to be converted.";
@@ -79,8 +80,6 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
     @Override
     public int execute()
     {
-        super.execute();
-
         if (this.optionAndArgumentDelegate.getParserContext() == ATLAS_CONTEXT)
         {
             return executeAtlasContext();
@@ -120,8 +119,7 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
                 .getResourceAsStream("AnyToGeoJsonCommandExamplesSection.txt"));
         registerManualPageSectionsFromTemplate(new ShardingTemplate());
         registerManualPageSectionsFromTemplate(new CountryBoundaryMapTemplate());
-
-        super.registerManualPageSections();
+        registerManualPageSectionsFromTemplate(new OutputDirectoryTemplate());
     }
 
     @Override
@@ -129,8 +127,6 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
     {
         registerOptionWithRequiredArgument(ATLAS_OPTION_LONG, ATLAS_OPTION_DESCRIPTION,
                 OptionOptionality.REQUIRED, ATLAS_OPTION_HINT, ATLAS_CONTEXT);
-        registerOptionsAndArgumentsFromTemplate(new ShardingTemplate(SHARDING_CONTEXT));
-        registerOptionsAndArgumentsFromTemplate(new CountryBoundaryMapTemplate(BOUNDARY_CONTEXT));
         registerOptionWithRequiredArgument(COUNTRIES_OPTION_LONG, COUNTRIES_OPTION_SHORT,
                 COUNTRIES_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL, COUNTRIES_OPTION_HINT,
                 BOUNDARY_CONTEXT);
@@ -139,6 +135,12 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
                 OptionOptionality.OPTIONAL, COUNTRIES_DENY_LIST_OPTION_HINT, BOUNDARY_CONTEXT);
         registerOption(POLYGONS_OPTION_LONG, POLYGONS_OPTION_SHORT, POLYGONS_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, BOUNDARY_CONTEXT);
+
+        registerOptionsAndArgumentsFromTemplate(new ShardingTemplate(SHARDING_CONTEXT));
+        registerOptionsAndArgumentsFromTemplate(new CountryBoundaryMapTemplate(BOUNDARY_CONTEXT));
+        registerOptionsAndArgumentsFromTemplate(
+                new OutputDirectoryTemplate(ATLAS_CONTEXT, SHARDING_CONTEXT, BOUNDARY_CONTEXT));
+
         super.registerOptionsAndArguments();
     }
 
@@ -154,7 +156,13 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
             return 1;
         }
         final Atlas atlas = new AtlasResourceLoader().load(atlasFile);
-        final Path concatenatedPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
+        final Optional<Path> pathOptional = OutputDirectoryTemplate.getOutputPath(this);
+        if (pathOptional.isEmpty())
+        {
+            this.outputDelegate.printlnErrorMessage("could not save atlas file");
+            return 1;
+        }
+        final Path concatenatedPath = Paths.get(pathOptional.get().toAbsolutePath().toString(),
                 ATLAS_FILE);
         final File outputFile = new File(concatenatedPath.toAbsolutePath().toString(),
                 this.getFileSystem());
@@ -216,8 +224,13 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
         {
             this.outputDelegate.printlnCommandMessage("converting boundary file to GeoJSON...");
         }
-
-        final Path concatenatedPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
+        final Optional<Path> pathOptional = OutputDirectoryTemplate.getOutputPath(this);
+        if (pathOptional.isEmpty())
+        {
+            this.outputDelegate.printlnErrorMessage("could not save boundary file");
+            return 1;
+        }
+        final Path concatenatedPath = Paths.get(pathOptional.get().toAbsolutePath().toString(),
                 BOUNDARY_FILE);
         if (this.optionAndArgumentDelegate.hasVerboseOption())
         {
@@ -235,7 +248,13 @@ public class AnyToGeoJsonCommand extends MultipleOutputCommand
         final Sharding sharding = ShardingTemplate.getSharding(this);
         final String shardingJson = new GsonBuilder().setPrettyPrinting().create()
                 .toJson(sharding.asGeoJson());
-        final Path concatenatedPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
+        final Optional<Path> pathOptional = OutputDirectoryTemplate.getOutputPath(this);
+        if (pathOptional.isEmpty())
+        {
+            this.outputDelegate.printlnErrorMessage("could not save sharding tree");
+            return 1;
+        }
+        final Path concatenatedPath = Paths.get(pathOptional.get().toAbsolutePath().toString(),
                 SHARDING_FILE);
         if (this.optionAndArgumentDelegate.hasVerboseOption())
         {

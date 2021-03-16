@@ -21,6 +21,9 @@ import com.google.common.jimfs.Jimfs;
  */
 public class OutputDirectoryTemplateTest
 {
+    /**
+     * @author lcram
+     */
     private static class TestCommand extends AbstractAtlasShellToolsCommand
     {
         @Override

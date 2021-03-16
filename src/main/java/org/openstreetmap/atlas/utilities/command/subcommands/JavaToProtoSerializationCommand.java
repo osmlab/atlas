@@ -43,7 +43,6 @@ public class JavaToProtoSerializationCommand extends AbstractAtlasShellToolsComm
 
     public JavaToProtoSerializationCommand()
     {
-        super();
         this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
     }
