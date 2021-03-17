@@ -16,6 +16,7 @@ import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgume
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentArity;
 import org.openstreetmap.atlas.utilities.command.parsing.ArgumentOptionality;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
+import org.openstreetmap.atlas.utilities.command.subcommands.JavaToProtoSerializationCommand;
 import org.openstreetmap.atlas.utilities.tuples.Tuple;
 
 /**
@@ -28,7 +29,8 @@ import org.openstreetmap.atlas.utilities.tuples.Tuple;
  *
  * @author lcram
  * @author cstaylor
- * @deprecated
+ * @deprecated Please use {@link AtlasLoaderTemplate} instead. See
+ *             {@link JavaToProtoSerializationCommand } for an example.
  */
 @Deprecated
 public abstract class AtlasLoaderCommand extends MultipleOutputCommand

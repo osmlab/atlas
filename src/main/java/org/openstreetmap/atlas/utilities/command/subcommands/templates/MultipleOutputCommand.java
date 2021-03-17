@@ -9,6 +9,7 @@ import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasSh
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
+import org.openstreetmap.atlas.utilities.command.subcommands.AnyToGeoJsonCommand;
 
 /**
  * A {@link MultipleOutputCommand} is any command which may produce multiple output files, and wants
@@ -16,7 +17,8 @@ import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
  * registers a '--output' option, the argument to which will be used as an output directory.
  *
  * @author lcram
- * @deprecated
+ * @deprecated Please use {@link OutputDirectoryTemplate} instead. Check {@link AnyToGeoJsonCommand}
+ *             for an example.
  */
 @Deprecated
 public abstract class MultipleOutputCommand extends AbstractAtlasShellToolsCommand
