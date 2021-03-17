@@ -40,13 +40,12 @@ import org.openstreetmap.atlas.tags.filters.TaggableFilter;
 import org.openstreetmap.atlas.tags.filters.matcher.TaggableMatcher;
 import org.openstreetmap.atlas.utilities.collections.Sets;
 import org.openstreetmap.atlas.utilities.collections.StringList;
-import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.subcommands.templates.AtlasLoaderCommand;
+import org.openstreetmap.atlas.utilities.command.subcommands.templates.PredicateTemplate;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
-import org.openstreetmap.atlas.utilities.conversion.StringToPredicateConverter;
 import org.openstreetmap.atlas.utilities.tuples.Tuple;
 
 import com.google.gson.GsonBuilder;
@@ -205,14 +204,6 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
     private static final String ID_OPTION_DESCRIPTION = "A comma separated list of Atlas ids for which to search.";
     private static final String ID_OPTION_HINT = "ids";
 
-    private static final String PREDICATE_OPTION_LONG = "predicate";
-    private static final String PREDICATE_OPTION_DESCRIPTION = "The feature filter predicate for the search. See PREDICATE section for details.";
-    private static final String PREDICATE_OPTION_HINT = "groovy-code";
-
-    private static final String PREDICATE_IMPORTS_OPTION_LONG = "imports";
-    private static final String PREDICATE_IMPORTS_OPTION_DESCRIPTION = "A comma separated list of some additional package imports to include for the predicate option, if present.";
-    private static final String PREDICATE_IMPORTS_OPTION_HINT = "packages";
-
     private static final String OSMID_OPTION_LONG = "osmid";
     private static final String OSMID_OPTION_DESCRIPTION = "A comma separated list of OSM ids for which to search.";
     private static final String OSMID_OPTION_HINT = "osmids";
@@ -351,8 +342,7 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
                 .getResourceAsStream("AtlasSearchCommandDescriptionSection.txt"));
         addManualPageSection("EXAMPLES", AtlasSearchCommand.class
                 .getResourceAsStream("AtlasSearchCommandExamplesSection.txt"));
-        addManualPageSection("PREDICATE", AtlasSearchCommand.class
-                .getResourceAsStream("AtlasSearchCommandPredicateSection.txt"));
+        registerManualPageSectionsFromTemplate(new PredicateTemplate());
         super.registerManualPageSections();
     }
 
@@ -399,13 +389,8 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         registerOptionWithRequiredArgument(RELATION_MEMBERS_AND_OPTION_LONG,
                 RELATION_MEMBERS_AND_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
                 RELATION_MEMBERS_AND_OPTION_HINT, RELATION_ONLY_CONTEXT);
-        registerOptionWithRequiredArgument(PREDICATE_OPTION_LONG, PREDICATE_OPTION_DESCRIPTION,
-                OptionOptionality.OPTIONAL, PREDICATE_OPTION_HINT, ALL_TYPES_CONTEXT,
-                EDGE_ONLY_CONTEXT, NODE_ONLY_CONTEXT, RELATION_ONLY_CONTEXT);
-        registerOptionWithRequiredArgument(PREDICATE_IMPORTS_OPTION_LONG,
-                PREDICATE_IMPORTS_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
-                PREDICATE_IMPORTS_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT,
-                NODE_ONLY_CONTEXT, RELATION_ONLY_CONTEXT);
+        registerOptionsAndArgumentsFromTemplate(new PredicateTemplate(ALL_TYPES_CONTEXT,
+                EDGE_ONLY_CONTEXT, NODE_ONLY_CONTEXT, RELATION_ONLY_CONTEXT));
 
         registerOptionWithRequiredArgument(ID_OPTION_LONG, ID_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, ID_OPTION_HINT, ALL_TYPES_CONTEXT, EDGE_ONLY_CONTEXT,
@@ -512,12 +497,8 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         this.parentRelations = this.optionAndArgumentDelegate
                 .getOptionArgument(PARENT_RELATIONS_OPTION_LONG, this::parseCommaSeparatedLongs)
                 .orElse(new HashSet<>());
-        if (this.optionAndArgumentDelegate.hasOption(PREDICATE_OPTION_LONG))
-        {
-            this.predicate = this.optionAndArgumentDelegate
-                    .getOptionArgument(PREDICATE_OPTION_LONG, this::getPredicateFromString)
-                    .orElse(null);
-        }
+        this.predicate = PredicateTemplate.getPredicate(AtlasEntity.class, IMPORTS_ALLOW_LIST, this)
+                .orElse(null);
 
         /*
          * Handle identifier searches.
@@ -984,23 +965,6 @@ public class AtlasSearchCommand extends AtlasLoaderCommand
         }
 
         return Optional.of(new Tuple<>(element, builder.toString()));
-    }
-
-    private Predicate<AtlasEntity> getPredicateFromString(final String string)
-    {
-        List<String> userImports = new ArrayList<>();
-        if (this.optionAndArgumentDelegate.hasOption(PREDICATE_IMPORTS_OPTION_LONG))
-        {
-            userImports = StringList.split(
-                    this.optionAndArgumentDelegate.getOptionArgument(PREDICATE_IMPORTS_OPTION_LONG)
-                            .orElseThrow(AtlasShellToolsException::new),
-                    ",").getUnderlyingList();
-        }
-        final List<String> allImports = new ArrayList<>();
-        allImports.addAll(userImports);
-        allImports.addAll(IMPORTS_ALLOW_LIST);
-        return new StringToPredicateConverter<AtlasEntity>().withAddedStarImportPackages(allImports)
-                .convert(string);
     }
 
     private Set<String> parseColonSeparatedWkts(final String wktString)

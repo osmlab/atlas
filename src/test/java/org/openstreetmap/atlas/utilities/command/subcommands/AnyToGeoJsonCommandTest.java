@@ -70,7 +70,8 @@ public class AnyToGeoJsonCommandTest
                     "--output=/Users/foo", "--countries=AIA", "--countries-deny=MAF");
 
             Assert.assertTrue(outContent.toString().isEmpty());
-            Assert.assertEquals("any2geojson: reading CountryBoundaryMap from file...\n"
+            Assert.assertEquals("any2geojson: loading country boundary map...\n"
+                    + "any2geojson: loaded boundary map\n"
                     + "any2geojson: converting boundary file to GeoJSON...\n"
                     + "any2geojson: writing the boundary geojson file to /Users/foo/output-country-boundary.geojson\n",
                     errContent.toString());
@@ -93,7 +94,8 @@ public class AnyToGeoJsonCommandTest
                     "--output=/Users/foo", "--countries-deny=MAF");
 
             Assert.assertTrue(outContent2.toString().isEmpty());
-            Assert.assertEquals("any2geojson: reading CountryBoundaryMap from file...\n"
+            Assert.assertEquals("any2geojson: loading country boundary map...\n"
+                    + "any2geojson: loaded boundary map\n"
                     + "any2geojson: converting boundary file to GeoJSON...\n"
                     + "any2geojson: writing the boundary geojson file to /Users/foo/output-country-boundary.geojson\n",
                     errContent2.toString());

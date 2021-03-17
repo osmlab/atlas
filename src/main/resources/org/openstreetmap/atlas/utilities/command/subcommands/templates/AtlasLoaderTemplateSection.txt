@@ -1,0 +1,16 @@
+This command is an atlas loader command, or one that makes use of the atlas loader template to load
+atlases from the filesystem. An atlas loader command receives an arbitrary number of input
+atlas files on the command line, through the <input-atlases...> argument. A few quick
+examples:
+#$ example-loader-command myatlas1.atlas myatlas2.atlas --opt=optarg
+#$ example-loader-command ~/*.atlas --opt=optarg
+#$ example-loader-command atlas1.atlas atlas2.atlas atlas3.atlas --strict
+If an atlas loader command cannot find one of the specified atlas files, it will
+simply skip over loading the file. This is unless the '--strict' option is applied,
+in which case the load will fail fast.
+
+The '--combine' option forces the atlas loader command to process its input atlases as a single MultiAtlas.
+The MultiAtlas construction step will occur before the process step, and then the processing will be applied to
+the newly combined MultiAtlas. The combined MultiAtlas will always have the name 'combined.atlas'.
+
+The '--parallel' option forces the atlas loader command to process the input atlases in parallel.

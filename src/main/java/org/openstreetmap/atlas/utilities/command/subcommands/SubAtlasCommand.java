@@ -2,7 +2,6 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -20,12 +19,11 @@ import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.utilities.collections.StringList;
-import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
 import org.openstreetmap.atlas.utilities.command.subcommands.templates.AtlasLoaderCommand;
-import org.openstreetmap.atlas.utilities.conversion.StringToPredicateConverter;
+import org.openstreetmap.atlas.utilities.command.subcommands.templates.PredicateTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,14 +37,6 @@ public class SubAtlasCommand extends AtlasLoaderCommand
     private static final String POLYGON_OPTION_LONG = "polygon";
     private static final String POLYGON_OPTION_DESCRIPTION = "The WKT of the polygon with which to cut.";
     private static final String POLYGON_OPTION_HINT = "wkt";
-
-    private static final String PREDICATE_OPTION_LONG = "predicate";
-    private static final String PREDICATE_OPTION_DESCRIPTION = "The feature filter predicate for the subatlas. See PREDICATE section for details.";
-    private static final String PREDICATE_OPTION_HINT = "groovy-code";
-
-    private static final String PREDICATE_IMPORTS_OPTION_LONG = "imports";
-    private static final String PREDICATE_IMPORTS_OPTION_DESCRIPTION = "A comma separated list of some additional package imports to include for the predicate option, if present.";
-    private static final String PREDICATE_IMPORTS_OPTION_HINT = "packages";
 
     private static final List<String> CUT_TYPE_STRINGS = Arrays.stream(AtlasCutType.values())
             .map(AtlasCutType::toString).collect(Collectors.toList());
@@ -70,8 +60,8 @@ public class SubAtlasCommand extends AtlasLoaderCommand
     private final CommandOutputDelegate outputDelegate;
 
     private AtlasCutType cutType;
-    private Optional<Polygon> polygon;
-    private Optional<Predicate<AtlasEntity>> matcher;
+    private Polygon polygon;
+    private Predicate<AtlasEntity> matcher;
 
     public static void main(final String[] args)
     {
@@ -84,8 +74,6 @@ public class SubAtlasCommand extends AtlasLoaderCommand
         this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
         this.cutType = AtlasCutType.SOFT_CUT;
-        this.polygon = Optional.empty();
-        this.matcher = Optional.empty();
     }
 
     @Override
@@ -107,8 +95,7 @@ public class SubAtlasCommand extends AtlasLoaderCommand
                 SubAtlasCommand.class.getResourceAsStream("SubAtlasCommandDescriptionSection.txt"));
         addManualPageSection("EXAMPLES",
                 SubAtlasCommand.class.getResourceAsStream("SubAtlasCommandExamplesSection.txt"));
-        addManualPageSection("PREDICATE",
-                SubAtlasCommand.class.getResourceAsStream("SubAtlasCommandPredicateSection.txt"));
+        registerManualPageSectionsFromTemplate(new PredicateTemplate());
         super.registerManualPageSections();
     }
 
@@ -117,11 +104,7 @@ public class SubAtlasCommand extends AtlasLoaderCommand
     {
         this.registerOptionWithRequiredArgument(POLYGON_OPTION_LONG, POLYGON_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, POLYGON_OPTION_HINT);
-        this.registerOptionWithRequiredArgument(PREDICATE_OPTION_LONG, PREDICATE_OPTION_DESCRIPTION,
-                OptionOptionality.OPTIONAL, PREDICATE_OPTION_HINT);
-        this.registerOptionWithRequiredArgument(PREDICATE_IMPORTS_OPTION_LONG,
-                PREDICATE_IMPORTS_OPTION_DESCRIPTION, OptionOptionality.OPTIONAL,
-                PREDICATE_IMPORTS_OPTION_HINT);
+        this.registerOptionsAndArgumentsFromTemplate(new PredicateTemplate());
         this.registerOptionWithRequiredArgument(CUT_TYPE_OPTION_LONG, CUT_TYPE_OPTION_DESCRIPTION,
                 OptionOptionality.OPTIONAL, CUT_TYPE_OPTION_HINT);
         this.registerOption(SLICE_FIRST_OPTION_LONG, SLICE_FIRST_OPTION_DESCRIPTION,
@@ -137,26 +120,26 @@ public class SubAtlasCommand extends AtlasLoaderCommand
 
         if (this.optionAndArgumentDelegate.hasOption(SLICE_FIRST_OPTION_LONG))
         {
-            if (this.polygon.isPresent())
+            if (this.polygon != null)
             {
-                subbedAtlas = atlas.subAtlas(this.polygon.get(), this.cutType);
+                subbedAtlas = atlas.subAtlas(this.polygon, this.cutType);
             }
 
-            if (this.matcher.isPresent())
+            if (this.matcher != null)
             {
-                subbedAtlas = subbedAtlas.orElse(atlas).subAtlas(this.matcher.get(), this.cutType);
+                subbedAtlas = subbedAtlas.orElse(atlas).subAtlas(this.matcher, this.cutType);
             }
         }
         else
         {
-            if (this.matcher.isPresent())
+            if (this.matcher != null)
             {
-                subbedAtlas = atlas.subAtlas(this.matcher.get(), this.cutType);
+                subbedAtlas = atlas.subAtlas(this.matcher, this.cutType);
             }
 
-            if (this.polygon.isPresent())
+            if (this.polygon != null)
             {
-                subbedAtlas = subbedAtlas.orElse(atlas).subAtlas(this.polygon.get(), this.cutType);
+                subbedAtlas = subbedAtlas.orElse(atlas).subAtlas(this.polygon, this.cutType);
             }
         }
 
@@ -190,8 +173,6 @@ public class SubAtlasCommand extends AtlasLoaderCommand
                 .getOptionArgument(CUT_TYPE_OPTION_LONG);
         final Optional<String> wktParameter = this.optionAndArgumentDelegate
                 .getOptionArgument(POLYGON_OPTION_LONG);
-        final Optional<String> predicateParameter = this.optionAndArgumentDelegate
-                .getOptionArgument(PREDICATE_OPTION_LONG);
 
         if (cutTypeParameter.isPresent())
         {
@@ -225,8 +206,8 @@ public class SubAtlasCommand extends AtlasLoaderCommand
 
             if (geometry instanceof org.locationtech.jts.geom.Polygon)
             {
-                this.polygon = Optional.ofNullable(new JtsPolygonConverter()
-                        .backwardConvert((org.locationtech.jts.geom.Polygon) geometry));
+                this.polygon = new JtsPolygonConverter()
+                        .backwardConvert((org.locationtech.jts.geom.Polygon) geometry);
             }
             else
             {
@@ -235,42 +216,9 @@ public class SubAtlasCommand extends AtlasLoaderCommand
                 return 1;
             }
         }
-
-        if (predicateParameter.isPresent())
-        {
-            final Optional<Predicate<AtlasEntity>> predicate = getPredicateFromCommandLineExpression(
-                    predicateParameter);
-            if (predicate.isEmpty())
-            {
-                this.outputDelegate.printlnErrorMessage("could not parse predicate");
-                return 1;
-            }
-            this.matcher = predicate;
-        }
+        this.matcher = PredicateTemplate.getPredicate(AtlasEntity.class, IMPORTS_ALLOW_LIST, this)
+                .orElse(null);
 
         return 0;
-    }
-
-    private Optional<Predicate<AtlasEntity>> getPredicateFromCommandLineExpression(
-            final Optional<String> predicateParameter)
-    {
-        if (predicateParameter.isPresent())
-        {
-            List<String> userImports = new ArrayList<>();
-            if (this.optionAndArgumentDelegate.hasOption(PREDICATE_IMPORTS_OPTION_LONG))
-            {
-                userImports = StringList
-                        .split(this.optionAndArgumentDelegate
-                                .getOptionArgument(PREDICATE_IMPORTS_OPTION_LONG)
-                                .orElseThrow(AtlasShellToolsException::new), ",")
-                        .getUnderlyingList();
-            }
-            final List<String> allImports = new ArrayList<>();
-            allImports.addAll(userImports);
-            allImports.addAll(IMPORTS_ALLOW_LIST);
-            return Optional.ofNullable(new StringToPredicateConverter<AtlasEntity>()
-                    .withAddedStarImportPackages(allImports).convert(predicateParameter.get()));
-        }
-        return Optional.empty();
     }
 }

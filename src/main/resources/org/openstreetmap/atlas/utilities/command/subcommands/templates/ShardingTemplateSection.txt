@@ -1,0 +1,2 @@
+The '--sharding' option should specify a string that is parsable by Sharding's forString method.
+Examples include dynamic@/path/to/tree.txt, slippy@10, geohash@5, etc.

@@ -2,23 +2,26 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas.AtlasSerializationFormat;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
 import org.openstreetmap.atlas.streaming.resource.File;
+import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
+import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.CommandOutputDelegate;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.OptionAndArgumentDelegate;
 import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
-import org.openstreetmap.atlas.utilities.command.subcommands.templates.AtlasLoaderCommand;
-import org.openstreetmap.atlas.utilities.command.subcommands.templates.MultipleOutputCommand;
+import org.openstreetmap.atlas.utilities.command.subcommands.templates.AtlasLoaderTemplate;
+import org.openstreetmap.atlas.utilities.command.subcommands.templates.OutputDirectoryTemplate;
 import org.openstreetmap.atlas.utilities.command.terminal.TTYAttribute;
 
 /**
  * @author lcram
  */
-public class JavaToProtoSerializationCommand extends AtlasLoaderCommand
+public class JavaToProtoSerializationCommand extends AbstractAtlasShellToolsCommand
 {
     private static final String CHECK_OPTION_LONG = "check";
     private static final Character CHECK_OPTION_SHORT = 'c';
@@ -40,9 +43,14 @@ public class JavaToProtoSerializationCommand extends AtlasLoaderCommand
 
     public JavaToProtoSerializationCommand()
     {
-        super();
         this.optionAndArgumentDelegate = this.getOptionAndArgumentDelegate();
         this.outputDelegate = this.getCommandOutputDelegate();
+    }
+
+    @Override
+    public int execute()
+    {
+        return AtlasLoaderTemplate.execute(this, null, this::processAtlas, null);
     }
 
     @Override
@@ -64,7 +72,8 @@ public class JavaToProtoSerializationCommand extends AtlasLoaderCommand
                 .getResourceAsStream("JavaToProtoSerializationCommandDescriptionSection.txt"));
         addManualPageSection("EXAMPLES", JavaToProtoSerializationCommand.class
                 .getResourceAsStream("JavaToProtoSerializationCommandExamplesSection.txt"));
-        super.registerManualPageSections();
+        registerManualPageSectionsFromTemplate(new AtlasLoaderTemplate());
+        registerManualPageSectionsFromTemplate(new OutputDirectoryTemplate());
     }
 
     @Override
@@ -74,11 +83,14 @@ public class JavaToProtoSerializationCommand extends AtlasLoaderCommand
                 OptionOptionality.OPTIONAL);
         registerOption(CHECK_OPTION_LONG, CHECK_OPTION_SHORT, CHECK_OPTION_DESCRIPTION,
                 OptionOptionality.REQUIRED, CHECK_CONTEXT);
+        registerOptionsAndArgumentsFromTemplate(new AtlasLoaderTemplate(
+                AbstractAtlasShellToolsCommand.DEFAULT_CONTEXT, CHECK_CONTEXT));
+        registerOptionsAndArgumentsFromTemplate(
+                new OutputDirectoryTemplate(AbstractAtlasShellToolsCommand.DEFAULT_CONTEXT));
         super.registerOptionsAndArguments();
     }
 
-    @Override
-    protected void processAtlas(final Atlas atlas, final String atlasFileName,
+    private void processAtlas(final Atlas atlas, final String atlasFileName,
             final File atlasResource)
     {
         PackedAtlas outputAtlas;
@@ -109,19 +121,18 @@ public class JavaToProtoSerializationCommand extends AtlasLoaderCommand
             {
                 outputAtlas.setSaveSerializationFormat(AtlasSerializationFormat.PROTOBUF);
             }
-            final Path concatenatedPath;
-            if (this.optionAndArgumentDelegate
-                    .hasOption(MultipleOutputCommand.OUTPUT_DIRECTORY_OPTION_LONG))
+
+            final Optional<Path> outputPathOptional = OutputDirectoryTemplate.getOutputPath(this);
+            if (outputPathOptional.isEmpty())
             {
-                // save atlas to user specified output directory
-                concatenatedPath = Paths.get(getOutputPath().toAbsolutePath().toString(),
-                        atlasFileName);
+                this.outputDelegate
+                        .printlnWarnMessage("could not save " + atlasFileName + ", skipping...");
+                return;
             }
-            else
-            {
-                // save atlas in place
-                concatenatedPath = Paths.get(atlasResource.getAbsolutePathString());
-            }
+            final Path concatenatedPath = outputPathOptional
+                    .map(path -> Paths.get(path.toAbsolutePath().toString(), atlasFileName))
+                    .orElseThrow(AtlasShellToolsException::new);
+
             final File outputFile = new File(concatenatedPath.toAbsolutePath().toString(),
                     this.getFileSystem());
             outputAtlas.save(outputFile);
