@@ -42,23 +42,24 @@ public class AtlasLoaderTemplate implements AtlasShellToolsCommandTemplate
      * Execute a command using the {@link AtlasLoaderTemplate} in a structured way. This is entirely
      * optional, but highly recommended as it handles boilerplate functionality for you
      * automatically.
-     * 
+     *
      * @param parentCommand
      *            the parent command that controls this template
      * @param startUpFunction
-     *            Provide this function if want to do something once before processing the atlases.
-     *            The start function can return a status to indicate if the start-up operations were
-     *            successful. On return 0, the command will continue execution. On any non-zero exit
-     *            code, the parent function will return this function's exit value.
+     *            Provide this function if you want to do something once before processing the
+     *            atlases. The start function can return a status to indicate if the start-up
+     *            operations were successful. On return 0, {@code execute} will continue execution.
+     *            On any non-zero exit code, the {@code execute} will return this function's exit
+     *            value. Pass {@code null} to skip the startup step.
      * @param processAtlasFunction
-     *            This function processes each atlas object as it is loaded. It is not not optional.
-     *            The processAtlasFunction receives as arguments an Atlas object, a String name of
-     *            the Atlas file resource, and the File resource object from which the Atlas was
-     *            loaded.
+     *            This function processes each atlas object as it is loaded. It is not optional, you
+     *            may not pass {@code null} for this function. The processAtlasFunction receives as
+     *            arguments an Atlas object, a String name of the Atlas file resource, and the File
+     *            resource object from which the Atlas was loaded.
      * @param finishUpFunction
      *            Provide this method to run after all atlas files have been handled for final
-     *            notification and processing. Of this function will be sent back to the caller of
-     *            the parent function.
+     *            notification and processing. The exit value of this function will be returned to
+     *            the caller of {@code execute}. Pass {@code null} to skip the finish up step.
      * @return An exit value for the command. Callers can simply return this from their execute
      *         methods.
      */
