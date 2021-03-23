@@ -19,7 +19,7 @@ import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
-import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
+import org.openstreetmap.atlas.utilities.command.subcommands.templates.CountryBoundaryMapTemplate;
 import org.openstreetmap.atlas.utilities.time.Time;
 
 /**
@@ -40,7 +40,8 @@ public class CountryBoundaryMapPrinterCommand extends AbstractAtlasShellToolsCom
         final File boundaryFile = getBoundaryFile();
         String boundaryFileName = boundaryFile.getName();
         boundaryFileName = boundaryFileName.substring(0, boundaryFileName.indexOf('.'));
-        final Optional<CountryBoundaryMap> boundariesOption = loadCountryBoundaryMap();
+        final Optional<CountryBoundaryMap> boundariesOption = CountryBoundaryMapTemplate
+                .getCountryBoundaryMap(this);
         final File outputFolder = boundaryFile.parent();
         final File geojson = outputFolder.child(boundaryFileName + "-geojson");
         geojson.mkdirs();
@@ -85,6 +86,7 @@ public class CountryBoundaryMapPrinterCommand extends AbstractAtlasShellToolsCom
     @Override
     public void registerManualPageSections()
     {
+        registerManualPageSectionsFromTemplate(new CountryBoundaryMapTemplate());
         addManualPageSection("DESCRIPTION", CountryBoundaryMapPrinterCommand.class
                 .getResourceAsStream("CountryBoundaryMapPrinterCommandDescriptionSection.txt"));
         addManualPageSection("EXAMPLES", CountryBoundaryMapPrinterCommand.class
@@ -94,37 +96,15 @@ public class CountryBoundaryMapPrinterCommand extends AbstractAtlasShellToolsCom
     @Override
     public void registerOptionsAndArguments()
     {
-        registerOptionWithRequiredArgument(BOUNDARY_OPTION_LONG, 'b', "Path to the boundary file",
-                OptionOptionality.REQUIRED, "boundary-file");
+        registerOptionsAndArgumentsFromTemplate(new CountryBoundaryMapTemplate());
         super.registerOptionsAndArguments();
     }
 
     private File getBoundaryFile()
     {
-        return new File(getOptionAndArgumentDelegate().getOptionArgument(BOUNDARY_OPTION_LONG)
+        return new File(getOptionAndArgumentDelegate()
+                .getOptionArgument(CountryBoundaryMapTemplate.COUNTRY_BOUNDARY_OPTION_LONG)
                 .orElseThrow(AtlasShellToolsException::new), this.getFileSystem());
-    }
-
-    private Optional<CountryBoundaryMap> loadCountryBoundaryMap()
-    {
-        final Optional<CountryBoundaryMap> countryBoundaryMap;
-        final File boundaryMapFile = getBoundaryFile();
-        if (!boundaryMapFile.exists())
-        {
-            getCommandOutputDelegate().printlnErrorMessage(
-                    "boundary file " + boundaryMapFile.getAbsolutePathString() + " does not exist");
-            return Optional.empty();
-        }
-        if (getOptionAndArgumentDelegate().hasVerboseOption())
-        {
-            getCommandOutputDelegate().printlnCommandMessage("loading country boundary map...");
-        }
-        countryBoundaryMap = Optional.of(CountryBoundaryMap.fromPlainText(boundaryMapFile));
-        if (getOptionAndArgumentDelegate().hasVerboseOption())
-        {
-            getCommandOutputDelegate().printlnCommandMessage("loaded boundary map");
-        }
-        return countryBoundaryMap;
     }
 
     private void save(final WritableResource output, final String string)
