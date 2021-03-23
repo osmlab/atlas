@@ -17,7 +17,7 @@ import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
  */
 public class CountryBoundaryMapTemplate implements AtlasShellToolsCommandTemplate
 {
-    private static final String COUNTRY_BOUNDARY_OPTION_LONG = "country-boundary";
+    public static final String COUNTRY_BOUNDARY_OPTION_LONG = "country-boundary";
 
     private final Integer[] contexts;
 

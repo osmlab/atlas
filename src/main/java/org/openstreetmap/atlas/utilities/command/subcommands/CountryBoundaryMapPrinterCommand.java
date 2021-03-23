@@ -3,22 +3,23 @@ package org.openstreetmap.atlas.utilities.command.subcommands;
 import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Polygon;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
-import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.FileSuffix;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.command.AtlasShellToolsException;
 import org.openstreetmap.atlas.utilities.command.abstractcommand.AbstractAtlasShellToolsCommand;
-import org.openstreetmap.atlas.utilities.command.parsing.OptionOptionality;
+import org.openstreetmap.atlas.utilities.command.subcommands.templates.CountryBoundaryMapTemplate;
 import org.openstreetmap.atlas.utilities.time.Time;
 
 /**
@@ -39,7 +40,8 @@ public class CountryBoundaryMapPrinterCommand extends AbstractAtlasShellToolsCom
         final File boundaryFile = getBoundaryFile();
         String boundaryFileName = boundaryFile.getName();
         boundaryFileName = boundaryFileName.substring(0, boundaryFileName.indexOf('.'));
-        final Optional<CountryBoundaryMap> boundariesOption = loadCountryBoundaryMap();
+        final Optional<CountryBoundaryMap> boundariesOption = CountryBoundaryMapTemplate
+                .getCountryBoundaryMap(this);
         final File outputFolder = boundaryFile.parent();
         final File geojson = outputFolder.child(boundaryFileName + "-geojson");
         geojson.mkdirs();
@@ -53,22 +55,13 @@ public class CountryBoundaryMapPrinterCommand extends AbstractAtlasShellToolsCom
         final CountryBoundaryMap map = boundariesOption.get();
         final Set<String> countrySet = map.countryCodesOverlappingWith(Rectangle.MAXIMUM).stream()
                 .collect(Collectors.toSet());
+        final GeometryFactory geometryFactory = new GeometryFactory();
         for (final String country : countrySet)
         {
             final Time start = Time.now();
-            final List<Polygon> boundaries = map.countryBoundary(country);
-            for (int i = 0; i < boundaries.size(); i++)
-            {
-                String name = country;
-                if (i > 0)
-                {
-                    name += "_" + i;
-                }
-                save(wkt.child(country + FileSuffix.WKT), boundaries.get(i).toText());
-                final File countryFile = geojson.child(name + FileSuffix.GEO_JSON);
-                new JtsPolygonConverter().backwardConvert(boundaries.get(i))
-                        .saveAsGeoJson(countryFile);
-            }
+            final Polygon[] polygons = map.countryBoundary(country).toArray(new Polygon[0]);
+            final MultiPolygon multiPolygon = new MultiPolygon(polygons, geometryFactory);
+            saveGeometry(wkt, geojson, country, multiPolygon);
             if (getOptionAndArgumentDelegate().hasVerboseOption())
             {
                 getCommandOutputDelegate()
@@ -93,6 +86,7 @@ public class CountryBoundaryMapPrinterCommand extends AbstractAtlasShellToolsCom
     @Override
     public void registerManualPageSections()
     {
+        registerManualPageSectionsFromTemplate(new CountryBoundaryMapTemplate());
         addManualPageSection("DESCRIPTION", CountryBoundaryMapPrinterCommand.class
                 .getResourceAsStream("CountryBoundaryMapPrinterCommandDescriptionSection.txt"));
         addManualPageSection("EXAMPLES", CountryBoundaryMapPrinterCommand.class
@@ -102,37 +96,15 @@ public class CountryBoundaryMapPrinterCommand extends AbstractAtlasShellToolsCom
     @Override
     public void registerOptionsAndArguments()
     {
-        registerOptionWithRequiredArgument(BOUNDARY_OPTION_LONG, 'b', "Path to the boundary file",
-                OptionOptionality.REQUIRED, "boundary-file");
+        registerOptionsAndArgumentsFromTemplate(new CountryBoundaryMapTemplate());
         super.registerOptionsAndArguments();
     }
 
     private File getBoundaryFile()
     {
-        return new File(getOptionAndArgumentDelegate().getOptionArgument(BOUNDARY_OPTION_LONG)
+        return new File(getOptionAndArgumentDelegate()
+                .getOptionArgument(CountryBoundaryMapTemplate.COUNTRY_BOUNDARY_OPTION_LONG)
                 .orElseThrow(AtlasShellToolsException::new), this.getFileSystem());
-    }
-
-    private Optional<CountryBoundaryMap> loadCountryBoundaryMap()
-    {
-        final Optional<CountryBoundaryMap> countryBoundaryMap;
-        final File boundaryMapFile = getBoundaryFile();
-        if (!boundaryMapFile.exists())
-        {
-            getCommandOutputDelegate().printlnErrorMessage(
-                    "boundary file " + boundaryMapFile.getAbsolutePathString() + " does not exist");
-            return Optional.empty();
-        }
-        if (getOptionAndArgumentDelegate().hasVerboseOption())
-        {
-            getCommandOutputDelegate().printlnCommandMessage("loading country boundary map...");
-        }
-        countryBoundaryMap = Optional.of(CountryBoundaryMap.fromPlainText(boundaryMapFile));
-        if (getOptionAndArgumentDelegate().hasVerboseOption())
-        {
-            getCommandOutputDelegate().printlnCommandMessage("loaded boundary map");
-        }
-        return countryBoundaryMap;
     }
 
     private void save(final WritableResource output, final String string)
@@ -146,5 +118,14 @@ public class CountryBoundaryMapPrinterCommand extends AbstractAtlasShellToolsCom
         {
             throw new CoreException("Could not save file {}", output.getName(), e);
         }
+    }
+
+    private void saveGeometry(final File wkt, final File geojson, final String name,
+            final MultiPolygon multiPolygon)
+    {
+        save(wkt.child(name + FileSuffix.WKT), multiPolygon.toText());
+        final File countryFile = geojson.child(name + FileSuffix.GEO_JSON);
+        new JtsMultiPolygonToMultiPolygonConverter().convert(multiPolygon)
+                .saveAsGeoJson(countryFile);
     }
 }
