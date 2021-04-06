@@ -46,7 +46,11 @@ public class Segment extends PolyLine
      */
     private static List<Location> asList(final Location start, final Location end)
     {
-        final List<Location> result = new ArrayList<>();
+        // avoid the initial grow calls for ArrayList (there would be at least one grow call,
+        // possibly two here)
+        // The grow calls are ~50% of the cost for this method.
+        // This should decrease the cost for segment creation by ~1/3.
+        final List<Location> result = new ArrayList<>(2);
         result.add(start);
         result.add(end);
         return result;
