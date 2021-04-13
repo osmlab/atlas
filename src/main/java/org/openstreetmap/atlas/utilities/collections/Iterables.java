@@ -76,7 +76,16 @@ public final class Iterables
         {
             return (List<T>) types;
         }
-        final List<T> result = new ArrayList<>();
+        final int initialSize;
+        if (types instanceof Collection)
+        {
+            initialSize = ((Collection) types).size();
+        }
+        else
+        {
+            initialSize = 0;
+        }
+        final List<T> result = new ArrayList<>(initialSize);
         types.forEach(result::add);
         return result;
     }

@@ -223,7 +223,7 @@ public class StringCompressedPolyLine implements Serializable
                     (SIXTH_BIT_MASK | (int) number & FIVE_BIT_MASK) + ENCODING_OFFSET_MINUS_ONE)));
             number >>>= BIT_SHIFT;
         }
-        encoded.append(String.valueOf(Character.toChars((int) number + ENCODING_OFFSET_MINUS_ONE)));
+        encoded.append(Character.toChars((int) number + ENCODING_OFFSET_MINUS_ONE));
         return encoded.toString();
     }
 
