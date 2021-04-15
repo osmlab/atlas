@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.utilities.collections;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -91,7 +92,8 @@ public final class Iterables
     }
 
     /**
-     * Translate an array to an {@link List}
+     * Translate an array to an {@link List}. Unlike {@link java.util.Arrays#asList}, this method
+     * does not use the given array as the backing array.
      *
      * @param types
      *            The {@link Iterable} to translate
@@ -101,12 +103,8 @@ public final class Iterables
      */
     public static <T> List<T> asList(final T[] types)
     {
-        final List<T> result = new ArrayList<>();
-        for (final T type : types)
-        {
-            result.add(type);
-        }
-        return result;
+        // This avoids several grow calls, and ensures that we aren't using the backing array.
+        return new ArrayList<>(Arrays.asList(types));
     }
 
     /**
