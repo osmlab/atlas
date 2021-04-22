@@ -1,8 +1,8 @@
 package org.openstreetmap.atlas.geography.atlas.complete;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
-import java.util.SortedSet;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
@@ -644,7 +644,7 @@ public class EmptyAtlas implements Atlas
     }
 
     @Override
-    public SortedSet<SnappedEdge> snaps(final Location point, final Distance threshold)
+    public List<SnappedEdge> snaps(final Location point, final Distance threshold)
     {
         throw new UnsupportedOperationException();
     }

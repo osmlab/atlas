@@ -2,9 +2,9 @@ package org.openstreetmap.atlas.geography.atlas;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.SortedSet;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.LongFunction;
@@ -65,6 +65,11 @@ public interface Atlas
     Area area(long identifier);
 
     /**
+     * @return All the {@link Area}s in this {@link Atlas}
+     */
+    Iterable<Area> areas();
+
+    /**
      * A wrapper over {@link #area(long)} for multiple ids.
      *
      * @param identifiers
@@ -75,11 +80,6 @@ public interface Atlas
     {
         return entitiesMatchingId(identifiers, this::area);
     }
-
-    /**
-     * @return All the {@link Area}s in this {@link Atlas}
-     */
-    Iterable<Area> areas();
 
     /**
      * Return all the {@link Area}s matching a {@link Predicate}.
@@ -169,6 +169,11 @@ public interface Atlas
     Edge edge(long identifier);
 
     /**
+     * @return All the {@link Edge}s in this {@link Atlas}
+     */
+    Iterable<Edge> edges();
+
+    /**
      * A wrapper over {@link #edge(long)} for multiple ids.
      *
      * @param identifiers
@@ -179,11 +184,6 @@ public interface Atlas
     {
         return entitiesMatchingId(identifiers, this::edge);
     }
-
-    /**
-     * @return All the {@link Edge}s in this {@link Atlas}
-     */
-    Iterable<Edge> edges();
 
     /**
      * Return all the {@link Edge}s matching a {@link Predicate}.
@@ -488,6 +488,11 @@ public interface Atlas
     Iterable<LineItem> lineItemsWithin(GeometricSurface surface);
 
     /**
+     * @return All the {@link Line}s in this {@link Atlas}
+     */
+    Iterable<Line> lines();
+
+    /**
      * A wrapper over {@link #line(long)} for multiple ids.
      *
      * @param identifiers
@@ -498,11 +503,6 @@ public interface Atlas
     {
         return entitiesMatchingId(identifiers, this::line);
     }
-
-    /**
-     * @return All the {@link Line}s in this {@link Atlas}
-     */
-    Iterable<Line> lines();
 
     /**
      * Return all the {@link Line}s matching a {@link Predicate}.
@@ -619,6 +619,11 @@ public interface Atlas
     Node node(long identifier);
 
     /**
+     * @return All the {@link Node}s in this Atlas
+     */
+    Iterable<Node> nodes();
+
+    /**
      * A wrapper over {@link #node(long)} for multiple ids.
      *
      * @param identifiers
@@ -629,11 +634,6 @@ public interface Atlas
     {
         return entitiesMatchingId(identifiers, this::node);
     }
-
-    /**
-     * @return All the {@link Node}s in this Atlas
-     */
-    Iterable<Node> nodes();
 
     /**
      * Return all the {@link Node}s matching a {@link Predicate}.
@@ -716,6 +716,11 @@ public interface Atlas
     Point point(long identifier);
 
     /**
+     * @return All the {@link Point}s in this Atlas
+     */
+    Iterable<Point> points();
+
+    /**
      * A wrapper over {@link #point(long)} for multiple ids.
      *
      * @param identifiers
@@ -726,11 +731,6 @@ public interface Atlas
     {
         return entitiesMatchingId(identifiers, this::point);
     }
-
-    /**
-     * @return All the {@link Point}s in this Atlas
-     */
-    Iterable<Point> points();
 
     /**
      * Return all the {@link Point}s matching a {@link Predicate}.
@@ -783,6 +783,11 @@ public interface Atlas
     Relation relation(long identifier);
 
     /**
+     * @return All the {@link Relation}s in this Atlas
+     */
+    Iterable<Relation> relations();
+
+    /**
      * A wrapper over {@link #relation(long)} for multiple ids.
      *
      * @param identifiers
@@ -793,11 +798,6 @@ public interface Atlas
     {
         return entitiesMatchingId(identifiers, this::relation);
     }
-
-    /**
-     * @return All the {@link Relation}s in this Atlas
-     */
-    Iterable<Relation> relations();
 
     /**
      * Return all the {@link Relation}s matching a {@link Predicate}.
@@ -945,10 +945,10 @@ public interface Atlas
      *            A {@link Location} to snap
      * @param threshold
      *            A {@link Distance} threshold to look for edges around the {@link Location}
-     * @return A {@link SortedSet} of all the candidate snaps. The set is empty if there are no
+     * @return A sorted {@link List} of all the candidate snaps. The list is empty if there are no
      *         candidates.
      */
-    SortedSet<SnappedEdge> snaps(Location point, Distance threshold);
+    List<SnappedEdge> snaps(Location point, Distance threshold);
 
     /**
      * Return a sub-atlas from this Atlas.
@@ -978,7 +978,7 @@ public interface Atlas
     /**
      * Get a summary of this {@link Atlas}. This string should be relatively compact, for e.g. just
      * the entity counts.
-     * 
+     *
      * @return A summary of this {@link Atlas}.
      */
     String summary();
@@ -986,7 +986,7 @@ public interface Atlas
     /**
      * Get a complete string representation of this {@link Atlas}. This string may include details
      * on all contained entities.
-     * 
+     *
      * @return a complete string representation of this {@link Atlas}
      */
     String toStringDetailed();
