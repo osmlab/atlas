@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.SortedSet;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.LongFunction;
@@ -946,7 +945,7 @@ public interface Atlas
      *            A {@link Location} to snap
      * @param threshold
      *            A {@link Distance} threshold to look for edges around the {@link Location}
-     * @return A {@link SortedSet} of all the candidate snaps. The set is empty if there are no
+     * @return A sorted {@link List} of all the candidate snaps. The list is empty if there are no
      *         candidates.
      */
     List<SnappedEdge> snaps(Location point, Distance threshold);
