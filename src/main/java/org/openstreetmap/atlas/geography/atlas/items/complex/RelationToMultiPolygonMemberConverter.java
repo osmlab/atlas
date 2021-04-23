@@ -48,7 +48,7 @@ public class RelationToMultiPolygonMemberConverter implements Converter<Relation
     {
         final List<PolyLine> candidates = new ArrayList<>();
         final List<Polygon> alreadyFormed = new ArrayList<>();
-        if (!relation.isMultiPolygon())
+        if (!relation.isGeometric())
         {
             throw new CoreException("Not a MultiPolygon: {}", relation);
         }

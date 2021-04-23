@@ -269,7 +269,7 @@ public abstract class SimpleCoverage<T extends AtlasEntity> extends Coverage<T>
     private Surface getSurface(final AtlasEntity item)
     {
         Surface result = Surface.MINIMUM;
-        if (item instanceof Relation && ((Relation) item).isMultiPolygon() || item instanceof Area)
+        if (item instanceof Relation && ((Relation) item).isGeometric() || item instanceof Area)
         {
             try
             {

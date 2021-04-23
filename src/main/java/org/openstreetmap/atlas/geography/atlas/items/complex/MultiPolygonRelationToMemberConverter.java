@@ -35,7 +35,7 @@ public class MultiPolygonRelationToMemberConverter
     @Override
     public Iterable<AtlasEntity> convert(final Relation relation)
     {
-        if (!relation.isMultiPolygon())
+        if (!relation.isGeometric())
         {
             throw new CoreException("Not a MultiPolygon: {}", relation);
         }
