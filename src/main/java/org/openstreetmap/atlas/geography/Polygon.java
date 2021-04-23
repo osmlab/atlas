@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography;
 
 import java.awt.geom.Area;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -110,7 +111,11 @@ public class Polygon extends PolyLine implements GeometricSurface
 
     public Polygon(final Location... points)
     {
-        this(Iterables.iterable(points));
+        // This was Iterables.asList. `super` creates a new ArrayList, so we don't have to worry
+        // about the backing array being modified.
+        // This was 6% of a test run in a single validation (there were other validations run, so
+        // this may be larger). After the new run, it was 3% (async Allocation Profiler)
+        this(Arrays.asList(points));
     }
 
     @Override

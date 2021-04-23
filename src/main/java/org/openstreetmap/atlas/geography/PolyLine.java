@@ -966,7 +966,7 @@ public class PolyLine implements Collection<Location>, Located, Serializable, Ge
      */
     public List<Segment> segments()
     {
-        final List<Segment> result = new ArrayList<>();
+        final List<Segment> result = new ArrayList<>(this.size());
         if (size() == 1)
         {
             result.add(new Segment(get(0), get(0)));

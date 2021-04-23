@@ -237,14 +237,14 @@ public class PackedTagStore implements Serializable, ProtoSerializable
      */
     public Map<String, String> keyValuePairs(final long index)
     {
-        final Map<String, String> result = new HashMap<>();
-        if (this.keys.size() == 0)
+        if (null == this.keys || this.keys.isEmpty())
         {
             // No tags
-            return result;
+            return new HashMap<>();
         }
         final int[] keyArray = this.keys.get(index);
         final int[] valueArray = this.values.get(index);
+        final Map<String, String> result = new HashMap<>(keyArray.length);
         for (int i = 0; i < keyArray.length; i++)
         {
             final int keyIndex = keyArray[i];

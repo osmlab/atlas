@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.utilities.regex.RegexUtils;
 
 /**
  * {@link List} of {@link String}s with convenience methods
@@ -43,7 +44,8 @@ public class StringList implements Iterable<String>, Serializable
      */
     public static StringList split(final String item, final String separator, final int limit)
     {
-        return new StringList(Iterables.asList(item.split(Pattern.quote(separator), limit)));
+        final Pattern compiledPattern = RegexUtils.getCompiledPattern(Pattern.quote(separator));
+        return new StringList(Iterables.asList(compiledPattern.split(item, limit)));
     }
 
     public static StringList splitByRegex(final String item, final String separator)
@@ -68,7 +70,8 @@ public class StringList implements Iterable<String>, Serializable
      */
     public static StringList splitByRegex(final String item, final String regex, final int limit)
     {
-        return new StringList(Iterables.asList(item.split(regex, limit)));
+        final Pattern compiledPattern = RegexUtils.getCompiledPattern(regex);
+        return new StringList(Iterables.asList(compiledPattern.split(item, limit)));
     }
 
     public StringList()
