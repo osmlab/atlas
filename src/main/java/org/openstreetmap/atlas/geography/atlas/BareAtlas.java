@@ -11,8 +11,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
@@ -22,6 +20,7 @@ import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.geography.Snapper.SnappedLocation;
 import org.openstreetmap.atlas.geography.atlas.builder.text.TextAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
@@ -600,14 +599,15 @@ public abstract class BareAtlas implements Atlas
     }
 
     @Override
-    public SortedSet<SnappedEdge> snaps(final Location point, final Distance threshold)
+    public List<SnappedEdge> snaps(final Location point, final Distance threshold)
     {
-        final SortedSet<SnappedEdge> snaps = new TreeSet<>();
+        final List<SnappedEdge> snaps = new ArrayList<>();
         for (final Edge edge : this.edgesIntersecting(point.boxAround(threshold)))
         {
             final SnappedEdge candidate = new SnappedEdge(point.snapTo(edge.asPolyLine()), edge);
             snaps.add(candidate);
         }
+        snaps.sort(SnappedLocation::compareTo);
         return snaps;
     }
 

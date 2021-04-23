@@ -374,6 +374,15 @@ public class PackedAtlasTest
     }
 
     @Test
+    public void testSnaps()
+    {
+        Assert.assertEquals(2, this.atlas
+                .snaps(this.atlas.node(12345L).getLocation(), Distance.meters(100)).size());
+        Assert.assertEquals(4, this.atlas
+                .snaps(this.atlas.node(12345L).getLocation(), Distance.meters(100000)).size());
+    }
+
+    @Test
     public void testValence()
     {
         // Case where valences are equals
