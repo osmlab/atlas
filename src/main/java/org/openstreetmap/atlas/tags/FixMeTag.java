@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.tags;
 
+import java.util.Optional;
+
 import org.openstreetmap.atlas.tags.annotations.Tag;
 import org.openstreetmap.atlas.tags.annotations.TagKey;
 
@@ -12,5 +14,10 @@ import org.openstreetmap.atlas.tags.annotations.TagKey;
 public class FixMeTag
 {
     @TagKey
-    String KEY = "fixme";
+    private static final String KEY = "fixme";
+
+    public static Optional<String> get(final Taggable taggable)
+    {
+        return taggable.getTag(KEY);
+    }
 }
