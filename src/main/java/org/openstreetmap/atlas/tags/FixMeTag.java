@@ -11,12 +11,12 @@ import org.openstreetmap.atlas.tags.annotations.TagKey;
  * @author v-garei
  */
 @Tag(value = Tag.Validation.NON_EMPTY_STRING, taginfo = "https://taginfo.openstreetmap.org/keys/fixme#values", osm = "https://wiki.openstreetmap.org/wiki/Key:fixme")
-public class FixMeTag
+public interface FixMeTag
 {
     @TagKey
-    private static final String KEY = "fixme";
+    String KEY = "fixme";
 
-    public static Optional<String> get(final Taggable taggable)
+    static Optional<String> get(final Taggable taggable)
     {
         return taggable.getTag(KEY);
     }
