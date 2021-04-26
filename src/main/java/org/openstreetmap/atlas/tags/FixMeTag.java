@@ -8,10 +8,9 @@ import org.openstreetmap.atlas.tags.annotations.TagKey;
  *
  * @author v-garei
  */
-@Tag(value = Tag.Validation.LENGTH, taginfo = "https://taginfo.openstreetmap.org/keys/fixme#values", osm = "https://wiki.openstreetmap.org/wiki/Key:fixme")
+@Tag(value = Tag.Validation.NON_EMPTY_STRING, taginfo = "https://taginfo.openstreetmap.org/keys/fixme#values", osm = "https://wiki.openstreetmap.org/wiki/Key:fixme")
 public class FixMeTag
 {
-
     @TagKey
-    private static final String KEY = "fixme";
+    String KEY = "fixme";
 }
