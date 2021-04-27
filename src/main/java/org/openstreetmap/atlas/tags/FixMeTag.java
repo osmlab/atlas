@@ -6,7 +6,7 @@ import org.openstreetmap.atlas.tags.annotations.Tag;
 import org.openstreetmap.atlas.tags.annotations.TagKey;
 
 /**
- * OSM fix me tag: http://taginfo.openstreetmap.org/keys/fixme#values
+ * OSM fix me tag. Check OSM Wiki below for more information.
  *
  * @author v-garei
  */
@@ -15,9 +15,4 @@ public interface FixMeTag
 {
     @TagKey
     String KEY = "fixme";
-
-    static Optional<String> get(final Taggable taggable)
-    {
-        return taggable.getTag(KEY);
-    }
 }
