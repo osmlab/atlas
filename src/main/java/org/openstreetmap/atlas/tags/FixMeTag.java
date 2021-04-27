@@ -6,7 +6,7 @@ import org.openstreetmap.atlas.tags.annotations.Tag;
 import org.openstreetmap.atlas.tags.annotations.TagKey;
 
 /**
- * OSM fixme tag: http://taginfo.openstreetmap.org/keys/fixme#values
+ * OSM fix me tag: http://taginfo.openstreetmap.org/keys/fixme#values
  *
  * @author v-garei
  */
