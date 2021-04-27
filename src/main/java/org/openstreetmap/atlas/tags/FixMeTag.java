@@ -1,7 +1,5 @@
 package org.openstreetmap.atlas.tags;
 
-import java.util.Optional;
-
 import org.openstreetmap.atlas.tags.annotations.Tag;
 import org.openstreetmap.atlas.tags.annotations.TagKey;
 
