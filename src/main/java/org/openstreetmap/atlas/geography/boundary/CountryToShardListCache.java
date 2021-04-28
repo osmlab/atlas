@@ -7,8 +7,10 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
+import org.openstreetmap.atlas.geography.sharding.converters.StringToShardConverter;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
@@ -43,7 +45,8 @@ public final class CountryToShardListCache extends Command
     private static final Switch<File> OUTPUT = new Switch<>("output", "The output file", File::new,
             Optionality.REQUIRED);
     private static final String DELIMITER = "||";
-    private final MultiMap<String, SlippyTile> countryToShards = new MultiMap<>();
+    private static final StringToShardConverter CONVERTER = new StringToShardConverter();
+    private final MultiMap<String, Shard> countryToShards = new MultiMap<>();
 
     public static void main(final String[] args)
     {
@@ -71,7 +74,7 @@ public final class CountryToShardListCache extends Command
                 .forEach((country, shardSet) ->
                 {
                     shardSet.forEach(shard -> this.countryToShards.add(country,
-                            SlippyTile.forName(shard.getName())));
+                            CONVERTER.convert(shard.getName())));
                 });
     }
 
@@ -84,8 +87,8 @@ public final class CountryToShardListCache extends Command
                 final String[] countryAndShardList = line.split(Pattern.quote(DELIMITER));
                 final String country = countryAndShardList[0];
                 final String shardList = countryAndShardList[1];
-                Arrays.asList(shardList.split("\\s*,\\s*")).stream().map(SlippyTile::forName)
-                        .forEach(slippyTile -> this.countryToShards.add(country, slippyTile));
+                Arrays.asList(shardList.split("\\s*,\\s*")).stream().map(CONVERTER::convert)
+                        .forEach(shard -> this.countryToShards.add(country, shard));
             });
         }
         catch (final Exception e)
@@ -107,16 +110,9 @@ public final class CountryToShardListCache extends Command
      *            The three digit country code
      * @return A List of {@link SlippyTile}s
      */
-    public List<SlippyTile> getShardsForCountry(final String country)
+    public List<Shard> getShardsForCountry(final String country)
     {
-        if (this.countryToShards.containsKey(country))
-        {
-            return this.countryToShards.get(country);
-        }
-        else
-        {
-            return Collections.<SlippyTile> emptyList();
-        }
+        return this.countryToShards.getOrDefault(country, Collections.emptyList());
     }
 
     /**

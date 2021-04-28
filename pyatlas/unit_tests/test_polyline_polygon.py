@@ -66,6 +66,15 @@ class PolyLinePolygonTest(unittest.TestCase):
         computed_rect = Polygon(loclist).bounds()
         self.assertEqual(expected_rect, computed_rect)
 
+    def test_poly_length(self):
+        loclist = [Location(0, 0), Location(5000000, 5000000)]
+        polyline = PolyLine(loclist, deep=True)
+        self.assertEqual(78626, int(polyline.length()))
+
+        loclist2 = [Location(0, 0), Location(20000000, 20000000)]
+        polyline = PolyLine(loclist2, deep=True)
+        self.assertEqual(314474, int(polyline.length()))
+
     def test_fully_geometrically_encloses_location(self):
         loclist = [
             Location(0, 0),
@@ -109,6 +118,29 @@ class PolyLinePolygonTest(unittest.TestCase):
         polygon = Polygon(loclist)
         polygon2 = Polygon(loclist2)
         self.assertTrue(polygon.intersects(polygon2))
+
+    def test_intersects_polyline(self):
+        loclist = [
+            Location(-3, -3),
+            Location(-2, -2),
+            Location(-1, -1),
+            Location(0, 0),
+            Location(1, 1),
+            Location(2, 2),
+            Location(3, 3)
+        ]
+        loclist2 = [
+            Location(-3, 3),
+            Location(-2, 2),
+            Location(-1, 1),
+            Location(0, 0),
+            Location(-1, 1),
+            Location(-2, 2),
+            Location(-3, 3)
+        ]
+        polyline = PolyLine(loclist)
+        polyline2 = PolyLine(loclist2)
+        self.assertTrue(polyline.intersects_polyline(polyline2))
 
 
 if __name__ == "__main__":

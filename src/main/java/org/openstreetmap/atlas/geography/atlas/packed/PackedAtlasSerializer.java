@@ -66,6 +66,7 @@ public final class PackedAtlasSerializer
         }
     }
 
+    public static final String META_DATA_ERROR_MESSAGE = "MetaData not here!";
     private static final Logger logger = LoggerFactory.getLogger(PackedAtlasSerializer.class);
     // The fields not serialized.
     private static final StringList EXCLUDED_FIELDS = new StringList(PackedAtlas.FIELD_BOUNDS,
@@ -73,9 +74,6 @@ public final class PackedAtlasSerializer
             PackedAtlas.FIELD_SERIALIZER, PackedAtlas.FIELD_SAVE_SERIALIZATION_FORMAT,
             PackedAtlas.FIELD_LOAD_SERIALIZATION_FORMAT, PackedAtlas.FIELD_PREFIX,
             /* https://stackoverflow.com/a/39037512/1558687 */"$jacocoData");
-
-    public static final String META_DATA_ERROR_MESSAGE = "MetaData not here!";
-
     private final PackedAtlas atlas;
     private final ZipResource source;
 
@@ -100,7 +98,7 @@ public final class PackedAtlasSerializer
         determineAtlasLoadFormat(atlas);
 
         return atlas;
-    };
+    }
 
     /*
      * Try loading the meta data to make sure the data format is appropriate. Keep trying formats
@@ -111,7 +109,7 @@ public final class PackedAtlasSerializer
         final AtlasSerializationFormat[] possibleFormats = AtlasSerializationFormat.values();
         for (final AtlasSerializationFormat candidateFormat : possibleFormats)
         {
-            logger.info("Trying load format {}", candidateFormat);
+            logger.trace("Trying load format {} for atlas {}", candidateFormat, atlas.getName());
             atlas.setLoadSerializationFormat(candidateFormat);
             try
             {
@@ -119,15 +117,17 @@ public final class PackedAtlasSerializer
             }
             catch (final CoreException exception)
             {
-                logger.info("Load format {} invalid", candidateFormat);
+                logger.debug("Load format {} invalid for atlas {}", candidateFormat,
+                        atlas.getName(), exception);
                 continue;
             }
             // If we make it here, then we found the appropriate format and we can bail out
-            logger.info("Using load format {}", candidateFormat);
+            logger.trace("Using load format {} for atlas {}", candidateFormat, atlas.getName());
             return;
         }
 
-        throw new CoreException("Could not determine a valid load format for atlas");
+        throw new CoreException("Could not determine a valid load format for atlas {}",
+                atlas.getName());
     }
 
     /**
@@ -343,17 +343,25 @@ public final class PackedAtlasSerializer
     private Object deserializeResource(final Resource resource, final String fieldName)
     {
         final AtlasSerializationFormat loadFormat = this.atlas.getLoadSerializationFormat();
-
+        Object result = null;
         switch (loadFormat)
         {
             case JAVA:
-                return deserializeJavaResource(resource);
+                result = deserializeJavaResource(resource);
+                break;
             case PROTOBUF:
-                return deserializeProtoResource(resource, fieldName);
+                result = deserializeProtoResource(resource, fieldName);
+                break;
             default:
                 throw new CoreException("Unsupported serialization format {}",
                         loadFormat.toString());
         }
+        if (result == null)
+        {
+            throw new CoreException("Unable to deserialize field {} from resource {} in {}.",
+                    fieldName, resource.getName(), this.atlas.getName());
+        }
+        return result;
     }
 
     /**
@@ -392,16 +400,6 @@ public final class PackedAtlasSerializer
         setField(readField(name), result);
     }
 
-    private StreamIterable<Field> fields()
-    {
-        return Iterables.stream(Iterables.from(PackedAtlas.class.getDeclaredFields()))
-                .filter(field -> !EXCLUDED_FIELDS.startsWithContains(field.getName())).map(field ->
-                {
-                    field.setAccessible(true);
-                    return field;
-                });
-    }
-
     /**
      * The function that translates a reflection {@link Field} into a {@link Resource}
      *
@@ -425,6 +423,16 @@ public final class PackedAtlasSerializer
                 throw new CoreException("Unsupported serialization format {}",
                         saveFormat.toString());
         }
+    }
+
+    private StreamIterable<Field> fields()
+    {
+        return Iterables.stream(Iterables.from(PackedAtlas.class.getDeclaredFields()))
+                .filter(field -> !EXCLUDED_FIELDS.startsWithContains(field.getName())).map(field ->
+                {
+                    field.setAccessible(true);
+                    return field;
+                });
     }
 
     private Object getField(final Field field)

@@ -54,12 +54,12 @@ class PolygonConvertersTest(unittest.TestCase):
         p2 = geometry.location_to_shapely_point(l2)
         p3 = geometry.location_to_shapely_point(l3)
 
-        self.assertEquals(shapely.geometry.Point(0, 0), p1)
-        self.assertEquals(shapely.geometry.Point(1000, 2000), p2)
-        self.assertEquals(shapely.geometry.Point(50000, -1000000), p3)
+        self.assertEqual(shapely.geometry.Point(0, 0), p1)
+        self.assertEqual(shapely.geometry.Point(1000, 2000), p2)
+        self.assertEqual(shapely.geometry.Point(50000, -1000000), p3)
 
     def test_polyline_to_shapely_linestring(self):
         polyline1 = PolyLine([Location(-1000, -1000), Location(0, 0), Location(5000, 8000)])
         linestring1 = geometry.polyline_to_shapely_linestring(polyline1)
         test_against = shapely.geometry.LineString([(-1000, -1000), (0, 0), (5000, 8000)])
-        self.assertEquals(linestring1, test_against)
+        self.assertEqual(linestring1, test_against)

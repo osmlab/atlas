@@ -40,7 +40,9 @@ public abstract class Route implements Iterable<Edge>, Located, Serializable
      *
      * @author matthieun
      */
-    private static final class MultiRoute extends Route
+    // NOSONAR here to override "Subclasses that add fields should override "equals" (squid:S2160)"
+    // as the parent equals is good enough.
+    private static final class MultiRoute extends Route // NOSONAR
     {
         private static final long serialVersionUID = -4562811506650155750L;
         private final Route upstream;
@@ -58,7 +60,7 @@ public abstract class Route implements Iterable<Edge>, Located, Serializable
             final PolyLine one = this.upstream.asPolyLine();
             final PolyLine two = this.downstream.asPolyLine();
             final List<Location> points = new ArrayList<>();
-            one.forEach(point -> points.add(point));
+            one.forEach(points::add);
             for (int i = 1; i < two.size(); i++)
             {
                 points.add(two.get(i));
@@ -151,7 +153,8 @@ public abstract class Route implements Iterable<Edge>, Located, Serializable
                 final Edge edge = iterator.next();
                 if (edge.hasReverseEdge())
                 {
-                    final Edge reverse = edge.reversed().get();
+                    final Edge reverse = edge.reversed().orElseThrow(
+                            () -> new CoreException("Edge should have a reverse edge."));
                     if (reversed == null)
                     {
                         reversed = Route.forEdge(reverse);
@@ -187,7 +190,9 @@ public abstract class Route implements Iterable<Edge>, Located, Serializable
      *
      * @author matthieun
      */
-    private static final class SingleRoute extends Route
+    // NOSONAR here to override "Subclasses that add fields should override "equals" (squid:S2160)"
+    // as the parent equals is good enough.
+    private static final class SingleRoute extends Route // NOSONAR
     {
         private static final long serialVersionUID = -3870416343539125425L;
         private final Edge edge;
@@ -235,27 +240,7 @@ public abstract class Route implements Iterable<Edge>, Located, Serializable
         @Override
         public Iterator<Edge> iterator()
         {
-            return new Iterator<Edge>()
-            {
-                private int index = 0;
-
-                @Override
-                public boolean hasNext()
-                {
-                    return this.index < 1;
-                }
-
-                @Override
-                public Edge next()
-                {
-                    if (this.index > 0)
-                    {
-                        return null;
-                    }
-                    this.index++;
-                    return SingleRoute.this.edge;
-                }
-            };
+            return Iterables.from(this.edge).iterator();
         }
 
         @Override
@@ -277,7 +262,9 @@ public abstract class Route implements Iterable<Edge>, Located, Serializable
         public Optional<Route> reverse()
         {
             return this.edge.hasReverseEdge()
-                    ? Optional.of(new SingleRoute(this.edge.reversed().get())) : Optional.empty();
+                    ? Optional.of(new SingleRoute(this.edge.reversed()
+                            .orElseThrow(() -> new CoreException("Edge should have a reverse."))))
+                    : Optional.empty();
         }
 
         @Override
@@ -321,7 +308,7 @@ public abstract class Route implements Iterable<Edge>, Located, Serializable
     {
         Route route = null;
         int numberOfConsecutiveFailures = 0;
-        final long maxEdgesToAdd = candidates.stream().map(edge -> edge.getMasterEdgeIdentifier())
+        final long maxEdgesToAdd = candidates.stream().map(edge -> edge.getMainEdgeIdentifier())
                 .distinct().count();
         final Set<Long> idsAdded = new HashSet<>();
         if (maxEdgesToAdd == 0)
@@ -339,7 +326,7 @@ public abstract class Route implements Iterable<Edge>, Located, Serializable
                     if (edge.start().equals(startNode))
                     {
                         route = Route.forEdge(edge);
-                        idsAdded.add(edge.getMasterEdgeIdentifier());
+                        idsAdded.add(edge.getMainEdgeIdentifier());
                         break;
                     }
                 }
@@ -356,7 +343,7 @@ public abstract class Route implements Iterable<Edge>, Located, Serializable
 
                 for (final Edge edge : candidates)
                 {
-                    if (idsAdded.contains(edge.getMasterEdgeIdentifier()))
+                    if (idsAdded.contains(edge.getMainEdgeIdentifier()))
                     {
                         // this edge or reverseEdge is already used, continue
                         continue;
@@ -372,21 +359,18 @@ public abstract class Route implements Iterable<Edge>, Located, Serializable
                         edgeAdded = true;
                         numberOfConsecutiveFailures = 0;
                         route = route.append(edge);
-                        idsAdded.add(edge.getMasterEdgeIdentifier());
+                        idsAdded.add(edge.getMainEdgeIdentifier());
                         break;
                     }
                 }
 
                 // To ensure there's no infinite loop, number of consecutive loops where an edge is
                 // not added cannot exceed the total number of unique edges passed in
-                if (!edgeAdded)
+                if (!edgeAdded && ++numberOfConsecutiveFailures >= maxEdgesToAdd)
                 {
-                    if (++numberOfConsecutiveFailures >= maxEdgesToAdd)
-                    {
-                        throw new CoreException(
-                                "No edge that connects to the current route. StartNode: {} EndNode: {}",
-                                startNode.getIdentifier(), endNode.getIdentifier());
-                    }
+                    throw new CoreException(
+                            "No edge that connects to the current route. StartNode: {} EndNode: {}",
+                            startNode.getIdentifier(), endNode.getIdentifier());
                 }
             }
         }
@@ -506,7 +490,7 @@ public abstract class Route implements Iterable<Edge>, Located, Serializable
         int numberFailures = 0;
         final List<Edge> members = new ArrayList<>();
         members.addAll(candidates);
-        if (members.size() == 0)
+        if (members.isEmpty())
         {
             throw new CoreException("Cannot have a route with no members");
         }
@@ -560,14 +544,8 @@ public abstract class Route implements Iterable<Edge>, Located, Serializable
                         // Format and throw an exception.
                         final StringList edges = new StringList();
                         final StringList debug = new StringList();
-                        candidates.forEach(edge ->
-                        {
-                            edges.add(edge.getIdentifier());
-                        });
-                        candidates.forEach(edge ->
-                        {
-                            debug.add(edge.asPolyLine().toWkt());
-                        });
+                        candidates.forEach(edge -> edges.add(edge.getIdentifier()));
+                        candidates.forEach(edge -> debug.add(edge.asPolyLine().toWkt()));
                         throw new CoreException(
                                 "Unable to build a route from edges {}\nLocations:\n{}",
                                 edges.join(", "), debug.join("\n"));
@@ -850,7 +828,7 @@ public abstract class Route implements Iterable<Edge>, Located, Serializable
             }
 
             logger.error("Detected overlap at edge {}, but unable to find in current route {}",
-                    lastOverlap.getIdentifier(), this.toString());
+                    lastOverlap.getIdentifier(), this);
 
             overlapIndex = -1;
         }

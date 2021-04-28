@@ -1,7 +1,9 @@
 # Atlas
 
-[![Build Status](https://travis-ci.org/osmlab/atlas.svg?branch=master)](https://travis-ci.org/osmlab/atlas)
+![Continuous Integration](https://github.com/osmlab/atlas/workflows/Continuous%20Integration/badge.svg?branch=main)
 [![quality gate](https://sonarcloud.io/api/project_badges/measure?project=org.openstreetmap.atlas%3Aatlas&metric=alert_status)](https://sonarcloud.io/dashboard?id=org.openstreetmap.atlas%3Aatlas)
+[![Maven Central](https://img.shields.io/maven-central/v/org.openstreetmap.atlas/atlas.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.openstreetmap.atlas%22%20AND%20a:%22atlas%22)
+[![CircleCI](https://circleci.com/gh/osmlab/atlas/tree/main.svg?style=shield)](https://circleci.com/gh/osmlab/atlas/tree/main)
 
 ---
 
@@ -15,6 +17,8 @@ Projects using Atlas:
 # Getting started
 
 For build instructions and to contribute, please see the [contributing guidelines](CONTRIBUTING.md).
+
+Start playing with Atlas directly with [this sample project](/sample)!
 
 # APIs
 
@@ -37,13 +41,16 @@ As well as other handy tools:
 * [Shard Exploration](/src/main/java/org/openstreetmap/atlas/geography/atlas/dynamic#dynamicatlas)
 * [Tag Filtering](/src/main/java/org/openstreetmap/atlas/tags/filters#tag-filtering)
 * [Atlas Filtering](/src/main/java/org/openstreetmap/atlas/geography/atlas#filtering-an-atlas)
-* [PBF Ingest](/src/main/java/org/openstreetmap/atlas/geography/atlas/raw/creation#README.md)
-* [Country Slicing](/src/main/java/org/openstreetmap/atlas/geography/atlas/raw/slicing#README.md)
-* [Way Sectioning](/src/main/java/org/openstreetmap/atlas/geography/atlas/raw/sectioning#README.md)
+* [PBF Ingest](/src/main/java/org/openstreetmap/atlas/geography/atlas/raw/creation)
+* [Country Slicing](/src/main/java/org/openstreetmap/atlas/geography/atlas/raw/slicing)
+* [Way Sectioning](/src/main/java/org/openstreetmap/atlas/geography/atlas/raw/sectioning)
 * [Cutting](/src/main/java/org/openstreetmap/atlas/geography/atlas#country-slicing)
 * [Routing](/src/main/java/org/openstreetmap/atlas/geography/atlas/routing#routing)
 * [Higher-level entities](/src/main/java/org/openstreetmap/atlas/geography/atlas/items/complex#complex-entities)
 * [Saving](/src/main/java/org/openstreetmap/atlas/geography/atlas#saving-an-atlas) / [Loading](/src/main/java/org/openstreetmap/atlas/geography/atlas#using-atlas)
+* [GeoJSON Parser](/src/main/java/org/openstreetmap/atlas/geography/geojson/parser)
+* [Command Line Tools](atlas-shell-tools)
+* [Atlas Query Language i.e. AQL](/src/main/groovy/org/openstreetmap/atlas/geography/atlas/dsl)
 
 # Community
 

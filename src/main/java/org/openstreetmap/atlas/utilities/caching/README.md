@@ -15,7 +15,7 @@ final URI LOCAL_TEST_FILE_URI = URI.create("file:///path/to/some/file.txt");
 
 // cache file contents into memory (a byte array)
 final ConcurrentResourceCache resourceCache = 
-            new ConcurrentResourceCache(new ByteArrayCachingStrategy(), uri -> new File(uri.getPath()));
+        new ConcurrentResourceCache(new ByteArrayCachingStrategy(), uri -> Optional.of(new File(uri.getPath())));
 
 // this will cache miss the first time and populate the cache using the provided fetcher
 Resource r1 = resourceCache.get(LOCAL_TEST_FILE_URI).get();

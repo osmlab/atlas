@@ -16,6 +16,7 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.dynamic.policy.DynamicAtlasPolicy;
 import org.openstreetmap.atlas.geography.atlas.dynamic.rules.DynamicAtlasMovingTooFastTestRule;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
 import org.openstreetmap.atlas.geography.sharding.SlippyTileSharding;
@@ -63,14 +64,14 @@ public class DynamicAtlasMovingTooFastTest
     public void prepare(final DynamicAtlasPolicy policy)
     {
         this.store = new HashMap<>();
-        this.store.put(new SlippyTile(5, 34, 6),
-                this.rule.getAtlas().subAtlas(new SlippyTile(5, 34, 6).bounds()).get());
-        this.store.put(new SlippyTile(6, 34, 6),
-                this.rule.getAtlas().subAtlas(new SlippyTile(6, 34, 6).bounds()).get());
-        this.store.put(new SlippyTile(6, 35, 6),
-                this.rule.getAtlas().subAtlas(new SlippyTile(6, 35, 6).bounds()).get());
-        this.store.put(new SlippyTile(5, 35, 6),
-                this.rule.getAtlas().subAtlas(new SlippyTile(5, 35, 6).bounds()).get());
+        this.store.put(new SlippyTile(5, 34, 6), this.rule.getAtlas()
+                .subAtlas(new SlippyTile(5, 34, 6).bounds(), AtlasCutType.SOFT_CUT).get());
+        this.store.put(new SlippyTile(6, 34, 6), this.rule.getAtlas()
+                .subAtlas(new SlippyTile(6, 34, 6).bounds(), AtlasCutType.SOFT_CUT).get());
+        this.store.put(new SlippyTile(6, 35, 6), this.rule.getAtlas()
+                .subAtlas(new SlippyTile(6, 35, 6).bounds(), AtlasCutType.SOFT_CUT).get());
+        this.store.put(new SlippyTile(5, 35, 6), this.rule.getAtlas()
+                .subAtlas(new SlippyTile(5, 35, 6).bounds(), AtlasCutType.SOFT_CUT).get());
         this.dynamicAtlas = new DynamicAtlas(policy);
         this.dynamicAtlas.preemptiveLoad();
     }

@@ -1,19 +1,15 @@
 package org.openstreetmap.atlas.geography.atlas.packed;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
-import org.openstreetmap.atlas.geography.Segment;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
@@ -39,7 +35,6 @@ import org.openstreetmap.atlas.tags.WaterTag;
 import org.openstreetmap.atlas.tags.WaterwayTag;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.Maps;
-import org.openstreetmap.atlas.utilities.random.RandomTagsSupplier;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.openstreetmap.atlas.utilities.scalars.Speed;
 import org.slf4j.Logger;
@@ -54,134 +49,15 @@ public class PackedAtlasTest
 {
     private static final Logger logger = LoggerFactory.getLogger(PackedAtlasTest.class);
 
-    private PackedAtlas atlas;
+    @Rule
+    public PackedAtlasTestRule setup = new PackedAtlasTestRule();
 
-    public PackedAtlas getAtlas()
-    {
-        if (this.atlas == null)
-        {
-            setup();
-        }
-        return this.atlas;
-    }
+    private PackedAtlas atlas;
 
     @Before
     public void setup()
     {
-        final PackedAtlasBuilder builder = new PackedAtlasBuilder()
-                .withSizeEstimates(new AtlasSize(4, 3, 2, 3, 7, 2));
-        // Node tags
-        final Map<String, String> nodeTags = new HashMap<>();
-        nodeTags.put("highway", "turning_circle");
-
-        // Edge tags
-        final Map<String, String> edge9Tags = new HashMap<>();
-        edge9Tags.put("highway", "primary");
-        edge9Tags.put("name", "edge9");
-        edge9Tags.put("surface", "concrete");
-        edge9Tags.put("lanes", "3");
-
-        final Map<String, String> edgeMinus9Tags = new HashMap<>();
-        edgeMinus9Tags.put("highway", "primary");
-        edgeMinus9Tags.put("name", "edge_9");
-        edgeMinus9Tags.put("surface", "fine_gravel");
-
-        final Map<String, String> edge98Tags = new HashMap<>();
-        edge98Tags.put("highway", "secondary");
-        edge98Tags.put("name", "edge98");
-        edge98Tags.put("bridge", "movable");
-        edge98Tags.put("maxspeed", "100");
-
-        final Map<String, String> edge987Tags = new HashMap<>();
-        edge987Tags.put("highway", "residential");
-        edge987Tags.put("name", "edge987");
-        edge987Tags.put("tunnel", "culvert");
-        edge987Tags.put("maxspeed", "50 knots");
-
-        // Area tags
-        final Map<String, String> area1Tags = new HashMap<>();
-        area1Tags.put("leisure", "golf_course");
-        area1Tags.put("natural", "grassland");
-
-        final Map<String, String> area2Tags = new HashMap<>();
-        area2Tags.put("leisure", "swimming_pool");
-        area2Tags.put("sport", "swimming");
-
-        final Map<String, String> area3Tags = new HashMap<>();
-        area2Tags.put("hello", "world");
-
-        // Line tags
-        final Map<String, String> line1Tags = new HashMap<>();
-        line1Tags.put("power", "line");
-
-        final Map<String, String> line2Tags = new HashMap<>();
-        line2Tags.put("aeroway", "runway");
-
-        final Map<String, String> line3Tags = new HashMap<>();
-        line3Tags.put("natural", "coastline");
-        line3Tags.put("waterway", "canal");
-
-        // Point tags
-        final Map<String, String> pointTags = new HashMap<>();
-        pointTags.put("addr:city", "Cupertino");
-
-        // Relation structure and tags
-        final Map<String, String> relationTags = RandomTagsSupplier.randomTags(5);
-        final RelationBean structure1 = new RelationBean();
-        structure1.addItem(9L, "in", ItemType.EDGE);
-        structure1.addItem(1234L, "node", ItemType.NODE);
-        structure1.addItem(-9L, "out", ItemType.EDGE);
-        // structure1.addItem(null, "notThere", ItemType.NODE);
-        final RelationBean structure2 = new RelationBean();
-        structure2.addItem(45L, "area", ItemType.AREA);
-        structure2.addItem(32L, "line", ItemType.LINE);
-        structure2.addItem(5L, "pt", ItemType.POINT);
-        structure2.addItem(1L, "rel", ItemType.RELATION);
-        structure2.addItem(1234L, "node", ItemType.NODE);
-
-        // Add nodes
-        builder.addNode(123, Location.TEST_6, nodeTags);
-        builder.addNode(1234, Location.TEST_5, nodeTags);
-        builder.addNode(12345, Location.TEST_2, nodeTags);
-
-        // Add edges
-        builder.addEdge(9, new Segment(Location.TEST_6, Location.TEST_5), edge9Tags);
-        builder.addEdge(-9, new Segment(Location.TEST_5, Location.TEST_6), edgeMinus9Tags);
-        builder.addEdge(98, new Segment(Location.TEST_5, Location.TEST_2), edge98Tags);
-        builder.addEdge(987, new Segment(Location.TEST_2, Location.TEST_6), edge987Tags);
-
-        // Add Areas
-        builder.addArea(45, new Polygon(Location.TEST_6, Location.TEST_3, Location.TEST_2),
-                area1Tags);
-        builder.addArea(54,
-                new Polygon(Location.TEST_5, Location.TEST_1, Location.TEST_4, Location.TEST_6),
-                area2Tags);
-        builder.addArea(4554, new Polygon(Location.TEST_1, Location.TEST_2, Location.TEST_3),
-                area3Tags);
-
-        // Add Lines
-        builder.addLine(32, new Segment(Location.TEST_5, Location.TEST_1), line1Tags);
-        builder.addLine(23, new PolyLine(Location.TEST_3, Location.TEST_2, Location.TEST_4),
-                line2Tags);
-        builder.addLine(24,
-                new PolyLine(Location.TEST_7, Location.TEST_4, Location.TEST_6, Location.TEST_2),
-                line3Tags);
-
-        // Add points
-        builder.addPoint(1, Location.TEST_3, pointTags);
-        builder.addPoint(2, Location.TEST_2, pointTags);
-        builder.addPoint(3, Location.TEST_6, pointTags);
-        builder.addPoint(4, Location.TEST_7, pointTags);
-        builder.addPoint(5, Location.TEST_4, pointTags);
-        builder.addPoint(6, Location.TEST_1, pointTags);
-        builder.addPoint(7, Location.TEST_5, pointTags);
-
-        // Add relations
-        builder.addRelation(1, 1, structure1, relationTags);
-        builder.addRelation(2, 2, structure2, relationTags);
-
-        // Final call
-        this.atlas = (PackedAtlas) builder.get();
+        this.atlas = this.setup.getAtlas().cloneToPackedAtlas();
     }
 
     @Test
@@ -495,6 +371,15 @@ public class PackedAtlasTest
         builder.addRelation(0, 0, bean, Maps.hashMap());
         final Atlas result = builder.get();
         Assert.assertEquals(2, result.relation(0).members().size());
+    }
+
+    @Test
+    public void testSnaps()
+    {
+        Assert.assertEquals(2, this.atlas
+                .snaps(this.atlas.node(12345L).getLocation(), Distance.meters(100)).size());
+        Assert.assertEquals(4, this.atlas
+                .snaps(this.atlas.node(12345L).getLocation(), Distance.meters(100000)).size());
     }
 
     @Test

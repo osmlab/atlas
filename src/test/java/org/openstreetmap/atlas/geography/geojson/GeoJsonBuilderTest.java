@@ -12,7 +12,6 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
-import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.GeoJsonType;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.GeometryWithProperties;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
 import org.openstreetmap.atlas.streaming.readers.GeoJsonReader;
@@ -82,11 +81,6 @@ public class GeoJsonBuilderTest
                     featureCollection.jsonObject().get("features").getAsJsonArray().get(i)
                             .getAsJsonObject().get("geometry").getAsJsonObject().get("type")
                             .getAsString());
-            Assert.assertEquals(
-                    PolyLine.TEST_POLYLINE.asGeoJson().jsonObject().get("features").getAsJsonArray()
-                            .get(0).getAsJsonObject().get("geometry"),
-                    featureCollection.jsonObject().get("features").getAsJsonArray().get(i)
-                            .getAsJsonObject().get("geometry").getAsJsonObject());
             Assert.assertEquals(properties.get("prop1"),
                     featureCollection.jsonObject().get("features").getAsJsonArray().get(i)
                             .getAsJsonObject().get("properties").getAsJsonObject().get("prop1")
@@ -247,6 +241,44 @@ public class GeoJsonBuilderTest
         Assert.assertEquals(
                 "{\"type\":\"Feature\",\"geometry\":{\"type\":\"GeometryCollection\",\"geometries\":[{\"type\":\"Point\",\"coordinates\":[-122.009566,37.33531]},{\"type\":\"Polygon\",\"coordinates\":[[[-122.031007,37.390535],[-122.028464,37.321628],[-122.033948,37.32544]]]},{\"type\":\"LineString\",\"coordinates\":[[-122.031007,37.390535],[-122.028464,37.321628]]}]}}",
                 object.toString());
+    }
+
+    @Test
+    public void testGeometryWithParentMember()
+    {
+        final JsonObject propertiesObject = new JsonObject();
+        final JsonObject parentProperties = new JsonObject();
+        final JsonObject fixSuggestions = new JsonObject();
+        final Map<String, Object> parentMembers = new HashMap<>();
+        final PropertiesLocated propertiesLocated1 = new PropertiesLocated(PolyLine.TEST_POLYLINE,
+                propertiesObject);
+        final PropertiesLocated propertiesLocated2 = new PropertiesLocated(PolyLine.TEST_POLYLINE,
+                propertiesObject);
+
+        parentProperties.addProperty("instructions", "This feature is no good");
+        parentProperties.addProperty("generator", "Atlas Checks");
+        fixSuggestions.addProperty("Edge12345", "");
+        parentMembers.put("properties", parentProperties);
+        parentMembers.put("fix_suggestions", fixSuggestions);
+
+        // Create the FeatureCollection object with extra "properties" & "fix_suggestions" members
+        final GeoJsonObject featureCollection = new GeoJsonBuilder()
+                .createFeatureCollectionFromPropertiesLocated(
+                        Iterables.from(propertiesLocated1, propertiesLocated2))
+                // Test both functions
+                .withNewParentMember("test", "value").withNewParentMembers(parentMembers);
+
+        final JsonObject propertiesMember = featureCollection.jsonObject()
+                .getAsJsonObject("properties");
+        final JsonObject fixSuggestionsMember = featureCollection.jsonObject()
+                .getAsJsonObject("fix_suggestions");
+
+        Assert.assertEquals("This feature is no good",
+                propertiesMember.get("instructions").getAsString());
+        Assert.assertEquals("Atlas Checks", propertiesMember.get("generator").getAsString());
+        Assert.assertEquals(5, featureCollection.jsonObject().entrySet().size());
+        Assert.assertEquals(2, propertiesMember.entrySet().size());
+        Assert.assertEquals(1, fixSuggestionsMember.entrySet().size());
     }
 
     @Test

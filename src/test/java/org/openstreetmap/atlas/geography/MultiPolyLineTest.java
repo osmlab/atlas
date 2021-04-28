@@ -1,20 +1,25 @@
 package org.openstreetmap.atlas.geography;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.MultiLineString;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolyLineConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonConstants;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
+import org.openstreetmap.atlas.streaming.readers.json.converters.PointCoordinateConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.MultiLineString;
+import com.google.gson.JsonObject;
 
 /**
  * {@link MultiPolyLine} tests.
@@ -41,6 +46,20 @@ public class MultiPolyLineTest
         locations.add(Location.forString("7.3217805876994444, 113.99808806341453"));
         final Rectangle rectangle = Rectangle.forLocations(locations);
         Assert.assertTrue(rectangle.equals(bound));
+    }
+
+    @Test
+    public void testConvertMultiPloyLineToGeoJson()
+    {
+        final String wkt = "MULTILINESTRING ((113.9980787038803 7.3216002915048872, "
+                + "113.99803847074506 7.3215225281339456))";
+        final MultiPolyLine multiPolyLine = MultiPolyLine.wkt(wkt);
+        final JsonObject geojson = multiPolyLine.asGeoJson();
+        Assert.assertEquals(GeoJsonType.MULTI_LINESTRING, GeoJsonType.forJson(geojson));
+        Assert.assertEquals(Location.forString("7.3216002915048872, 113.9980787038803"),
+                new PointCoordinateConverter().revert()
+                        .apply(geojson.get(GeoJsonConstants.COORDINATES).getAsJsonArray().get(0)
+                                .getAsJsonArray().get(0).getAsJsonArray()));
     }
 
     @Test
@@ -82,13 +101,13 @@ public class MultiPolyLineTest
     @Test
     public void testCreateMultiPolyLineFromPolyLine()
     {
-        final PolyLine polyLine1 = PolyLine
-                .wkt("LINESTRING (10.5553105 48.3419094, 10.5552096 48.3417501, 10.5551312 48.3416583, "
+        final PolyLine polyLine1 = PolyLine.wkt(
+                "LINESTRING (10.5553105 48.3419094, 10.5552096 48.3417501, 10.5551312 48.3416583, "
                         + "10.5551027 48.341611, 10.5550183 48.3415143, 10.5549357 48.3414668, "
                         + "10.5548325 48.3414164, 10.5548105 48.3415201, 10.5548015 48.3415686, "
                         + "10.5548925 48.3416166, 10.5550334 48.3416375, 10.5551312 48.3416583)");
-        final PolyLine polyLine2 = PolyLine
-                .wkt("LINESTRING (10.5551312 48.3416583, 10.5551027 48.341611, 10.5550183 48.3415143, "
+        final PolyLine polyLine2 = PolyLine.wkt(
+                "LINESTRING (10.5551312 48.3416583, 10.5551027 48.341611, 10.5550183 48.3415143, "
                         + "10.5549357 48.3414668, 10.5548325 48.3414164, 10.5548105 48.3415201, "
                         + "10.5548015 48.3415686, 10.5548925 48.3416166, 10.5550334 48.3416375)");
         final MultiPolyLine multiPolyLine = new MultiPolyLine(Arrays.asList(polyLine1, polyLine2));
@@ -119,5 +138,48 @@ public class MultiPolyLineTest
         multiPolyLine.iterator().forEachRemaining(polyLines::add);
         Assert.assertTrue(polyLines.contains(polyLine1));
         Assert.assertTrue(polyLines.contains(polyLine2));
+    }
+
+    @Test
+    public void testDuplicatedPolyLines()
+    {
+        final List<PolyLine> polyLines = new ArrayList<>();
+        final PolyLine polyLine = PolyLine.wkt(
+                "LINESTRING (107.68471354246141 2.2346191319821231, 107.68471354246141 2.2345360028045156)");
+        final PolyLine polyLine2 = PolyLine.wkt(
+                "LINESTRING (107.68454724550249 2.2345601370821555, 107.68453115224835 2.2345601370821555, "
+                        + "107.68449419872607 2.2344243539043736)");
+        polyLines.add(polyLine);
+        polyLines.add(polyLine);
+        polyLines.add(polyLine2);
+        final MultiPolyLine multiPolyLine = new MultiPolyLine(polyLines);
+
+        Assert.assertEquals(3, polyLines.size());
+        Assert.assertEquals(2, multiPolyLine.getPolyLineList().size());
+    }
+
+    @Test
+    public void testEquals()
+    {
+        final String wkt1 = "MULTILINESTRING ((113.9980787038803 7.3216002915048872, "
+                + "113.99803847074506 7.3215225281339456))";
+        final String wkt3 = "MULTILINESTRING ((107.68471354246141 2.2346191319821231, 107.68471354246141 2.2345360028045156), "
+                + "(107.68454724550249 2.2345601370821555, 107.68453115224835 2.2345601370821555, "
+                + "107.68449419872607 2.2344243539043736))";
+        // wkt4 = wkt3 with duplicated polylines
+        final String wkt4 = "MULTILINESTRING ((107.68471354246141 2.2346191319821231, 107.68471354246141 2.2345360028045156), "
+                + "(107.68454724550249 2.2345601370821555, 107.68453115224835 2.2345601370821555, "
+                + "107.68449419872607 2.2344243539043736), "
+                + "(107.68471354246141 2.2346191319821231, 107.68471354246141 2.2345360028045156))";
+        final MultiPolyLine multiPolyLine1 = MultiPolyLine.wkt(wkt1);
+        final MultiPolyLine multiPolyLine2 = MultiPolyLine.wkt(wkt1);
+        final MultiPolyLine multiPolyLine3 = MultiPolyLine.wkt(wkt3);
+        final MultiPolyLine multiPolyLine4 = MultiPolyLine.wkt(wkt4);
+
+        Assert.assertEquals(multiPolyLine1, multiPolyLine2);
+        Assert.assertNotSame(multiPolyLine1, multiPolyLine2);
+        Assert.assertNotEquals(null, multiPolyLine1);
+        Assert.assertNotEquals(multiPolyLine1, multiPolyLine3);
+        Assert.assertEquals(multiPolyLine3, multiPolyLine4);
     }
 }

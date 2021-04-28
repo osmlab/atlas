@@ -6,7 +6,7 @@ import ctypes
 import shapely.geometry
 from shapely.geos import lgeos as _lgeos
 
-import geometry
+import pyatlas.geometry
 
 
 class SpatialIndex(object):
@@ -112,7 +112,7 @@ class _RTree(object):
         _CustomSTRtree.
         """
         contents_shapely_format = [
-            geometry.boundable_to_shapely_box(entity) for entity in self.contents
+            pyatlas.geometry.boundable_to_shapely_box(entity) for entity in self.contents
         ]
 
         # pack the arguments in format expected by the _CustomSTRtree
@@ -138,7 +138,7 @@ class _RTree(object):
         AtlasEntities within the bounds of the Boundable.
         """
         if self.tree is not None:
-            boundable = geometry.boundable_to_shapely_box(boundable)
+            boundable = pyatlas.geometry.boundable_to_shapely_box(boundable)
             return self.tree.get(boundable)
         else:
             raise ValueError('R-tree is empty')
@@ -160,7 +160,7 @@ class _CustomSTRtree(object):
         self._tree_handle = shapely.geos.lgeos.GEOSSTRtree_create(max(4, len(items)))
         for item in items:
             _lgeos.GEOSSTRtree_insert(self._tree_handle, item[1]._geom,
-                                      ctypes.py_object(long(item[0])))
+                                      ctypes.py_object(int(item[0])))
 
         geoms = [item[1] for item in items]
         self._geoms = list(geoms)

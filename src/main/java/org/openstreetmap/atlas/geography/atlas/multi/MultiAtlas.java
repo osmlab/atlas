@@ -26,17 +26,16 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
+import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
 import org.openstreetmap.atlas.geography.index.RTree;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.StringList;
-import org.openstreetmap.atlas.utilities.maps.LongToIntegerMap;
 import org.openstreetmap.atlas.utilities.maps.LongToIntegerMultiMap;
 import org.openstreetmap.atlas.utilities.maps.LongToLongMap;
 import org.openstreetmap.atlas.utilities.maps.LongToLongMultiMap;
-import org.openstreetmap.atlas.utilities.maps.MultiMapWithSet;
 import org.openstreetmap.atlas.utilities.scalars.Ratio;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,13 +66,11 @@ public class MultiAtlas extends AbstractAtlas
     private final long numberOfRelations;
     private final RTree<Integer> atlasSpatialIndex;
 
-    // The identifiers of the Edges, and the Atlases we can find them into.
-    private LongToIntegerMap edgeIdentifierToAtlasIndex;
-
     // The identifiers of the Nodes, and the Atlases we can find them into. Only shared nodes, used
     // for connectivity will be referenced in more than one Atlas (for real time stitching of the
     // navigable network).
     private final LongToIntegerMultiMap nodeIdentifierToAtlasIndices;
+    private final LongToIntegerMultiMap edgeIdentifierToAtlasIndices;
     private final LongToIntegerMultiMap areaIdentifierToAtlasIndices;
     private final LongToIntegerMultiMap lineIdentifierToAtlasIndices;
     private final LongToIntegerMultiMap pointIdentifierToAtlasIndices;
@@ -101,7 +98,6 @@ public class MultiAtlas extends AbstractAtlas
     private final int relationHashSize;
 
     // Custom fixers for crossing edges and overlapping nodes
-    private final MultiAtlasBorderFixer borderFixer;
     private final MultiAtlasOverlappingNodesFixer nodesFixer;
 
     /**
@@ -161,9 +157,18 @@ public class MultiAtlas extends AbstractAtlas
         {
             throw new CoreException("Can't create an atlas from zero resources");
         }
-        return new MultiAtlas(
-                Iterables.translate(resources, resource -> PackedAtlas.load(resource)),
-                lotsOfOverlap);
+        return new MultiAtlas(Iterables.translate(resources, resource ->
+        {
+            try
+            {
+                return PackedAtlas.load(resource);
+            }
+            catch (final Exception exception)
+            {
+                throw new CoreException("Failed to load an atlas from {} with name {}",
+                        resource.getClass().getName(), resource.getName(), exception);
+            }
+        }), lotsOfOverlap);
     }
 
     /**
@@ -191,10 +196,26 @@ public class MultiAtlas extends AbstractAtlas
         {
             throw new CoreException("Can't create an atlas from zero resources");
         }
-        return new MultiAtlas(
-                Iterables.translate(resources,
-                        resource -> PackedAtlas.load(resource).subAtlas(filter).get()),
-                lotsOfOverlap);
+        final Iterable<Atlas> validAtlases = Iterables
+                .translate(Iterables.stream(Iterables.translate(resources, resource ->
+                {
+                    final Atlas atlas;
+                    try
+                    {
+                        atlas = PackedAtlas.load(resource);
+                    }
+                    catch (final Exception exception)
+                    {
+                        throw new CoreException("Failed to load an atlas from {} with name {}",
+                                resource.getClass().getName(), resource.getName(), exception);
+                    }
+                    return atlas.subAtlas(filter, AtlasCutType.SOFT_CUT);
+                })).filter(Optional::isPresent), Optional::get);
+        if (Iterables.size(validAtlases) == 0)
+        {
+            throw new CoreException("Provided entity filter will result in an empty Atlas");
+        }
+        return new MultiAtlas(validAtlases, lotsOfOverlap);
     }
 
     /**
@@ -293,6 +314,23 @@ public class MultiAtlas extends AbstractAtlas
      */
     public MultiAtlas(final List<Atlas> atlases, final boolean lotsOfOverlap)
     {
+        this(atlases, lotsOfOverlap, true);
+    }
+
+    public MultiAtlas(final boolean fixNodesOnOppositeAntiMeridians, final Atlas... atlases)
+    {
+        this(Iterables.iterable(atlases), false, fixNodesOnOppositeAntiMeridians);
+    }
+
+    public MultiAtlas(final Iterable<Atlas> atlases, final boolean lotsOfOverlap,
+            final boolean fixNodesOnOppositeAntiMeridians)
+    {
+        this(Iterables.asList(atlases), lotsOfOverlap, fixNodesOnOppositeAntiMeridians);
+    }
+
+    public MultiAtlas(final List<Atlas> atlases, final boolean lotsOfOverlap,
+            final boolean fixNodesOnOppositeAntiMeridians)
+    {
         if (atlases.isEmpty())
         {
             throw new CoreException("An Atlas is Located, and therefore cannot be empty.");
@@ -376,7 +414,7 @@ public class MultiAtlas extends AbstractAtlas
                 "MultiAtlas - nodeIdentifierToAtlasIndices", this.maximumSize, this.nodeHashSize,
                 this.nodeMemoryBlockSize, this.subArraySize, this.nodeMemoryBlockSize,
                 this.subArraySize);
-        this.edgeIdentifierToAtlasIndex = new LongToIntegerMap(
+        this.edgeIdentifierToAtlasIndices = new LongToIntegerMultiMap(
                 "MultiAtlas - edgeIdentifierToAtlasIndex", this.maximumSize, this.edgeHashSize,
                 this.edgeMemoryBlockSize, this.subArraySize, this.edgeMemoryBlockSize,
                 this.subArraySize);
@@ -413,34 +451,6 @@ public class MultiAtlas extends AbstractAtlas
             atlasIndex++;
         }
 
-        // Fix all the sharding issues at borders related to way sectioning
-        this.borderFixer = new MultiAtlasBorderFixer(this.atlases, this.edgeIdentifierToAtlasIndex);
-        this.borderFixer.fixBorderIssues();
-
-        if (this.borderFixer.hasFixes())
-        {
-            // Re-write the edgeIdentifier to AtlasIndex array to remove the fixed edge
-            // identifiers. Those will be re-mapped to the fixAtlas index = -1 below
-            final LongToIntegerMap edgeIdentifierToAtlasIndexCandidate = new LongToIntegerMap(
-                    "MultiAtlas - edgeIdentifierToAtlasIndexCandidate", this.getMaximumSize(),
-                    this.getEdgeHashSize(), this.getEdgeMemoryBlockSize(), this.getSubArraySize(),
-                    this.getEdgeMemoryBlockSize(), this.getSubArraySize());
-            this.getEdgeIdentifierToAtlasIndex().forEach(identifier ->
-            {
-                if (!this.borderFixer.isFixEdgeIdentifier(identifier))
-                {
-                    // Add only the edges that are not fixed here, as the fixed ones will be added
-                    // in the populateReferences call below, coming from the fixAtlas.
-                    edgeIdentifierToAtlasIndexCandidate.put(identifier,
-                            this.getEdgeIdentifierToAtlasIndex().get(identifier));
-                }
-            });
-            this.setEdgeIdentifierToAtlasIndex(edgeIdentifierToAtlasIndexCandidate);
-
-            // Re-map the fixed edge identifiers to the fixed edge index below.
-            this.populateReferences(this.borderFixer.getFixAtlas(), -1);
-        }
-
         // Build the spatial indices
         this.getAsNewNodeSpatialIndex();
         this.getAsNewEdgeSpatialIndex();
@@ -450,7 +460,7 @@ public class MultiAtlas extends AbstractAtlas
         this.getAsNewRelationSpatialIndex();
         this.nodeIdentifierToAtlasIndices
                 .forEach(identifier -> this.getNodeSpatialIndex().add(node(identifier)));
-        this.edgeIdentifierToAtlasIndex
+        this.edgeIdentifierToAtlasIndices
                 .forEach(identifier -> this.getEdgeSpatialIndex().add(edge(identifier)));
         this.areaIdentifierToAtlasIndices
                 .forEach(identifier -> this.getAreaSpatialIndex().add(area(identifier)));
@@ -461,7 +471,7 @@ public class MultiAtlas extends AbstractAtlas
         this.relationIdentifierToAtlasIndices.forEach(identifier ->
         {
             final Relation relation = relation(identifier);
-            if (relation.members().size() > 0 && relation.bounds() != null)
+            if (!relation.members().isEmpty() && relation.bounds() != null)
             {
                 // The relation is not empty, hence it is located
                 this.getRelationSpatialIndex().add(relation);
@@ -471,13 +481,14 @@ public class MultiAtlas extends AbstractAtlas
             this.relationIdentifierToRelationOsmIdentifier.put(identifier, osmIdentifier);
         });
 
-        // Find the overlapping nodes. Master to slave has a one to many relationship. A master
-        // cannot be a slave and vice versa
-        this.nodesFixer = new MultiAtlasOverlappingNodesFixer(this);
+        // Find the overlapping nodes. Main to alternate has a one to many relationship. A main
+        // cannot be an alternate and vice versa
+        this.nodesFixer = new MultiAtlasOverlappingNodesFixer(this,
+                fixNodesOnOppositeAntiMeridians);
         this.nodesFixer.aggregateSameLocationNodes();
 
         // At this point de-duplication has been done already.
-        this.numberOfEdges = this.edgeIdentifierToAtlasIndex.size();
+        this.numberOfEdges = this.edgeIdentifierToAtlasIndices.size();
         this.numberOfNodes = this.nodeIdentifierToAtlasIndices.size();
         this.numberOfAreas = this.areaIdentifierToAtlasIndices.size();
         this.numberOfLines = this.lineIdentifierToAtlasIndices.size();
@@ -490,7 +501,7 @@ public class MultiAtlas extends AbstractAtlas
             // worth it if the arrays are more than twice as big as needed.
             final Ratio trimRatio = Ratio.HALF;
             this.nodeIdentifierToAtlasIndices.trimIfLessFilledThan(trimRatio);
-            this.edgeIdentifierToAtlasIndex.trimIfLessFilledThan(trimRatio);
+            this.edgeIdentifierToAtlasIndices.trimIfLessFilledThan(trimRatio);
             this.areaIdentifierToAtlasIndices.trimIfLessFilledThan(trimRatio);
             this.lineIdentifierToAtlasIndices.trimIfLessFilledThan(trimRatio);
             this.pointIdentifierToAtlasIndices.trimIfLessFilledThan(trimRatio);
@@ -545,7 +556,7 @@ public class MultiAtlas extends AbstractAtlas
     @Override
     public Edge edge(final long identifier)
     {
-        if (this.edgeIdentifierToAtlasIndex.containsKey(identifier))
+        if (this.edgeIdentifierToAtlasIndices.containsKey(identifier))
         {
             return new MultiEdge(this, identifier);
         }
@@ -555,7 +566,7 @@ public class MultiAtlas extends AbstractAtlas
     @Override
     public Iterable<Edge> edges()
     {
-        return Iterables.translate(this.edgeIdentifierToAtlasIndex, identifier -> edge(identifier));
+        return Iterables.translate(this.edgeIdentifierToAtlasIndices, this::edge);
     }
 
     @Override
@@ -594,8 +605,7 @@ public class MultiAtlas extends AbstractAtlas
     public Iterable<Node> nodes()
     {
         // Use the identifier here to avoid listing duplicated nodes twice.
-        return Iterables.translate(this.nodeIdentifierToAtlasIndices,
-                identifier -> node(identifier));
+        return Iterables.translate(this.nodeIdentifierToAtlasIndices, this::node);
     }
 
     @Override
@@ -652,8 +662,7 @@ public class MultiAtlas extends AbstractAtlas
     @Override
     public Iterable<Point> points()
     {
-        return Iterables.translate(this.pointIdentifierToAtlasIndices,
-                identifier -> point(identifier));
+        return Iterables.translate(this.pointIdentifierToAtlasIndices, this::point);
     }
 
     @Override
@@ -669,8 +678,7 @@ public class MultiAtlas extends AbstractAtlas
     @Override
     public Iterable<Relation> relations()
     {
-        return Iterables.translate(this.relationIdentifierToAtlasIndices,
-                identifier -> relation(identifier));
+        return Iterables.translate(this.relationIdentifierToAtlasIndices, this::relation);
     }
 
     @Override
@@ -701,9 +709,9 @@ public class MultiAtlas extends AbstractAtlas
         return this.edgeHashSize;
     }
 
-    protected LongToIntegerMap getEdgeIdentifierToAtlasIndex()
+    protected LongToIntegerMultiMap getEdgeIdentifierToAtlasIndices()
     {
-        return this.edgeIdentifierToAtlasIndex;
+        return this.edgeIdentifierToAtlasIndices;
     }
 
     protected int getEdgeMemoryBlockSize()
@@ -711,35 +719,14 @@ public class MultiAtlas extends AbstractAtlas
         return this.edgeMemoryBlockSize;
     }
 
-    @Override
-    protected Logger getLogger()
-    {
-        return logger;
-    }
-
     protected long getMaximumSize()
     {
         return this.maximumSize;
     }
 
-    protected MultiMapWithSet<Long, Long> getNodeIdentifiersToRemovedInEdges()
-    {
-        return this.borderFixer.getNodeIdentifiersToRemovedInEdges();
-    }
-
-    protected MultiMapWithSet<Long, Long> getNodeIdentifiersToRemovedOutEdges()
-    {
-        return this.borderFixer.getNodeIdentifiersToRemovedOutEdges();
-    }
-
     protected LongToIntegerMultiMap getNodeIdentifierToAtlasIndices()
     {
         return this.nodeIdentifierToAtlasIndices;
-    }
-
-    protected MultiMapWithSet<Long, Long> getRelationIdentifiersToRemovedEdgeMembers()
-    {
-        return this.borderFixer.getRelationIdentifiersToRemovedEdgeMembers();
     }
 
     protected int getSubArraySize()
@@ -748,15 +735,21 @@ public class MultiAtlas extends AbstractAtlas
     }
 
     /**
-     * In case there is a master node overlapping this node, get the master node.
+     * In case there is a main node overlapping this node, get the main node.
      *
      * @param identifier
      *            The node identifier to query
-     * @return The identifier of the master node that has the exact same location
+     * @return The identifier of the main node that has the exact same location
      */
+    protected Optional<Long> mainNode(final Long identifier)
+    {
+        return this.nodesFixer.mainNode(identifier);
+    }
+
+    @Deprecated
     protected Optional<Long> masterNode(final Long identifier)
     {
-        return this.nodesFixer.masterNode(identifier);
+        return mainNode(identifier);
     }
 
     /**
@@ -779,7 +772,7 @@ public class MultiAtlas extends AbstractAtlas
     }
 
     /**
-     * In case this node is a master, get all the overlapping nodes.
+     * In case this is a main node, get all the overlapping nodes.
      *
      * @param identifier
      *            The node identifier to query
@@ -798,7 +791,7 @@ public class MultiAtlas extends AbstractAtlas
         }
         for (final Edge edge : atlas.edges())
         {
-            this.edgeIdentifierToAtlasIndex.put(edge.getIdentifier(), atlasIndex);
+            this.edgeIdentifierToAtlasIndices.add(edge.getIdentifier(), atlasIndex);
         }
         for (final Area area : atlas.areas())
         {
@@ -830,11 +823,6 @@ public class MultiAtlas extends AbstractAtlas
         return result;
     }
 
-    protected void setEdgeIdentifierToAtlasIndex(final LongToIntegerMap edgeIdentifierToAtlasIndex)
-    {
-        this.edgeIdentifierToAtlasIndex = edgeIdentifierToAtlasIndex;
-    }
-
     /**
      * Get the {@link Area} from the {@link Atlas} that has this identifier.
      *
@@ -842,7 +830,7 @@ public class MultiAtlas extends AbstractAtlas
      *            The identifier to query
      * @return The {@link Area}s that have this identifier
      */
-    protected SubAreaList subAreas(final long identifier)
+    SubAreaList subAreas(final long identifier)
     {
         final List<Area> subAreas = new ArrayList<>();
         for (final int index : this.areaIdentifierToAtlasIndices.get(identifier))
@@ -856,23 +844,23 @@ public class MultiAtlas extends AbstractAtlas
     }
 
     /**
-     * Get the {@link Edge} from the {@link Atlas} that has this identifier.
+     * Get the {@link Edge}s from the {@link Atlas} that has this identifier.
      *
      * @param identifier
      *            The identifier to query
-     * @return The {@link Edge} with this identifier
+     * @return The {@link Edge}s that have this identifier
      */
-    protected Edge subEdge(final long identifier)
+    SubEdgeList subEdge(final long identifier)
     {
-        if (this.borderFixer.hasFixes())
+        final List<Edge> subEdges = new ArrayList<>();
+        for (final int index : this.edgeIdentifierToAtlasIndices.get(identifier))
         {
-            final Edge subEdge = this.borderFixer.fixEdge(identifier);
-            if (subEdge != null)
+            if (index != -1)
             {
-                return subEdge;
+                subEdges.add(this.atlases.get(index).edge(identifier));
             }
         }
-        return this.atlases.get(this.edgeIdentifierToAtlasIndex.get(identifier)).edge(identifier);
+        return new SubEdgeList(subEdges);
     }
 
     /**
@@ -882,7 +870,7 @@ public class MultiAtlas extends AbstractAtlas
      *            The identifier to query
      * @return The {@link Line}s that have this identifier
      */
-    protected SubLineList subLines(final long identifier)
+    SubLineList subLines(final long identifier)
     {
         final List<Line> subLines = new ArrayList<>();
         for (final int index : this.lineIdentifierToAtlasIndices.get(identifier))
@@ -902,7 +890,7 @@ public class MultiAtlas extends AbstractAtlas
      *            The identifier to query
      * @return The {@link Node}s that have this identifier
      */
-    protected SubNodeList subNodes(final long identifier)
+    SubNodeList subNodes(final long identifier)
     {
         final List<Node> subNodes = new ArrayList<>();
         for (final int index : this.nodeIdentifierToAtlasIndices.get(identifier))
@@ -913,18 +901,7 @@ public class MultiAtlas extends AbstractAtlas
                 subNodes.add(this.atlases.get(index).node(identifier));
             }
         }
-        Node fixNode = null;
-        if (this.borderFixer.hasFixes())
-        {
-            if (this.borderFixer.nodeIsFixed(identifier))
-            {
-                // The MultiNode has to detect that there is an extra Atlas here, and to query the
-                // removed nodes in/out edges maps to make sure to include only the proper
-                // connectivity.
-                fixNode = this.borderFixer.fixNode(identifier);
-            }
-        }
-        return new SubNodeList(subNodes, fixNode);
+        return new SubNodeList(subNodes);
     }
 
     /**
@@ -934,7 +911,7 @@ public class MultiAtlas extends AbstractAtlas
      *            The identifier to query
      * @return The {@link Point}s that have this identifier
      */
-    protected SubPointList subPoints(final long identifier)
+    SubPointList subPoints(final long identifier)
     {
         final List<Point> subPoints = new ArrayList<>();
         for (final int index : this.pointIdentifierToAtlasIndices.get(identifier))
@@ -954,7 +931,7 @@ public class MultiAtlas extends AbstractAtlas
      *            The identifier to query
      * @return The {@link Relation}s that have this identifier
      */
-    protected SubRelationList subRelations(final long identifier)
+    SubRelationList subRelations(final long identifier)
     {
         final List<Relation> subRelations = new ArrayList<>();
         for (final int index : this.relationIdentifierToAtlasIndices.get(identifier))
@@ -964,17 +941,7 @@ public class MultiAtlas extends AbstractAtlas
                 subRelations.add(this.atlases.get(index).relation(identifier));
             }
         }
-        Relation fixRelation = null;
-        if (this.borderFixer.hasFixes())
-        {
-            if (this.borderFixer.relationIsFixed(identifier))
-            {
-                // The MultiRelation has to detect that there is an extra Atlas here, and to query
-                // the removed members maps to make sure to include only the proper members.
-                fixRelation = this.borderFixer.fixRelation(identifier);
-            }
-        }
-        return new SubRelationList(subRelations, fixRelation);
+        return new SubRelationList(subRelations);
     }
 
     private AtlasMetaData mergeMetaData()

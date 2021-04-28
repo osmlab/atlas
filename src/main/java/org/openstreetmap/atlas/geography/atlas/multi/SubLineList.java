@@ -22,18 +22,13 @@ public class SubLineList implements Iterable<Line>, Serializable
 
     private final List<Line> subLines;
 
-    public SubLineList(final List<Line> subLines)
+    SubLineList(final List<Line> subLines)
     {
         if (subLines == null)
         {
             throw new CoreException("Cannot have a null list of sub lines.");
         }
         this.subLines = subLines;
-    }
-
-    public List<Line> getSubLines()
-    {
-        return this.subLines;
     }
 
     @Override
@@ -45,5 +40,10 @@ public class SubLineList implements Iterable<Line>, Serializable
     public int size()
     {
         return this.subLines.size();
+    }
+
+    List<Line> getSubLines()
+    {
+        return this.subLines;
     }
 }

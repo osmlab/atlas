@@ -7,7 +7,9 @@ import java.util.function.Consumer;
  *
  * @author yiqing-jin
  * @author mkalender
+ * @deprecated - see new API under org.openstreetmap.atlas.geography.atlas.change package.
  */
+@Deprecated
 public interface ChangeSetSerializer extends Consumer<ChangeSet>, AutoCloseable
 {
 

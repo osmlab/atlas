@@ -1,0 +1,301 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <node id='319527568' timestamp='2011-02-26T01:25:27Z' uid='348674' user='Cabeleira' visible='true' version='28' changeset='7396054' lat='50.382549' lon='30.4699681' />
+  <node id='319527569' timestamp='2011-02-26T01:25:24Z' uid='348674' user='Cabeleira' visible='true' version='18' changeset='7396054' lat='50.3828525' lon='30.470569' />
+  <node id='319527570' timestamp='2016-08-16T08:30:58Z' uid='195702' user='Sergey Kozyr' visible='true' version='19' changeset='41484445' lat='50.3828423' lon='30.4706753' />
+  <node id='319527571' timestamp='2011-02-26T01:25:18Z' uid='348674' user='Cabeleira' visible='true' version='18' changeset='7396054' lat='50.3830204' lon='30.4713269' />
+  <node id='319527572' timestamp='2011-02-26T01:25:15Z' uid='348674' user='Cabeleira' visible='true' version='18' changeset='7396054' lat='50.3834988' lon='30.4708626' />
+  <node id='319527573' timestamp='2011-02-26T01:25:25Z' uid='348674' user='Cabeleira' visible='true' version='18' changeset='7396054' lat='50.3833765' lon='30.4706572' />
+  <node id='319527574' timestamp='2011-02-26T01:25:22Z' uid='348674' user='Cabeleira' visible='true' version='18' changeset='7396054' lat='50.3831491' lon='30.4700956' />
+  <node id='319527575' timestamp='2011-02-26T01:25:19Z' uid='348674' user='Cabeleira' visible='true' version='18' changeset='7396054' lat='50.3829444' lon='30.4695811' />
+  <node id='500019501' timestamp='2011-02-26T01:25:17Z' uid='348674' user='Cabeleira' visible='true' version='5' changeset='7396054' lat='50.383167' lon='30.4702887' />
+  <node id='500019502' timestamp='2011-02-26T01:25:25Z' uid='348674' user='Cabeleira' visible='true' version='5' changeset='7396054' lat='50.3834057' lon='30.4706286' />
+  <node id='500019503' timestamp='2011-02-26T01:25:23Z' uid='348674' user='Cabeleira' visible='true' version='5' changeset='7396054' lat='50.383384' lon='30.4709749' />
+  <node id='500019504' timestamp='2011-02-26T01:25:15Z' uid='348674' user='Cabeleira' visible='true' version='5' changeset='7396054' lat='50.3831323' lon='30.4712174' />
+  <node id='500019505' timestamp='2011-02-26T01:25:25Z' uid='348674' user='Cabeleira' visible='true' version='5' changeset='7396054' lat='50.3834738' lon='30.4712007' />
+  <node id='500019507' timestamp='2011-02-26T01:25:19Z' uid='348674' user='Cabeleira' visible='true' version='5' changeset='7396054' lat='50.3832232' lon='30.471446' />
+  <node id='960023629' timestamp='2014-08-10T13:56:27Z' uid='440812' user='dudka' visible='true' version='7' changeset='24655476' lat='50.3833635' lon='30.4713087'>
+    <tag k='entrance' v='main' />
+  </node>
+  <node id='1145316647' timestamp='2013-07-23T15:54:07Z' uid='440812' user='dudka' visible='true' version='4' changeset='17063858' lat='50.3829672' lon='30.4711932' />
+  <node id='1145316654' timestamp='2013-07-23T15:54:07Z' uid='440812' user='dudka' visible='true' version='4' changeset='17063858' lat='50.3834396' lon='30.4707138' />
+  <node id='1173431865' timestamp='2011-02-25T23:52:40Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.383151' lon='30.4703961' />
+  <node id='1173431872' timestamp='2011-02-25T23:52:40Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3831643' lon='30.4705576' />
+  <node id='1173431875' timestamp='2011-02-26T01:25:25Z' uid='348674' user='Cabeleira' visible='true' version='2' changeset='7396054' lat='50.383234' lon='30.4702991' />
+  <node id='1173431876' timestamp='2011-02-25T23:52:40Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3830373' lon='30.4700995' />
+  <node id='1173431878' timestamp='2011-02-25T23:52:40Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3828511' lon='30.4699949' />
+  <node id='1173431879' timestamp='2011-02-25T23:52:40Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3829571' lon='30.4706964' />
+  <node id='1173431883' timestamp='2011-02-25T23:52:40Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.383288' lon='30.4707458' />
+  <node id='1173431885' timestamp='2011-02-25T23:52:40Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3827665' lon='30.4701652' />
+  <node id='1173431886' timestamp='2011-02-26T01:25:27Z' uid='348674' user='Cabeleira' visible='true' version='2' changeset='7396054' lat='50.3827776' lon='30.4704494' />
+  <node id='1173431894' timestamp='2011-02-25T23:52:41Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3832078' lon='30.470584' />
+  <node id='1173431897' timestamp='2011-02-26T01:25:23Z' uid='348674' user='Cabeleira' visible='true' version='2' changeset='7396054' lat='50.3832194' lon='30.4702374' />
+  <node id='1173431898' timestamp='2011-02-26T01:25:20Z' uid='348674' user='Cabeleira' visible='true' version='2' changeset='7396054' lat='50.3828052' lon='30.4706466' />
+  <node id='1173431900' timestamp='2011-02-25T23:52:41Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3830232' lon='30.4707808' />
+  <node id='1173431902' timestamp='2011-02-25T23:52:41Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3827797' lon='30.4702078' />
+  <node id='1173431903' timestamp='2011-02-25T23:52:41Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3830237' lon='30.4707078' />
+  <node id='1173431905' timestamp='2011-02-26T01:25:15Z' uid='348674' user='Cabeleira' visible='true' version='2' changeset='7396054' lat='50.3828809' lon='30.4706404' />
+  <node id='1173431917' timestamp='2011-02-25T23:52:41Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3829721' lon='30.4699986' />
+  <node id='1173431918' timestamp='2011-02-25T23:52:41Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3828255' lon='30.4700229' />
+  <node id='1173431921' timestamp='2011-02-26T01:25:23Z' uid='348674' user='Cabeleira' visible='true' version='2' changeset='7396054' lat='50.3827696' lon='30.4704293' />
+  <node id='1173431924' timestamp='2011-02-25T23:52:41Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3829543' lon='30.4699002' />
+  <node id='1173431927' timestamp='2011-02-25T23:52:41Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3830674' lon='30.4709568' />
+  <node id='1173431930' timestamp='2011-02-25T23:52:41Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3830604' lon='30.4705303' />
+  <node id='1173431933' timestamp='2011-02-26T01:25:21Z' uid='348674' user='Cabeleira' visible='true' version='2' changeset='7396054' lat='50.3827308' lon='30.4705796' />
+  <node id='1173431934' timestamp='2011-02-26T01:25:18Z' uid='348674' user='Cabeleira' visible='true' version='2' changeset='7396054' lat='50.3831718' lon='30.4700734' />
+  <node id='1173431944' timestamp='2011-02-25T23:52:42Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3829628' lon='30.4699511' />
+  <node id='1173431946' timestamp='2011-02-25T23:52:42Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3827409' lon='30.4701592' />
+  <node id='1173431947' timestamp='2011-02-25T23:52:42Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3831789' lon='30.4704588' />
+  <node id='1173431948' timestamp='2011-02-25T23:52:42Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3832286' lon='30.4705823' />
+  <node id='1173431950' timestamp='2011-02-26T01:25:17Z' uid='348674' user='Cabeleira' visible='true' version='2' changeset='7396054' lat='50.3827265' lon='30.4706104' />
+  <node id='1173431952' timestamp='2011-02-25T23:52:42Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3828053' lon='30.4703161' />
+  <node id='1173431954' timestamp='2011-02-25T23:52:42Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3829243' lon='30.4706299' />
+  <node id='1173431962' timestamp='2011-02-25T23:52:42Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3829688' lon='30.4699287' />
+  <node id='1173431965' timestamp='2011-02-25T23:52:42Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3827526' lon='30.4701567' />
+  <node id='1173431967' timestamp='2011-02-26T01:25:22Z' uid='348674' user='Cabeleira' visible='true' version='2' changeset='7396054' lat='50.3827429' lon='30.4704554' />
+  <node id='1173431970' timestamp='2011-02-26T01:25:16Z' uid='348674' user='Cabeleira' visible='true' version='2' changeset='7396054' lat='50.3831887' lon='30.4703434' />
+  <node id='1173431971' timestamp='2011-02-25T23:52:42Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3829992' lon='30.4700034' />
+  <node id='1173431974' timestamp='2011-02-25T23:52:42Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3828433' lon='30.469973' />
+  <node id='1173431977' timestamp='2011-02-26T01:25:17Z' uid='348674' user='Cabeleira' visible='true' version='2' changeset='7396054' lat='50.3827589' lon='30.4706919' />
+  <node id='1173431985' timestamp='2011-02-25T23:52:42Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3831707' lon='30.4708345' />
+  <node id='1173431986' timestamp='2011-02-25T23:52:43Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3827774' lon='30.4701823' />
+  <node id='1173431988' timestamp='2011-02-26T01:25:17Z' uid='348674' user='Cabeleira' visible='true' version='2' changeset='7396054' lat='50.3826845' lon='30.4705405' />
+  <node id='1173431990' timestamp='2011-02-26T01:25:25Z' uid='348674' user='Cabeleira' visible='true' version='2' changeset='7396054' lat='50.3831835' lon='30.4701472' />
+  <node id='1173431993' timestamp='2011-02-26T01:25:24Z' uid='348674' user='Cabeleira' visible='true' version='2' changeset='7396054' lat='50.3827962' lon='30.4706241' />
+  <node id='1173431995' timestamp='2011-02-25T23:52:43Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3829868' lon='30.4700047' />
+  <node id='1173431996' timestamp='2011-02-25T23:52:43Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3828177' lon='30.4699998' />
+  <node id='1173431999' timestamp='2011-02-25T23:52:43Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3830068' lon='30.4708142' />
+  <node id='1173432006' timestamp='2011-02-26T01:25:15Z' uid='348674' user='Cabeleira' visible='true' version='2' changeset='7396054' lat='50.3827087' lon='30.4706012' />
+  <node id='1173432011' timestamp='2011-02-26T01:25:20Z' uid='348674' user='Cabeleira' visible='true' version='2' changeset='7396054' lat='50.3831962' lon='30.4701348' />
+  <node id='1173432012' timestamp='2011-02-25T23:52:43Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3829643' lon='30.4699767' />
+  <node id='1173432015' timestamp='2011-02-25T23:52:43Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3827254' lon='30.4701178' />
+  <node id='1173432017' timestamp='2011-02-26T01:25:24Z' uid='348674' user='Cabeleira' visible='true' version='2' changeset='7396054' lat='50.3827384' lon='30.4705988' />
+  <node id='1173432020' timestamp='2011-02-25T23:52:43Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717' lat='50.3827696' lon='30.4702285' />
+  <node id='2394101427' timestamp='2013-07-23T15:54:04Z' uid='440812' user='dudka' visible='true' version='1' changeset='17063858' lat='50.3829838' lon='30.471235' />
+  <node id='2394101428' timestamp='2013-07-23T15:54:04Z' uid='440812' user='dudka' visible='true' version='1' changeset='17063858' lat='50.3834607' lon='30.4707669' />
+  <node id='4352308595' timestamp='2016-08-16T08:30:55Z' uid='195702' user='Sergey Kozyr' visible='true' version='1' changeset='41484445' lat='50.3829303' lon='30.4710924' />
+  <node id='4352308596' timestamp='2016-08-16T08:30:55Z' uid='195702' user='Sergey Kozyr' visible='true' version='1' changeset='41484445' lat='50.3829851' lon='30.4710353' />
+  <node id='4922108291' timestamp='2017-06-18T12:14:47Z' uid='1676637' user='Kilkenni' visible='true' version='1' changeset='49633905' lat='50.3833247' lon='30.4713465'>
+    <tag k='historic' v='memorial' />
+    <tag k='memorial' v='plaque' />
+    <tag k='name' v='Глушков Віктор Михайлович' />
+  </node>
+  <node id='4922108343' timestamp='2017-06-20T02:06:53Z' uid='1676637' user='Kilkenni' visible='true' version='2' changeset='49681340' lat='50.3832823' lon='30.4704205' />
+  <node id='4922108346' timestamp='2017-06-20T02:06:53Z' uid='1676637' user='Kilkenni' visible='true' version='2' changeset='49681340' lat='50.382883' lon='30.4707861' />
+  <node id='4922108362' timestamp='2017-06-18T12:14:49Z' uid='1676637' user='Kilkenni' visible='true' version='1' changeset='49633905' lat='50.3834102' lon='30.4712629'>
+    <tag k='historic' v='memorial' />
+    <tag k='inscription' v='Академік, фундатор факультету кібернетики' />
+    <tag k='memorial' v='plaque' />
+    <tag k='name' v='Ляшко Іван Іванович' />
+  </node>
+  <way id='29050173' timestamp='2017-06-18T12:14:55Z' uid='1676637' user='Kilkenni' visible='true' version='23' changeset='49633905'>
+    <nd ref='319527573' />
+    <nd ref='4922108343' />
+    <nd ref='1173431875' />
+    <nd ref='1173431970' />
+    <nd ref='500019501' />
+    <nd ref='1173431897' />
+    <nd ref='1173431990' />
+    <nd ref='1173432011' />
+    <nd ref='1173431934' />
+    <nd ref='319527574' />
+    <nd ref='319527575' />
+    <nd ref='319527568' />
+    <nd ref='1173431967' />
+    <nd ref='1173431921' />
+    <nd ref='1173431886' />
+    <nd ref='1173431988' />
+    <nd ref='1173432006' />
+    <nd ref='1173431933' />
+    <nd ref='1173432017' />
+    <nd ref='1173431950' />
+    <nd ref='1173431977' />
+    <nd ref='1173431898' />
+    <nd ref='1173431993' />
+    <nd ref='319527569' />
+    <nd ref='1173431905' />
+    <nd ref='319527570' />
+    <nd ref='4922108346' />
+    <nd ref='4352308596' />
+  </way>
+  <way id='101626438' timestamp='2011-02-25T23:52:44Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717'>
+    <nd ref='1173431894' />
+    <nd ref='1173431930' />
+    <nd ref='1173431900' />
+    <nd ref='1173431985' />
+    <nd ref='1173431894' />
+  </way>
+  <way id='101626441' timestamp='2016-08-16T08:30:57Z' uid='195702' user='Sergey Kozyr' visible='true' version='2' changeset='41484445'>
+    <nd ref='1173431927' />
+    <nd ref='1173431999' />
+    <nd ref='1173431903' />
+    <nd ref='1173431879' />
+    <nd ref='1173431954' />
+    <nd ref='1173431865' />
+    <nd ref='1173431947' />
+    <nd ref='1173431872' />
+    <nd ref='1173431948' />
+    <nd ref='1173431883' />
+  </way>
+  <way id='101626442' timestamp='2011-02-25T23:52:44Z' uid='348674' user='Cabeleira' visible='true' version='1' changeset='7395717'>
+    <nd ref='1173431924' />
+    <nd ref='1173431962' />
+    <nd ref='1173431944' />
+    <nd ref='1173432012' />
+    <nd ref='1173431917' />
+    <nd ref='1173431995' />
+    <nd ref='1173431971' />
+    <nd ref='1173431876' />
+    <nd ref='1173431952' />
+    <nd ref='1173432020' />
+    <nd ref='1173431902' />
+    <nd ref='1173431986' />
+    <nd ref='1173431885' />
+    <nd ref='1173431965' />
+    <nd ref='1173431946' />
+    <nd ref='1173432015' />
+    <nd ref='1173431918' />
+    <nd ref='1173431996' />
+    <nd ref='1173431974' />
+    <nd ref='1173431878' />
+    <nd ref='1173431924' />
+  </way>
+  <way id='437416740' timestamp='2017-06-18T12:14:53Z' uid='1676637' user='Kilkenni' visible='true' version='2' changeset='49633905'>
+    <nd ref='4352308596' />
+    <nd ref='4352308595' />
+    <nd ref='1145316647' />
+    <nd ref='2394101427' />
+    <nd ref='319527571' />
+    <nd ref='500019504' />
+    <nd ref='500019507' />
+    <nd ref='4922108291' />
+    <nd ref='960023629' />
+    <nd ref='4922108362' />
+    <nd ref='500019505' />
+    <nd ref='500019503' />
+    <nd ref='319527572' />
+    <nd ref='2394101428' />
+    <nd ref='1145316654' />
+    <nd ref='500019502' />
+    <nd ref='319527573' />
+  </way>
+  <way id='437416746' timestamp='2016-08-16T08:30:56Z' uid='195702' user='Sergey Kozyr' visible='true' version='1' changeset='41484445'>
+    <nd ref='1173431883' />
+    <nd ref='1173431927' />
+  </way>
+  <relation id='1418946' timestamp='2018-11-11T01:50:12Z' uid='1538111' user='avinet_ua' visible='true' version='88' changeset='64365574'>
+    <member type='way' ref='101812132' role='house' />
+    <member type='way' ref='233930520' role='house' />
+    <member type='way' ref='82615342' role='house' />
+    <member type='way' ref='29050055' role='house' />
+    <member type='way' ref='82482449' role='house' />
+    <member type='way' ref='101812136' role='house' />
+    <member type='way' ref='29050036' role='house' />
+    <member type='way' ref='101646798' role='house' />
+    <member type='relation' ref='1447400' role='house' />
+    <member type='way' ref='101646794' role='house' />
+    <member type='relation' ref='1447399' role='house' />
+    <member type='relation' ref='1447306' role='house' />
+    <member type='relation' ref='1447398' role='house' />
+    <member type='relation' ref='1448570' role='house' />
+    <member type='way' ref='439798295' role='house' />
+    <member type='way' ref='442067732' role='house' />
+    <member type='way' ref='313774625' role='house' />
+    <member type='way' ref='441856730' role='house' />
+    <member type='way' ref='442080075' role='house' />
+    <member type='way' ref='149210450' role='house' />
+    <member type='way' ref='109882350' role='house' />
+    <member type='way' ref='99021011' role='house' />
+    <member type='way' ref='31875997' role='house' />
+    <member type='way' ref='149210452' role='house' />
+    <member type='way' ref='147029745' role='house' />
+    <member type='way' ref='48388854' role='house' />
+    <member type='way' ref='99021025' role='house' />
+    <member type='relation' ref='6588415' role='house' />
+    <member type='way' ref='48388832' role='house' />
+    <member type='way' ref='163626159' role='house' />
+    <member type='way' ref='149210476' role='house' />
+    <member type='way' ref='163626161' role='house' />
+    <member type='way' ref='48388839' role='house' />
+    <member type='way' ref='147029737' role='house' />
+    <member type='way' ref='50159062' role='house' />
+    <member type='way' ref='99021022' role='house' />
+    <member type='way' ref='48388831' role='house' />
+    <member type='way' ref='99020992' role='house' />
+    <member type='way' ref='99021020' role='house' />
+    <member type='relation' ref='2012827' role='house' />
+    <member type='way' ref='147029738' role='house' />
+    <member type='way' ref='48388826' role='house' />
+    <member type='way' ref='99020988' role='house' />
+    <member type='way' ref='99053865' role='house' />
+    <member type='way' ref='99053870' role='house' />
+    <member type='way' ref='99053864' role='house' />
+    <member type='way' ref='48388829' role='house' />
+    <member type='way' ref='99021015' role='house' />
+    <member type='way' ref='48388830' role='house' />
+    <member type='way' ref='163626163' role='house' />
+    <member type='way' ref='48388824' role='house' />
+    <member type='way' ref='147029742' role='house' />
+    <member type='way' ref='99021002' role='house' />
+    <member type='way' ref='99020995' role='house' />
+    <member type='way' ref='140174617' role='house' />
+    <member type='way' ref='163128935' role='house' />
+    <member type='way' ref='99020996' role='house' />
+    <member type='way' ref='139088895' role='house' />
+    <member type='relation' ref='6588414' role='house' />
+    <member type='way' ref='163129537' role='house' />
+    <member type='way' ref='147029739' role='house' />
+    <member type='relation' ref='2012826' role='house' />
+    <member type='way' ref='99021001' role='house' />
+    <member type='way' ref='163636201' role='house' />
+    <member type='way' ref='163636203' role='house' />
+    <member type='way' ref='147029735' role='house' />
+    <member type='way' ref='99020984' role='house' />
+    <member type='way' ref='171324037' role='house' />
+    <member type='relation' ref='2012824' role='house' />
+    <member type='way' ref='171324038' role='house' />
+    <member type='way' ref='99020999' role='house' />
+    <member type='way' ref='99020985' role='house' />
+    <member type='node' ref='4782015422' role='house' />
+    <member type='way' ref='242946022' role='house' />
+    <member type='way' ref='4423654' role='street' />
+    <member type='way' ref='4423655' role='street' />
+    <member type='way' ref='214118572' role='street' />
+    <member type='way' ref='316122050' role='street' />
+    <member type='way' ref='75525540' role='street' />
+    <member type='way' ref='27106794' role='street' />
+    <member type='way' ref='487501773' role='street' />
+    <member type='way' ref='487501774' role='street' />
+    <member type='way' ref='130675775' role='street' />
+    <member type='way' ref='97947894' role='street' />
+    <member type='way' ref='27106791' role='street' />
+    <member type='way' ref='31875944' role='street' />
+    <tag k='addr:street' v='Академіка Глушкова проспект' />
+    <tag k='name' v='Академіка Глушкова проспект' />
+    <tag k='type' v='associatedStreet' />
+    <tag k='wikidata' v='Q4381056' />
+    <tag k='wikipedia' v='uk:Проспект Академіка Глушкова' />
+  </relation>
+  <relation id='1447306' timestamp='2016-08-16T08:30:56Z' uid='195702' user='Sergey Kozyr' visible='true' version='13' changeset='41484445'>
+    <member type='way' ref='29050173' role='outer' />
+    <member type='way' ref='437416740' role='outer' />
+    <member type='way' ref='101626442' role='inner' />
+    <member type='way' ref='437416746' role='inner' />
+    <member type='way' ref='101626441' role='inner' />
+    <member type='way' ref='101626438' role='outer' />
+    <tag k='addr:housenumber' v='4д' />
+    <tag k='addr:street' v='Академіка Глушкова проспект' />
+    <tag k='amenity' v='university' />
+    <tag k='building' v='yes' />
+    <tag k='building:levels' v='2' />
+    <tag k='name' v='Факультет кібернетики, Факультет соціології' />
+    <tag k='name:de' v='Fakultät für Kybernetik' />
+    <tag k='name:en' v='Faculty of Cybernetics, Faculty of Sociology' />
+    <tag k='name:ru' v='Факультет кибернетики, Факультет социологии' />
+    <tag k='name:uk' v='Факультет кібернетики, Факультет соціології' />
+    <tag k='operator' v='Київський національний університет імені Тараса Шевченка' />
+    <tag k='type' v='multipolygon' />
+    <tag k='website' v='www.unicyb.kiev.ua' />
+    <tag k='website_1' v='http://www.socd.univ.kiev.ua/' />
+  </relation>
+</osm>

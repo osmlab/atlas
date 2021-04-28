@@ -2,19 +2,28 @@ package org.openstreetmap.atlas.geography;
 
 import java.awt.geom.Area;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
 
+import org.locationtech.jts.algorithm.match.HausdorffSimilarityMeasure;
+import org.locationtech.jts.geom.GeometryCollection;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.triangulate.ConformingDelaunayTriangulationBuilder;
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.converters.WkbPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.WktPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.GeometryStreamer;
 import org.openstreetmap.atlas.geography.converters.jts.JtsLocationConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPrecisionManager;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.scalars.Angle;
@@ -23,9 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
-import com.vividsolutions.jts.geom.GeometryCollection;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.triangulate.ConformingDelaunayTriangulationBuilder;
+import com.google.gson.JsonObject;
 
 /**
  * A {@link Polygon} is a {@link PolyLine} with an extra {@link Segment} between the last
@@ -51,6 +58,7 @@ public class Polygon extends PolyLine implements GeometricSurface
             Location.forString("37.39018121506223,-122.03110367059708"),
             Location.forString("37.39021104996917,-122.0310714840889"),
             Location.forString("37.390234491673446,-122.03111171722412"));
+    public static final Polygon CENTER = new Polygon(Location.CENTER);
 
     private static final JtsPolygonConverter JTS_POLYGON_CONVERTER = new JtsPolygonConverter();
 
@@ -103,7 +111,17 @@ public class Polygon extends PolyLine implements GeometricSurface
 
     public Polygon(final Location... points)
     {
-        this(Iterables.iterable(points));
+        // This was Iterables.asList. `super` creates a new ArrayList, so we don't have to worry
+        // about the backing array being modified.
+        // This was 6% of a test run in a single validation (there were other validations run, so
+        // this may be larger). After the new run, it was 3% (async Allocation Profiler)
+        this(Arrays.asList(points));
+    }
+
+    @Override
+    public JsonObject asGeoJsonGeometry()
+    {
+        return GeoJsonUtils.geometry(GeoJsonType.POLYGON, GeoJsonUtils.polygonToCoordinates(this));
     }
 
     /**
@@ -185,9 +203,7 @@ public class Polygon extends PolyLine implements GeometricSurface
         // if this value overflows, use JTS to correctly calculate covers
         if (awtOverflows())
         {
-            final com.vividsolutions.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
-            final Point point = new JtsPointConverter().convert(location);
-            return polygon.covers(point);
+            return fullyGeometricallyEnclosesJTS(location);
         }
         // for most cases use the faster awt covers
         else
@@ -244,18 +260,23 @@ public class Polygon extends PolyLine implements GeometricSurface
             // The item is not within the bounds of this Polygon
             return false;
         }
-        // The item is within the bounds of this Polygon
-        // if this value overflows, use JTS to correctly calculate covers
+        // The item is within the bounds of this Polygon. if this value overflows
+        // use JTS to correctly calculate covers
         if (awtOverflows())
         {
-            final com.vividsolutions.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
+            final org.locationtech.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
             return polygon.covers(JTS_POLYGON_CONVERTER.convert(rectangle));
         }
-        // for most cases use the faster awt covers
-        else
+
+        // If AWT contains is false, then we want to recheck with JTS as it's less performant
+        // but more accurate-- AWT contains returns false if the calculation is too expensive
+        if (!awtArea().contains(rectangle.asAwtRectangle()))
         {
-            return awtArea().contains(rectangle.asAwtRectangle());
+            final org.locationtech.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
+            return polygon.covers(JTS_POLYGON_CONVERTER.convert(rectangle));
         }
+        return true;
+
     }
 
     /**
@@ -281,12 +302,33 @@ public class Polygon extends PolyLine implements GeometricSurface
     }
 
     /**
+     * Tests if this {@link Polygon} fully encloses (geometrically contains) a {@link Location}
+     * according to the JTS definition, which includes points touching all boundaries of the
+     * polygon.
+     *
+     * @param location
+     *            The location to test
+     * @return True if the {@link Polygon} fully encloses (geometrically contains) the
+     *         {@link Location}
+     */
+    public boolean fullyGeometricallyEnclosesJTS(final Location location)
+    {
+        final org.locationtech.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
+        final Point point = new JtsPointConverter().convert(location);
+        return polygon.covers(point);
+    }
+
+    @Override
+    public GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.POLYGON;
+    }
+
+    /**
      * Returns a location that is the closest point within the polygon to the centroid. The function
      * delegates to the Geometry class which delegates to the InteriorPointPoint class. You can see
      * the javadocs in the link below. <a href=
-     * "http://www.vividsolutions.com/jts/javadoc/com/vividsolutions/jts/algorithm/InteriorPointPoint">
-     * http://www.vividsolutions.com/jts/javadoc/com/vividsolutions/jts/algorithm/InteriorPointPoint
-     * </a> .html
+     * "https://locationtech.github.io/jts/javadoc/org/locationtech/jts/algorithm/InteriorPointPoint.html"></a>
      *
      * @return location that is the closest point within the polygon to the centroid
      */
@@ -366,24 +408,59 @@ public class Polygon extends PolyLine implements GeometricSurface
 
     /**
      * @return True if this {@link Polygon} is arranged clockwise, false otherwise.
-     * @see <a href="http://stackoverflow.com/questions/1165647"></a>
+     * @see <a href=
+     *      "http://www.gutenberg.org/files/19770/19770-pdf.pdf?session_id=374cbf5aca81b1a742aac0879dbea5eb35f914ea"></a>
+     * @see <a href="http://mathforum.org/library/drmath/view/51879.html"></a>
+     * @see <a href="http://mathforum.org/library/drmath/view/65316.html"></a>
      */
     public boolean isClockwise()
     {
-        long sum = 0;
-        long lastLatitude = Long.MIN_VALUE;
-        long lastLongitude = Long.MIN_VALUE;
-        for (final Location point : this)
+        // Formula to calculate the area of triangle on a sphere is (A + B + C - Pi) * radius *
+        // radius.
+        // Equation (A + B + C - Pi) is called the spherical excess. We are going to divide our
+        // polygon in triangles and then calculate the signed area of each triangle. Sum of the
+        // areas of these triangles will be the area of this polygon
+        double sphericalExcess = 0;
+        Location previousLocation = null;
+
+        for (final Location point : this.closedLoop())
         {
-            if (lastLongitude != Long.MIN_VALUE)
+            final Location currentLocation = point;
+
+            if (previousLocation != null)
             {
-                sum += (point.getLongitude().asDm7() - lastLongitude)
-                        * (point.getLatitude().asDm7() + lastLatitude);
+                // for the sake of simplicity we are using two vertices from the polygon and the
+                // third vertex would be North Pole.
+                // Please refer "Spherical Trigonometry by I.Todhunter".
+                // Section starting on page 7 and 17 for triangle identities and trigonometric
+                // functions.
+                // Also look on page 71 for getting the area of triangle
+                final double latitudeOne = previousLocation.getLatitude().asRadians();
+                final double latitudeTwo = currentLocation.getLatitude().asRadians();
+                final double deltaLongitude = currentLocation.getLongitude().asRadians()
+                        - previousLocation.getLongitude().asRadians();
+
+                final double alpha = Math
+                        .sqrt((1 - Math.sin(latitudeOne)) / (1 + Math.sin(latitudeOne)))
+                        * Math.sqrt((1 - Math.sin(latitudeTwo)) / (1 + Math.sin(latitudeTwo)));
+
+                // You can derive this from the formula on Page 74, point 102 of the book
+                sphericalExcess += 2 * Math.atan2(alpha * Math.sin(deltaLongitude),
+                        1 + alpha * Math.cos(deltaLongitude));
             }
-            lastLongitude = point.getLongitude().asDm7();
-            lastLatitude = point.getLatitude().asDm7();
+            previousLocation = currentLocation;
         }
-        return sum >= 0;
+
+        // Instead of area of polygon this method returns the spherical access as multiplying with
+        // Earth (radius) ^ 2 is not going to change the sign of the area
+        return sphericalExcess <= 0;
+    }
+
+    public boolean isSimilarTo(final Polygon other)
+    {
+        final double similarity = new HausdorffSimilarityMeasure()
+                .measure(JTS_POLYGON_CONVERTER.convert(this), JTS_POLYGON_CONVERTER.convert(other));
+        return similarity > SIMILARITY_THRESHOLD;
     }
 
     public int nextSegmentIndex(final int currentVertexIndex)
@@ -548,6 +625,15 @@ public class Polygon extends PolyLine implements GeometricSurface
     }
 
     /**
+     * @return This {@link Polygon} as Well Known Binary
+     */
+    @Override
+    public byte[] toWkb()
+    {
+        return new WkbPolygonConverter().convert(this);
+    }
+
+    /**
      * @return This {@link Polygon} as Well Known Text
      */
     @Override
@@ -667,12 +753,15 @@ public class Polygon extends PolyLine implements GeometricSurface
             @Override
             public Location next()
             {
-                if (!this.read)
+                if (hasNext())
                 {
                     this.read = true;
                     return first();
                 }
-                return null;
+                else
+                {
+                    throw new NoSuchElementException();
+                }
             }
         });
     }

@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.builder.text;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -86,7 +87,6 @@ public class TextAtlasBuilder
     }
 
     private static final Logger logger = LoggerFactory.getLogger(TextAtlasBuilder.class);
-
     private static final String NODES_HEADER = "# Nodes";
     private static final String EDGES_HEADER = "# Edges";
     private static final String AREAS_HEADER = "# Areas";
@@ -97,6 +97,11 @@ public class TextAtlasBuilder
     private static final String SECONDARY_SEPARATOR = " || ";
     private static final String TERTIARY_SEPARATOR = " -> ";
     private static final String SEPARATOR_REPLACEMENT = " ";
+
+    public static String getNodesHeader()
+    {
+        return NODES_HEADER;
+    }
 
     public PackedAtlas read(final Resource resource)
     {
@@ -147,6 +152,17 @@ public class TextAtlasBuilder
         }
         final AtlasSize size = new AtlasSize(numberOfEdges, numberOfNodes, numberOfAreas,
                 numberOfLines, numberOfPoints, numberOfRelations);
+
+        if (size.getEntityNumber() == 0)
+        {
+            throw new CoreException("Invalid text Atlas, it appears to be empty!");
+        }
+
+        if (size.getNonRelationEntityNumber() == 0 && size.getRelationNumber() > 0)
+        {
+            throw new CoreException("Invalid text Atlas, it only contained Relations!");
+        }
+
         final AtlasMetaData metaData = new AtlasMetaData(size, true, "unknown", "TextAtlas",
                 "unknown", "unknown", Maps.hashMap());
         final PackedAtlasBuilder builder = new PackedAtlasBuilder().withSizeEstimates(size)
@@ -184,7 +200,12 @@ public class TextAtlasBuilder
                 }
             }
         }
-        return (PackedAtlas) builder.get();
+        final PackedAtlas atlas = (PackedAtlas) builder.get();
+        if (atlas == null)
+        {
+            throw new CoreException("Atlas resulting from PackedAtlasBuilder was null.");
+        }
+        return atlas;
     }
 
     public void write(final Atlas atlas, final WritableResource resource)
@@ -346,7 +367,11 @@ public class TextAtlasBuilder
         final StringList split = StringList.split(line, SEPARATOR);
         final long identifier = Long.parseLong(split.get(0));
         final Polygon geometry = new PolygonStringConverter().convert(split.get(1));
-        final Map<String, String> tags = parseTags(split.get(2));
+        final Map<String, String> tags = new HashMap<>();
+        if (split.size() > 2)
+        {
+            tags.putAll(parseTags(split.get(2)));
+        }
         builder.addArea(identifier, geometry, tags);
     }
 
@@ -355,7 +380,11 @@ public class TextAtlasBuilder
         final StringList split = StringList.split(line, SEPARATOR);
         final long identifier = Long.parseLong(split.get(0));
         final PolyLine geometry = new PolyLineStringConverter().convert(split.get(1));
-        final Map<String, String> tags = parseTags(split.get(2));
+        final Map<String, String> tags = new HashMap<>();
+        if (split.size() > 2)
+        {
+            tags.putAll(parseTags(split.get(2)));
+        }
         builder.addEdge(identifier, geometry, tags);
     }
 
@@ -364,7 +393,11 @@ public class TextAtlasBuilder
         final StringList split = StringList.split(line, SEPARATOR);
         final long identifier = Long.parseLong(split.get(0));
         final PolyLine geometry = new PolyLineStringConverter().convert(split.get(1));
-        final Map<String, String> tags = parseTags(split.get(2));
+        final Map<String, String> tags = new HashMap<>();
+        if (split.size() > 2)
+        {
+            tags.putAll(parseTags(split.get(2)));
+        }
         builder.addLine(identifier, geometry, tags);
     }
 
@@ -373,7 +406,11 @@ public class TextAtlasBuilder
         final StringList split = StringList.split(line, SEPARATOR);
         final long identifier = Long.parseLong(split.get(0));
         final Location geometry = Location.forString(split.get(1));
-        final Map<String, String> tags = parseTags(split.get(2));
+        final Map<String, String> tags = new HashMap<>();
+        if (split.size() > 2)
+        {
+            tags.putAll(parseTags(split.get(2)));
+        }
         builder.addNode(identifier, geometry, tags);
     }
 
@@ -382,7 +419,11 @@ public class TextAtlasBuilder
         final StringList split = StringList.split(line, SEPARATOR);
         final long identifier = Long.parseLong(split.get(0));
         final Location geometry = Location.forString(split.get(1));
-        final Map<String, String> tags = parseTags(split.get(2));
+        final Map<String, String> tags = new HashMap<>();
+        if (split.size() > 2)
+        {
+            tags.putAll(parseTags(split.get(2)));
+        }
         builder.addPoint(identifier, geometry, tags);
     }
 
@@ -391,7 +432,11 @@ public class TextAtlasBuilder
         final StringList split = StringList.split(line, SEPARATOR);
         final long identifier = Long.parseLong(split.get(0));
         final RelationBean structure = parseRelationBean(split.get(1));
-        final Map<String, String> tags = parseTags(split.get(2));
+        final Map<String, String> tags = new HashMap<>();
+        if (split.size() > 2)
+        {
+            tags.putAll(parseTags(split.get(2)));
+        }
         builder.addRelation(identifier, identifier, structure, tags);
     }
 

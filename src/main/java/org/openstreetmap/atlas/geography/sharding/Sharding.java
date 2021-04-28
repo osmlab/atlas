@@ -1,39 +1,51 @@
 package org.openstreetmap.atlas.geography.sharding;
 
 import java.io.Serializable;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.geojson.GeoJson;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.collections.StringList;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 /**
  * Sharding strategy
  *
  * @author matthieun
  */
-public interface Sharding extends Serializable
+public interface Sharding extends Serializable, GeoJson
 {
     int SHARDING_STRING_SPLIT = 2;
     int SLIPPY_ZOOM_MAXIMUM = 18;
 
     /**
-     * Parse a sharding definition string
+     * Parse a sharding definition string and use the given {@link FileSystem} if the {@link String}
+     * references a {@link DynamicTileSharding}.
      *
      * @param sharding
      *            The definition string
+     * @param fileSystem
+     *            the {@link FileSystem} to use for a {@link DynamicTileSharding}
      * @return The corresponding {@link Sharding} instance.
      */
-    static Sharding forString(final String sharding)
+    static Sharding forString(final String sharding, final FileSystem fileSystem)
     {
         final StringList split;
         split = StringList.split(sharding, "@");
         if (split.size() != SHARDING_STRING_SPLIT)
         {
-            throw new CoreException("Invalid sharding string: {}", sharding);
+            throw new CoreException(
+                    "Invalid sharding string: {} (correct e.g. dynamic@/path/to/tree, slippy@9, etc.)",
+                    sharding);
         }
         if ("slippy".equals(split.get(0)))
         {
@@ -46,13 +58,67 @@ public interface Sharding extends Serializable
             }
             return new SlippyTileSharding(zoom);
         }
+        if ("geohash".equals(split.get(0)))
+        {
+            final int precision;
+            precision = Integer.valueOf(split.get(1));
+            return new GeoHashSharding(precision);
+        }
         if ("dynamic".equals(split.get(0)))
         {
             final String definition = split.get(1);
-            return new DynamicTileSharding(new File(definition));
+            return new DynamicTileSharding(new File(definition, fileSystem));
         }
         throw new CoreException("Sharding type {} is not recognized.", split.get(0));
     }
+
+    /**
+     * Parse a sharding definition string and use the default {@link FileSystem} if the
+     * {@link String} references a {@link DynamicTileSharding}.
+     *
+     * @param sharding
+     *            The definition string
+     * @return The corresponding {@link Sharding} instance.
+     */
+    static Sharding forString(final String sharding)
+    {
+        return Sharding.forString(sharding, FileSystems.getDefault());
+    }
+
+    @Override
+    default JsonObject asGeoJson()
+    {
+        final JsonObject featureCollectionObject = new JsonObject();
+        featureCollectionObject.addProperty("type", "FeatureCollection");
+        final JsonArray features = new JsonArray();
+        for (final Shard shard : this.shards(Rectangle.MAXIMUM))
+        {
+            final JsonObject featureObject = new JsonObject();
+            featureObject.addProperty("type", "Feature");
+            featureObject.add("geometry",
+                    new PolyLine(shard.bounds().closedLoop()).asGeoJsonGeometry());
+            final JsonObject propertiesObject = new JsonObject();
+            propertiesObject.addProperty("shard", shard.getName());
+            featureObject.add("properties", propertiesObject);
+            features.add(featureObject);
+        }
+        featureCollectionObject.add("features", features);
+        return featureCollectionObject;
+    }
+
+    @Override
+    default GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.FEATURE_COLLECTION;
+    }
+
+    /**
+     * Get the name of this {@link Sharding}. The name should succinctly describe this
+     * {@link Sharding}'s parameters.
+     *
+     * @return the name of this {@link Sharding}
+     */
+    String getName();
 
     /**
      * Get the neighboring shards for a given shard.
@@ -61,17 +127,16 @@ public interface Sharding extends Serializable
      *            The shard for which to get neighbors
      * @return The shards {@link Iterable}, neighboring the supplied shard
      */
-    Iterable<? extends Shard> neighbors(Shard shard);
+    Iterable<Shard> neighbors(Shard shard);
 
     /**
-     * Generate shards for the whole planet. This needs to be deterministic!
+     * Get a shard given its name
      *
-     * @return The shards {@link Iterable}, covering the whole planet.
+     * @param name
+     *            The name of the shard
+     * @return The corresponding shard
      */
-    default Iterable<? extends Shard> shards()
-    {
-        return shards(Rectangle.MAXIMUM);
-    }
+    Shard shardForName(String name);
 
     /**
      * Generate shards. This needs to be deterministic!
@@ -80,7 +145,17 @@ public interface Sharding extends Serializable
      *            The bounds to limit the shards.
      * @return The shards {@link Iterable}.
      */
-    Iterable<? extends Shard> shards(GeometricSurface surface);
+    Iterable<Shard> shards(GeometricSurface surface);
+
+    /**
+     * Generate shards for the whole planet. This needs to be deterministic!
+     *
+     * @return The shards {@link Iterable}, covering the whole planet.
+     */
+    default Iterable<Shard> shards()
+    {
+        return shards(Rectangle.MAXIMUM);
+    }
 
     /**
      * Generate shards. This needs to be deterministic!
@@ -90,7 +165,7 @@ public interface Sharding extends Serializable
      * @return The shards {@link Iterable} (In case the location falls right at the boundary between
      *         shards)
      */
-    Iterable<? extends Shard> shardsCovering(Location location);
+    Iterable<Shard> shardsCovering(Location location);
 
     /**
      * Generate shards. This needs to be deterministic!
@@ -99,5 +174,5 @@ public interface Sharding extends Serializable
      *            The line intersecting the shards
      * @return The shards {@link Iterable}.
      */
-    Iterable<? extends Shard> shardsIntersecting(PolyLine polyLine);
+    Iterable<Shard> shardsIntersecting(PolyLine polyLine);
 }

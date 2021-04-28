@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openstreetmap.atlas.utilities.scalars.Duration;
 import org.openstreetmap.atlas.utilities.time.Time;
@@ -69,6 +70,7 @@ public class PolygonPerformanceTest
                 overallTotalTimeWithBoundCheck, overallTotalTimeWithoutBoundCheck, iteration);
     }
 
+    @Ignore
     @Test
     public void testPerformance() throws Exception
     {
@@ -84,20 +86,20 @@ public class PolygonPerformanceTest
         // Case 1
         logger.info("Testing locations completely outside of the polygon's bounding box");
         logger.info("Size: {}, polygon bounds: {}, location bounds: {}", size, waState, coState);
-        testCoverPerformanceHelper(size, waState, (polygon) -> Location.random(coState),
-                (result) -> !result);
+        testCoverPerformanceHelper(size, waState, polygon -> Location.random(coState),
+                result -> !result);
 
         // Case 2
         logger.info("Testing locations on the bounding box border");
         logger.info("Size: {}, polygon bounds: {}, location bounds: {}", size, waState,
                 waStateNorthBorder);
-        testCoverPerformanceHelper(size, waState, (polygon) -> Location.random(waStateNorthBorder),
-                (result) -> true);
+        testCoverPerformanceHelper(size, waState, polygon -> Location.random(waStateNorthBorder),
+                result -> true);
 
         // Case 3
         logger.info("Testing locations within the bounding box but outside of the polygon");
         logger.info("Size: {}, polygon bounds: {}, location bounds: {}", size, waState, waState);
-        testCoverPerformanceHelper(size, waState, (polygon) ->
+        testCoverPerformanceHelper(size, waState, polygon ->
         {
             // Find a location that is in the same bounding box, but outside polygon
             Location randomLocation;
@@ -108,22 +110,22 @@ public class PolygonPerformanceTest
             while (polygon.fullyGeometricallyEncloses(randomLocation));
 
             return randomLocation;
-        }, (result) -> !result);
+        }, result -> !result);
 
         // Case 4
         logger.info("Testing locations point on the polygon");
         logger.info("Size: {}, polygon bounds: {}", size, waState);
-        testCoverPerformanceHelper(size, waState, (polygon) ->
+        testCoverPerformanceHelper(size, waState, polygon ->
         {
             final List<Location> polygonPoints = polygon.getPoints();
             final int aIndex = random.nextInt(polygonPoints.size());
             return polygonPoints.get(aIndex);
-        }, (result) -> true);
+        }, result -> true);
 
         // Case 5
         logger.info("Testing locations inside the polygon");
         logger.info("Size: {}, polygon bounds: {}", size, waState);
-        testCoverPerformanceHelper(size, waState, (polygon) ->
+        testCoverPerformanceHelper(size, waState, polygon ->
         {
             // Find a location that is inside the polygon
             Location randomLocation;
@@ -134,6 +136,6 @@ public class PolygonPerformanceTest
             while (!polygon.fullyGeometricallyEncloses(randomLocation));
 
             return randomLocation;
-        }, (result) -> result);
+        }, result -> result);
     }
 }

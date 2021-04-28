@@ -9,15 +9,21 @@ import org.openstreetmap.atlas.exception.CoreException;
  */
 public abstract class AbstractIdentifierFactory
 {
-    public static final long IDENTIFIER_SCALE = 1000;
+    public static final long IDENTIFIER_SCALE_DEFAULT = 1000;
 
     private final long[] referenceIdentifiers;
     private int index;
     private long delta;
+    private final long identifierScale;
 
     public AbstractIdentifierFactory(final long referenceIdentifier)
     {
         this(new long[] { referenceIdentifier });
+    }
+
+    public AbstractIdentifierFactory(final long referenceIdentifier, final long identifierScale)
+    {
+        this(new long[] { referenceIdentifier }, identifierScale);
     }
 
     public AbstractIdentifierFactory(final long[] referenceIdentifierArray)
@@ -25,11 +31,26 @@ public abstract class AbstractIdentifierFactory
         this.referenceIdentifiers = referenceIdentifierArray;
         this.delta = 0;
         this.index = 0;
+        this.identifierScale = IDENTIFIER_SCALE_DEFAULT;
+    }
+
+    public AbstractIdentifierFactory(final long[] referenceIdentifierArray,
+            final long identifierScale)
+    {
+        this.referenceIdentifiers = referenceIdentifierArray;
+        this.delta = 0;
+        this.index = 0;
+        this.identifierScale = identifierScale;
     }
 
     public long getDelta()
     {
         return this.delta;
+    }
+
+    public long getIdentifierScale()
+    {
+        return this.identifierScale;
     }
 
     public long getReferenceIdentifier()
@@ -39,7 +60,7 @@ public abstract class AbstractIdentifierFactory
 
     public boolean hasMore()
     {
-        return this.delta < IDENTIFIER_SCALE - 1
+        return this.delta < this.identifierScale - 1
                 || this.index < this.referenceIdentifiers.length - 1;
     }
 
@@ -49,7 +70,7 @@ public abstract class AbstractIdentifierFactory
     {
         this.delta++;
 
-        if (this.delta >= IDENTIFIER_SCALE)
+        if (this.delta >= this.identifierScale)
         {
             if (this.index < this.referenceIdentifiers.length - 1)
             {

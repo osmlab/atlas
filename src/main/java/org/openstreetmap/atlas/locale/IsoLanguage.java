@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.locale;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
@@ -14,7 +15,7 @@ import org.openstreetmap.atlas.utilities.collections.EnhancedCollectors;
  *
  * @author robert_stack
  */
-public final class IsoLanguage implements Comparable<IsoLanguage>
+public final class IsoLanguage implements Comparable<IsoLanguage>, Serializable
 {
     // Use United States fixed Locale for display use cases
     private static final Locale LANGUAGE_LOCALE = Locale.US;
@@ -141,6 +142,12 @@ public final class IsoLanguage implements Comparable<IsoLanguage>
         return this.languageCode.compareTo(other.getLanguageCode());
     }
 
+    @Override
+    public boolean equals(final Object other)
+    {
+        return other instanceof IsoLanguage && this.compareTo((IsoLanguage) other) == 0;
+    }
+
     /**
      * Provides the display language for this IsoLanguage
      *
@@ -159,5 +166,11 @@ public final class IsoLanguage implements Comparable<IsoLanguage>
     public String getLanguageCode()
     {
         return this.languageCode;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return this.getLanguageCode().hashCode();
     }
 }

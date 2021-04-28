@@ -1,0 +1,2 @@
+This command provides an easy way to change the sharding in which a folder
+of atlas files is described.

@@ -7,15 +7,95 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
  * Type of item in an {@link Atlas}
  *
  * @author matthieun
+ * @author Yazad Khambata
  */
 public enum ItemType
 {
-    NODE(0),
-    EDGE(1),
-    AREA(2),
-    LINE(3),
-    POINT(4),
-    RELATION(5);
+    NODE(0)
+    {
+        @Override
+        public Iterable<Node> entitiesForIdentifiers(final Atlas atlas, final Long... identifiers)
+        {
+            return atlas.nodes(identifiers);
+        }
+
+        @Override
+        public long numberOfEntities(final Atlas atlas)
+        {
+            return atlas.numberOfNodes();
+        }
+    },
+    EDGE(1)
+    {
+        @Override
+        public Iterable<Edge> entitiesForIdentifiers(final Atlas atlas, final Long... identifiers)
+        {
+            return atlas.edges(identifiers);
+        }
+
+        @Override
+        public long numberOfEntities(final Atlas atlas)
+        {
+            return atlas.numberOfEdges();
+        }
+    },
+    AREA(2)
+    {
+        @Override
+        public Iterable<Area> entitiesForIdentifiers(final Atlas atlas, final Long... identifiers)
+        {
+            return atlas.areas(identifiers);
+        }
+
+        @Override
+        public long numberOfEntities(final Atlas atlas)
+        {
+            return atlas.numberOfAreas();
+        }
+    },
+    LINE(3)
+    {
+        @Override
+        public Iterable<Line> entitiesForIdentifiers(final Atlas atlas, final Long... identifiers)
+        {
+            return atlas.lines(identifiers);
+        }
+
+        @Override
+        public long numberOfEntities(final Atlas atlas)
+        {
+            return atlas.numberOfLines();
+        }
+    },
+    POINT(4)
+    {
+        @Override
+        public Iterable<Point> entitiesForIdentifiers(final Atlas atlas, final Long... identifiers)
+        {
+            return atlas.points(identifiers);
+        }
+
+        @Override
+        public long numberOfEntities(final Atlas atlas)
+        {
+            return atlas.numberOfPoints();
+        }
+    },
+    RELATION(5)
+    {
+        @Override
+        public Iterable<Relation> entitiesForIdentifiers(final Atlas atlas,
+                final Long... identifiers)
+        {
+            return atlas.relations(identifiers);
+        }
+
+        @Override
+        public long numberOfEntities(final Atlas atlas)
+        {
+            return atlas.numberOfRelations();
+        }
+    };
 
     private final int value;
 
@@ -62,6 +142,9 @@ public enum ItemType
         this.value = value;
     }
 
+    public abstract <E extends AtlasEntity> Iterable<E> entitiesForIdentifiers(Atlas atlas,
+            Long... identifiers);
+
     public AtlasEntity entityForIdentifier(final Atlas atlas, final long identifier)
     {
         switch (this)
@@ -84,10 +167,35 @@ public enum ItemType
         }
     }
 
+    @SuppressWarnings("unchecked")
+    public <M extends AtlasEntity> Class<M> getMemberClass()
+    {
+        switch (this)
+        {
+            case NODE:
+                return (Class<M>) Node.class;
+            case EDGE:
+                return (Class<M>) Edge.class;
+            case AREA:
+                return (Class<M>) Area.class;
+            case LINE:
+                return (Class<M>) Line.class;
+            case POINT:
+                return (Class<M>) Point.class;
+            case RELATION:
+                return (Class<M>) Relation.class;
+
+            default:
+                throw new CoreException("Invalid type {}", this);
+        }
+    }
+
     public int getValue()
     {
         return this.value;
     }
+
+    public abstract long numberOfEntities(Atlas atlas);
 
     public String toShortString()
     {

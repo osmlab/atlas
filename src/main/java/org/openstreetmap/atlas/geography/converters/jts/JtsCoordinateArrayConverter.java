@@ -4,13 +4,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.CoordinateSequence;
+import org.locationtech.jts.geom.impl.CoordinateArraySequence;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
-
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.CoordinateSequence;
-import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
 
 /**
  * Convert an {@link Iterable} of {@link Location} to a {@link CoordinateSequence} from the JTS
@@ -22,6 +21,12 @@ public class JtsCoordinateArrayConverter
         implements TwoWayConverter<Iterable<Location>, CoordinateSequence>
 {
     private static final JtsLocationConverter LOCATION_CONVERTER = new JtsLocationConverter();
+
+    public static CoordinateSequence empty()
+    {
+        final Coordinate[] emptyCoordinateArray = new Coordinate[0];
+        return new CoordinateArraySequence(emptyCoordinateArray);
+    }
 
     @Override
     public Iterable<Location> backwardConvert(final CoordinateSequence coordinateSequence)

@@ -17,15 +17,22 @@ public class CaptureOutputStream extends PrintStream
         super(out);
     }
 
+    public String getLog()
+    {
+        return this.log;
+    }
+
+    @Override
+    public void print(final String string)
+    {
+        this.log = this.log.concat(string);
+        super.print(string);
+    }
+
     @Override
     public PrintStream printf(final String format, final Object... args)
     {
         this.log = this.log.concat(String.format(format, args));
         return super.printf(format, args);
-    }
-
-    public String getLog()
-    {
-        return this.log;
     }
 }

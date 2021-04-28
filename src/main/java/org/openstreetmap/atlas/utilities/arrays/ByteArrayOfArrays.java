@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.utilities.arrays;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasSerializer;
@@ -134,7 +135,7 @@ public class ByteArrayOfArrays extends LargeArray<byte[]> implements ProtoSerial
         int hash = initialPrime;
         for (int index = 0; index < this.size(); index++)
         {
-            hash = hashSeed * hash + this.get(index).hashCode();
+            hash = hashSeed * hash + Arrays.hashCode(this.get(index));
         }
 
         return hash;

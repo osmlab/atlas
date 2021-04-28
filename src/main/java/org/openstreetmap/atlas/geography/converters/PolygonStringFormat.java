@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import org.locationtech.jts.io.WKBReader;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.streaming.readers.GeoJsonReader;
@@ -14,8 +15,6 @@ import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.utilities.conversion.StringConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.vividsolutions.jts.io.WKBReader;
 
 /**
  * The enum for supported Polygon and Multipolygon string formats. Contains functions to return
@@ -32,7 +31,7 @@ public enum PolygonStringFormat
     UNSUPPORTED("UNSUPPORTED");
 
     private static final Logger logger = LoggerFactory.getLogger(PolygonStringFormat.class);
-    private String format;
+    private final String format;
 
     public static PolygonStringFormat getEnumForFormat(final String format)
     {
@@ -92,8 +91,8 @@ public enum PolygonStringFormat
                         .singletonList(new WktMultiPolygonConverter().backwardConvert(string)));
             case UNSUPPORTED:
             default:
-                logger.warn("No converter set up for {} format. Supported formats are {}", format,
-                        Arrays.copyOf(values(), values().length - 1));
+                logger.warn("No converter set up for {} format. Supported formats are {}",
+                        this.format, Arrays.copyOf(values(), values().length - 1));
                 return string -> Optional.empty();
         }
     }
@@ -133,8 +132,8 @@ public enum PolygonStringFormat
                         new WkbPolygonConverter().backwardConvert(WKBReader.hexToBytes(string))));
             case UNSUPPORTED:
             default:
-                logger.warn("No converter set up for {} format. Supported formats are {}", format,
-                        Arrays.copyOf(values(), values().length - 1));
+                logger.warn("No converter set up for {} format. Supported formats are {}",
+                        this.format, Arrays.copyOf(values(), values().length - 1));
                 return string -> Optional.empty();
         }
     }

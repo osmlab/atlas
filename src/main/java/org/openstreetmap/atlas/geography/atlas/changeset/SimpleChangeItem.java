@@ -17,7 +17,9 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
  *
  * @author Yiqing Jin
  * @author mkalender
+ * @deprecated - see new API under org.openstreetmap.atlas.geography.atlas.change package.
  */
+@Deprecated
 public class SimpleChangeItem implements MutableChangeItem
 {
     private static final long serialVersionUID = 3817694187693336803L;

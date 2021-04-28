@@ -1,6 +1,6 @@
 # Using Atlas
 
-* Grab one or more Atlas files (from [here](https://apple.box.com/s/3k3wcc0lq1fhqgozxr4mdi0llf95byo3) or after [building them yourself](#building-an-atlas-from-an-osmpbf-file)), and open them with [`AtlasResourceLoader`](src/main/java/org/openstreetmap/atlas/geography/atlas/AtlasResourceLoader.java):
+* Grab one or more Atlas files (from [here](https://www.dropbox.com/sh/54aqfbs12suqd9t/AACGxhjCaJiRcJUBuFh0iLiHa) or after [building them yourself](src/main/java/org/openstreetmap/atlas/geography/atlas/README.md#building-an-atlas-from-an-osmpbf-file)), and open them with [`AtlasResourceLoader`](src/main/java/org/openstreetmap/atlas/geography/atlas/AtlasResourceLoader.java):
 ```
 final File atlasFile = new File("/path/to/source.atlas");
 final Atlas atlas = new AtlasResourceLoader().load(atlasFile);
@@ -117,8 +117,8 @@ Atlas objects can be soft-filtered based on a `Predicate` or a `Polygon`.
 final Atlas atlas;
 
 final Predicate<AtlasEntity> predicate;
-final Atlas predicateAtlas = atlas.subAtlas(predicate);
+final Atlas predicateAtlas = atlas.subAtlas(predicate, AtlasCutType.SOFT_CUT);
 
 final Polygon polygon;
-final Atlas polygonAtlas = atlas.subAtlas(polygon);
+final Atlas polygonAtlas = atlas.subAtlas(polygon, AtlasCutType.SOFT_CUT);
 ```

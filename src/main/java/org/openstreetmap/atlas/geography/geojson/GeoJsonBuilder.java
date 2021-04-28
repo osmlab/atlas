@@ -9,6 +9,7 @@ import java.util.Optional;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.MultiPolyLine;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.streaming.readers.json.serializers.PropertiesLocated;
@@ -25,47 +26,10 @@ import com.google.gson.JsonPrimitive;
  * @author cuthbertm
  * @author mgostintsev
  * @author rmegraw
+ * @author chunzhu
  */
 public class GeoJsonBuilder
 {
-    /**
-     * @author matthieun
-     * @author mgostintsev
-     */
-    public enum GeoJsonType
-    {
-        POINT("Point"),
-        LINESTRING("LineString"),
-        POLYGON("Polygon"),
-        MULTI_POINT("MultiPoint"),
-        MULTI_LINESTRING("MultiLineString"),
-        MULTI_POLYGON("MultiPolygon");
-
-        private final String type;
-
-        public static GeoJsonType forType(final String type)
-        {
-            for (final GeoJsonType value : values())
-            {
-                if (value.getType().equals(type))
-                {
-                    return value;
-                }
-            }
-            throw new CoreException("Invalid geoJson type: {}", type);
-        }
-
-        GeoJsonType(final String type)
-        {
-            this.type = type;
-        }
-
-        public String getType()
-        {
-            return this.type;
-        }
-    }
-
     /**
      * Java bean to store geometry (as an {@link Iterable} of {@link Location}s) and properties as a
      * {@link String} to {@link Object} {@link Map}
@@ -233,12 +197,13 @@ public class GeoJsonBuilder
     {
         final JsonObject result = new JsonObject();
         result.addProperty(TYPE, FEATURE);
-        final JsonArray coordinates = new JsonArray();
+        final JsonArray coordinates;
         switch (type)
         {
             case POINT:
             {
                 final Location location = locations.iterator().next();
+                coordinates = new JsonArray();
                 coordinates.add(new JsonPrimitive(location.getLongitude().asDegrees()));
                 coordinates.add(new JsonPrimitive(location.getLatitude().asDegrees()));
                 break;
@@ -248,25 +213,13 @@ public class GeoJsonBuilder
             case MULTI_LINESTRING:
             case MULTI_POLYGON:
             {
-                for (final Location location : locations)
-                {
-                    final JsonArray locationArray = new JsonArray();
-                    locationArray.add(new JsonPrimitive(location.getLongitude().asDegrees()));
-                    locationArray.add(new JsonPrimitive(location.getLatitude().asDegrees()));
-                    coordinates.add(locationArray);
-                }
+                coordinates = GeoJsonUtils.locationsToCoordinates(locations);
                 break;
             }
             case POLYGON:
             {
-                final JsonArray locationArray = new JsonArray();
-                for (final Location location : locations)
-                {
-                    final JsonArray locationArray2 = new JsonArray();
-                    locationArray2.add(new JsonPrimitive(location.getLongitude().asDegrees()));
-                    locationArray2.add(new JsonPrimitive(location.getLatitude().asDegrees()));
-                    locationArray.add(locationArray2);
-                }
+                coordinates = new JsonArray();
+                final JsonArray locationArray = GeoJsonUtils.locationsToCoordinates(locations);
                 coordinates.add(locationArray);
                 break;
             }
@@ -275,7 +228,7 @@ public class GeoJsonBuilder
         }
 
         final JsonObject geometry = new JsonObject();
-        geometry.addProperty(TYPE, type.getType());
+        geometry.addProperty(TYPE, type.getTypeString());
         geometry.add(COORDINATES, coordinates);
         result.add(GEOMETRY, geometry);
         return new GeoJsonObject(result);
@@ -410,6 +363,10 @@ public class GeoJsonBuilder
             else if (located instanceof Polygon)
             {
                 feature = create((Polygon) located);
+            }
+            else if (located instanceof MultiPolyLine)
+            {
+                feature = createMultiLineStrings((MultiPolyLine) located);
             }
             else
             {
@@ -625,7 +582,7 @@ public class GeoJsonBuilder
         }
 
         final JsonObject geometry = new JsonObject();
-        geometry.addProperty(TYPE, GeoJsonType.MULTI_LINESTRING.getType());
+        geometry.addProperty(TYPE, GeoJsonType.MULTI_LINESTRING.getTypeString());
         geometry.add(COORDINATES, coordinates);
         result.add(GEOMETRY, geometry);
         return new GeoJsonObject(result);
@@ -661,7 +618,7 @@ public class GeoJsonBuilder
         }
 
         final JsonObject geometry = new JsonObject();
-        geometry.addProperty(TYPE, GeoJsonType.MULTI_POLYGON.getType());
+        geometry.addProperty(TYPE, GeoJsonType.MULTI_POLYGON.getTypeString());
         geometry.add(COORDINATES, coordinates);
         result.add(GEOMETRY, geometry);
         return new GeoJsonObject(result);
@@ -700,7 +657,7 @@ public class GeoJsonBuilder
         final JsonArray newCoordinates = new JsonArray();
         newCoordinates.add(coordinates);
         final JsonObject geometry = new JsonObject();
-        geometry.addProperty(TYPE, GeoJsonType.MULTI_POLYGON.getType());
+        geometry.addProperty(TYPE, GeoJsonType.MULTI_POLYGON.getTypeString());
         geometry.add(COORDINATES, newCoordinates);
         result.add(GEOMETRY, geometry);
         result.add(PROPERTIES, new JsonObject());

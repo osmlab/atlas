@@ -11,6 +11,7 @@ import java.util.stream.StreamSupport;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.locationtech.jts.io.WKBWriter;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.Polygon;
@@ -26,13 +27,15 @@ import org.openstreetmap.atlas.geography.converters.PolygonStringConverter;
 import org.openstreetmap.atlas.geography.converters.WkbMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.WkbPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.WktMultiPolygonConverter;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonFeature;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.configuration.StandardConfiguration;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
 import org.openstreetmap.atlas.utilities.testing.FreezeDryFunction;
 
-import com.vividsolutions.jts.io.WKBWriter;
+import com.google.gson.JsonObject;
 
 /**
  * Tests for {@link AtlasEntityPolygonsFilter}
@@ -43,6 +46,39 @@ public class AtlasEntityPolygonsFilterTest
 {
     private static final IntersectionPolicy FULL_GEOMETRIC_ENCLOSING = new IntersectionPolicy()
     {
+        private static final long serialVersionUID = -2116753295106517381L;
+
+        // note this is the only one now used by the filter
+        @Override
+        public boolean geometricSurfaceEntityIntersecting(final GeometricSurface geometricSurface,
+                final AtlasEntity entity)
+        {
+            if (entity instanceof LineItem)
+            {
+                return geometricSurface
+                        .fullyGeometricallyEncloses(((LineItem) entity).asPolyLine());
+            }
+            if (entity instanceof LocationItem)
+            {
+                return geometricSurface
+                        .fullyGeometricallyEncloses(((LocationItem) entity).getLocation());
+            }
+            if (entity instanceof Area)
+            {
+                return geometricSurface.fullyGeometricallyEncloses(((Area) entity).asPolygon());
+            }
+            if (entity instanceof Relation)
+            {
+                return ((Relation) entity).members().stream().map(RelationMember::getEntity)
+                        .anyMatch(relationEntity -> this.geometricSurfaceEntityIntersecting(
+                                geometricSurface, relationEntity));
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         @Override
         public boolean multiPolygonEntityIntersecting(final MultiPolygon multiPolygon,
                 final AtlasEntity entity)
@@ -94,37 +130,6 @@ public class AtlasEntityPolygonsFilterTest
                 return ((Relation) entity).members().stream().map(RelationMember::getEntity)
                         .anyMatch(relationEntity -> this.polygonEntityIntersecting(polygon,
                                 relationEntity));
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        // note this is the only one now used by the filter
-        @Override
-        public boolean geometricSurfaceEntityIntersecting(final GeometricSurface geometricSurface,
-                final AtlasEntity entity)
-        {
-            if (entity instanceof LineItem)
-            {
-                return geometricSurface
-                        .fullyGeometricallyEncloses(((LineItem) entity).asPolyLine());
-            }
-            if (entity instanceof LocationItem)
-            {
-                return geometricSurface
-                        .fullyGeometricallyEncloses(((LocationItem) entity).getLocation());
-            }
-            if (entity instanceof Area)
-            {
-                return geometricSurface.fullyGeometricallyEncloses(((Area) entity).asPolygon());
-            }
-            if (entity instanceof Relation)
-            {
-                return ((Relation) entity).members().stream().map(RelationMember::getEntity)
-                        .anyMatch(relationEntity -> this.geometricSurfaceEntityIntersecting(
-                                geometricSurface, relationEntity));
             }
             else
             {
@@ -227,10 +232,22 @@ public class AtlasEntityPolygonsFilterTest
                 this.constructConfiguredFilter(atlasConfigurationStringFormat,
                         new PolygonStringConverter().backwardConvert(includeBoundary)),
                 2, 2, 2, 0);
-        this.assertCounts(this.setup.getTestForm(),
-                this.constructConfiguredFilter(geojsonConfigurationStringFormat,
-                        includeBoundary.asGeoJson().toString().replaceAll("\"", "\\\\\"")),
-                2, 2, 2, 0);
+        this.assertCounts(this.setup.getTestForm(), this.constructConfiguredFilter(
+                geojsonConfigurationStringFormat,
+                GeoJsonUtils.featureCollection(Collections.singletonList(new GeoJsonFeature()
+                {
+                    @Override
+                    public JsonObject asGeoJsonGeometry()
+                    {
+                        return includeBoundary.asGeoJson();
+                    }
+
+                    @Override
+                    public JsonObject getGeoJsonProperties()
+                    {
+                        return new JsonObject();
+                    }
+                }), new JsonObject()).toString().replaceAll("\"", "\\\\\"")), 2, 2, 2, 0);
     }
 
     /**
@@ -289,6 +306,7 @@ public class AtlasEntityPolygonsFilterTest
         final long totalRelationCount = testCountsAtlas.numberOfRelations();
         final IntersectionPolicy dudIntersectionPolicy = new IntersectionPolicy()
         {
+            private static final long serialVersionUID = 7127929164076173373L;
             // uses all false defaults
         };
 

@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -31,7 +32,8 @@ import org.xml.sax.SAXParseException;
  */
 public class OsmosisXmlReaderFromResource implements RunnableSource
 {
-    private static Logger log = Logger.getLogger(OsmosisXmlReaderFromResource.class.getName());
+    private static final Logger log = Logger
+            .getLogger(OsmosisXmlReaderFromResource.class.getName());
 
     private Sink sink;
 
@@ -137,13 +139,11 @@ public class OsmosisXmlReaderFromResource implements RunnableSource
     {
         try
         {
-            return SAXParserFactory.newInstance().newSAXParser();
+            final SAXParserFactory factory = SAXParserFactory.newInstance();
+            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            return factory.newSAXParser();
         }
-        catch (final ParserConfigurationException e)
-        {
-            throw new OsmosisRuntimeException("Unable to create SAX Parser.", e);
-        }
-        catch (final SAXException e)
+        catch (final ParserConfigurationException | SAXException e)
         {
             throw new OsmosisRuntimeException("Unable to create SAX Parser.", e);
         }

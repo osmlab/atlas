@@ -39,24 +39,6 @@ public class SCPOperationResults implements OperationResults
     }
 
     /**
-     * When the scp operation is completed, this method should be called so the duration is
-     * recorded, the stdout/stderr output captured, and the remote return code saved
-     *
-     * @param output
-     *            possible stdout/stderr from the scp process
-     * @param returnCode
-     *            standard unix exit code. See man scp for details
-     * @return fluent interface returns this
-     */
-    SCPOperationResults finish(final String output, final int returnCode)
-    {
-        this.output = output;
-        this.returnValue = returnCode;
-        getElapsedTime();
-        return this;
-    }
-
-    /**
      * @return the local or remote file being written
      */
     public String getDestination()
@@ -98,5 +80,23 @@ public class SCPOperationResults implements OperationResults
     public String toString()
     {
         return String.format("%d\n%s\n", getReturnValue(), getOutput());
+    }
+
+    /**
+     * When the scp operation is completed, this method should be called so the duration is
+     * recorded, the stdout/stderr output captured, and the remote return code saved
+     *
+     * @param output
+     *            possible stdout/stderr from the scp process
+     * @param returnCode
+     *            standard unix exit code. See man scp for details
+     * @return fluent interface returns this
+     */
+    SCPOperationResults finish(final String output, final int returnCode)
+    {
+        this.output = output;
+        this.returnValue = returnCode;
+        getElapsedTime();
+        return this;
     }
 }

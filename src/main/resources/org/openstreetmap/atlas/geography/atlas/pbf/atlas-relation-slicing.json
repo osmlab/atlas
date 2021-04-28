@@ -1,0 +1,6 @@
+{
+    "atlas-relation-slicing":
+    {
+        "taggableFilter": "type->multipolygon"
+    }
+}

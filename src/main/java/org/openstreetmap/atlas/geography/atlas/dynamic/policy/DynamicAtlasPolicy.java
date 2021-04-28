@@ -98,14 +98,7 @@ public class DynamicAtlasPolicy
         {
             if (this.maximumBounds.overlaps(shard.bounds()))
             {
-                try
-                {
-                    return this.atlasFetcher.apply(shard);
-                }
-                catch (final Throwable error)
-                {
-                    logger.error("Could not load shard {}, skipping.", shard.getName(), error);
-                }
+                return this.atlasFetcher.apply(shard);
             }
             else
             {
@@ -131,7 +124,8 @@ public class DynamicAtlasPolicy
         }
         final MultiMap<Polygon, Polygon> outerToInners = new MultiMap<>();
         this.initialShards.forEach(shard -> outerToInners.put(shard.bounds(), new ArrayList<>()));
-        return new MultiPolygon(outerToInners);
+        this.shapeCoveringInitialShards = Optional.of(new MultiPolygon(outerToInners));
+        return this.shapeCoveringInitialShards.get();
     }
 
     public Polygon getMaximumBounds()
@@ -139,14 +133,14 @@ public class DynamicAtlasPolicy
         return this.maximumBounds;
     }
 
-    public Sharding getSharding()
-    {
-        return this.sharding;
-    }
-
     public Consumer<Set<Shard>> getShardSetChecker()
     {
         return this.shardSetChecker;
+    }
+
+    public Sharding getSharding()
+    {
+        return this.sharding;
     }
 
     public boolean isAggressivelyExploreRelations()

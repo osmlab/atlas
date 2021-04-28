@@ -16,10 +16,8 @@ import org.openstreetmap.atlas.geography.atlas.builder.store.AtlasPrimitiveLineI
 import org.openstreetmap.atlas.geography.atlas.builder.store.AtlasPrimitiveLocationItem;
 import org.openstreetmap.atlas.geography.atlas.builder.store.AtlasPrimitiveObjectStore;
 import org.openstreetmap.atlas.geography.atlas.builder.store.AtlasPrimitiveRelation;
-import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
-import org.openstreetmap.atlas.geography.atlas.pbf.OsmPbfLoader;
 import org.openstreetmap.atlas.geography.atlas.pbf.OsmosisReaderMock;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
@@ -30,9 +28,8 @@ import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 
 /**
- * Tests {@link RawAtlasGenerator} Raw Atlas creation. These tests include basic parity check on
- * feature counts between the old and new PBF ingest methods, test functionality for various
- * Relation cases, tests edge cases surrounding corrupt or incomplete PBF files.
+ * Tests {@link RawAtlasGenerator} Raw Atlas creation. These test functionality for various Relation
+ * cases, tests edge cases surrounding corrupt or incomplete PBF files.
  *
  * @author mgostintsev
  */
@@ -119,36 +116,9 @@ public class RawAtlasGeneratorTest
         // Verify Atlas Entities
         assertBasicRawAtlasPrinciples(atlas);
         Assert.assertEquals(5, atlas.numberOfPoints());
-        Assert.assertEquals(1, atlas.numberOfLines());
+        Assert.assertEquals(0, atlas.numberOfLines());
+        Assert.assertEquals(1, atlas.numberOfAreas());
         Assert.assertEquals(2, atlas.numberOfRelations());
-    }
-
-    @Test
-    public void testParityBetweenRawAtlasAndGeneratedAtlas()
-    {
-        // Previous PBF-to-Atlas Implementation
-        final String pbfPath = RawAtlasGeneratorTest.class.getResource("9-433-268.osm.pbf")
-                .getPath();
-        final OsmPbfLoader loader = new OsmPbfLoader(new File(pbfPath), AtlasLoadingOption
-                .createOptionWithNoSlicing().setLoadWaysSpanningCountryBoundaries(false));
-        final Atlas oldAtlas = loader.read();
-
-        // Raw Atlas Implementation
-        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(pbfPath));
-        final Atlas rawAtlas = rawAtlasGenerator.build();
-
-        Assert.assertEquals(
-                "The original Atlas counts of (Lines + Master Edges + Areas) should equal the total number of all Lines in the Raw Atlas, let's verify this",
-                Iterables.size(Iterables.filter(oldAtlas.edges(), Edge::isMasterEdge))
-                        + oldAtlas.numberOfAreas() + oldAtlas.numberOfLines(),
-                rawAtlas.numberOfLines());
-
-        Assert.assertEquals("The two Atlas files should have identical number of Relations",
-                oldAtlas.numberOfRelations(), rawAtlas.numberOfRelations());
-
-        // Note: Nodes/Points in the old PBF-to-Atlas implementation vs. Points in Raw Atlas
-        // implementation are difficult to compare, due to us bringing in every Way shape-point.
-        // Skipping this check here.
     }
 
     @Test
@@ -162,9 +132,10 @@ public class RawAtlasGeneratorTest
 
         // Verify Atlas Entities
         assertBasicRawAtlasPrinciples(atlas);
-        Assert.assertEquals(457837, atlas.numberOfPoints());
-        Assert.assertEquals(45839, atlas.numberOfLines());
-        Assert.assertEquals(347, atlas.numberOfRelations());
+        Assert.assertEquals(457863, atlas.numberOfPoints());
+        Assert.assertEquals(13335, atlas.numberOfAreas());
+        Assert.assertEquals(32521, atlas.numberOfLines());
+        Assert.assertEquals(408, atlas.numberOfRelations());
         Assert.assertEquals(49, Iterables.size(atlas.points(
                 point -> Validators.hasValuesFor(point, SyntheticDuplicateOsmNodeTag.class))));
     }
@@ -178,9 +149,10 @@ public class RawAtlasGeneratorTest
 
         // Verify Atlas Entities
         assertBasicRawAtlasPrinciples(atlas);
-        Assert.assertEquals(52188, atlas.numberOfPoints());
-        Assert.assertEquals(6080, atlas.numberOfLines());
-        Assert.assertEquals(3, atlas.numberOfRelations());
+        Assert.assertEquals(54636, atlas.numberOfPoints());
+        Assert.assertEquals(5399, atlas.numberOfAreas());
+        Assert.assertEquals(686, atlas.numberOfLines());
+        Assert.assertEquals(5, atlas.numberOfRelations());
     }
 
     @Test
@@ -194,9 +166,10 @@ public class RawAtlasGeneratorTest
 
         // Verify Atlas Entities
         assertBasicRawAtlasPrinciples(atlas);
-        Assert.assertEquals(1361, atlas.numberOfPoints());
-        Assert.assertEquals(25, atlas.numberOfLines());
-        Assert.assertEquals(0, atlas.numberOfRelations());
+        Assert.assertEquals(3851, atlas.numberOfPoints());
+        Assert.assertEquals(34, atlas.numberOfLines());
+        Assert.assertEquals(2, atlas.numberOfAreas());
+        Assert.assertEquals(1, atlas.numberOfRelations());
     }
 
     private void assertBasicRawAtlasPrinciples(final Atlas atlas)
@@ -204,6 +177,5 @@ public class RawAtlasGeneratorTest
         // The Raw Atlas should never contain Nodes, Edges or Areas
         Assert.assertEquals(0, atlas.numberOfNodes());
         Assert.assertEquals(0, atlas.numberOfEdges());
-        Assert.assertEquals(0, atlas.numberOfAreas());
     }
 }

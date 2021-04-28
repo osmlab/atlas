@@ -1,11 +1,9 @@
 package org.openstreetmap.atlas.utilities.archive;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.apache.commons.compress.archivers.ArchiveException;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.runtime.Command;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
@@ -37,7 +35,7 @@ public class UnzipperCommand extends Command
         {
             Extractor.extractZipArchive(outputFile).extract(inputPath);
         }
-        catch (final IOException | ArchiveException oops)
+        catch (final Exception oops)
         {
             throw new CoreException("Error when extracting: {} -> {}", inputPath, outputFile, oops);
         }
@@ -70,7 +68,7 @@ public class UnzipperCommand extends Command
         {
             Files.createDirectories(outputFile);
         }
-        catch (final IOException oops)
+        catch (final Exception oops)
         {
             throw new CoreException("Can't create {}", outputFile, oops);
         }

@@ -5,13 +5,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonProperties;
 import org.openstreetmap.atlas.proto.ProtoSerializable;
 import org.openstreetmap.atlas.proto.adapters.ProtoAdapter;
 import org.openstreetmap.atlas.proto.adapters.ProtoAtlasMetaDataAdapter;
 import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.utilities.collections.Maps;
+import org.openstreetmap.atlas.utilities.collections.StringList;
+
+import com.google.gson.JsonObject;
 
 /**
  * Meta data for an {@link Atlas}
@@ -19,17 +26,16 @@ import org.openstreetmap.atlas.utilities.collections.Maps;
  * @author matthieun
  * @author lcram
  */
-public final class AtlasMetaData implements Serializable, Taggable, ProtoSerializable
+public final class AtlasMetaData
+        implements Serializable, Taggable, ProtoSerializable, GeoJsonProperties
 {
-    private static final long serialVersionUID = -285346019736489425L;
-
     public static final String EDGE_CONFIGURATION = "edgeConfiguration";
     public static final String AREA_CONFIGURATION = "areaConfiguration";
     public static final String WAY_SECTIONING_CONFIGURATION = "waySectioningConfiguration";
     public static final String OSM_PBF_WAY_CONFIGURATION = "osmPbfWayConfiguration";
     public static final String OSM_PBF_NODE_CONFIGURATION = "osmPbfNodeConfiguration";
     public static final String OSM_PBF_RELATION_CONFIGURATION = "osmPbfRelationConfiguration";
-
+    private static final long serialVersionUID = -285346019736489425L;
     private static final String UNKNOWN_VALUE = "unknown";
 
     private final AtlasSize size;
@@ -62,6 +68,12 @@ public final class AtlasMetaData implements Serializable, Taggable, ProtoSeriali
         this.country = country;
         this.shardName = shardName;
         this.tags = tags;
+    }
+
+    public AtlasMetaData copyWithNewOriginal(final boolean original)
+    {
+        return new AtlasMetaData(this.size, original, this.codeVersion, this.dataVersion,
+                this.country, this.shardName, this.tags);
     }
 
     public AtlasMetaData copyWithNewShardName(final String shardName)
@@ -132,6 +144,30 @@ public final class AtlasMetaData implements Serializable, Taggable, ProtoSeriali
     public Optional<String> getDataVersion()
     {
         return Optional.ofNullable(this.dataVersion);
+    }
+
+    @Override
+    public JsonObject getGeoJsonProperties()
+    {
+        final JsonObject properties = new JsonObject();
+        properties.add("size", this.getSize().getGeoJsonProperties());
+        properties.addProperty("original", this.isOriginal());
+        this.getCodeVersion()
+                .ifPresent(versionString -> properties.addProperty("Code Version", versionString));
+        this.getDataVersion()
+                .ifPresent(versionString -> properties.addProperty("Data Version", versionString));
+        this.getCountry()
+                .ifPresent(countryString -> properties.addProperty("Country", countryString));
+        this.getShardName()
+                .ifPresent(theShardName -> properties.addProperty("Shard Name", theShardName));
+        this.getTags().forEach((key, value) ->
+        {
+            if (!properties.has(key))
+            {
+                properties.addProperty(key, value);
+            }
+        });
+        return properties;
     }
 
     @Override
@@ -211,14 +247,11 @@ public final class AtlasMetaData implements Serializable, Taggable, ProtoSeriali
         builder.append("Shard: ");
         builder.append(this.shardName);
         builder.append("\n");
-        builder.append("Tags: ");
-        this.tags.forEach((key, value) ->
-        {
-            builder.append("\n\t");
-            builder.append(key);
-            builder.append(" -> ");
-            builder.append(value);
-        });
+        builder.append("Tags:\n\t");
+        final SortedSet<String> sortedTags = this.tags.entrySet().stream()
+                .map(entry -> entry.getKey() + " -> " + entry.getValue())
+                .collect(Collectors.toCollection(TreeSet::new));
+        builder.append(new StringList(sortedTags).join("\n\t"));
         builder.append("\n");
         return builder.toString();
     }

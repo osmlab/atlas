@@ -2,7 +2,9 @@ package org.openstreetmap.atlas.geography.atlas.items.complex;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.io.Serializable;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,9 +29,11 @@ public abstract class ComplexEntity implements AtlasObject
      *
      * @author cstaylor
      */
-    public static final class ComplexEntityError
+    public static final class ComplexEntityError implements Serializable
     {
-        private final ComplexEntity source;
+        private static final long serialVersionUID = 3162352792545207168L;
+
+        private final transient ComplexEntity source;
         private final String reason;
         private final Throwable oops;
 
@@ -113,7 +117,15 @@ public abstract class ComplexEntity implements AtlasObject
         return false;
     }
 
-    public abstract List<ComplexEntityError> getAllInvalidations();
+    public List<ComplexEntityError> getAllInvalidations()
+    {
+        final List<ComplexEntityError> returnValue = new ArrayList<>();
+        if (!isValid())
+        {
+            getError().ifPresent(returnValue::add);
+        }
+        return returnValue;
+    }
 
     @Override
     public Atlas getAtlas()

@@ -32,6 +32,7 @@ public class ProtoByteArrayOfArraysAdapter implements ProtoAdapter
         }
 
         final ByteArrayOfArrays byteArrayOfArrays = new ByteArrayOfArrays(
+                protoByteArrayOfArrays.getArraysCount(), protoByteArrayOfArrays.getArraysCount(),
                 protoByteArrayOfArrays.getArraysCount());
         if (protoByteArrayOfArrays.hasName())
         {

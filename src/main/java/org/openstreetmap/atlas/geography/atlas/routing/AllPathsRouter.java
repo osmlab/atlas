@@ -25,10 +25,9 @@ import com.google.common.collect.Iterables;
  */
 public final class AllPathsRouter
 {
+    public static final int MAXIMUM_ALLOWED_PATHS = 20000;
     private static final Logger logger = LoggerFactory.getLogger(AllPathsRouter.class);
     private static final int MAXIMUM_ALLOWED_EDGES_FOR_TRAVERSAL = 1000;
-    private static final int MAXIMUM_ALLOWED_PATHS = 20000;
-
     // The default filter to use when we want to include all edges.
     private static final Predicate<Edge> ALL_EDGES = edge -> true;
 
@@ -56,7 +55,7 @@ public final class AllPathsRouter
         final Stack<Edge> path = new Stack<>();
         final Set<Long> onPath = new HashSet<>();
         final Set<Route> routes = new HashSet<>();
-        allRoutes(start, end, path, onPath, routes, ALL_EDGES);
+        allRoutes(start, end, path, onPath, routes, ALL_EDGES, MAXIMUM_ALLOWED_PATHS);
 
         return routes;
     }
@@ -89,7 +88,7 @@ public final class AllPathsRouter
         final Stack<Edge> path = new Stack<>();
         final Set<Long> onPath = new HashSet<>();
         final Set<Route> routes = new TreeSet<>(comparator);
-        allRoutes(start, end, path, onPath, routes, ALL_EDGES);
+        allRoutes(start, end, path, onPath, routes, ALL_EDGES, MAXIMUM_ALLOWED_PATHS);
 
         return routes;
     }
@@ -122,7 +121,7 @@ public final class AllPathsRouter
         final Stack<Edge> path = new Stack<>();
         final Set<Long> onPath = new HashSet<>();
         final Set<Route> routes = new HashSet<>();
-        allRoutes(start, end, path, onPath, routes, filter);
+        allRoutes(start, end, path, onPath, routes, filter, MAXIMUM_ALLOWED_PATHS);
 
         return routes;
     }
@@ -158,15 +157,37 @@ public final class AllPathsRouter
         final Stack<Edge> path = new Stack<>();
         final Set<Long> onPath = new HashSet<>();
         final Set<Route> routes = new TreeSet<>(comparator);
-        allRoutes(start, end, path, onPath, routes, filter);
+        allRoutes(start, end, path, onPath, routes, filter, MAXIMUM_ALLOWED_PATHS);
+
+        return routes;
+    }
+
+    public static Set<Route> allRoutes(final Edge start, final Edge end,
+            final Predicate<Edge> filter, final int maximumAllowedPaths)
+    {
+        if (start.getAtlas() != end.getAtlas())
+        {
+            throw new CoreException("Supplied start and end edges must come from the same atlas!");
+        }
+        if (Iterables.size(start.getAtlas().edges()) > MAXIMUM_ALLOWED_EDGES_FOR_TRAVERSAL)
+        {
+            throw new CoreException(
+                    "Atlas has too many edges for an efficient traversal - aborting!");
+        }
+
+        final Stack<Edge> path = new Stack<>();
+        final Set<Long> onPath = new HashSet<>();
+        final Set<Route> routes = new HashSet<>();
+        allRoutes(start, end, path, onPath, routes, filter, maximumAllowedPaths);
 
         return routes;
     }
 
     private static void allRoutes(final Edge start, final Edge end, final Stack<Edge> path,
-            final Set<Long> onPath, final Set<Route> routes, final Predicate<Edge> filter)
+            final Set<Long> onPath, final Set<Route> routes, final Predicate<Edge> filter,
+            final int maximumAllowedPaths)
     {
-        if (routes.size() > MAXIMUM_ALLOWED_PATHS)
+        if (routes.size() >= maximumAllowedPaths)
         {
             return;
         }
@@ -179,7 +200,7 @@ public final class AllPathsRouter
             // Found a path from start to end, save this route
             routes.add(Route.forEdges(path));
 
-            if (routes.size() > MAXIMUM_ALLOWED_PATHS)
+            if (routes.size() > maximumAllowedPaths)
             {
                 logger.warn("Too many paths found - aborting! Path so far: {}",
                         path.stream().map(edge -> String.valueOf(edge.getIdentifier()))
@@ -196,7 +217,7 @@ public final class AllPathsRouter
                 if (!candidate.isZeroLength() && !onPath.contains(candidate.getIdentifier())
                         && (filter.test(candidate) || candidate.equals(end)))
                 {
-                    allRoutes(candidate, end, path, onPath, routes, filter);
+                    allRoutes(candidate, end, path, onPath, routes, filter, maximumAllowedPaths);
                 }
             }
         }

@@ -1,0 +1,38 @@
+package org.openstreetmap.atlas.geography.geojson.parser.domain.geometry;
+
+import java.util.List;
+import java.util.Map;
+
+import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordinate.Coordinates;
+import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordinate.Position;
+import org.openstreetmap.atlas.geography.geojson.parser.domain.geometry.coordinate.Positions;
+
+/**
+ * @author Yazad Khambata
+ */
+@SuppressWarnings("squid:S2160")
+public class MultiPoint
+        extends AbstractGeometryWithCoordinateSupport<List<Position>, List<Location>>
+{
+    private List<Position> coordinates;
+
+    public MultiPoint(final Map<String, Object> map)
+    {
+        super(map, null);
+        this.coordinates = Coordinates
+                .forMultiPoint((List<List<Number>>) extractRawCoordinates(map)).getValue();
+    }
+
+    @Override
+    public Coordinates<List<Position>> getCoordinates()
+    {
+        return new Coordinates<>(this.coordinates);
+    }
+
+    @Override
+    public List<Location> toAtlasGeometry()
+    {
+        return Positions.toLocations(this.coordinates);
+    }
+}

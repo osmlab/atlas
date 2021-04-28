@@ -142,7 +142,7 @@ public class MultiplePolyLineToPolygonsConverterTest
         list.add(EDGE6);
         list.add(EDGE7);
         list.add(EDGE8);
-        CONVERTER.convert(list);
+        Assert.assertEquals(1, Iterables.size(CONVERTER.convert(list)));
     }
 
     @Test(expected = OpenPolygonException.class)
@@ -156,6 +156,51 @@ public class MultiplePolyLineToPolygonsConverterTest
     }
 
     @Test
+    public void testJtsException()
+    {
+        // Based on OSM data taken as of 2020-10-08.
+        // - https://www.openstreetmap.org/relation/3990246 - v8
+        // - outer: https://www.openstreetmap.org/way/300069279 - v30
+        // - inner: https://www.openstreetmap.org/way/358209466 - v6
+        // - inner: https://www.openstreetmap.org/way/304650414 - v9
+        final List<PolyLine> list = new ArrayList<>();
+        list.add(PolyLine.wkt(new InputStreamResource(
+                () -> MultiplePolyLineToPolygonsConverterTest.class.getResourceAsStream(
+                        "MultiplePolyLineToPolygonsConverterTest_jtsErrorOuter.wkt")).all()));
+        list.add(PolyLine.wkt(new InputStreamResource(
+                () -> MultiplePolyLineToPolygonsConverterTest.class.getResourceAsStream(
+                        "MultiplePolyLineToPolygonsConverterTest_jtsErrorInner1.wkt")).all()));
+        list.add(PolyLine.wkt(new InputStreamResource(
+                () -> MultiplePolyLineToPolygonsConverterTest.class.getResourceAsStream(
+                        "MultiplePolyLineToPolygonsConverterTest_jtsErrorInner2.wkt")).all()));
+        Assert.assertEquals(3, Iterables.size(CONVERTER.convert(list)));
+    }
+
+    @Test
+    public void testPolyLinesWithOneSelfIntersection()
+    {
+        final List<PolyLine> list = new ArrayList<>();
+        list.add(PolyLine.wkt("LINESTRING (5 5, 0 10, 10 10)"));
+        list.add(PolyLine.wkt("LINESTRING (10 10, 5 5)"));
+        list.add(PolyLine.wkt("LINESTRING (5 5, 0 0)"));
+        list.add(PolyLine.wkt("LINESTRING (0 0, 10 0, 5 5)"));
+        Assert.assertEquals(2, Iterables.size(CONVERTER.convert(list)));
+    }
+
+    @Test
+    public void testPolyLinesWithTwoSelfIntersections()
+    {
+        final List<PolyLine> list = new ArrayList<>();
+        list.add(PolyLine.wkt("LINESTRING (5 5, 0 10, 10 10)"));
+        list.add(PolyLine.wkt("LINESTRING (10 10, 5 5)"));
+        list.add(PolyLine.wkt("LINESTRING (5 5, 0 0)"));
+        list.add(PolyLine.wkt("LINESTRING (0 0, 10 0, 5 5)"));
+        list.add(PolyLine.wkt("LINESTRING (10 10, 15 15, 15 10)"));
+        list.add(PolyLine.wkt("LINESTRING (15 10, 10 10)"));
+        Assert.assertEquals(3, Iterables.size(CONVERTER.convert(list)));
+    }
+
+    @Test
     public void testRegular()
     {
         final List<PolyLine> list = new ArrayList<>();
@@ -163,7 +208,7 @@ public class MultiplePolyLineToPolygonsConverterTest
         list.add(new PolyLine(TWO, THR, FOR));
         list.add(new PolyLine(FOR, FVE, ONE));
         final Polygon result = CONVERTER.convert(list).iterator().next();
-        Assert.assertEquals(result, POLYGON_LOOP);
+        Assert.assertEquals(POLYGON_LOOP.length(), result.length());
     }
 
     @Test
@@ -175,15 +220,7 @@ public class MultiplePolyLineToPolygonsConverterTest
         // Reversed!
         list.add(new PolyLine(ONE, FVE, FOR));
         final Polygon result = CONVERTER.convert(list).iterator().next();
-        Assert.assertEquals(result, POLYGON_LOOP);
-    }
-
-    @Test
-    public void testSingleClosedPolygon()
-    {
-        final List<PolyLine> list = new ArrayList<>();
-        list.add(POLYGON_LOOP);
-        CONVERTER.convert(list);
+        Assert.assertEquals(POLYGON_LOOP.length(), result.length());
     }
 
     @Test
@@ -191,30 +228,48 @@ public class MultiplePolyLineToPolygonsConverterTest
     {
         final List<PolyLine> list = new ArrayList<>();
         list.add(POLYLINE_LOOP);
-        CONVERTER.convert(list);
+        Assert.assertEquals(1, Iterables.size(CONVERTER.convert(list)));
     }
 
     @Test
     public void testSingleClosedPolyLineWithinGroup()
     {
         final List<PolyLine> input = new InputStreamResource(
-                () -> MultiplePolyLineToPolygonsConverterTest.class
-                        .getResourceAsStream("multiplePolyLines.txt")).linesList().stream()
-                                .map(WKT_POLY_LINE_CONVERTER::backwardConvert)
+                () -> MultiplePolyLineToPolygonsConverterTest.class.getResourceAsStream(
+                        "MultiplePolyLineToPolygonsConverterTest_multiplePolyLines.txt"))
+                                .linesList().stream().map(WKT_POLY_LINE_CONVERTER::backwardConvert)
                                 .collect(Collectors.toList());
         final List<Polygon> expected = new InputStreamResource(
-                () -> MultiplePolyLineToPolygonsConverterTest.class
-                        .getResourceAsStream("expectedPolygons.txt")).linesList().stream()
-                                .map(WKT_POLYGON_CONVERTER::backwardConvert)
+                () -> MultiplePolyLineToPolygonsConverterTest.class.getResourceAsStream(
+                        "MultiplePolyLineToPolygonsConverterTest_expectedPolygons.txt")).linesList()
+                                .stream().map(WKT_POLYGON_CONVERTER::backwardConvert)
                                 .collect(Collectors.toList());
-        Assert.assertEquals(expected, Iterables.asList(CONVERTER.convert(input)));
+        Iterables.asList(CONVERTER.convert(input)).forEach(System.out::println);
+        Assert.assertEquals(expected.stream().map(Polygon::length).collect(Collectors.toList()),
+                Iterables.asList(CONVERTER.convert(input)).stream().map(Polygon::length)
+                        .collect(Collectors.toList()));
     }
 
-    @Test(expected = OpenPolygonException.class)
+    @Test
+    public void testSingleClosedPolygon()
+    {
+        final List<PolyLine> list = new ArrayList<>();
+        list.add(POLYGON_LOOP);
+        Assert.assertEquals(1, Iterables.size(CONVERTER.convert(list)));
+    }
+
+    @Test
     public void testSingleOpenPolyLine()
     {
         final List<PolyLine> list = new ArrayList<>();
         list.add(new PolyLine(ONE, TWO));
-        CONVERTER.convert(list);
+        try
+        {
+            CONVERTER.convert(list);
+        }
+        catch (final OpenPolygonException openPolygonException)
+        {
+            Assert.assertEquals(2, openPolygonException.getOpenLocations().size());
+        }
     }
 }

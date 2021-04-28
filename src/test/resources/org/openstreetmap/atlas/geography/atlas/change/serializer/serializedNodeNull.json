@@ -1,0 +1,27 @@
+{
+  "type": "Feature",
+  "bbox": [
+    12.49234,
+    41.890224,
+    12.49234,
+    41.890224
+  ],
+  "geometry": {
+    "type": "Point",
+    "coordinates": [
+      12.49234,
+      41.890224
+    ]
+  },
+  "properties": {
+    "featureChangeType": "ADD",
+    "metadata": {
+      "key": "value"
+    },
+    "entityType": "NODE",
+    "completeEntityClass": "org.openstreetmap.atlas.geography.atlas.complete.CompleteNode",
+    "identifier": 123,
+    "WKT": "POINT (12.49234 41.890224)",
+    "bboxWKT": "POLYGON ((12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224, 12.49234 41.890224))"
+  }
+}

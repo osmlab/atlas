@@ -25,10 +25,10 @@ public class AtlasJoinerSubCommandTest
     @BeforeClass
     public static void createBinaryAtlases()
     {
-        final List<String> shardList = Arrays.asList(TXT_PATH + "/DNK_1.txt",
-                TXT_PATH + "/DNK_2.txt", TXT_PATH + "/DNK_3.txt");
+        final List<String> shardList = Arrays.asList(TXT_PATH + "/DNK_1.atlas.txt",
+                TXT_PATH + "/DNK_2.atlas.txt", TXT_PATH + "/DNK_3.atlas.txt");
         shardList.forEach(shard -> new TextAtlasBuilder().read(new File(shard))
-                .save(new File(SHARD_PATH.getPath() + shard.replace("txt", "atlas"))));
+                .save(new File(SHARD_PATH.getPathString() + shard.replace("txt", "atlas"))));
     }
 
     @AfterClass
@@ -44,7 +44,7 @@ public class AtlasJoinerSubCommandTest
 
         // Run AtlasJoinerSubCommand
         final String[] args = { "join", String.format("-input=%1$s", SHARD_PATH),
-                String.format("-output=%1$s", temp.getPath()) };
+                String.format("-output=%1$s", temp.getPathString()) };
         new AtlasReader(args).runWithoutQuitting(args);
 
         Assert.assertTrue(temp.length() > 0);

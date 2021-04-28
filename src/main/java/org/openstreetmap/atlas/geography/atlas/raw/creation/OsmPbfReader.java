@@ -12,6 +12,7 @@ import org.openstreetmap.atlas.geography.Latitude;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Longitude;
 import org.openstreetmap.atlas.geography.PolyLine;
+import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
@@ -23,7 +24,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.PaddingIdentifierFactory;
-import org.openstreetmap.atlas.geography.atlas.pbf.store.TagMap;
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.TagMap;
 import org.openstreetmap.atlas.tags.AtlasTag;
 import org.openstreetmap.atlas.tags.LastEditChangesetTag;
 import org.openstreetmap.atlas.tags.LastEditTimeTag;
@@ -61,6 +62,7 @@ public class OsmPbfReader implements Sink
 {
     private static final Logger logger = LoggerFactory.getLogger(OsmPbfReader.class);
     private static final String MISSING_MEMBER_MESSAGE = "Relation {} contains {} {} as a member, but it's either filtered out or this PBF shard does not contain it.";
+    private static final int MINIMUM_CLOSED_WAY_LENGTH = 4;
 
     private final PackedAtlasBuilder builder;
     private final AtlasLoadingOption loadingOption;
@@ -74,11 +76,6 @@ public class OsmPbfReader implements Sink
      * Determines if the given {@link Entity} should be brought into the {@link Atlas}. Ideally, all
      * features will be brought in. However, to make {@link Atlas} generation flexible and fit all
      * use cases, this is configurable.
-     * <p>
-     * TODO We still temporarily suppress administrative boundaries and coastlines - see
-     * configuration files in src/main/resources. Once parity is achieved with current PBF ingest
-     * process, these two (and potentially others) cases will be handled and ingested into the
-     * Atlas.
      *
      * @param loadingOption
      *            The {@link AtlasLoadingOption} to use for configuration lookup.
@@ -106,19 +103,6 @@ public class OsmPbfReader implements Sink
             // No Bound filtering
             return true;
         }
-    }
-
-    /**
-     * Pads the given OSM identifier, by appending 6 digits to it. The first 3 appended digits are
-     * the country code identifier and the last 3 digits are the way-section identifier.
-     *
-     * @param identifier
-     *            The original OSM identifier
-     * @return a padded identifier
-     */
-    private static long padIdentifier(final long identifier)
-    {
-        return PaddingIdentifierFactory.pad(identifier);
     }
 
     /**
@@ -241,7 +225,7 @@ public class OsmPbfReader implements Sink
         if (!bean.isEmpty())
         {
             this.builder.addRelation(padIdentifier(relation.getId()), relation.getId(), bean,
-                    populateEntityTags(relation));
+                    populateEntityTags(relation).getTags());
             this.statistics.recordCreatedRelation();
         }
         else
@@ -288,6 +272,10 @@ public class OsmPbfReader implements Sink
                 {
                     bean.addItem(memberIdentifier, role, ItemType.LINE);
                 }
+                else if (this.builder.peek().area(memberIdentifier) != null)
+                {
+                    bean.addItem(memberIdentifier, role, ItemType.AREA);
+                }
                 else
                 {
                     logger.trace(MISSING_MEMBER_MESSAGE, relation.getId(), EntityType.Way,
@@ -317,6 +305,16 @@ public class OsmPbfReader implements Sink
         return bean;
     }
 
+    private Polygon constructWayPolygon(final Way way)
+    {
+        final List<WayNode> wayNodes = way.getWayNodes();
+        final List<Location> wayLocations = new ArrayList<>();
+        wayNodes.forEach(
+                node -> wayLocations.add(getNodeLocation(padIdentifier(node.getNodeId()))));
+        wayLocations.remove(wayLocations.size() - 1);
+        return new Polygon(wayLocations);
+    }
+
     /**
      * Constructs a {@link PolyLine} given an OSM PBF {@link Way}. The {@link Way} object doesn't
      * contain the coordinates of its geometry, only the references to the {@link Node}s
@@ -327,7 +325,7 @@ public class OsmPbfReader implements Sink
      *            The {@link Way} for which to construct the {@link PolyLine}
      * @return the constructed {@link PolyLine}
      */
-    private PolyLine constructWayPolyLine(final Way way)
+    private PolyLine constructWayPolyline(final Way way)
     {
         final List<WayNode> wayNodes = way.getWayNodes();
         final List<Location> wayLocations = new ArrayList<>();
@@ -386,8 +384,10 @@ public class OsmPbfReader implements Sink
     private boolean isInvalidWay(final Way way)
     {
         final List<WayNode> wayNodes = way.getWayNodes();
-        return wayNodes.size() < 2 || wayNodes.size() == 2
-                && wayNodes.get(0).getNodeId() == wayNodes.get(1).getNodeId();
+        return wayNodes.size() < 2
+                || wayNodes.size() == 2
+                        && wayNodes.get(0).getNodeId() == wayNodes.get(1).getNodeId()
+                || wayNodes.size() < MINIMUM_CLOSED_WAY_LENGTH && way.isClosed();
     }
 
     /**
@@ -417,6 +417,34 @@ public class OsmPbfReader implements Sink
     }
 
     /**
+     * @return {@code true} if we need to pad identifiers when creating atlas entities.
+     */
+    private boolean needsPadding()
+    {
+        return this.loadingOption.isCountrySlicing() || this.loadingOption.isWaySectioning();
+    }
+
+    /**
+     * Pads the given OSM identifier, by appending 6 digits to it. The first 3 appended digits are
+     * the country code identifier and the last 3 digits are the way-section identifier.
+     *
+     * @param identifier
+     *            The original OSM identifier
+     * @return a padded identifier
+     */
+    private long padIdentifier(final long identifier)
+    {
+        if (needsPadding())
+        {
+            return PaddingIdentifierFactory.pad(identifier);
+        }
+        else
+        {
+            return identifier;
+        }
+    }
+
+    /**
      * First, creates an {@link Entity} {@link Tag} for specific OSM attributes we're interested in
      * propagating to the {@link AtlasEntity}. Secondly, converts the given {@link Entity}'s
      * collection of {@link Tag}s to a {@link Map} of key/value pairs used to build an
@@ -426,13 +454,12 @@ public class OsmPbfReader implements Sink
      *            The {@link Entity} being processed
      * @return a {@link Map} of key/value tags
      */
-    private Map<String, String> populateEntityTags(final Entity entity)
+    private TagMap populateEntityTags(final Entity entity)
     {
         // Update the entity's tags to contain specific OSM attributes we care about, so that these
         // get translated to Atlas Entity tags.
         storeOsmEntityAttributesAsTags(entity);
-
-        return new TagMap(entity.getTags()).getTags();
+        return new TagMap(entity.getTags());
     }
 
     /**
@@ -447,7 +474,7 @@ public class OsmPbfReader implements Sink
         this.builder.addPoint(padIdentifier(node.getId()),
                 new Location(Latitude.degrees(node.getLatitude()),
                         Longitude.degrees(node.getLongitude())),
-                populateEntityTags(node));
+                populateEntityTags(node).getTags());
         this.statistics.recordCreatedPoint();
     }
 
@@ -535,9 +562,35 @@ public class OsmPbfReader implements Sink
         }
         else
         {
-            this.builder.addLine(padIdentifier(way.getId()), constructWayPolyLine(way),
-                    populateEntityTags(way));
-            this.statistics.recordCreatedLine();
+            final PolyLine wayPolyLine = constructWayPolyline(way);
+            final TagMap wayTags = populateEntityTags(way);
+            if (wayPolyLine.first().equals(wayPolyLine.last()))
+            {
+                boolean kept = false;
+                if (this.loadingOption.getAreaFilter().test(wayTags))
+                {
+                    this.builder.addArea(padIdentifier(way.getId()), constructWayPolygon(way),
+                            wayTags.getTags());
+                    this.statistics.recordCreatedLine();
+                    kept = true;
+                }
+                if (this.loadingOption.getEdgeFilter().test(wayTags))
+                {
+                    this.builder.addLine(padIdentifier(way.getId()), wayPolyLine,
+                            wayTags.getTags());
+                    this.statistics.recordCreatedLine();
+                    kept = true;
+                }
+                if (!kept)
+                {
+                    this.statistics.recordDroppedWay();
+                }
+            }
+            else
+            {
+                this.builder.addLine(padIdentifier(way.getId()), wayPolyLine, wayTags.getTags());
+                this.statistics.recordCreatedLine();
+            }
         }
     }
 

@@ -15,7 +15,7 @@ public class NoCachingStrategy extends AbstractCachingStrategy
 {
     @Override
     public Optional<Resource> attemptFetch(final URI resourceURI,
-            final Function<URI, Resource> defaultFetcher)
+            final Function<URI, Optional<Resource>> defaultFetcher)
     {
         return Optional.empty();
     }
@@ -24,11 +24,5 @@ public class NoCachingStrategy extends AbstractCachingStrategy
     public String getName()
     {
         return "NoCachingStrategy";
-    }
-
-    @Override
-    public void invalidate()
-    {
-        return;
     }
 }

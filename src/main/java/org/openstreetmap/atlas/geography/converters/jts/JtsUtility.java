@@ -2,13 +2,13 @@ package org.openstreetmap.atlas.geography.converters.jts;
 
 import java.util.List;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.CoordinateSequence;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.LinearRing;
-import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.CoordinateSequence;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.LinearRing;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.geom.impl.CoordinateArraySequence;
 
 /**
  * A simple utility for working with JTS objects.
@@ -20,9 +20,10 @@ public final class JtsUtility
     public static final GeometryFactory GEOMETRY_FACTORY = JtsPrecisionManager.getGeometryFactory();
     private static final int MININMUM_NUMBER_OF_POLYGON_POINTS = 4;
 
-    public static LinearRing buildLinearRing(final CoordinateSequence sequence)
+    public static LineString buildLineString(final Coordinate[] coordinates)
     {
-        return new LinearRing(sequence, GEOMETRY_FACTORY);
+        final CoordinateArraySequence sequence = new CoordinateArraySequence(coordinates);
+        return new LineString(sequence, GEOMETRY_FACTORY);
     }
 
     public static LinearRing buildLinearRing(final List<Coordinate> coordinates)
@@ -33,10 +34,9 @@ public final class JtsUtility
         return new LinearRing(sequence, GEOMETRY_FACTORY);
     }
 
-    public static LineString buildLineString(final Coordinate[] coordinates)
+    public static LinearRing buildLinearRing(final CoordinateSequence sequence)
     {
-        final CoordinateArraySequence sequence = new CoordinateArraySequence(coordinates);
-        return new LineString(sequence, GEOMETRY_FACTORY);
+        return new LinearRing(sequence, GEOMETRY_FACTORY);
     }
 
     public static Polygon toPolygon(final Coordinate[] coordinates)

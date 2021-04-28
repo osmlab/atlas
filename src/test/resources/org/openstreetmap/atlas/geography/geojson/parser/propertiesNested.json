@@ -1,0 +1,8 @@
+{
+  "type": "Point",
+  "coordinates": [102.0, 0.5],
+  "properties": {
+    "prop0": {"a": 123, "b": "hello", "c": 10.5},
+    "prop1": "value1"
+  }
+}

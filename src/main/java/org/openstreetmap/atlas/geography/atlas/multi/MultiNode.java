@@ -15,7 +15,6 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
-import org.openstreetmap.atlas.utilities.maps.MultiMapWithSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +33,7 @@ public class MultiNode extends Node
     private final long identifier;
     private SubNodeList subNodes;
 
-    protected MultiNode(final MultiAtlas atlas, final long identifier)
+    MultiNode(final MultiAtlas atlas, final long identifier)
     {
         super(atlas);
         this.identifier = identifier;
@@ -52,15 +51,6 @@ public class MultiNode extends Node
         return getRepresentativeSubNode().getLocation();
     }
 
-    public SubNodeList getSubNodes()
-    {
-        if (this.subNodes == null)
-        {
-            this.subNodes = multiAtlas().subNodes(this.identifier);
-        }
-        return this.subNodes;
-    }
-
     @Override
     public Map<String, String> getTags()
     {
@@ -70,15 +60,13 @@ public class MultiNode extends Node
     @Override
     public SortedSet<Edge> inEdges()
     {
-        return attachedEdgesFromOverlappingNodes(node -> node.inEdges(),
-                multiAtlas().getNodeIdentifiersToRemovedInEdges());
+        return attachedEdgesFromOverlappingNodes(Node::inEdges);
     }
 
     @Override
     public SortedSet<Edge> outEdges()
     {
-        return attachedEdgesFromOverlappingNodes(node -> node.outEdges(),
-                multiAtlas().getNodeIdentifiersToRemovedOutEdges());
+        return attachedEdgesFromOverlappingNodes(Node::outEdges);
     }
 
     @Override
@@ -101,13 +89,9 @@ public class MultiNode extends Node
      *
      * @param getConnectedEdges
      *            The function that decides what side the edges are to be taken (in or out)
-     * @param removedEdges
-     *            The map of node identifier to edges that have been removed by the MultiAtlas fix
-     *            for way sectioning at Atlas borders
      * @return All the attached edges from one single node identifier
      */
-    protected SortedSet<Edge> attachedEdges(final Function<Node, Set<Edge>> getConnectedEdges,
-            final MultiMapWithSet<Long, Long> removedEdges)
+    private SortedSet<Edge> attachedEdges(final Function<Node, Set<Edge>> getConnectedEdges)
     {
         final Set<Long> subResult = new HashSet<>();
         if (getSubNodes().size() == 1)
@@ -120,29 +104,9 @@ public class MultiNode extends Node
         {
             // The node is in many sub-atlases. Collect all the edges from the different Atlases.
             final SubNodeList subNodes = getSubNodes();
-            final boolean isFixedNode = subNodes.hasFixNode();
-            final Set<Long> removedEdgesForNode = removedEdges.get(getIdentifier());
-            final boolean hasRemovedEdges = removedEdgesForNode != null;
             for (final Node node : subNodes.getSubNodes())
             {
                 for (final Edge connectedEdge : getConnectedEdges.apply(node))
-                {
-                    if (!isFixedNode || !hasRemovedEdges
-                            || !removedEdgesForNode.contains(connectedEdge.getIdentifier()))
-                    {
-                        // Add this in/out edge only if the node is not fixed or edge is fixed, but
-                        // if the specific edge is not one of the fixed edges of this node not
-                        // removed from this node's connections
-                        subResult.add(connectedEdge.getIdentifier());
-                    }
-                }
-            }
-
-            // Add the edges left out if they have been fixed, and take the list from the fix node.
-            if (isFixedNode)
-            {
-                final Node fixNode = subNodes.getFixNode();
-                for (final Edge connectedEdge : getConnectedEdges.apply(fixNode))
                 {
                     subResult.add(connectedEdge.getIdentifier());
                 }
@@ -171,10 +135,9 @@ public class MultiNode extends Node
                         missingEdgeAtlasNames.add(subAtlas.getName());
                     }
                 }
-                logger.warn(
-                        "Some edge got lost in translation, and is not in the MultiAtlas. "
-                                + "The node below probably has another node at the exact same location!\n\t"
-                                + "Node: {}\n\t" + "Edge connected: {}\n\t" + "From SubAtlas: {}",
+                logger.warn("Some edge got lost in translation, and is not in the MultiAtlas. "
+                        + "The node below probably has another node at the exact same location!\n\t"
+                        + "Node: {}\n\t" + "Edge connected: {}\n\t" + "From SubAtlas: {}",
                         this.identifier, subEdgeIdentifier, missingEdgeAtlasNames);
             }
             else
@@ -190,52 +153,49 @@ public class MultiNode extends Node
      *
      * @param getConnectedEdges
      *            The function that decides what side the edges are to be taken (in or out)
-     * @param removedEdges
-     *            The map of edges that have been removed by the MultiAtlas fix for way sectioning
-     *            at Atlas borders
      * @return All the attached edges from one node, including those coming from overlapping edges
      */
-    protected SortedSet<Edge> attachedEdgesFromOverlappingNodes(
-            final Function<Node, Set<Edge>> getConnectedEdges,
-            final MultiMapWithSet<Long, Long> removedEdges)
+    private SortedSet<Edge> attachedEdgesFromOverlappingNodes(
+            final Function<Node, Set<Edge>> getConnectedEdges)
     {
-        final Set<Long> slaveNodes = multiAtlas().overlappingNodes(getIdentifier());
-        final Optional<Long> masterNode = multiAtlas().masterNode(this.identifier);
-        if (!slaveNodes.isEmpty())
+        final Set<Long> alternateNodes = multiAtlas().overlappingNodes(getIdentifier());
+        final Optional<Long> mainNode = multiAtlas().mainNode(this.identifier);
+        if (!alternateNodes.isEmpty())
         {
-            // This Multi-Node is an overlapping master node. Return all the in/out edges of this
-            // node, plus those of the other slave nodes.
-            final SortedSet<Edge> result = attachedEdges(getConnectedEdges, removedEdges);
-            slaveNodes.forEach(slaveIdentifier -> result
-                    .addAll(((MultiNode) multiAtlas().node(slaveIdentifier))
-                            .attachedEdges(getConnectedEdges, removedEdges)));
+            // This Multi-Node is an overlapping main node. Return all the in/out edges of this
+            // node, plus those of the other alternate nodes.
+            final SortedSet<Edge> result = attachedEdges(getConnectedEdges);
+            alternateNodes.forEach(alternateIdentifier -> result
+                    .addAll(((MultiNode) multiAtlas().node(alternateIdentifier))
+                            .attachedEdges(getConnectedEdges)));
             return result;
         }
-        else if (masterNode.isPresent())
+        else if (mainNode.isPresent())
         {
-            // This Multi-Node is an overlapping slave node. Return no edges. All its edges will be
-            // directed to the master node. Slaves nodes are then rendered useless (even though they
-            // are still present) to mimic the behavior of the PackedAtlas.
+            // This Multi-Node is an overlapping alternate node. Return no edges. All its edges will
+            // be directed to the main node. Alternate nodes are then rendered useless (even though
+            // they are still present) to mimic the behavior of the PackedAtlas.
             return new TreeSet<>();
         }
         else
         {
             // This Multi-Node is not an overlapping node. Return the standard set of in/out edges.
-            return attachedEdges(getConnectedEdges, removedEdges);
+            return attachedEdges(getConnectedEdges);
         }
     }
 
     private Node getRepresentativeSubNode()
     {
-        final SubNodeList subNodes = getSubNodes();
-
-        // If we have a fixed node, then give that node higher priority
-        if (subNodes.hasFixNode())
-        {
-            return subNodes.getFixNode();
-        }
-
         return getSubNodes().getSubNodes().get(0);
+    }
+
+    private SubNodeList getSubNodes()
+    {
+        if (this.subNodes == null)
+        {
+            this.subNodes = multiAtlas().subNodes(this.identifier);
+        }
+        return this.subNodes;
     }
 
     private MultiAtlas multiAtlas()

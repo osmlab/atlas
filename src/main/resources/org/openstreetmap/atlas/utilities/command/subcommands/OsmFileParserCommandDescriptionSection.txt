@@ -1,0 +1,1 @@
+Take an osm file created by JOSM (with temporary identifiers) and transform it into a mock osm file that looks like it is fully committed.

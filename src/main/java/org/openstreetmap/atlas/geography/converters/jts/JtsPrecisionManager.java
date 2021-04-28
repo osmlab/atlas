@@ -1,7 +1,7 @@
 package org.openstreetmap.atlas.geography.converters.jts;
 
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.PrecisionModel;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.PrecisionModel;
 
 /**
  * JTS Precision utility class.
@@ -10,14 +10,14 @@ import com.vividsolutions.jts.geom.PrecisionModel;
  */
 public final class JtsPrecisionManager
 {
-    private static final int PRECISION_SCALE = 100_000_000;
+    private static final int PRECISION_SCALE = 10_000_000;
     private static PrecisionModel precisionModel;
     private static GeometryFactory geometryFactory;
 
     static
     {
         precisionModel = new PrecisionModel(PRECISION_SCALE);
-        geometryFactory = new GeometryFactory();
+        geometryFactory = new GeometryFactory(precisionModel);
     }
 
     public static GeometryFactory getGeometryFactory()

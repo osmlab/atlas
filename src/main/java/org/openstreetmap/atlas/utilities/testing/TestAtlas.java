@@ -224,6 +224,8 @@ public @interface TestAtlas
 
         Member[] members() default {};
 
+        String osmId() default DEFAULT_OSM_ID;
+
         /**
          * Tags we want on the Relation
          *
@@ -267,6 +269,8 @@ public @interface TestAtlas
     // This is for identifiers: by default they will be auto-generated
     String AUTO_GENERATED = "<auto>";
 
+    String DEFAULT_OSM_ID = "<default>";
+
     // This is for the atlas metadata: we only add the ISO country code if it is something besides
     // unknown
     String UNKNOWN_ISO_COUNTRY = "UNKNOWN";
@@ -296,7 +300,7 @@ public @interface TestAtlas
     /**
      * ISO Country Code of the Atlas
      *
-     * @return a string containing the ISO3 character code of the country or UNKNOWN if not set
+     * @return a string containing the ISO3 character code of the country or UNK if not set
      */
     String iso() default UNKNOWN_ISO_COUNTRY;
 

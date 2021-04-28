@@ -11,6 +11,8 @@ import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 
+import com.google.gson.JsonObject;
+
 /**
  * An {@link AtlasItem} that is represented by one single location
  *
@@ -23,6 +25,12 @@ public abstract class LocationItem extends AtlasItem
     protected LocationItem(final Atlas atlas)
     {
         super(atlas);
+    }
+
+    @Override
+    public JsonObject asGeoJsonGeometry()
+    {
+        return getLocation().asGeoJsonGeometry();
     }
 
     @Override
@@ -95,5 +103,23 @@ public abstract class LocationItem extends AtlasItem
         }
 
         return new GeoJsonBuilder.LocationIterableProperties(getRawGeometry(), tags);
+    }
+
+    @Override
+    public byte[] toWkb()
+    {
+        return this.getLocation().toWkb();
+    }
+
+    @Override
+    public String toWkt()
+    {
+        return this.getLocation().toWkt();
+    }
+
+    @Override
+    public boolean within(final GeometricSurface surface)
+    {
+        return this.getLocation().within(surface);
     }
 }

@@ -1,14 +1,19 @@
 package org.openstreetmap.atlas.geography.atlas.items;
 
 import org.apache.commons.lang3.StringUtils;
+import org.openstreetmap.atlas.geography.Located;
+import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonFeature;
+
+import com.google.gson.JsonObject;
 
 /**
  * A {@link Relation} member. It has a role and an {@link AtlasEntity}.
  *
  * @author matthieun
  */
-public class RelationMember implements Comparable<RelationMember>
+public class RelationMember implements Comparable<RelationMember>, Located, GeoJsonFeature
 {
     private final String role;
     private final AtlasEntity entity;
@@ -20,6 +25,18 @@ public class RelationMember implements Comparable<RelationMember>
         this.role = role;
         this.entity = entity;
         this.relationIdentifier = relationIdentifier;
+    }
+
+    @Override
+    public JsonObject asGeoJsonGeometry()
+    {
+        return this.entity.asGeoJsonGeometry();
+    }
+
+    @Override
+    public Rectangle bounds()
+    {
+        return this.entity.bounds();
     }
 
     @Override
@@ -41,14 +58,10 @@ public class RelationMember implements Comparable<RelationMember>
         {
             final long identifier1 = this.getEntity().getIdentifier();
             final long identifier2 = other.getEntity().getIdentifier();
-            final long delta = identifier1 - identifier2;
-            if (delta > 0)
+            final int comparisonMarker = Long.compare(identifier1, identifier2);
+            if (comparisonMarker != 0)
             {
-                return 1;
-            }
-            else if (delta < 0)
-            {
-                return -1;
+                return comparisonMarker;
             }
             else
             {
@@ -91,6 +104,14 @@ public class RelationMember implements Comparable<RelationMember>
     public AtlasEntity getEntity()
     {
         return this.entity;
+    }
+
+    @Override
+    public JsonObject getGeoJsonProperties()
+    {
+        final JsonObject properties = this.entity.getGeoJsonProperties();
+        properties.addProperty("role", this.role);
+        return properties;
     }
 
     public long getRelationIdentifier()

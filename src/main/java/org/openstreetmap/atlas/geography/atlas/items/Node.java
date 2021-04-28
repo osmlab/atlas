@@ -4,12 +4,18 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Supplier;
 
+import org.apache.commons.lang3.Validate;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 /**
  * Navigable Node
  *
  * @author matthieun
+ * @author Yazad Khambata
  */
 public abstract class Node extends LocationItem
 {
@@ -35,6 +41,47 @@ public abstract class Node extends LocationItem
         result.addAll(inEdges());
         result.addAll(outEdges());
         return result;
+    }
+
+    /**
+     * Get the appropriate set {@link Edge}s of {@link ConnectedEdgeType}.
+     *
+     * @param connectedEdgeType
+     *            - The type of {@link Edge}-{@link Node} connection.
+     * @return - A set of {@link Edge}s connected to the {@link Node} of {@link ConnectedEdgeType}.
+     */
+    public SortedSet<Edge> connectedEdges(final ConnectedEdgeType connectedEdgeType)
+    {
+        Validate.notNull(connectedEdgeType);
+        final SortedSet<Edge> connectedEdges = connectedEdgeType.getAccessFunction().apply(this);
+        return connectedEdges;
+    }
+
+    @Override
+    public JsonObject getGeoJsonProperties()
+    {
+        final JsonObject properties = super.getGeoJsonProperties();
+
+        final JsonArray inEdgesArray = new JsonArray();
+        final JsonArray outEdgesArray = new JsonArray();
+
+        for (final Edge edge : this.inEdges())
+        {
+            inEdgesArray.add(new JsonPrimitive(edge.getIdentifier()));
+        }
+
+        for (final Edge edge : this.outEdges())
+        {
+            outEdgesArray.add(new JsonPrimitive(edge.getIdentifier()));
+        }
+
+        // Adding a JSON array with the edge IDs.
+        // In the RFC spec, nested objects are ok in properties.
+        // https://tools.ietf.org/html/rfc7946#section-1.5
+        properties.add(ConnectedEdgeType.IN.getPropertyName(), inEdgesArray);
+        properties.add(ConnectedEdgeType.OUT.getPropertyName(), outEdgesArray);
+
+        return properties;
     }
 
     @Override
@@ -73,11 +120,11 @@ public abstract class Node extends LocationItem
     }
 
     /**
-     * @return The valence considering only the master {@link Edge}s
+     * @return The valence considering only the main {@link Edge}s
      */
     public long valence()
     {
-        return this.connectedEdges().stream().filter(Edge::isMasterEdge).count();
+        return this.connectedEdges().stream().filter(Edge::isMainEdge).count();
     }
 
     private SortedSet<Long> connectedEdgesIdentifiers(

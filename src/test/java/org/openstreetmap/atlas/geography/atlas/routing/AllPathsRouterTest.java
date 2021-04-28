@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.routing;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Predicate;
@@ -90,18 +91,33 @@ public class AllPathsRouterTest
     public void testRoutingWithFilter()
     {
         final Atlas atlas = this.rule.getBiDirectionalCyclicRouteAtlas();
-        final Predicate<Edge> onlyMasterEdges = edge -> Edge
-                .isMasterEdgeIdentifier(edge.getIdentifier());
+        final Predicate<Edge> onlyMainEdges = edge -> Edge
+                .isMainEdgeIdentifier(edge.getIdentifier());
         final Set<Route> routes = AllPathsRouter.allRoutes(atlas.edge(315932590),
-                atlas.edge(317932590), onlyMasterEdges, Route.ROUTE_COMPARATOR);
+                atlas.edge(317932590), onlyMainEdges, Route.ROUTE_COMPARATOR);
 
         final Set<Route> expectedRoutes = new TreeSet<>(Route.ROUTE_COMPARATOR);
         expectedRoutes.add(Route.forEdges(atlas.edge(315932590), atlas.edge(316932590),
                 atlas.edge(317932590)));
 
         Assert.assertEquals(
-                "Expect a single distinct route between start and end, since we've filtered out all routes that have a non-master edge",
+                "Expect a single distinct route between start and end, since we've filtered out all routes that have a non-main edge",
                 1, routes.size());
+        Assert.assertEquals("Expect deterministic results from the router", expectedRoutes, routes);
+    }
+
+    @Test
+    public void testRoutingWithFilterAndMaximumAllowedPath()
+    {
+        final Atlas atlas = this.rule.getMultipleRoutesAtlas();
+        final Set<Route> routes = AllPathsRouter.allRoutes(atlas.edge(314932590),
+                atlas.edge(319932590), x -> true, 1);
+
+        final Set<Route> expectedRoutes = new HashSet<>();
+        expectedRoutes.add(Route.forEdges(atlas.edge(314932590), atlas.edge(315932590),
+                atlas.edge(316932590), atlas.edge(319932590)));
+
+        Assert.assertEquals("Expect two distinct routes between start and end", 1, routes.size());
         Assert.assertEquals("Expect deterministic results from the router", expectedRoutes, routes);
     }
 

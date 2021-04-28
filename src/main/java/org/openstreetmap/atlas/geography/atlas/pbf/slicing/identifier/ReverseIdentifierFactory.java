@@ -17,8 +17,9 @@ public class ReverseIdentifierFactory
      */
     public long getCountryCode(final long countryCodeAndWaySectionedIdentifier)
     {
-        return countryCodeAndWaySectionedIdentifier / AbstractIdentifierFactory.IDENTIFIER_SCALE
-                % AbstractIdentifierFactory.IDENTIFIER_SCALE;
+        return countryCodeAndWaySectionedIdentifier
+                / AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT
+                % AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT;
     }
 
     /**
@@ -31,8 +32,8 @@ public class ReverseIdentifierFactory
      */
     public long getCountryOsmIdentifier(final long countryCodeAndWaySectionedIdentifier)
     {
-        return Math.abs(
-                countryCodeAndWaySectionedIdentifier / AbstractIdentifierFactory.IDENTIFIER_SCALE);
+        return Math.abs(countryCodeAndWaySectionedIdentifier
+                / AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT);
     }
 
     /**
@@ -47,8 +48,8 @@ public class ReverseIdentifierFactory
     public long getFirstAtlasIdentifier(final long countryCodeAndWaySectionedIdentifier)
     {
         return Math.abs(getOsmIdentifier(countryCodeAndWaySectionedIdentifier)
-                * AbstractIdentifierFactory.IDENTIFIER_SCALE
-                * AbstractIdentifierFactory.IDENTIFIER_SCALE);
+                * AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT
+                * AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT);
     }
 
     /**
@@ -61,9 +62,9 @@ public class ReverseIdentifierFactory
      */
     public long getOsmIdentifier(final long countryCodeAndWaySectionedIdentifier)
     {
-        return Math.abs(
-                countryCodeAndWaySectionedIdentifier / (AbstractIdentifierFactory.IDENTIFIER_SCALE
-                        * AbstractIdentifierFactory.IDENTIFIER_SCALE));
+        return Math.abs(countryCodeAndWaySectionedIdentifier
+                / (AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT
+                        * AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT));
     }
 
     /**
@@ -77,7 +78,7 @@ public class ReverseIdentifierFactory
      */
     public long getStartIdentifier(final long countryOsmIdentifier)
     {
-        return countryOsmIdentifier * AbstractIdentifierFactory.IDENTIFIER_SCALE;
+        return countryOsmIdentifier * AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT;
     }
 
     /**
@@ -93,8 +94,8 @@ public class ReverseIdentifierFactory
      */
     public long getStartIdentifier(final long osmIdentifier, final long countryCode)
     {
-        return (osmIdentifier * AbstractIdentifierFactory.IDENTIFIER_SCALE + countryCode)
-                * AbstractIdentifierFactory.IDENTIFIER_SCALE;
+        return (osmIdentifier * AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT + countryCode)
+                * AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT;
     }
 
     /**
@@ -106,6 +107,7 @@ public class ReverseIdentifierFactory
      */
     public long getWaySectionIndex(final long countryCodeAndWaySectionedIdentifier)
     {
-        return countryCodeAndWaySectionedIdentifier % AbstractIdentifierFactory.IDENTIFIER_SCALE;
+        return countryCodeAndWaySectionedIdentifier
+                % AbstractIdentifierFactory.IDENTIFIER_SCALE_DEFAULT;
     }
 }

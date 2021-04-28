@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.utilities.configuration;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -42,13 +43,13 @@ public interface Configuration
      *            property key
      * @param transform
      *            applied to the configured property
-     * @param <Raw>
+     * @param <R>
      *            configured type
-     * @param <Transformed>
+     * @param <T>
      *            transformed type
      * @return a {@link Configurable} wrapper
      */
-    <Raw, Transformed> Configurable get(String key, Function<Raw, Transformed> transform);
+    <R, T> Configurable get(String key, Function<R, T> transform);
 
     /**
      * Returns a {@link Configurable} wrapper around the configured property.
@@ -59,14 +60,13 @@ public interface Configuration
      *            value returned if not found in the configuration
      * @param transform
      *            applied to the configured property
-     * @param <Raw>
+     * @param <R>
      *            configured type
-     * @param <Transformed>
+     * @param <T>
      *            transformed type
      * @return a {@link Configurable} wrapper
      */
-    <Raw, Transformed> Configurable get(String key, Raw defaultValue,
-            Function<Raw, Transformed> transform);
+    <R, T> Configurable get(String key, R defaultValue, Function<R, T> transform);
 
     /**
      * Returns a {@link Configurable} wrapper around the configured property.
@@ -75,9 +75,42 @@ public interface Configuration
      *            property key
      * @param defaultValue
      *            value returned if not found in the configuration
-     * @param <Type>
+     * @param <T>
      *            configured type
      * @return a {@link Configurable} wrapper
      */
-    <Type> Configurable get(String key, Type defaultValue);
+    <T> Configurable get(String key, T defaultValue);
+
+    /**
+     * Returns a new configuration with contents starting at the provided key.
+     * <p>
+     * Assuming the initial configuration is:
+     *
+     * <pre>
+     * {@code
+     * {
+     *     "a" :
+     *     {
+     *         "b" : "c"
+     *     }
+     *
+     * }
+     * }
+     * </pre>
+     *
+     * With a key provided as "a", the new sub configuration looks like:
+     *
+     * <pre>
+     * {@code
+     * {
+     *     "b" : "c"
+     * }
+     * }
+     * </pre>
+     *
+     * @param key
+     *            The provided key
+     * @return The sub Configuration if it exists under the key, Optional.empty otherwise.
+     */
+    Optional<Configuration> subConfiguration(String key);
 }

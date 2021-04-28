@@ -4,9 +4,13 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import org.apache.commons.lang3.Validate;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIdentifierFactory;
 import org.openstreetmap.atlas.tags.HighwayTag;
+
+import com.google.gson.JsonObject;
 
 /**
  * A unidirectional edge that belongs to an Atlas.
@@ -20,16 +24,28 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
 
     /**
      * If the way is bidirectional in OSM, we will put two edges in atlas for two traffic
-     * directions, each of them is one way. The master edge will have positive identifier and same
+     * directions, each of them is one way. The main edge will have positive identifier and same
      * traffic direction as OSM.
      *
      * @param identifier
      *            Edge identifier
      * @return True if the edge identifier is positive
      */
-    public static boolean isMasterEdgeIdentifier(final long identifier)
+    public static boolean isMainEdgeIdentifier(final long identifier)
     {
         return identifier > 0;
+    }
+
+    /**
+     * @param identifier
+     *            Edge identifier
+     * @return True if the edge identifier is positive
+     * @deprecated Use isMainEdgeIdentifier instead.
+     */
+    @Deprecated(since = "")
+    public static boolean isMasterEdgeIdentifier(final long identifier)
+    {
+        return isMainEdgeIdentifier(identifier);
     }
 
     protected Edge(final Atlas atlas)
@@ -39,12 +55,14 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
 
     /**
      * Compare two edges on their identifier.
+     * <p>
+     * NOSONAR here as the {@link AtlasEntity} equals and hashcode are good enough. ""equals(Object
+     * obj)" should be overridden along with the "compareTo(T obj)" method (squid:S1210)"
      */
     @Override
-    public int compareTo(final Edge other)
+    public int compareTo(final Edge other) // NOSONAR
     {
-        final long difference = this.getIdentifier() - other.getIdentifier();
-        return difference > 0 ? 1 : difference < 0 ? -1 : 0;
+        return Long.compare(this.getIdentifier(), other.getIdentifier());
     }
 
     /**
@@ -72,6 +90,13 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
         return result;
     }
 
+    public Node connectedNode(final ConnectedNodeType connectedNodeType)
+    {
+        Validate.notNull(connectedNodeType);
+        final Node connectedNode = connectedNodeType.getAccessFunction().apply(this);
+        return connectedNode;
+    }
+
     public Set<Node> connectedNodes()
     {
         final Set<Node> result = new HashSet<>();
@@ -96,17 +121,52 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
      */
     public abstract Node end();
 
-    /**
-     * @return the master for this {@link Edge}, which may or may not be the master.
-     */
-    public Edge getMasterEdge()
+    @Override
+    public JsonObject getGeoJsonProperties()
     {
-        return this.isMasterEdge() ? this : this.reversed().get();
+        final JsonObject properties = super.getGeoJsonProperties();
+
+        properties.addProperty(ConnectedNodeType.START.getPropertyName(), start().getIdentifier());
+        properties.addProperty(ConnectedNodeType.END.getPropertyName(), end().getIdentifier());
+
+        return properties;
     }
 
-    public long getMasterEdgeIdentifier()
+    /**
+     * @return the main for this {@link Edge}, which may or may not be the main.
+     */
+    public Edge getMainEdge()
+    {
+        return this.isMainEdge() ? this
+                : this.reversed()
+                        .orElseThrow(() -> new CoreException(
+                                "Reverse edge should be available for edge {}",
+                                this.getIdentifier()));
+    }
+
+    public long getMainEdgeIdentifier()
     {
         return Math.abs(this.getIdentifier());
+    }
+
+    /**
+     * @return the main for this {@link Edge}, which may or may not be the main.
+     * @deprecated Use getMainEdge instead.
+     */
+    @Deprecated(since = "")
+    public Edge getMasterEdge()
+    {
+        return getMainEdge();
+    }
+
+    /**
+     * @return The main edge identifier
+     * @deprecated Use getMainEdgeIdentifier instead
+     */
+    @Deprecated(since = "")
+    public long getMasterEdgeIdentifier()
+    {
+        return getMainEdgeIdentifier();
     }
 
     @Override
@@ -160,19 +220,13 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
     {
         for (final AtlasItem item : candidates)
         {
-            if (item instanceof Node)
+            if (item instanceof Node && end().equals(item))
             {
-                if (end().equals(item))
-                {
-                    return true;
-                }
+                return true;
             }
-            if (item instanceof Edge)
+            if (item instanceof Edge && end().equals(((Edge) item).start()))
             {
-                if (end().equals(((Edge) item).start()))
-                {
-                    return true;
-                }
+                return true;
             }
         }
         return false;
@@ -188,33 +242,36 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
     {
         for (final AtlasItem item : candidates)
         {
-            if (item instanceof Node)
+            if (item instanceof Node && start().equals(item))
             {
-                if (start().equals(item))
-                {
-                    return true;
-                }
+                return true;
             }
-            if (item instanceof Edge)
+            if (item instanceof Edge && start().equals(((Edge) item).end()))
             {
-                if (start().equals(((Edge) item).end()))
-                {
-                    return true;
-                }
+                return true;
             }
         }
         return false;
     }
 
     /**
-     * Checks if edge is a master edge, by verifying that its identifier is a master edge
-     * identifier.
+     * Checks if edge is a main edge, by verifying that its identifier is a main edge identifier.
      *
-     * @return True if the edge's identifier is a master edge identifier
+     * @return True if the edge's identifier is a main edge identifier
      */
+    public boolean isMainEdge()
+    {
+        return isMainEdgeIdentifier(this.getIdentifier());
+    }
+
+    /**
+     * @return True if the edge's identifier is a main edge identifier
+     * @deprecated Use isMainEdge instead.
+     */
+    @Deprecated(since = "")
     public boolean isMasterEdge()
     {
-        return isMasterEdgeIdentifier(this.getIdentifier());
+        return isMainEdge();
     }
 
     /**
@@ -265,9 +322,15 @@ public abstract class Edge extends LineItem implements Comparable<Edge>
     {
         final String relationsString = this.parentRelationsAsDiffViewFriendlyString();
 
-        return "[Edge" + ": id=" + this.getIdentifier() + ", startNode=" + start().getIdentifier()
-                + ", endNode=" + end().getIdentifier() + ", polyLine=" + this.asPolyLine().toWkt()
-                + ", relations=(" + relationsString + "), " + tagString() + "]";
+        final String startNodeString = start() != null ? Long.toString(start().getIdentifier())
+                : "null";
+        final String endNodeString = start() != null ? Long.toString(end().getIdentifier())
+                : "null";
+        final String polyLineWkt = this.asPolyLine() != null ? this.asPolyLine().toWkt() : "null";
+
+        return "[Edge" + ": id=" + this.getIdentifier() + ", startNode=" + startNodeString
+                + ", endNode=" + endNodeString + ", polyLine=" + polyLineWkt + ", relations=("
+                + relationsString + "), " + tagString() + "]";
     }
 
     @Override

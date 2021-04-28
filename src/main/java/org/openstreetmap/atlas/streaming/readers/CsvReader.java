@@ -77,8 +77,8 @@ public class CsvReader implements Iterator<CsvLine>
         }
         catch (final Exception e)
         {
-            logger.warn(
-                    "Ignoring malformed line: -- " + candidate + " --. Reason: " + e.getMessage());
+            logger.warn("Ignoring malformed line: -- {} --. Reason: {}", candidate, e.getMessage(),
+                    e);
             return null;
         }
     }

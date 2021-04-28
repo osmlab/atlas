@@ -33,9 +33,9 @@ public class SplittableInputStreamTest
         {
             final InputStream in2 = split.split();
             logger.info("Starting!");
-            pool.queue(() -> new InputStreamResource(split).lines()
+            pool.queue(() -> new InputStreamResource(() -> split).lines()
                     .forEach(line -> logger.info("IN-1: {}", line)));
-            pool.queue(() -> new InputStreamResource(in2).lines()
+            pool.queue(() -> new InputStreamResource(() -> in2).lines()
                     .forEach(line -> logger.info("IN-2: {}", line)));
             Duration.ONE_HOUR.sleep();
         }
@@ -51,8 +51,8 @@ public class SplittableInputStreamTest
         final InputStream input = new StringInputStream("line1: blah\nline2: haha");
         final SplittableInputStream split = new SplittableInputStream(input);
         final InputStream in2 = split.split();
-        logger.info("{}", Iterables.asList(new InputStreamResource(split).lines()));
-        logger.info("{}", Iterables.asList(new InputStreamResource(in2).lines()));
+        logger.info("{}", Iterables.asList(new InputStreamResource(() -> split).lines()));
+        logger.info("{}", Iterables.asList(new InputStreamResource(() -> in2).lines()));
         Streams.close(split);
     }
 }

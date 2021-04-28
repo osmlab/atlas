@@ -3,15 +3,14 @@ package org.openstreetmap.atlas.geography.converters.jts;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.CoordinateSequence;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LinearRing;
+import org.locationtech.jts.geom.impl.CoordinateArraySequence;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
-
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.CoordinateSequence;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LinearRing;
-import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
 
 /**
  * Convert a {@link Polygon} to a {@link LinearRing} from the JTS library. It is worth noting that a
@@ -30,6 +29,11 @@ public class JtsLinearRingConverter implements TwoWayConverter<Polygon, LinearRi
     // Protect from: java.lang.IllegalArgumentException: Invalid number of points in LinearRing
     // (found x - must be 0 or >= 4)
     private static final int MINIMUM_LINEAR_RING_SIZE = 4;
+
+    public static LinearRing empty()
+    {
+        return new LinearRing(JtsCoordinateArrayConverter.empty(), FACTORY);
+    }
 
     @Override
     public Polygon backwardConvert(final LinearRing object)

@@ -3,18 +3,29 @@ package org.openstreetmap.atlas.geography.atlas.items;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.openstreetmap.atlas.geography.GeometricSurface;
+import org.openstreetmap.atlas.geography.GeometryPrintable;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIdentifierFactory;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonFeature;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
 import org.openstreetmap.atlas.tags.LastEditTimeTag;
 import org.openstreetmap.atlas.tags.LastEditUserIdentifierTag;
 import org.openstreetmap.atlas.tags.LastEditUserNameTag;
+import org.openstreetmap.atlas.tags.names.NameTag;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.scalars.Duration;
 import org.openstreetmap.atlas.utilities.time.Time;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 /**
  * A located entity with tags
@@ -22,8 +33,10 @@ import org.openstreetmap.atlas.utilities.time.Time;
  * @author matthieun
  * @author mgostintsev
  * @author Sid
+ * @author hallahan
  */
-public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
+public abstract class AtlasEntity
+        implements AtlasObject, DiffViewFriendlyItem, GeometryPrintable, GeoJsonFeature
 {
     private static final long serialVersionUID = -6072525057489468736L;
 
@@ -104,6 +117,50 @@ public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
     public Atlas getAtlas()
     {
         return this.atlas;
+    }
+
+    /**
+     * A method that creates properties for a GeoJSON Feature from the tags.
+     *
+     * @return A GeoJSON properties object that is to be put in a Feature.
+     */
+    @Override
+    public JsonObject getGeoJsonProperties()
+    {
+        final JsonObject properties = new JsonObject();
+        getTags().forEach(properties::addProperty);
+        properties.addProperty(GeoJsonUtils.IDENTIFIER, getIdentifier());
+        properties.addProperty(GeoJsonUtils.OSM_IDENTIFIER, getOsmIdentifier());
+        properties.addProperty(GeoJsonUtils.ITEM_TYPE, String.valueOf(getType()));
+
+        final Set<Relation> relations = relations();
+        if (!relations.isEmpty())
+        {
+            final JsonArray relationsArray = new JsonArray();
+            properties.add("relations", relationsArray);
+            for (final Relation relation : relations)
+            {
+                relationsArray.add(new JsonPrimitive(relation.getIdentifier()));
+            }
+        }
+
+        return properties;
+    }
+
+    @Override
+    public GeoJsonType getGeoJsonType()
+    {
+        return GeoJsonType.FEATURE;
+    }
+
+    /**
+     * The value in the "name" attribute.
+     *
+     * @return an optional string representing the value of the name tag.
+     */
+    public Optional<String> getName()
+    {
+        return this.getTag(NameTag.KEY);
     }
 
     @Override
@@ -194,16 +251,50 @@ public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
      */
     public abstract LocationIterableProperties toGeoJsonBuildingBlock();
 
-    protected String parentRelationsAsDiffViewFriendlyString()
+    public JsonObject toJson()
     {
-        final StringList relationIds = new StringList();
-        for (final Relation relation : this.relations())
+        final JsonObject object = new JsonObject();
+        object.addProperty("identifier", this.getIdentifier());
+        object.addProperty("type", this.getType().toString());
+        final String geometry = "geometry";
+        if (this instanceof LocationItem)
         {
-            relationIds.add(relation.getIdentifier());
+            final LocationItem thisItem = (LocationItem) this;
+            object.addProperty(geometry, thisItem.getLocation().toWkt());
         }
-        final String relationsString = relationIds.join(",");
+        else if (this instanceof LineItem)
+        {
+            final LineItem thisItem = (LineItem) this;
+            object.addProperty(geometry, thisItem.asPolyLine().toWkt());
+        }
+        else if (this instanceof Area)
+        {
+            final Area thisItem = (Area) this;
+            object.addProperty(geometry, thisItem.asPolygon().toWkt());
+        }
+        else if (this instanceof Relation)
+        {
+            // TODO handle relation geometry for certain cases? // NOSONAR
+            object.addProperty(geometry, "null");
+        }
 
-        return relationsString;
+        final JsonObject tagsObject = new JsonObject();
+        for (final String tagKey : new TreeSet<>(this.getTags().keySet()))
+        {
+            tagsObject.addProperty(tagKey, this.getTags().get(tagKey));
+        }
+        object.add("tags", tagsObject);
+
+        final JsonArray parentRelationsArray = new JsonArray();
+        for (final Long parentRelationId : new TreeSet<>(
+                this.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet())))
+        {
+            parentRelationsArray.add(new JsonPrimitive(parentRelationId));
+        }
+        object.add("parentRelations", parentRelationsArray);
+
+        object.addProperty("bounds", this.bounds().toString());
+        return object;
     }
 
     protected String tagString()
@@ -212,22 +303,38 @@ public abstract class AtlasEntity implements AtlasObject, DiffViewFriendlyItem
         final Map<String, String> tags = getTags();
         int index = 0;
         builder.append("[Tags: ");
-        for (final String key : tags.keySet())
+        if (tags != null)
         {
-            final String value = tags.get(key);
-            builder.append("[");
-            builder.append(key);
-            builder.append(" => ");
-            builder.append(value);
-            builder.append("]");
-            if (index < tags.size() - 1)
+            for (final String key : tags.keySet())
             {
-                builder.append(", ");
+                final String value = tags.get(key);
+                builder.append("[");
+                builder.append(key);
+                builder.append(" => ");
+                builder.append(value);
+                builder.append("]");
+                if (index < tags.size() - 1)
+                {
+                    builder.append(", ");
+                }
+                index++;
             }
-            index++;
         }
         builder.append("]");
         return builder.toString();
+    }
+
+    String parentRelationsAsDiffViewFriendlyString()
+    {
+        final StringList relationIds = new StringList();
+        if (this.relations() != null)
+        {
+            for (final Relation relation : this.relations())
+            {
+                relationIds.add(relation.getIdentifier());
+            }
+        }
+        return relationIds.join(",");
     }
 
 }

@@ -5,7 +5,7 @@ import org.openstreetmap.atlas.utilities.testing.CoreTestRule;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas;
 
 /**
- * {@link WaySectionProcessorTest} test data.
+ * {@link AtlasSectionProcessorTest} test data.
  *
  * @author mgostintsev
  */
@@ -41,6 +41,9 @@ public class WaySectionProcessorTestRule extends CoreTestRule
     @TestAtlas(loadFromTextResource = "lineWithBarrier.atlas.txt")
     private Atlas lineWithBarrier;
 
+    @TestAtlas(loadFromTextResource = "lineWithInvalidOverlappingGeometry.atlas.txt")
+    private Atlas lineWithInvalidOverlappingGeometry;
+
     @TestAtlas(loadFromTextResource = "simpleBiDirectionalLine.atlas.txt")
     private Atlas simpleBiDirectionalLine;
 
@@ -52,6 +55,9 @@ public class WaySectionProcessorTestRule extends CoreTestRule
 
     @TestAtlas(loadFromTextResource = "lineWithRepeatedLocation.atlas.txt")
     private Atlas lineWithRepeatedLocation;
+
+    @TestAtlas(loadFromTextResource = "lineWithLessThanTwoNodesDueToRepeatedLocationAtEndOfLine.atlas.txt")
+    private Atlas lineWithLessThanTwoNodesDueToRepeatedLocationAtEndOfLine;
 
     @TestAtlas(loadFromTextResource = "loopWithRepeatedLocation.atlas.txt")
     private Atlas loopWithRepeatedLocation;
@@ -68,6 +74,12 @@ public class WaySectionProcessorTestRule extends CoreTestRule
     @TestAtlas(loadFromTextResource = "nestedRelationRemoval.atlas.txt")
     private Atlas nestedRelationRemoval;
 
+    @TestAtlas(loadFromTextResource = "nodeAndPointAsRelationMember.atlas.txt")
+    private Atlas nodeAndPointAsRelationMember;
+
+    @TestAtlas(loadFromTextResource = "pedestrianRing.atlas.txt")
+    private Atlas pedestrianRing;
+
     public Atlas getBidirectionalRingAtlas()
     {
         return this.bidirectioalRingAtlas;
@@ -76,6 +88,16 @@ public class WaySectionProcessorTestRule extends CoreTestRule
     public Atlas getLineWithBarrierAtlas()
     {
         return this.lineWithBarrier;
+    }
+
+    public Atlas getLineWithInvalidOverlappingGeometry()
+    {
+        return this.lineWithInvalidOverlappingGeometry;
+    }
+
+    public Atlas getLineWithLessThanTwoNodesDueToRepeatedLocationAtEndOfLineAtlas()
+    {
+        return this.lineWithLessThanTwoNodesDueToRepeatedLocationAtEndOfLine;
     }
 
     public Atlas getLineWithLoopAtEndAtlas()
@@ -98,14 +120,14 @@ public class WaySectionProcessorTestRule extends CoreTestRule
         return this.lineWithRepeatedLocation;
     }
 
-    public Atlas getLoopingWayWithIntersectionAtlas()
-    {
-        return this.loopingWayWithIntersection;
-    }
-
     public Atlas getLoopWithRepeatedLocationAtlas()
     {
         return this.loopWithRepeatedLocation;
+    }
+
+    public Atlas getLoopingWayWithIntersectionAtlas()
+    {
+        return this.loopingWayWithIntersection;
     }
 
     public Atlas getMalformedPolyLineAtlas()
@@ -118,6 +140,11 @@ public class WaySectionProcessorTestRule extends CoreTestRule
         return this.nestedRelationRemoval;
     }
 
+    public Atlas getNodeAndPointAsRelationMemberAtlas()
+    {
+        return this.nodeAndPointAsRelationMember;
+    }
+
     public Atlas getOneWayRingAtlas()
     {
         return this.oneWayRing;
@@ -126,6 +153,11 @@ public class WaySectionProcessorTestRule extends CoreTestRule
     public Atlas getOneWaySimpleLineAtlas()
     {
         return this.oneWaySimpleLine;
+    }
+
+    public Atlas getPedestrianRingAtlas()
+    {
+        return this.pedestrianRing;
     }
 
     public Atlas getRawAtlasSpanningOutsideBoundary()

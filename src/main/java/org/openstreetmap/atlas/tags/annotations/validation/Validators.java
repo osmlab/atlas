@@ -29,7 +29,9 @@ import org.openstreetmap.atlas.tags.cache.CachingValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ClassInfoList;
+import io.github.classgraph.ScanResult;
 
 /**
  * Builds a table of {@link TagValidator}s using Java annotations and introspection.
@@ -208,12 +210,9 @@ public class Validators
             final Class<T> enumType, final Taggable taggable)
     {
         final Tag tag = tagType.getDeclaredAnnotation(Tag.class);
-        if (tag != null)
+        if (tag != null && Stream.of(tag.with()).anyMatch(possible -> possible == enumType))
         {
-            if (Stream.of(tag.with()).anyMatch(possible -> possible == enumType))
-            {
-                return fromHelper(findTagNameIn(tagType), enumType, taggable);
-            }
+            return fromHelper(findTagNameIn(tagType), enumType, taggable);
         }
         return Optional.empty();
     }
@@ -312,10 +311,8 @@ public class Validators
         {
             return taggable -> false;
         }
-        return taggable ->
-        {
-            return hasValuesFor(taggable, tagTypes);
-        };
+
+        return taggable -> hasValuesFor(taggable, tagTypes);
     }
 
     /**
@@ -374,6 +371,30 @@ public class Validators
             }
         }
         return true;
+    }
+
+    /**
+     * Use this method to check if a tag exists in two {@link Taggable} objects, and those values
+     * are the same.
+     *
+     * @param <T>
+     *            the enum-type tag's class object
+     * @param firstTaggable
+     *            one taggable we are comparing
+     * @param secondTaggable
+     *            the other taggable we are comparing against
+     * @param type
+     *            the class of the enum-type tag we are looking for
+     * @return true if the tag exists in firstTaggable AND secondTaggable, AND the value of
+     *         firstTaggable is equal to the value of secondTaggable.
+     */
+    public static <T> boolean isOfSameType(final Taggable firstTaggable,
+            final Taggable secondTaggable, final Class<T> type)
+    {
+        final String key = findTagNameIn(type);
+
+        return firstTaggable.getTag(key)
+                .flatMap(oneTag -> secondTaggable.getTag(key).map(oneTag::equals)).orElse(false);
     }
 
     /**
@@ -492,9 +513,8 @@ public class Validators
         {
             final Field field = constant.getDeclaringClass().getField(constant.name());
             final TagValueAs substitutedValue = field.getAnnotation(TagValueAs.class);
-            final String returnValue = substitutedValue == null
-                    ? ((Enum<?>) field.get(null)).name().toLowerCase() : substitutedValue.value();
-            return returnValue;
+            return substitutedValue == null ? ((Enum<?>) field.get(null)).name().toLowerCase()
+                    : substitutedValue.value();
         }
         catch (final IllegalAccessException | NoSuchFieldException oops)
         {
@@ -581,8 +601,15 @@ public class Validators
         this.validators = new ValidatorMap();
         fillValidatorTypes(this.validatorTypes);
         final List<Class<?>> klasses = new ArrayList<>();
-        new FastClasspathScanner(packageName).matchClassesWithAnnotation(Tag.class, klasses::add)
-                .scan();
+
+        // Scan all classes in the given package with the Tag annotation
+        try (ScanResult scanResult = new ClassGraph().enableAllInfo().whitelistPackages(packageName)
+                .scan())
+        {
+            final ClassInfoList tagClassInfoList = scanResult
+                    .getClassesWithAnnotation("org.openstreetmap.atlas.tags.annotations.Tag");
+            tagClassInfoList.loadClasses().forEach(klasses::add);
+        }
         klasses.stream().forEach(this::processClass);
     }
 

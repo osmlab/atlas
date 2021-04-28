@@ -1,23 +1,25 @@
 package org.openstreetmap.atlas.geography.atlas.command;
 
 import java.io.PrintStream;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
+import org.openstreetmap.atlas.geography.atlas.pbf.BridgeConfiguredFilter;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
-import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasCountrySlicer;
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.AtlasSectionProcessor;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.tags.filters.ConfiguredTaggableFilter;
 import org.openstreetmap.atlas.utilities.configuration.StandardConfiguration;
+import org.openstreetmap.atlas.utilities.conversion.StringConverter;
 import org.openstreetmap.atlas.utilities.runtime.Command.Optionality;
 import org.openstreetmap.atlas.utilities.runtime.Command.Switch;
 import org.openstreetmap.atlas.utilities.runtime.Command.SwitchList;
@@ -63,16 +65,30 @@ public class OsmPbfToAtlasSubCommand implements FlexibleSubCommand
             "Whether to load ways (boolean)", Boolean::parseBoolean, Optionality.OPTIONAL, "true");
 
     // Country parameters
-    private static final Switch<Set<String>> COUNTRY_CODES_PARAMETER = new Switch<>("country-codes",
-            "Countries from the country map to convert (comma separated ISO3 codes)",
-            code -> Arrays.stream(code.split(",")).collect(Collectors.toSet()),
-            Optionality.OPTIONAL);
+    private static final Switch<String> COUNTRY_CODE_PARAMETER = new Switch<>("country-code",
+            "Country from the country map to convert (comma separated ISO3 codes)",
+            StringConverter.IDENTITY, Optionality.OPTIONAL);
     private static final Switch<File> COUNTRY_MAP_PARAMETER = new Switch<>("country-boundary-map",
             "Path to a local WKT or shp file containing a country boundary map", File::new,
             Optionality.OPTIONAL);
     private static final Switch<Boolean> COUNTRY_SLICING_PARAMETER = new Switch<>("country-slicing",
             "Whether to perform country slicing (boolean)", Boolean::parseBoolean,
             Optionality.OPTIONAL, "true");
+
+    @Override
+    public int execute(final CommandMap map)
+    {
+        final AtlasLoadingOption options = this.getAtlasLoadingOption(map);
+        Atlas atlas = new RawAtlasGenerator((File) map.get(INPUT_PARAMETER), options,
+                MultiPolygon.MAXIMUM).build();
+        if (options.isCountrySlicing())
+        {
+            atlas = new RawAtlasSlicer(options, atlas).slice();
+        }
+        atlas = new AtlasSectionProcessor(atlas, options).run();
+        atlas.save((File) map.get(OUTPUT_PARAMETER));
+        return 0;
+    }
 
     @Override
     public String getDescription()
@@ -92,7 +108,7 @@ public class OsmPbfToAtlasSubCommand implements FlexibleSubCommand
         return new SwitchList().with(INPUT_PARAMETER, OUTPUT_PARAMETER, EDGE_FILTER_PARAMETER,
                 NODE_FILTER_PARAMETER, RELATION_FILTER_PARAMETER, WAY_FILTER_PARAMETER,
                 WAY_SECTION_FILTER_PARAMETER, LOAD_RELATIONS_PARAMETER, LOAD_WAYS_PARAMETER,
-                COUNTRY_CODES_PARAMETER, COUNTRY_MAP_PARAMETER, COUNTRY_SLICING_PARAMETER);
+                COUNTRY_CODE_PARAMETER, COUNTRY_MAP_PARAMETER, COUNTRY_SLICING_PARAMETER);
     }
 
     @Override
@@ -117,52 +133,6 @@ public class OsmPbfToAtlasSubCommand implements FlexibleSubCommand
                 "-way-section-filter=/path/to/json/way/section/filter : json filter to determine where to way section");
     }
 
-    @Override
-    public int execute(final CommandMap map)
-    {
-        final AtlasLoadingOption options = this.getAtlasLoadingOption(map);
-        Atlas atlas = new RawAtlasGenerator((File) map.get(INPUT_PARAMETER), options,
-                MultiPolygon.MAXIMUM).build();
-        if (options.isCountrySlicing())
-        {
-            atlas = new RawAtlasCountrySlicer(options.getCountryCodes(),
-                    options.getCountryBoundaryMap()).slice(atlas);
-        }
-        atlas = new WaySectionProcessor(atlas, options).run();
-        atlas.save((File) map.get(OUTPUT_PARAMETER));
-        return 0;
-    }
-
-    /**
-     * Get or create a {@link CountryBoundaryMap}. If the country-boundary-map parameter is set,
-     * this will attempt to load the text or shape file from that parameter. Else, this will load
-     * using the entire world as the country UNK (unknown).
-     *
-     * @param map
-     *            {@link CommandMap} containing the {@code COUNTRY_MAP_PARAMETER}
-     * @return {@link CountryBoundaryMap} loaded from a file or default
-     */
-    private CountryBoundaryMap getCountryBoundaryMap(final CommandMap map)
-    {
-        final Optional<File> countryMapOption = (Optional<File>) map
-                .getOption(COUNTRY_MAP_PARAMETER);
-        CountryBoundaryMap countryMap = CountryBoundaryMap
-                .fromBoundaryMap(Collections.singletonMap("UNK", MultiPolygon.MAXIMUM));
-        if (countryMapOption.isPresent())
-        {
-            final File countryMapFile = countryMapOption.get();
-            if (FilenameUtils.isExtension(countryMapFile.getName(), "txt"))
-            {
-                countryMap = CountryBoundaryMap.fromPlainText(countryMapFile);
-            }
-            else if (FilenameUtils.isExtension(countryMapFile.getName(), "shp"))
-            {
-                countryMap = CountryBoundaryMap.fromShapeFile(countryMapFile.getFile());
-            }
-        }
-        return countryMap;
-    }
-
     /**
      * Creates an {@link AtlasLoadingOption} using configurable parameters. If any of the parameters
      * are not set the defaults from {@link AtlasLoadingOption} are used.
@@ -178,8 +148,10 @@ public class OsmPbfToAtlasSubCommand implements FlexibleSubCommand
                 .createOptionWithAllEnabled(countryMap);
 
         // Set filters
-        map.getOption(EDGE_FILTER_PARAMETER).ifPresent(filter -> options.setEdgeFilter(
-                new ConfiguredTaggableFilter(new StandardConfiguration((File) filter))));
+        map.getOption(EDGE_FILTER_PARAMETER)
+                .ifPresent(filter -> options.setEdgeFilter(
+                        new BridgeConfiguredFilter("", AtlasLoadingOption.ATLAS_EDGE_FILTER_NAME,
+                                new StandardConfiguration((File) filter))));
         map.getOption(NODE_FILTER_PARAMETER).ifPresent(filter -> options.setOsmPbfNodeFilter(
                 new ConfiguredTaggableFilter(new StandardConfiguration((File) filter))));
         map.getOption(RELATION_FILTER_PARAMETER)
@@ -187,8 +159,10 @@ public class OsmPbfToAtlasSubCommand implements FlexibleSubCommand
                         new ConfiguredTaggableFilter(new StandardConfiguration((File) filter))));
         map.getOption(WAY_FILTER_PARAMETER).ifPresent(filter -> options.setOsmPbfWayFilter(
                 new ConfiguredTaggableFilter(new StandardConfiguration((File) filter))));
-        map.getOption(WAY_SECTION_FILTER_PARAMETER).ifPresent(filter -> options.setWaySectionFilter(
-                new ConfiguredTaggableFilter(new StandardConfiguration((File) filter))));
+        map.getOption(WAY_SECTION_FILTER_PARAMETER)
+                .ifPresent(filter -> options.setWaySectionFilter(new BridgeConfiguredFilter("",
+                        AtlasLoadingOption.ATLAS_WAY_SECTION_FILTER_NAME,
+                        new StandardConfiguration((File) filter))));
 
         // Set loading options
         ((Optional<Boolean>) map.getOption(LOAD_RELATIONS_PARAMETER))
@@ -200,11 +174,44 @@ public class OsmPbfToAtlasSubCommand implements FlexibleSubCommand
         });
 
         // Set country options
-        ((Optional<Set>) map.getOption(COUNTRY_CODES_PARAMETER))
-                .ifPresent(options::setAdditionalCountryCodes);
+        ((Optional<String>) map.getOption(COUNTRY_CODE_PARAMETER))
+                .ifPresent(options::setCountryCode);
         ((Optional<Boolean>) map.getOption(COUNTRY_SLICING_PARAMETER))
                 .ifPresent(options::setCountrySlicing);
 
         return options;
+    }
+
+    /**
+     * Get or create a {@link CountryBoundaryMap}. If the country-boundary-map parameter is set,
+     * this will attempt to load the text or shape file from that parameter. Else, this will load
+     * using the entire world as the country UNK (unknown).
+     *
+     * @param map
+     *            {@link CommandMap} containing the {@code COUNTRY_MAP_PARAMETER}
+     * @return {@link CountryBoundaryMap} loaded from a file or default
+     */
+    private CountryBoundaryMap getCountryBoundaryMap(final CommandMap map)
+    {
+        final Optional<File> countryMapOption = (Optional<File>) map
+                .getOption(COUNTRY_MAP_PARAMETER);
+        final List<org.locationtech.jts.geom.Polygon> boundaries = new ArrayList<>();
+        MultiPolygon.MAXIMUM.outers()
+                .forEach(outer -> boundaries.add(new JtsPolygonConverter().convert(outer)));
+        CountryBoundaryMap countryMap = CountryBoundaryMap
+                .fromBoundaryMap(Collections.singletonMap("UNK", boundaries));
+        if (countryMapOption.isPresent())
+        {
+            final File countryMapFile = countryMapOption.get();
+            if (FilenameUtils.isExtension(countryMapFile.getName(), "txt"))
+            {
+                countryMap = CountryBoundaryMap.fromPlainText(countryMapFile);
+            }
+            else if (FilenameUtils.isExtension(countryMapFile.getName(), "shp"))
+            {
+                countryMap = CountryBoundaryMap.fromShapeFile(countryMapFile.getFile());
+            }
+        }
+        return countryMap;
     }
 }

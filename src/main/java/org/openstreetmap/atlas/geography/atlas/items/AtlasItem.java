@@ -31,5 +31,4 @@ public abstract class AtlasItem extends AtlasEntity implements Iterable<Location
     {
         return getRawGeometry().iterator();
     }
-
 }

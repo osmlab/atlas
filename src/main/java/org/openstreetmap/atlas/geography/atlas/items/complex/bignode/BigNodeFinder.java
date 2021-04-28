@@ -5,6 +5,7 @@ import static org.openstreetmap.atlas.tags.names.NameFinder.STANDARD_TAGS;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -53,6 +54,21 @@ import com.google.common.collect.Sets;
 public class BigNodeFinder implements Finder<BigNode>
 {
     /**
+     * This comparator is used to compare atlas node based on their identifier value
+     */
+    public static final class NodeComparator implements Comparator<Node>, Serializable
+    {
+        private static final long serialVersionUID = 816401695743423872L;
+
+        @Override
+        public int compare(final Node node1, final Node node2)
+        {
+            return new CompareToBuilder().append(node1.getIdentifier(), node2.getIdentifier())
+                    .toComparison();
+        }
+    }
+
+    /**
      * An intermediate {@link BigNode} candidate that is easily merged with other {@link BigNode}s
      *
      * @author Sid
@@ -60,7 +76,6 @@ public class BigNodeFinder implements Finder<BigNode>
     public static final class BigNodeCandidate implements Comparable<BigNodeCandidate>, Serializable
     {
         private static final long serialVersionUID = 7225634482602225746L;
-
         private final Set<Long> nodeIdentifiers;
 
         public static BigNodeCandidate from(final Set<Node> nodes)
@@ -82,8 +97,29 @@ public class BigNodeFinder implements Finder<BigNode>
         @Override
         public int compareTo(final BigNodeCandidate bigNodeCandidate)
         {
-            return new CompareToBuilder()
-                    .append(this.nodeIdentifiers, bigNodeCandidate.nodeIdentifiers).toComparison();
+            final Iterator<Long> iterator2 = bigNodeCandidate.nodeIdentifiers.iterator();
+            for (final Long identifier : this.nodeIdentifiers)
+            {
+                // Shorter sets sort first.
+                if (!iterator2.hasNext())
+                {
+                    return 1;
+                }
+                final int comparison = identifier.compareTo(iterator2.next());
+                if (comparison != 0)
+                {
+                    return comparison;
+                }
+            }
+            // Shorter sets sort first
+            if (iterator2.hasNext())
+            {
+                return -1;
+            }
+            else
+            {
+                return 0;
+            }
         }
 
         @Override
@@ -178,10 +214,7 @@ public class BigNodeFinder implements Finder<BigNode>
                 final BigNodeCandidate bigNodeCandidate = this.bigNodeCandidateIterator.next();
 
                 // Sorting to ensure deterministic id
-                final Set<Node> nodes = new TreeSet<>(
-                        (final Node node1, final Node node2) -> new CompareToBuilder()
-                                .append(node1.getIdentifier(), node2.getIdentifier())
-                                .toComparison());
+                final Set<Node> nodes = new TreeSet<>(new NodeComparator());
                 bigNodeCandidate.nodeIdentifiers
                         .forEach(nodeIdentifier -> nodes.add(this.atlas.node(nodeIdentifier)));
                 if (!nodes.isEmpty())
@@ -213,9 +246,9 @@ public class BigNodeFinder implements Finder<BigNode>
     }
 
     /**
-     * Minimum number of master edges involved in dual carriage way intersection
+     * Minimum number of main edges involved in dual carriage way intersection
      */
-    private static final int MIN_MASTER_EDGE_DUAL_CARRIAGEWAY_INTERSECTION = 2;
+    private static final int MIN_MAIN_EDGE_DUAL_CARRIAGEWAY_INTERSECTION = 2;
     /**
      * LEVENSHTEIN limit is used for fuzzy name match
      */
@@ -240,6 +273,12 @@ public class BigNodeFinder implements Finder<BigNode>
      * prevent bad edge cases while constructing the big node
      */
     private static final int MAXIMUM_DUAL_CARRIAGEWAY_ROUTE_SIZE = 10;
+    /**
+     * This is a maximum number of possible exploratory routes when searching for dual carriage way
+     * junction routes. This is to prevent exponential slowdowns during rare edge cases, eg. when
+     * OSM ways overlap.
+     */
+    private static final int MAXIMUM_CANDIDATE_JUNCTION_ROUTE_SET_SIZE = 10_000;
 
     private final EdgeDirectionComparator edgeDirectionComparator = new EdgeDirectionComparator();
 
@@ -272,8 +311,8 @@ public class BigNodeFinder implements Finder<BigNode>
                 }
                 else
                 {
-                    // Expand Junction Edge to Junction Route before checking for Dual Carriage way
-                    // intersection
+                    // Expand Junction Edge to Junction Route before checking for Dual Carriage
+                    // way intersection
                     final Optional<Route> junctionRoute = isDualCarriageWayJunctionRoute(
                             Route.forEdge(candidateEdge));
 
@@ -295,13 +334,13 @@ public class BigNodeFinder implements Finder<BigNode>
         while (!junctionEdgeIds.isEmpty())
         {
             final Long candidateEdgeId = junctionRouteEdgeIds.isEmpty()
-                    ? junctionEdgeIds.iterator().next() : junctionRouteEdgeIds.iterator().next();
+                    ? junctionEdgeIds.iterator().next()
+                    : junctionRouteEdgeIds.iterator().next();
             final Edge candidate = atlas.edge(candidateEdgeId);
             final Route mergedCandidate = mergeJunctionEdges(Route.forEdge(candidate),
                     junctionEdgeIds);
             logger.debug("Merged bigNode Route : {}. Number of Edges : {}", mergedCandidate,
                     mergedCandidate.size());
-
             /*
              * mergedRoutes are formed after strict connectivity checks. But mergedRoutes can share
              * same node. Each node must have 1-1 mapping with a big node. So we merge routes into
@@ -309,6 +348,7 @@ public class BigNodeFinder implements Finder<BigNode>
              */
             final Set<Node> nodes = new HashSet<>();
             mergedCandidate.forEach(edge -> nodes.addAll(edge.connectedNodes()));
+
             final Set<BigNodeCandidate> bigNodesMergeCandidates = new HashSet<>();
             for (final Node node : nodes)
             {
@@ -376,6 +416,39 @@ public class BigNodeFinder implements Finder<BigNode>
         new GeoJsonBuilder().create(features).save(writableResource);
     }
 
+    /*
+     * Check if the start and end node of an edge connects to the same edge. Example is
+     * https://www.openstreetmap.org/way/798542598 This type of edge should not be considered as
+     * junction edge
+     */
+    protected boolean startAndEndNodesConnectedToSameEdge(final Edge edge)
+    {
+        return edge.start().connectedEdges().stream()
+                .filter(connectedEdge -> Math.abs(connectedEdge.getIdentifier()) != Math
+                        .abs(edge.getIdentifier()))
+                .anyMatch(connectedEdge -> edge.end().connectedEdges().contains(connectedEdge));
+    }
+
+    /**
+     * Identify {@link Edge} name matches when both {@link Edge}s have same names. When strict mode
+     * parameter is set to {@code true}, both edge names must be non-empty and must match. Exact
+     * match is recommended for residential roads
+     */
+    private boolean edgeNameExactMatch(final Edge edgeA, final Edge edgeB, final boolean strictMode)
+    {
+        final Optional<String> edgeAName = this.nameFinder.best(edgeA);
+        final Optional<String> edgeBName = this.nameFinder.best(edgeB);
+        if (edgeAName.isPresent() && edgeBName.isPresent())
+        {
+            return nameExactMatch(edgeAName.get(), edgeBName.get());
+        }
+        if (!strictMode && (!edgeAName.isPresent() || !edgeBName.isPresent()))
+        {
+            return true;
+        }
+        return false;
+    }
+
     /**
      * Identify {@link Edge} name matches when both {@link Edge}s have same names. When strict mode
      * parameter is set to {@code true}, both edge names must be non-empty and must match. Instead
@@ -410,9 +483,8 @@ public class BigNodeFinder implements Finder<BigNode>
     private boolean isCandidateJunctionEdge(final Edge edge)
     {
         final HighwayTag highwayTag = edge.highwayTag();
-        return isShortEnough(edge)
-                && highwayTag.isMoreImportantThanOrEqualTo(HighwayTag.RESIDENTIAL)
-                && !JunctionTag.isRoundabout(edge);
+        return isShortEnough(edge) && highwayTag.isMoreImportantThanOrEqualTo(HighwayTag.SERVICE)
+                && !JunctionTag.isRoundabout(edge) && !startAndEndNodesConnectedToSameEdge(edge);
     }
 
     private boolean isDualCarriageWayJunctionEdge(final Edge candidateEdge)
@@ -433,6 +505,13 @@ public class BigNodeFinder implements Finder<BigNode>
      */
     private Optional<Route> isDualCarriageWayJunctionRoute(final Set<Route> candidateJunctionRoutes)
     {
+        if (candidateJunctionRoutes.size() > MAXIMUM_CANDIDATE_JUNCTION_ROUTE_SET_SIZE)
+        {
+            logger.warn(
+                    "Aborting isDualCarriageWayJunctionRoute, candidate set size {} exceeded {}",
+                    candidateJunctionRoutes.size(), MAXIMUM_CANDIDATE_JUNCTION_ROUTE_SET_SIZE);
+            return Optional.empty();
+        }
         if (candidateJunctionRoutes.isEmpty())
         {
             return Optional.empty();
@@ -443,8 +522,8 @@ public class BigNodeFinder implements Finder<BigNode>
         {
             final Set<Edge> expandableEdges = new LinkedHashSet<>();
             candidateJunctionRoute.end().outEdges().stream().filter(this::isCandidateJunctionEdge)
-                    .filter(edge -> edge.getMasterEdgeIdentifier() != candidateJunctionRoute.end()
-                            .getMasterEdgeIdentifier())
+                    .filter(edge -> edge.getMainEdgeIdentifier() != candidateJunctionRoute.end()
+                            .getMainEdgeIdentifier())
                     .filter(edge -> this.edgeDirectionComparator
                             .isSameDirection(candidateJunctionRoute.end(), edge, false))
                     .forEach(expandableEdges::add);
@@ -458,7 +537,7 @@ public class BigNodeFinder implements Finder<BigNode>
                 }
                 catch (final CoreException e)
                 {
-                    logger.warn("Could not append dual carriageway route {} with with {}",
+                    throw new CoreException("Could not append dual carriageway route {} with {}",
                             candidateJunctionRoute, expandableEdge.getIdentifier(), e);
                 }
                 // If the routes are DualCarriageWayRoutes, then return
@@ -491,12 +570,12 @@ public class BigNodeFinder implements Finder<BigNode>
         }
 
         /*
-         * A restriction with at least 4 master edges in a dual carriage way intersection, used to
+         * A restriction with at least 4 main edges in a dual carriage way intersection, used to
          * filter out false positives, missed Test case 5 in BigNodeFinderTest. To increase
          * coverage, this is set to 2.
          */
-        if (candidateRoute.connectedEdges().stream().filter(Edge::isMasterEdge)
-                .count() >= MIN_MASTER_EDGE_DUAL_CARRIAGEWAY_INTERSECTION)
+        if (candidateRoute.connectedEdges().stream().filter(Edge::isMainEdge)
+                .count() >= MIN_MAIN_EDGE_DUAL_CARRIAGEWAY_INTERSECTION)
         {
             for (final Edge inEdge : candidateRoute.start().inEdges())
             {
@@ -512,16 +591,32 @@ public class BigNodeFinder implements Finder<BigNode>
                 // If the candidateRoute has inEdge and outEdge that are in opposite direction
                 for (final Edge outEdge : candidateRoute.end().outEdges())
                 {
-                    /*
+                    /**
                      * Usually Dual Carriage Way roads are one way. OutEdge and inEdge cannot have
                      * name mismatch. Including other Car Navigable roads like Service roads
                      * increases false positive cases.
                      */
-                    if (outEdge.highwayTag().isMoreImportantThanOrEqualTo(HighwayTag.RESIDENTIAL)
+                    if (outEdge.highwayTag().isMoreImportantThanOrEqualTo(HighwayTag.UNCLASSIFIED)
+                            // if an edge is considered as a junction edge, the dual carriage way
+                            // it connects to can not be link road
+                            && (!inEdge.highwayTag().isLink() && !outEdge.highwayTag().isLink())
                             && this.edgeDirectionComparator.isOppositeDirection(inEdge, outEdge,
                                     false)
                             && !outEdge.hasReverseEdge() && !inEdge.hasReverseEdge()
                             && edgeNameFuzzyMatch(outEdge, inEdge, false))
+                    {
+                        return true;
+                    }
+                    /**
+                     * Enforce stricter name checks for Residential Roads to reduce false positives
+                     * and over merging of big nodes
+                     */
+                    if (outEdge.highwayTag() == HighwayTag.RESIDENTIAL
+                            && this.edgeDirectionComparator.isOppositeDirection(inEdge, outEdge,
+                                    false)
+                            && !outEdge.hasReverseEdge() && !inEdge.hasReverseEdge()
+                            && edgeNameExactMatch(outEdge, inEdge,
+                                    inEdge.highwayTag() != HighwayTag.RESIDENTIAL))
                     {
                         return true;
                     }
@@ -541,11 +636,6 @@ public class BigNodeFinder implements Finder<BigNode>
         if (isCandidateJunctionEdge(candidateEdge))
         {
             final Set<Edge> candidateRouteEdges = Sets.newHashSet(candidateRoute);
-            // Remove the first edge of a multi-edge route to ensure bigger routes have a cycle
-            if (candidateRoute.size() > 1)
-            {
-                candidateRouteEdges.remove(candidateRoute.start());
-            }
             final Set<Long> candidateRouteEdgeIds = candidateRouteEdges.stream()
                     .map(edge -> edge.getIdentifier()).collect(Collectors.toSet());
 
@@ -598,12 +688,12 @@ public class BigNodeFinder implements Finder<BigNode>
         final Set<Edge> mergeCandidates = new TreeSet<>((edge1, edge2) -> ComparisonChain.start()
                 .compare(edge1.getIdentifier(), edge2.getIdentifier()).result());
 
-        final Set<Long> masterEdgeIdentifiers = new HashSet<>();
-        candidateRoute.forEach(edge -> masterEdgeIdentifiers.add(edge.getMasterEdgeIdentifier()));
+        final Set<Long> mainEdgeIdentifiers = new HashSet<>();
+        candidateRoute.forEach(edge -> mainEdgeIdentifiers.add(edge.getMainEdgeIdentifier()));
 
         connectedEdges.stream().filter(edge -> junctionEdgeIds.contains(edge.getIdentifier()))
                 .filter(edge -> !candidateRoute.includes(edge))
-                .filter(edge -> !masterEdgeIdentifiers.contains(edge.getMasterEdgeIdentifier()))
+                .filter(edge -> !mainEdgeIdentifiers.contains(edge.getMainEdgeIdentifier()))
                 .forEach(mergeCandidates::add);
         /*
          * There are some cases where we have a couple of junction edges (instead of all four) that
@@ -612,7 +702,7 @@ public class BigNodeFinder implements Finder<BigNode>
         if (mergeCandidates.isEmpty())
         {
             connectedEdges.stream().filter(edge -> !junctionEdgeIds.contains(edge.getIdentifier()))
-                    .filter(edge -> !masterEdgeIdentifiers.contains(edge.getMasterEdgeIdentifier()))
+                    .filter(edge -> !mainEdgeIdentifiers.contains(edge.getMainEdgeIdentifier()))
                     .filter(edge -> isMergeCandidateEdge(edge, candidateRoute, junctionEdgeIds))
                     .filter(edge -> !candidateRoute.includes(edge)).forEach(mergeCandidates::add);
         }
@@ -654,6 +744,11 @@ public class BigNodeFinder implements Finder<BigNode>
             }
         }
         return edgeTag;
+    }
+
+    private boolean nameExactMatch(final String nameA, final String nameB)
+    {
+        return nameA.equalsIgnoreCase(nameB);
     }
 
     private boolean nameFuzzyMatch(final String nameA, final String nameB)

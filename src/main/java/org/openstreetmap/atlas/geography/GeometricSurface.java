@@ -7,17 +7,17 @@ import org.openstreetmap.atlas.utilities.scalars.Surface;
  *
  * @author jklamer
  */
-public interface GeometricSurface extends Located
+public interface GeometricSurface extends Located, GeometryPrintable, GeometricObject
 {
     boolean fullyGeometricallyEncloses(Location location);
 
-    boolean fullyGeometricallyEncloses(PolyLine polyLine);
-
     boolean fullyGeometricallyEncloses(MultiPolygon multiPolygon);
 
-    boolean overlaps(PolyLine polyLine);
+    boolean fullyGeometricallyEncloses(PolyLine polyLine);
 
     boolean overlaps(MultiPolygon multiPolygon);
+
+    boolean overlaps(PolyLine polyLine);
 
     /**
      * @return The {@link Surface} of this {@link GeometricSurface}. Not valid if the

@@ -31,7 +31,7 @@ public class ComplexHighwayAreaFinder implements Finder<ComplexHighwayArea>
     private static boolean validEdge(final Edge edge)
     {
         return Validators.isNotOfType(edge, HighwayTag.class, HighwayTag.NO)
-                && Validators.isOfType(edge, AreaTag.class, AreaTag.YES) && edge.isMasterEdge();
+                && Validators.isOfType(edge, AreaTag.class, AreaTag.YES) && edge.isMainEdge();
     }
 
     @Override

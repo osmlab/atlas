@@ -43,7 +43,7 @@ public interface Taggable
     {
         DEFAULT,
         LOCALIZED_ONLY,
-        FORCE_ALL_LOCALIZED_ONLY;
+        FORCE_ALL_LOCALIZED_ONLY
     }
 
     static Taggable with(final Collection<Tag> tagCollection)
@@ -61,6 +61,12 @@ public interface Taggable
             public Optional<String> getTag(final String key)
             {
                 return Optional.ofNullable(tags.get(key));
+            }
+
+            @Override
+            public Map<String, String> getTags()
+            {
+                return tags;
             }
 
             @Override
@@ -98,7 +104,10 @@ public interface Taggable
                     if (candidate.length() > 1)
                     {
                         final String forbiddenValue = candidate.substring(1);
-                        return !value.equalsIgnoreCase(forbiddenValue);
+                        if (!value.equalsIgnoreCase(forbiddenValue))
+                        {
+                            return true;
+                        }
                     }
                     else
                     {
@@ -167,7 +176,11 @@ public interface Taggable
             {
                 return localizedValue;
             }
-            return getTag(Validators.localizeKeyName(key, Optional.empty()).get());
+            final Optional<String> optionalKey = Validators.localizeKeyName(key, Optional.empty());
+            if (optionalKey.isPresent())
+            {
+                return getTag(optionalKey.get());
+            }
         }
         return Optional.empty();
     }
@@ -204,9 +217,10 @@ public interface Taggable
      */
     default boolean hasAtLeastOneOf(final Map<String, String> tags)
     {
-        for (final String key : tags.keySet())
+        for (final Map.Entry<String, String> entry : tags.entrySet())
         {
-            final String value = tags.get(key);
+            final String key = entry.getKey();
+            final String value = entry.getValue();
             final Optional<String> myValue = getTag(key);
 
             if (myValue.isPresent())
@@ -248,7 +262,10 @@ public interface Taggable
             throw new CoreException("{} isn't a localizable tag", tag.getName());
         }
 
-        final String prefix = Validators.TagKeySearch.findTagKeyIn(tag).get().getKeyName();
+        final String prefix = Validators.TagKeySearch.findTagKeyIn(tag)
+                .orElseThrow(
+                        () -> new CoreException("Could not find key for tag {}", tag.getName()))
+                .getKeyName();
         final int prefixLength = prefix.length();
         for (final String key : this.getTags().keySet())
         {
@@ -256,10 +273,7 @@ public interface Taggable
             {
                 final LocalizedTagNameWithOptionalDate parser = new LocalizedTagNameWithOptionalDate(
                         key);
-                parser.getLanguage().ifPresent(language ->
-                {
-                    returnValue.add(language);
-                });
+                parser.getLanguage().ifPresent(returnValue::add);
             }
         }
 

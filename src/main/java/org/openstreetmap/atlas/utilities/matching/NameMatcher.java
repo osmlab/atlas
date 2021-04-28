@@ -66,22 +66,22 @@ public class NameMatcher implements Serializable, Predicate<String>
     {
         if (candidateName == null)
         {
-            return matchNull;
+            return this.matchNull;
         }
-        if (exactMatch)
+        if (this.exactMatch)
         {
-            return candidateName.equals(sourceName);
+            return candidateName.equals(this.sourceName);
         }
-        if (fuzzyMatch)
+        if (this.fuzzyMatch)
         {
-            return nameFuzzyMatch(sourceName, candidateName);
+            return nameFuzzyMatch(this.sourceName, candidateName);
         }
-        return candidateName.equalsIgnoreCase(sourceName);
+        return candidateName.equalsIgnoreCase(this.sourceName);
     }
 
     private boolean nameFuzzyMatch(final String nameA, final String nameB)
     {
         return nameA.equalsIgnoreCase(nameB) || StringUtils.getLevenshteinDistance(nameA, nameB,
-                lavenshteinDistanceThreshold) != -1;
+                this.lavenshteinDistanceThreshold) != -1;
     }
 }

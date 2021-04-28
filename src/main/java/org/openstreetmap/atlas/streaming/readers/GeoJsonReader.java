@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Located;
@@ -87,7 +88,7 @@ public class GeoJsonReader implements Iterator<PropertiesLocated>
     {
         if (!hasNext())
         {
-            return null;
+            throw new NoSuchElementException();
         }
         try
         {

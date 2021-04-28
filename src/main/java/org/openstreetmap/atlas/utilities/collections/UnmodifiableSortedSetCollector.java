@@ -48,7 +48,7 @@ public class UnmodifiableSortedSetCollector<U extends Comparable<U>>
     @Override
     public Function<SortedSet<U>, SortedSet<U>> finisher()
     {
-        return (set) -> Collections.unmodifiableSortedSet(set);
+        return set -> Collections.unmodifiableSortedSet(set);
     }
 
     @Override

@@ -1,0 +1,71 @@
+{
+  "type": "Feature",
+  "bbox": [
+    12.3984012,
+    55.7784144,
+    12.3984012,
+    55.7784144
+  ],
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          12.3984012,
+          55.7784144
+        ],
+        [
+          12.3984012,
+          55.7784144
+        ],
+        [
+          12.3984012,
+          55.7784144
+        ],
+        [
+          12.3984012,
+          55.7784144
+        ]
+      ]
+    ]
+  },
+  "properties": {
+    "featureChangeType": "ADD",
+    "metadata": {
+      "mutator": "LegacyFixmeCorrection|9-168-233"
+    },
+    "description": {
+      "type": "ADD",
+      "descriptors": [
+        {
+          "name": "RELATION_MEMBER",
+          "type": "ADD",
+          "itemType": "NODE",
+          "id": -1374305525422343588,
+          "role": "via",
+          "beforeElement": 9087654321,
+          "afterElement": 1234567890
+        }
+      ]
+    },
+    "entityType": "RELATION",
+    "completeEntityClass": "org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation",
+    "identifier": 4454872000000,
+    "tags": {
+      "last_edit_user_name": "nbrummerstedt",
+      "last_edit_changeset": "27885435",
+      "last_edit_time": "1420291176000",
+      "last_edit_user_id": "718031",
+      "iso_country_code": "DNK",
+      "restriction": "no_left_turn",
+      "type": "restriction",
+      "last_edit_version": "1"
+    },
+    "relations": [],
+    "members": [
+      "{Member: ID = -1374305525422343588, Type = NODE, Role = via}"
+    ],
+    "WKT": "POLYGON ((12.3984012 55.7784144, 12.3984012 55.7784144, 12.3984012 55.7784144, 12.3984012 55.7784144, 12.3984012 55.7784144))",
+    "bboxWKT": "POLYGON ((12.3984012 55.7784144, 12.3984012 55.7784144, 12.3984012 55.7784144, 12.3984012 55.7784144, 12.3984012 55.7784144))"
+  }
+}

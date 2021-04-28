@@ -11,13 +11,31 @@ import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.JsonObject;
+
 /**
  * @author matthieun
  * @author mgostintsev
+ * @author hallahan
  */
 public class PolyLineTest
 {
     private static final Logger logger = LoggerFactory.getLogger(PolyLineTest.class);
+
+    @Test
+    public void testAntimeridianHandling()
+    {
+        final PolyLine antimeridianWest = new PolyLine(
+                new Location(Latitude.degrees(40), Longitude.ANTIMERIDIAN_WEST),
+                new Location(Latitude.degrees(41), Longitude.ANTIMERIDIAN_WEST));
+        final PolyLine antimeridianEast = new PolyLine(
+                new Location(Latitude.degrees(40), Longitude.ANTIMERIDIAN_EAST),
+                new Location(Latitude.degrees(41), Longitude.ANTIMERIDIAN_EAST));
+
+        Assert.assertTrue(antimeridianWest.intersections(antimeridianEast).isEmpty());
+        Assert.assertTrue(antimeridianEast.length().equals(antimeridianWest.length()));
+        Assert.assertTrue(antimeridianEast.length().isLessThan(Distance.miles(100)));
+    }
 
     @Test
     public void testAppend()
@@ -30,10 +48,20 @@ public class PolyLineTest
     }
 
     @Test
+    public void testAsGeoJsonGeometry()
+    {
+        final PolyLine polyLine = PolyLine.wkt(
+                "LINESTRING (-75.616330 40.194570, -75.616330 40.194570, -75.616330 40.194570, -75.616340 40.194580, -75.616340 40.194590)");
+        final String geoJson = "{\"type\":\"LineString\",\"coordinates\":[[-75.61633,40.19457],[-75.61633,40.19457],[-75.61633,40.19457],[-75.61634,40.19458],[-75.61634,40.19459]]}";
+        final JsonObject geometry = polyLine.asGeoJsonGeometry();
+        Assert.assertEquals(geoJson, geometry.toString());
+    }
+
+    @Test
     public void testContains()
     {
-        final PolyLine line = PolyLine
-                .wkt("LINESTRING (10.5553105 48.3419094, 10.5552096 48.3417501, 10.5551312 48.3416583, "
+        final PolyLine line = PolyLine.wkt(
+                "LINESTRING (10.5553105 48.3419094, 10.5552096 48.3417501, 10.5551312 48.3416583, "
                         + "10.5551027 48.341611, 10.5550183 48.3415143, 10.5549357 48.3414668, "
                         + "10.5548325 48.3414164, 10.5548105 48.3415201, 10.5548015 48.3415686, "
                         + "10.5548925 48.3416166, 10.5550334 48.3416375, 10.5551312 48.3416583)");
@@ -71,13 +99,13 @@ public class PolyLineTest
     @Test
     public void testEqualsShape()
     {
-        final PolyLine polyLine1 = PolyLine
-                .wkt("LINESTRING (10.5553105 48.3419094, 10.5552096 48.3417501, 10.5551312 48.3416583, "
+        final PolyLine polyLine1 = PolyLine.wkt(
+                "LINESTRING (10.5553105 48.3419094, 10.5552096 48.3417501, 10.5551312 48.3416583, "
                         + "10.5551027 48.341611, 10.5550183 48.3415143, 10.5549357 48.3414668, "
                         + "10.5548325 48.3414164, 10.5548105 48.3415201, 10.5548015 48.3415686, "
                         + "10.5548925 48.3416166, 10.5550334 48.3416375, 10.5551312 48.3416583)");
-        final PolyLine polyLine2 = PolyLine
-                .wkt("LINESTRING (10.5551312 48.3416583, 10.5551027 48.341611, 10.5550183 48.3415143, "
+        final PolyLine polyLine2 = PolyLine.wkt(
+                "LINESTRING (10.5551312 48.3416583, 10.5551027 48.341611, 10.5550183 48.3415143, "
                         + "10.5549357 48.3414668, 10.5548325 48.3414164, 10.5548105 48.3415201, "
                         + "10.5548015 48.3415686, 10.5548925 48.3416166, 10.5550334 48.3416375, "
                         + "10.5551312 48.3416583, 10.5552096 48.3417501, 10.5553105 48.3419094)");
@@ -118,6 +146,19 @@ public class PolyLineTest
         final PolyLine source = new PolyLine(Location.CROSSING_85_280, Location.TEST_1);
         Assert.assertTrue("Make sure the iterable is empty",
                 Iterables.isEmpty(source.innerLocations()));
+    }
+
+    @Test
+    public void testOverallHeading()
+    {
+        final PolyLine line1 = new PolyLine(Location.CROSSING_85_280, Location.TEST_1);
+        final PolyLine line2 = new PolyLine(Location.CROSSING_85_280, Location.TEST_1,
+                Location.CROSSING_85_280);
+        final PolyLine line3 = new PolyLine(Location.CROSSING_85_280);
+        Assert.assertTrue(line1.overallHeading().isPresent());
+        Assert.assertEquals(Heading.degrees(85.5165015), line1.overallHeading().get());
+        Assert.assertFalse(line2.overallHeading().isPresent());
+        Assert.assertFalse(line3.overallHeading().isPresent());
     }
 
     @Test

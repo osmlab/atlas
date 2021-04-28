@@ -25,7 +25,9 @@ import com.google.common.collect.AbstractIterator;
  * </p>
  *
  * @author Yiqing Jin
+ * @deprecated - see new API under org.openstreetmap.atlas.geography.atlas.change package.
  */
+@Deprecated
 public class SimpleChangeSet implements ChangeSet
 {
     private static final long serialVersionUID = -6499530503182134327L;

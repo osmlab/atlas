@@ -116,13 +116,16 @@ public class ProtoAtlasBuilder
         }
 
         final String codeVersion = protoAtlasMetaData.hasCodeVersion()
-                ? protoAtlasMetaData.getCodeVersion() : NULL_SENTINEL;
+                ? protoAtlasMetaData.getCodeVersion()
+                : NULL_SENTINEL;
         final String dataVersion = protoAtlasMetaData.hasDataVersion()
-                ? protoAtlasMetaData.getDataVersion() : NULL_SENTINEL;
+                ? protoAtlasMetaData.getDataVersion()
+                : NULL_SENTINEL;
         final String country = protoAtlasMetaData.hasCountry() ? protoAtlasMetaData.getCountry()
                 : NULL_SENTINEL;
         final String shardName = protoAtlasMetaData.hasShardName()
-                ? protoAtlasMetaData.getShardName() : NULL_SENTINEL;
+                ? protoAtlasMetaData.getShardName()
+                : NULL_SENTINEL;
 
         final Map<String, String> tags = PROTOTAG_LIST_CONVERTER
                 .convert(protoAtlasMetaData.getTagsList());
@@ -178,25 +181,13 @@ public class ProtoAtlasBuilder
         }
         protoMetaDataBuilder.setOriginal(atlasMetaData.isOriginal());
 
-        atlasMetaData.getCodeVersion().ifPresent(value ->
-        {
-            protoMetaDataBuilder.setCodeVersion(value);
-        });
+        atlasMetaData.getCodeVersion().ifPresent(protoMetaDataBuilder::setCodeVersion);
 
-        atlasMetaData.getDataVersion().ifPresent(value ->
-        {
-            protoMetaDataBuilder.setDataVersion(value);
-        });
+        atlasMetaData.getDataVersion().ifPresent(protoMetaDataBuilder::setDataVersion);
 
-        atlasMetaData.getCountry().ifPresent(value ->
-        {
-            protoMetaDataBuilder.setCountry(value);
-        });
+        atlasMetaData.getCountry().ifPresent(protoMetaDataBuilder::setCountry);
 
-        atlasMetaData.getShardName().ifPresent(value ->
-        {
-            protoMetaDataBuilder.setShardName(value);
-        });
+        atlasMetaData.getShardName().ifPresent(protoMetaDataBuilder::setShardName);
 
         if (atlasMetaData.getTags() != null)
         {

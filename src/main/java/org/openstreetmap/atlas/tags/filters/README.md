@@ -55,7 +55,13 @@ Anything without water=pond
 water->!pond,!lake
 ```
 
-Anything without water=pond or water=lake
+Anything without water=pond or without water=lake. That one is not very useful as it is always true because one of the two will always be true (The water tag can have only one value).
+
+```
+water->!pond&water->!lake
+```
+
+Anything without water=pond and without water=lake.
 
 ```
 water->!
@@ -148,3 +154,68 @@ Here it is equivalent to:
     ]
 }
 ```
+
+## RegexTaggableFilter
+
+`RegexTaggableFilter` is an extension of `Predicate<Taggable>` that allows filtering certain tag values based on regex patterns. 
+The filter also accepts a map of values that are excepted from the regex patterns. 
+
+In order to create `RegexTaggableFilter` one must provide:
+- a set of String values representing the tag names that need to be checked
+- a set of String values representing the regex used to match the values
+- optionally, a map of tag names and sets of excepted values.
+
+For example: 
+
+```java
+final Set<String> tagNames = new HashSet<>(Arrays.asList("source", "highway"));
+final Set<String> regex = new HashSet<>(Arrays.asList(".*(?i)\\bmap\\b.*", ".*(?i)\\bsecondary\\b.*"));
+final HashMap<String, Set<String>> exceptions = new HashMap<>(Map.of(
+        "source", Set.of("personal map", "public map")
+));
+```
+
+For a simple filter there is the option to create a `RegexTaggableFilter` from a `String`. This constructor does not support
+passing the exception map which defaults in an empty `HashMap`. Example of `String` for this case:
+```
+"source,highway|.*illegal.*,.*secondary.*"
+```
+The first part before the `|` character represents the list of tag names separated by commas. The second part after the 
+`|` represents the list of regex patterns, also separated by commas. Do take into account that commas in the regex pattern
+might cause an incorrect construction since the creation of the list of regex from string uses commas for splitting.
+
+If the `Taggable` object contains a key that is part of the tagNames set, matches at least one of the given regex patterns
+and the tag-value combination is not part of the exceptions map, the test method will return a positive response.
+Also, if the list of tag names is empty, the test method will always return true.
+
+The `RegexTaggableFilter` also offers a `getMatchedTags` method that returns a joined String of all the tag names that passed
+the test.
+
+##ConfiguredFilter
+
+The `ConfiguredFilter` reads a json configuration files that follows a certain schema and creates filters based on it,
+including `TaggableFilter` and `RegexTaggableFilter`.
+
+Example of configuration json:
+```
+{
+    "my":
+    {
+        "conf":
+        {
+            "filter":
+            {
+                "predicate": "....",
+                "geometry.wkb":
+                [
+                    "...", "..."
+                ],
+                "taggableFilter": "...",
+                "regexTaggableFilter": "..."
+            }
+        }
+    }
+}
+```
+The filter can be accessed using "my.conf" as root, and "filter" as name. The `ConfiguredFilter` predicate returns true
+if all the composing filter predicates are true.

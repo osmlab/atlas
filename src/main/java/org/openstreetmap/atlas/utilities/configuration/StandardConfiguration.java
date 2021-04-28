@@ -1,16 +1,20 @@
 package org.openstreetmap.atlas.utilities.configuration;
 
-import java.io.InputStream;
+import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.streaming.resource.Resource;
@@ -21,7 +25,8 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.google.common.base.Joiner;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLParser;
 
 /**
  * Standard implementation of the Configuration interface supporting dot-notation key-value lookup.
@@ -33,23 +38,34 @@ import com.google.common.base.Joiner;
 public class StandardConfiguration implements Configuration
 {
     /**
+     * Enum for the supported configuration file formats
+     */
+    public enum ConfigurationFormat
+    {
+        JSON,
+        YAML,
+        UNKNOWN
+    }
+
+    /**
      * Configurable implementation that pulls from the outer class's data table
      *
-     * @param <Raw>
+     * @param <R>
      *            configured type
-     * @param <Transformed>
+     * @param <T>
      *            transformed type
      * @author cstaylor
      * @author brian_l_davis
+     * @author cameron_frenette
      */
-    private final class StandardConfigurable<Raw, Transformed> implements Configurable
+    private final class StandardConfigurable<R, T> implements Configurable
     {
-        private final Transformed defaultValue;
+        private final T defaultValue;
         private final String key;
-        private final Function<Raw, Transformed> transform;
+        private final Function<R, T> transform;
 
-        private StandardConfigurable(final String key, final Raw defaultValue,
-                final Function<Raw, Transformed> transform)
+        private StandardConfigurable(final String key, final R defaultValue,
+                final Function<R, T> transform)
         {
             this.key = key;
             this.transform = transform;
@@ -58,14 +74,12 @@ public class StandardConfiguration implements Configuration
 
         @SuppressWarnings("unchecked")
         @Override
-        public <Type> Type value()
+        public <V> V value()
         {
             try
             {
-                final Raw found = (Raw) resolve(this.key,
-                        StandardConfiguration.this.configurationData);
-                return (Type) Optional.ofNullable(found).map(this.transform)
-                        .orElse(this.defaultValue);
+                final R found = (R) resolve(this.key, StandardConfiguration.this.configurationData);
+                return (V) Optional.ofNullable(found).map(this.transform).orElse(this.defaultValue);
             }
             catch (final ClassCastException e)
             {
@@ -75,7 +89,7 @@ public class StandardConfiguration implements Configuration
         }
 
         @Override
-        public <Type> Optional<Type> valueOption()
+        public <V> Optional<V> valueOption()
         {
             return Optional.ofNullable(value());
         }
@@ -83,27 +97,44 @@ public class StandardConfiguration implements Configuration
 
     // "override" is no longer available to use as a configuration key
     private static final String OVERRIDE_STRING = "override";
+    private static final String DOT = ".";
     private static final Logger logger = LoggerFactory.getLogger(StandardConfiguration.class);
-    private Map<String, Object> configurationData;
+    private final Map<String, Object> configurationData;
     private final String name;
 
-    @SuppressWarnings("unchecked")
     public StandardConfiguration(final Resource resource)
     {
-        this.name = resource.getName();
-        try (InputStream read = resource.read())
-        {
-            final ObjectMapper objectMapper = new ObjectMapper();
-            final SimpleModule simpleModule = new SimpleModule();
-            simpleModule.addDeserializer(Map.class, new ConfigurationDeserializer());
-            objectMapper.registerModule(simpleModule);
-            final JsonParser parser = new JsonFactory().createParser(read);
+        this(resource, ConfigurationFormat.UNKNOWN);
+    }
 
-            this.configurationData = objectMapper.readValue(parser, Map.class);
-        }
-        catch (final Exception oops)
+    public StandardConfiguration(final Resource resource, final ConfigurationFormat configFormat)
+    {
+        this.name = resource.getName();
+        final byte[] configBytes = resource.readBytesAndClose();
+
+        switch (configFormat)
         {
-            throw new CoreException("Failure to load configuration", oops);
+            case JSON:
+                this.configurationData = this.readConfigurationMapFromJSON(configBytes)
+                        .orElseThrow(() -> new CoreException("Unable to load JSON configuration."));
+                return;
+            case YAML:
+                this.configurationData = this.readConfigurationMapFromYAML(configBytes)
+                        .orElseThrow(() -> new CoreException("Unable to load YAML configuration."));
+                return;
+            case UNKNOWN:
+            default:
+                // If the config format is unknown, attempt to load the config with each format
+                // until one finds some data
+                final Optional<Map<String, Object>> loadedConfigMap = Stream
+                        .<Supplier<Optional<Map<String, Object>>>> of(
+                                () -> this.readConfigurationMapFromJSON(configBytes),
+                                () -> this.readConfigurationMapFromYAML(configBytes))
+                        .map(Supplier::get).filter(Optional::isPresent).map(Optional::get)
+                        .findFirst();
+
+                this.configurationData = loadedConfigMap.orElseThrow(
+                        () -> new CoreException("Unable to load UNKNOWN configuration."));
         }
     }
 
@@ -113,10 +144,10 @@ public class StandardConfiguration implements Configuration
         this.configurationData = configurationData;
     }
 
+    @Override
     public Set<String> configurationDataKeySet()
     {
-        final Set<String> keySet = new HashSet<>(this.configurationData.keySet());
-        return keySet;
+        return new HashSet<>(this.configurationData.keySet());
     }
 
     @Override
@@ -139,8 +170,7 @@ public class StandardConfiguration implements Configuration
     }
 
     @Override
-    public <Raw, Transformed> Configurable get(final String key,
-            final Function<Raw, Transformed> transform)
+    public <R, T> Configurable get(final String key, final Function<R, T> transform)
     {
         return new StandardConfigurable<>(key, null, transform);
     }
@@ -152,10 +182,38 @@ public class StandardConfiguration implements Configuration
     }
 
     @Override
-    public <Raw, Transformed> Configurable get(final String key, final Raw defaultValue,
-            final Function<Raw, Transformed> transform)
+    public <R, T> Configurable get(final String key, final R defaultValue,
+            final Function<R, T> transform)
     {
         return new StandardConfigurable<>(key, defaultValue, transform);
+    }
+
+    @Override
+    public Optional<Configuration> subConfiguration(final String key)
+    {
+        if (StringUtils.isEmpty(key))
+        {
+            return Optional.of(this);
+        }
+        final Object result = this.resolve(key, this.configurationData);
+        if (result != null)
+        {
+            final Map<String, Object> subConfigurationData;
+            if (result instanceof Map)
+            {
+                subConfigurationData = (Map<String, Object>) result;
+            }
+            else
+            {
+                subConfigurationData = new HashMap<>();
+                subConfigurationData.put("", result);
+            }
+            return Optional.of(new StandardConfiguration(this.name, subConfigurationData));
+        }
+        else
+        {
+            return Optional.empty();
+        }
     }
 
     @Override
@@ -169,13 +227,14 @@ public class StandardConfiguration implements Configuration
             final Map<String, Object> currentContext)
     {
         final List<String> overrideKeyPrefixList = Arrays.asList(OVERRIDE_STRING, keyword);
-        final String overrideKeyPrefixString = Joiner.on(".").join(overrideKeyPrefixList);
+        final String overrideKeyPrefixString = String.join(DOT, overrideKeyPrefixList);
         final Map<String, Object> overrideData = new HashMap<>();
-        for (final String key : currentContext.keySet())
+        for (final Entry<String, Object> entry : currentContext.entrySet())
         {
+            final String key = entry.getKey();
             if (!key.equals(OVERRIDE_STRING))
             {
-                final String overrideKey = Joiner.on(".").join(overrideKeyPrefixString, key);
+                final String overrideKey = String.join(DOT, overrideKeyPrefixString, key);
                 final Optional<Object> specificOverrideData = Optional
                         .ofNullable(this.resolve(overrideKey, currentContext));
                 if (specificOverrideData.isPresent())
@@ -184,16 +243,66 @@ public class StandardConfiguration implements Configuration
                 }
                 else
                 {
-                    final Object nextContext = currentContext.get(key);
+                    final Object nextContext = entry.getValue();
                     if (nextContext instanceof Map)
                     {
-                        this.getOverrideDataForKeyword(keyword, (Map) nextContext).ifPresent(
-                                moreOverrideData -> overrideData.put(key, moreOverrideData));
+                        this.getOverrideDataForKeyword(keyword, (Map<String, Object>) nextContext)
+                                .ifPresent(moreOverrideData -> overrideData.put(key,
+                                        moreOverrideData));
                     }
                 }
             }
         }
         return Optional.of(overrideData).filter(data -> !data.isEmpty());
+    }
+
+    @SuppressWarnings("unchecked")
+    private Optional<Map<String, Object>> readConfigurationMapFromJSON(final byte[] readBytes)
+    {
+        logger.info("Attempting to load configuration as JSON");
+        try (ByteArrayInputStream read = new ByteArrayInputStream(readBytes))
+        {
+            final ObjectMapper objectMapper = new ObjectMapper();
+            final SimpleModule simpleModule = new SimpleModule();
+            simpleModule.addDeserializer(Map.class, new ConfigurationDeserializer());
+            objectMapper.registerModule(simpleModule);
+            final JsonParser parser = new JsonFactory().createParser(read);
+            final Map<String, Object> readConfig = objectMapper.readValue(parser, Map.class);
+            logger.info("Success! Loaded JSON configuration");
+            return Optional.of(readConfig);
+        }
+        catch (final Exception jsonReadException)
+        {
+            logger.warn("Unable to parse config file as JSON");
+            return Optional.empty();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Optional<Map<String, Object>> readConfigurationMapFromYAML(final byte[] readBytes)
+    {
+        final ByteArrayInputStream read = new ByteArrayInputStream(readBytes);
+        logger.info("Attempting to load configuration as YAML.");
+        try
+        {
+            final ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
+            final SimpleModule simpleModule = new SimpleModule();
+            simpleModule.addDeserializer(Map.class, new ConfigurationDeserializer());
+            objectMapper.registerModule(simpleModule);
+            final YAMLParser parser = new YAMLFactory().createParser(read);
+            final Map<String, Object> readConfig = objectMapper.readValue(parser, Map.class);
+            logger.info("Success! Loaded YAML configuration.");
+            return Optional.of(readConfig);
+        }
+        catch (final Exception yamlReadException)
+        {
+            logger.warn("Unable to parse config file as YAML");
+            return Optional.empty();
+        }
+        finally
+        {
+            IOUtils.closeQuietly(read);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -207,11 +316,11 @@ public class StandardConfiguration implements Configuration
         final LinkedList<String> childParts = new LinkedList<>();
         while (!rootParts.isEmpty())
         {
-            final String currentKey = Joiner.on(".").join(rootParts);
+            final String currentKey = String.join(DOT, rootParts);
             final Object nextItem = currentContext.get(currentKey);
             if (nextItem instanceof Map)
             {
-                final String nextKey = Joiner.on(".").join(childParts);
+                final String nextKey = String.join(DOT, childParts);
                 return resolve(nextKey, (Map<String, Object>) nextItem);
             }
             if (nextItem != null)
@@ -222,4 +331,5 @@ public class StandardConfiguration implements Configuration
         }
         return null;
     }
+
 }

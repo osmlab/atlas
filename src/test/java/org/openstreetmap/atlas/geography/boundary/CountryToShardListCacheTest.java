@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.Sharding;
-import org.openstreetmap.atlas.geography.sharding.SlippyTile;
 import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.streaming.resource.Resource;
@@ -24,13 +24,13 @@ public class CountryToShardListCacheTest
     {
         final CountryToShardListCache cache = new CountryToShardListCache(this.countryToShardList);
         // test that the right DMA shards are returned
-        final List<SlippyTile> dMAShards = cache.getShardsForCountry("DMA");
+        final List<Shard> dMAShards = cache.getShardsForCountry("DMA");
         Assert.assertEquals(
                 "[[SlippyTile: zoom = 9, x = 168, y = 233], [SlippyTile: zoom = 9, x = 169, y = 233], "
                         + "[SlippyTile: zoom = 9, x = 168, y = 234], [SlippyTile: zoom = 10, x = 338, y = 468]]",
                 dMAShards.toString());
         // test that asking for an invalid country code doesn't break anything
-        final List<SlippyTile> noShards = cache.getShardsForCountry("XXX");
+        final List<Shard> noShards = cache.getShardsForCountry("XXX");
         Assert.assertTrue(noShards.isEmpty());
     }
 

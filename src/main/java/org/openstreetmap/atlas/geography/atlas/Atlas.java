@@ -1,13 +1,20 @@
 package org.openstreetmap.atlas.geography.atlas;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.SortedSet;
+import java.util.UUID;
+import java.util.function.BiConsumer;
+import java.util.function.LongFunction;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
+import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Location;
-import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
@@ -21,9 +28,15 @@ import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.SnappedEdge;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
+import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
+import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonFeatureCollection;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
+
+import com.google.gson.JsonObject;
 
 /**
  * Atlas is a representation of an OpenStreetMap region in memory. It is a navigable collection of
@@ -34,8 +47,16 @@ import org.openstreetmap.atlas.utilities.scalars.Distance;
  * @author matthieun
  * @author tony
  */
-public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
+public interface Atlas
+        extends Located, Iterable<AtlasEntity>, Serializable, GeoJsonFeatureCollection<AtlasEntity>
 {
+    static <E extends AtlasEntity> Iterable<E> entitiesMatchingId(final Long[] identifiers,
+            final LongFunction<E> function)
+    {
+        return Arrays.stream(identifiers).map(function::apply).filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+    }
+
     /**
      * @param identifier
      *            The {@link Area}'s identifier
@@ -47,6 +68,18 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      * @return All the {@link Area}s in this {@link Atlas}
      */
     Iterable<Area> areas();
+
+    /**
+     * A wrapper over {@link #area(long)} for multiple ids.
+     *
+     * @param identifiers
+     *            - The area identifiers to fetch.
+     * @return The {@link Area}s that corresponds to the provided identifier.
+     */
+    default Iterable<Area> areas(final Long... identifiers)
+    {
+        return entitiesMatchingId(identifiers, this::area);
+    }
 
     /**
      * Return all the {@link Area}s matching a {@link Predicate}.
@@ -79,31 +112,35 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Iterable<Area> areasCovering(Location location, Predicate<Area> matcher);
 
     /**
-     * Return all the {@link Area}s within and/or intersecting some polygon.
+     * Return all the {@link Area}s within and/or intersecting some surface.
      *
-     * @param polygon
-     *            The polygon to consider
-     * @return All the {@link Area}s within and/or intersecting the polygon.
+     * @param surface
+     *            The surface to consider
+     * @return All the {@link Area}s within and/or intersecting the surface.
      */
-    Iterable<Area> areasIntersecting(Polygon polygon);
+    Iterable<Area> areasIntersecting(GeometricSurface surface);
 
     /**
      * Return all the {@link Area}s matching a {@link Predicate}, and within and/or intersecting
-     * some polygon.
+     * some surface.
      *
      * @param matcher
      *            The matcher to consider
-     * @param polygon
-     *            The polygon to consider
+     * @param surface
+     *            The surface to consider
      * @return All the {@link Area}s matching the {@link Predicate}, and within and/or intersecting
-     *         the polygon.
+     *         the surface.
      */
-    Iterable<Area> areasIntersecting(Polygon polygon, Predicate<Area> matcher);
+    Iterable<Area> areasIntersecting(GeometricSurface surface, Predicate<Area> matcher);
 
     /**
-     * @return A {@link GeoJsonObject} that contains all the features in this {@link Atlas}
+     * Return all the {@link Area}s fully within some surface.
+     *
+     * @param surface
+     *            The surface to consider
+     * @return All the {@link Area}s fully within the surface.
      */
-    GeoJsonObject asGeoJson();
+    Iterable<Area> areasWithin(GeometricSurface surface);
 
     /**
      * @param matcher
@@ -111,7 +148,18 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      * @return A {@link GeoJsonObject} that contains part the features in this {@link Atlas} which
      *         matches the given matcher
      */
-    GeoJsonObject asGeoJson(Predicate<AtlasEntity> matcher);
+    JsonObject asGeoJson(Predicate<AtlasEntity> matcher);
+
+    /**
+     * Clone this {@link Atlas} to a {@link PackedAtlas}. Do not uses "clone" so as not to be
+     * confused with the clone function in {@link Cloneable}, which this interface does not extend.
+     *
+     * @return The {@link PackedAtlas} copy of this {@link Atlas}.
+     */
+    default PackedAtlas cloneToPackedAtlas()
+    {
+        return new PackedAtlasCloner().cloneFrom(this);
+    }
 
     /**
      * @param identifier
@@ -124,6 +172,18 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      * @return All the {@link Edge}s in this {@link Atlas}
      */
     Iterable<Edge> edges();
+
+    /**
+     * A wrapper over {@link #edge(long)} for multiple ids.
+     *
+     * @param identifiers
+     *            - The edge identifiers to fetch.
+     * @return The {@link Edge}s that corresponds to the provided identifier.
+     */
+    default Iterable<Edge> edges(final Long... identifiers)
+    {
+        return entitiesMatchingId(identifiers, this::edge);
+    }
 
     /**
      * Return all the {@link Edge}s matching a {@link Predicate}.
@@ -157,26 +217,35 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Iterable<Edge> edgesContaining(Location location, Predicate<Edge> matcher);
 
     /**
-     * Return all the {@link Edge}s within and/or intersecting some polygon.
+     * Return all the {@link Edge}s within and/or intersecting some surface.
      *
-     * @param polygon
-     *            The polygon to consider
-     * @return All the {@link Edge}s within and/or intersecting the polygon.
+     * @param surface
+     *            The surface to consider
+     * @return All the {@link Edge}s within and/or intersecting the surface.
      */
-    Iterable<Edge> edgesIntersecting(Polygon polygon);
+    Iterable<Edge> edgesIntersecting(GeometricSurface surface);
 
     /**
      * Return all the {@link Edge}s matching a {@link Predicate}, and within and/or intersecting
-     * some polygon.
+     * some surface.
      *
      * @param matcher
      *            The matcher to consider
-     * @param polygon
-     *            The polygon to consider
+     * @param surface
+     *            The surface to consider
      * @return All the {@link Edge}s matching the {@link Predicate}, and within and/or intersecting
-     *         the polygon.
+     *         the surface.
      */
-    Iterable<Edge> edgesIntersecting(Polygon polygon, Predicate<Edge> matcher);
+    Iterable<Edge> edgesIntersecting(GeometricSurface surface, Predicate<Edge> matcher);
+
+    /**
+     * Return all the {@link Edge}s fully within some surface.
+     *
+     * @param surface
+     *            The surface to consider
+     * @return All the {@link Edge}s fully within the surface.
+     */
+    Iterable<Edge> edgesWithin(GeometricSurface surface);
 
     /**
      * Return all the {@link AtlasEntity}s
@@ -184,6 +253,19 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      * @return All the {@link AtlasEntity}s
      */
     Iterable<AtlasEntity> entities();
+
+    /**
+     * Return all the {@link AtlasEntity}s of a specific type
+     *
+     * @param type
+     *            The type to restrain to
+     * @param memberClass
+     *            The class of the member
+     * @param <M>
+     *            The AtlasEntity type
+     * @return All the {@link AtlasEntity}s of a specific type
+     */
+    <M extends AtlasEntity> Iterable<M> entities(ItemType type, Class<M> memberClass);
 
     /**
      * Return all the {@link AtlasEntity}s matching a {@link Predicate}.
@@ -195,26 +277,48 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Iterable<AtlasEntity> entities(Predicate<AtlasEntity> matcher);
 
     /**
-     * Return all the {@link AtlasEntity}s within and/or intersecting some polygon.
+     * Return all the {@link AtlasEntity}s within and/or intersecting some surface.
      *
-     * @param polygon
-     *            The {@link Polygon} to consider
-     * @return All the {@link AtlasEntity}s within and/or intersecting the {@link Polygon}.
+     * @param surface
+     *            The {@link GeometricSurface} to consider
+     * @return All the {@link AtlasEntity}s within and/or intersecting the {@link GeometricSurface}.
      */
-    Iterable<AtlasEntity> entitiesIntersecting(Polygon polygon);
+    Iterable<AtlasEntity> entitiesIntersecting(GeometricSurface surface);
 
     /**
      * Return all the {@link AtlasEntity}s matching a {@link Predicate}, and within and/or
-     * intersecting some polygon.
+     * intersecting some surface.
      *
      * @param matcher
      *            The matcher to consider
-     * @param polygon
-     *            The polygon to consider
+     * @param surface
+     *            The surface to consider
      * @return All the {@link AtlasEntity}s matching the {@link Predicate}, and within and/or
-     *         intersecting the polygon.
+     *         intersecting the surface.
      */
-    Iterable<AtlasEntity> entitiesIntersecting(Polygon polygon, Predicate<AtlasEntity> matcher);
+    Iterable<AtlasEntity> entitiesIntersecting(GeometricSurface surface,
+            Predicate<AtlasEntity> matcher);
+
+    /**
+     * Return all the {@link AtlasEntity}s fully within some surface.
+     *
+     * @param surface
+     *            The {@link GeometricSurface} to consider
+     * @return All the {@link AtlasEntity}s fully within the {@link GeometricSurface}.
+     */
+    Iterable<AtlasEntity> entitiesWithin(GeometricSurface surface);
+
+    /**
+     * Return all the {@link AtlasEntity}s matching a {@link Predicate}, and fully within some
+     * surface.
+     *
+     * @param matcher
+     *            The matcher to consider
+     * @param surface
+     *            The {@link GeometricSurface} to consider
+     * @return All the {@link AtlasEntity}s fully within the {@link GeometricSurface}.
+     */
+    Iterable<AtlasEntity> entitiesWithin(GeometricSurface surface, Predicate<AtlasEntity> matcher);
 
     /**
      * Get an entity from identifier and type
@@ -230,7 +334,7 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     /**
      * @return This Atlas' identifier
      */
-    int getIdentifier();
+    UUID getIdentifier();
 
     /**
      * @return This Atlas' optional name. If not specified, should return a String version of the
@@ -277,26 +381,35 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Iterable<AtlasItem> itemsContaining(Location location, Predicate<AtlasItem> matcher);
 
     /**
-     * Return all the {@link AtlasItem}s within and/or intersecting some polygon.
+     * Return all the {@link AtlasItem}s within and/or intersecting some surface.
      *
-     * @param polygon
-     *            The {@link Polygon} to consider
-     * @return All the {@link AtlasItem}s within and/or intersecting the {@link Polygon}.
+     * @param surface
+     *            The {@link GeometricSurface} to consider
+     * @return All the {@link AtlasItem}s within and/or intersecting the {@link GeometricSurface}.
      */
-    Iterable<AtlasItem> itemsIntersecting(Polygon polygon);
+    Iterable<AtlasItem> itemsIntersecting(GeometricSurface surface);
 
     /**
      * Return all the {@link AtlasItem}s matching a {@link Predicate}, and within and/or
-     * intersecting some polygon.
+     * intersecting some surface.
      *
      * @param matcher
      *            The matcher to consider
-     * @param polygon
-     *            The polygon to consider
+     * @param surface
+     *            The surface to consider
      * @return All the {@link AtlasItem}s matching the {@link Predicate}, and within and/or
-     *         intersecting the polygon.
+     *         intersecting the surface.
      */
-    Iterable<AtlasItem> itemsIntersecting(Polygon polygon, Predicate<AtlasItem> matcher);
+    Iterable<AtlasItem> itemsIntersecting(GeometricSurface surface, Predicate<AtlasItem> matcher);
+
+    /**
+     * Return all the {@link AtlasItem}s fully within some surface.
+     *
+     * @param surface
+     *            The surface to consider
+     * @return All the {@link AtlasItem}s fully within the surface.
+     */
+    Iterable<AtlasItem> itemsWithin(GeometricSurface surface);
 
     /**
      * @param identifier
@@ -344,31 +457,52 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Iterable<LineItem> lineItemsContaining(Location location, Predicate<LineItem> matcher);
 
     /**
-     * Return all the {@link LineItem}s within and/or intersecting some polygon.
+     * Return all the {@link LineItem}s within and/or intersecting some surface.
      *
-     * @param polygon
-     *            The {@link Polygon} to consider
-     * @return All the {@link LineItem}s within and/or intersecting the {@link Polygon}.
+     * @param surface
+     *            The {@link GeometricSurface} to consider
+     * @return All the {@link LineItem}s within and/or intersecting the {@link GeometricSurface}.
      */
-    Iterable<LineItem> lineItemsIntersecting(Polygon polygon);
+    Iterable<LineItem> lineItemsIntersecting(GeometricSurface surface);
 
     /**
      * Return all the {@link LineItem}s matching a {@link Predicate}, and within and/or intersecting
-     * some polygon.
+     * some surface.
      *
      * @param matcher
      *            The matcher to consider
-     * @param polygon
-     *            The polygon to consider
+     * @param surface
+     *            The surface to consider
      * @return All the {@link LineItem}s matching the {@link Predicate}, and within and/or
-     *         intersecting the polygon.
+     *         intersecting the surface.
      */
-    Iterable<LineItem> lineItemsIntersecting(Polygon polygon, Predicate<LineItem> matcher);
+    Iterable<LineItem> lineItemsIntersecting(GeometricSurface surface, Predicate<LineItem> matcher);
+
+    /**
+     * Return all the {@link LineItem}s fully within some surface.
+     *
+     * @param surface
+     *            The {@link GeometricSurface} to consider
+     * @return All the {@link LineItem}s within and/or intersecting the {@link GeometricSurface}.
+     */
+    Iterable<LineItem> lineItemsWithin(GeometricSurface surface);
 
     /**
      * @return All the {@link Line}s in this {@link Atlas}
      */
     Iterable<Line> lines();
+
+    /**
+     * A wrapper over {@link #line(long)} for multiple ids.
+     *
+     * @param identifiers
+     *            - The line identifiers to fetch.
+     * @return The {@link Line}s that corresponds to the provided identifier.
+     */
+    default Iterable<Line> lines(final Long... identifiers)
+    {
+        return entitiesMatchingId(identifiers, this::line);
+    }
 
     /**
      * Return all the {@link Line}s matching a {@link Predicate}.
@@ -402,26 +536,35 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Iterable<Line> linesContaining(Location location, Predicate<Line> matcher);
 
     /**
-     * Return all the {@link Line}s within and/or intersecting some polygon.
+     * Return all the {@link Line}s within and/or intersecting some surface.
      *
-     * @param polygon
-     *            The polygon to consider
-     * @return All the {@link Line}s within and/or intersecting the polygon.
+     * @param surface
+     *            The surface to consider
+     * @return All the {@link Line}s within and/or intersecting the surface.
      */
-    Iterable<Line> linesIntersecting(Polygon polygon);
+    Iterable<Line> linesIntersecting(GeometricSurface surface);
 
     /**
      * Return all the {@link Line}s matching a {@link Predicate}, and within and/or intersecting
-     * some polygon.
+     * some surface.
      *
      * @param matcher
      *            The matcher to consider
-     * @param polygon
-     *            The polygon to consider
+     * @param surface
+     *            The surface to consider
      * @return All the {@link Line}s matching the {@link Predicate}, and within and/or intersecting
-     *         the polygon.
+     *         the surface.
      */
-    Iterable<Line> linesIntersecting(Polygon polygon, Predicate<Line> matcher);
+    Iterable<Line> linesIntersecting(GeometricSurface surface, Predicate<Line> matcher);
+
+    /**
+     * Return all the {@link Line}s fully within some surface.
+     *
+     * @param surface
+     *            The surface to consider
+     * @return All the {@link Line}s fully within the surface.
+     */
+    Iterable<Line> linesWithin(GeometricSurface surface);
 
     /**
      * Return all the {@link LocationItem}s
@@ -440,26 +583,28 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Iterable<LocationItem> locationItems(Predicate<LocationItem> matcher);
 
     /**
-     * Return all the {@link LocationItem}s within and/or intersecting some polygon.
+     * Return all the {@link LocationItem}s within and/or intersecting some surface.
      *
-     * @param polygon
-     *            The {@link Polygon} to consider
-     * @return All the {@link LocationItem}s within and/or intersecting the {@link Polygon}.
+     * @param surface
+     *            The {@link GeometricSurface} to consider
+     * @return All the {@link LocationItem}s within and/or intersecting the
+     *         {@link GeometricSurface}.
      */
-    Iterable<LocationItem> locationItemsWithin(Polygon polygon);
+    Iterable<LocationItem> locationItemsWithin(GeometricSurface surface);
 
     /**
      * Return all the {@link LocationItem}s matching a {@link Predicate}, and within and/or
-     * intersecting some polygon.
+     * intersecting some surface.
      *
      * @param matcher
      *            The matcher to consider
-     * @param polygon
-     *            The polygon to consider
+     * @param surface
+     *            The surface to consider
      * @return All the {@link LocationItem}s matching the {@link Predicate}, and within and/or
-     *         intersecting the polygon.
+     *         intersecting the surface.
      */
-    Iterable<LocationItem> locationItemsWithin(Polygon polygon, Predicate<LocationItem> matcher);
+    Iterable<LocationItem> locationItemsWithin(GeometricSurface surface,
+            Predicate<LocationItem> matcher);
 
     /**
      * @return The meta data for this {@link Atlas}.
@@ -477,6 +622,18 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      * @return All the {@link Node}s in this Atlas
      */
     Iterable<Node> nodes();
+
+    /**
+     * A wrapper over {@link #node(long)} for multiple ids.
+     *
+     * @param identifiers
+     *            - The node identifiers to fetch.
+     * @return The {@link Node}s that corresponds to the provided identifier.
+     */
+    default Iterable<Node> nodes(final Long... identifiers)
+    {
+        return entitiesMatchingId(identifiers, this::node);
+    }
 
     /**
      * Return all the {@link Node}s matching a {@link Predicate}.
@@ -497,26 +654,29 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Iterable<Node> nodesAt(Location location);
 
     /**
-     * Return all the {@link Node}s within and/or intersecting some polygon.
+     * Return all the {@link Node}s within and/or intersecting some surface. Note: results may vary,
+     * for an identical boundary, depending on the type, {@link Rectangle} or
+     * {@link GeometricSurface} of the input. This is due to an underlying dependency on the awt
+     * definition of insideness.
      *
-     * @param polygon
-     *            The polygon to consider
-     * @return All the {@link Node}s within and/or intersecting the polygon.
+     * @param surface
+     *            The surface to consider
+     * @return All the {@link Node}s within and/or intersecting the surface.
      */
-    Iterable<Node> nodesWithin(Polygon polygon);
+    Iterable<Node> nodesWithin(GeometricSurface surface);
 
     /**
      * Return all the {@link Node}s matching a {@link Predicate}, and within and/or intersecting
-     * some polygon.
+     * some surface.
      *
      * @param matcher
      *            The matcher to consider
-     * @param polygon
-     *            The polygon to consider
+     * @param surface
+     *            The surface to consider
      * @return All the {@link Node}s matching the {@link Predicate}, and within and/or intersecting
-     *         the polygon.
+     *         the surface.
      */
-    Iterable<Node> nodesWithin(Polygon polygon, Predicate<Node> matcher);
+    Iterable<Node> nodesWithin(GeometricSurface surface, Predicate<Node> matcher);
 
     /**
      * @return The number of {@link Area}s
@@ -561,6 +721,18 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Iterable<Point> points();
 
     /**
+     * A wrapper over {@link #point(long)} for multiple ids.
+     *
+     * @param identifiers
+     *            - The point identifiers to fetch.
+     * @return The {@link Point}s that corresponds to the provided identifier.
+     */
+    default Iterable<Point> points(final Long... identifiers)
+    {
+        return entitiesMatchingId(identifiers, this::point);
+    }
+
+    /**
      * Return all the {@link Point}s matching a {@link Predicate}.
      *
      * @param matcher
@@ -579,25 +751,29 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Iterable<Point> pointsAt(Location location);
 
     /**
-     * Return all the {@link Point}s within some polygon.
+     * Return all the {@link Point}s within some surface. Note: results may vary, for an identical
+     * boundary, depending on the type, {@link Rectangle} or {@link GeometricSurface} of the input.
+     * This is due to an underlying dependency on the awt definition of insideness.
      *
-     * @param polygon
-     *            The polygon to consider
-     * @return All the {@link Point}s within the polygon.
+     * @param surface
+     *            The surface to consider
+     * @return All the {@link Point}s within the surface.
      */
-    Iterable<Point> pointsWithin(Polygon polygon);
+    Iterable<Point> pointsWithin(GeometricSurface surface);
 
     /**
-     * Return all the {@link Point}s matching a {@link Predicate}.
+     * Return all the {@link Point}s matching a {@link Predicate}. Note: results may vary, for an
+     * identical boundary, depending on the type, {@link Rectangle} or {@link GeometricSurface} of
+     * the input. This is due to an underlying dependency on the awt definition of insideness.
      *
      * @param matcher
      *            The matcher to consider
-     * @param polygon
-     *            The polygon to consider
+     * @param surface
+     *            The surface to consider
      * @return All the {@link Point}s matching the {@link Predicate}, and within and/or intersecting
-     *         the polygon.
+     *         the surface.
      */
-    Iterable<Point> pointsWithin(Polygon polygon, Predicate<Point> matcher);
+    Iterable<Point> pointsWithin(GeometricSurface surface, Predicate<Point> matcher);
 
     /**
      * @param identifier
@@ -610,6 +786,18 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      * @return All the {@link Relation}s in this Atlas
      */
     Iterable<Relation> relations();
+
+    /**
+     * A wrapper over {@link #relation(long)} for multiple ids.
+     *
+     * @param identifiers
+     *            - The relation identifiers to fetch.
+     * @return The {@link Relation}s that corresponds to the provided identifier.
+     */
+    default Iterable<Relation> relations(final Long... identifiers)
+    {
+        return entitiesMatchingId(identifiers, this::relation);
+    }
 
     /**
      * Return all the {@link Relation}s matching a {@link Predicate}.
@@ -628,26 +816,35 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
     Iterable<Relation> relationsLowerOrderFirst();
 
     /**
-     * Return all the {@link Relation}s which have at least one feature intersecting some polygon.
+     * Return all the {@link Relation}s which have at least one feature intersecting some surface.
      *
-     * @param polygon
-     *            The polygon to consider
-     * @return All the {@link Relation}s which have at least one feature intersecting the polygon.
+     * @param surface
+     *            The surface to consider
+     * @return All the {@link Relation}s which have at least one feature intersecting the surface.
      */
-    Iterable<Relation> relationsWithEntitiesIntersecting(Polygon polygon);
+    Iterable<Relation> relationsWithEntitiesIntersecting(GeometricSurface surface);
 
     /**
-     * Return all the {@link Relation}s which have at least one feature intersecting some polygon.
+     * Return all the {@link Relation}s which have at least one feature intersecting some surface.
      *
      * @param matcher
      *            The matcher to consider
-     * @param polygon
-     *            The polygon to consider
+     * @param surface
+     *            The surface to consider
      * @return All the {@link Relation}s matching the {@link Predicate}, and which have at least one
-     *         feature intersecting the polygon.
+     *         feature intersecting the surface.
      */
-    Iterable<Relation> relationsWithEntitiesIntersecting(Polygon polygon,
+    Iterable<Relation> relationsWithEntitiesIntersecting(GeometricSurface surface,
             Predicate<Relation> matcher);
+
+    /**
+     * Return all the {@link Relation}s which have all features within some surface.
+     *
+     * @param surface
+     *            The surface to consider
+     * @return All the {@link Relation}s which have all features within the surface.
+     */
+    Iterable<Relation> relationsWithEntitiesWithin(GeometricSurface surface);
 
     /**
      * Serialize this {@link Atlas} to a {@link WritableResource}
@@ -674,6 +871,32 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      *            The matcher to consider
      */
     void saveAsGeoJson(WritableResource resource, Predicate<AtlasEntity> matcher);
+
+    /**
+     * Save as line-delimited GeoJSON. This is one feature per line, with no wrapping
+     * FeatureCollection.
+     *
+     * @param resource
+     *            The resource to write to
+     * @param jsonMutator
+     *            The callback function that will let you change what is in the Feature's JSON.
+     */
+    void saveAsLineDelimitedGeoJsonFeatures(WritableResource resource,
+            BiConsumer<AtlasEntity, JsonObject> jsonMutator);
+
+    /**
+     * Save as line-delimited GeoJSON with a matcher. This is one feature per line, with no wrapping
+     * FeatureCollection.
+     *
+     * @param resource
+     *            The resource to write to
+     * @param matcher
+     *            The matcher to consider
+     * @param jsonMutator
+     *            The callback function that will let you change what is in the Feature's JSON.
+     */
+    void saveAsLineDelimitedGeoJsonFeatures(WritableResource resource,
+            Predicate<AtlasEntity> matcher, BiConsumer<AtlasEntity, JsonObject> jsonMutator);
 
     /**
      * Save as list of items
@@ -722,63 +945,49 @@ public interface Atlas extends Located, Iterable<AtlasEntity>, Serializable
      *            A {@link Location} to snap
      * @param threshold
      *            A {@link Distance} threshold to look for edges around the {@link Location}
-     * @return A {@link SortedSet} of all the candidate snaps. The set is empty if there are no
+     * @return A sorted {@link List} of all the candidate snaps. The list is empty if there are no
      *         candidates.
      */
-    SortedSet<SnappedEdge> snaps(Location point, Distance threshold);
+    List<SnappedEdge> snaps(Location point, Distance threshold);
 
     /**
      * Return a sub-atlas from this Atlas.
-     * <p>
-     * This would be a soft cut, meaning:
-     * <ul>
-     * <li>{@link Node}: It is included only if it is inside the polygon, or if a valid edge (below)
-     * has it at one of its ends.
-     * <li>{@link Edge}: It is included only if it is intersecting or inside the polygon.
-     * <li>{@link Area}: It is included only if it is intersecting or inside the polygon.
-     * <li>{@link Line}: It is included only if it is intersecting or inside the polygon.
-     * <li>{@link Point}: It is included only if it is inside the polygon.
-     * <li>{@link Relation}: It is included only if at least one of its members is valid per the
-     * above. Among its members, only the ones that are valid will be included in the member list.
-     * </ul>
      *
      * @param boundary
      *            The boundary within which the sub atlas will be built
-     * @return An optional sub-atlas. The optional will be empty in case the boundary would return
-     *         an empty atlas, which is not allowed.
+     * @param cutType
+     *            The type of cut to perform
+     * @return An optional sub-atlas. The optional will be empty in case there is nothing in the
+     *         {@link GeometricSurface} after the cut was applied. Returning an empty atlas is not
+     *         allowed.
      */
-    Optional<Atlas> subAtlas(Polygon boundary);
+    Optional<Atlas> subAtlas(GeometricSurface boundary, AtlasCutType cutType);
 
     /**
      * Return a sub-atlas from this Atlas.
-     * <p>
-     * This would be a soft cut, meaning:
-     * <ul>
-     * <li>{@link Node}: It is included only if it is matched by the matcher, or if a valid edge
-     * (below) has it at one of its ends, or it is pulled in by an {@link Edge} which itself pulled
-     * in by a {@link Relation}, matched by the matcher.
-     * <li>{@link Edge}: It is included only if it is matched by the matcher or pulled in by a
-     * {@link Relation}, matched by the matcher.
-     * <li>{@link Area}: It is included only if it is matched by the matcher or pulled in by a
-     * {@link Relation}, matched by the matcher.
-     * <li>{@link Line}: It is included only if it is matched by the matcher or pulled in by a
-     * {@link Relation}, matched by the matcher.
-     * <li>{@link Point}: It is included only if it is matched by the matcher or pulled in by a
-     * {@link Relation}, matched by the matcher.
-     * <li>{@link Relation}: It is included if is matched by matcher or pulled in via another
-     * {@link Relation} which was matched by the matcher. To maintain {@link Relation} validity, all
-     * of its members will be included in the member list, even if not matched by the given matcher.
-     * </ul>
      *
      * @param matcher
      *            The matcher to consider
-     * @return An optional sub-atlas. The optional will be empty in case the matcher would return an
-     *         empty atlas, which is not allowed.
+     * @param cutType
+     *            The type of cut to perform
+     * @return An optional sub-atlas. The optional will be empty in case the matcher and cut-type
+     *         return an empty atlas, which is not allowed.
      */
-    Optional<Atlas> subAtlas(Predicate<AtlasEntity> matcher);
+    Optional<Atlas> subAtlas(Predicate<AtlasEntity> matcher, AtlasCutType cutType);
 
     /**
-     * @return A summary of this {@link Atlas}
+     * Get a summary of this {@link Atlas}. This string should be relatively compact, for e.g. just
+     * the entity counts.
+     *
+     * @return A summary of this {@link Atlas}.
      */
     String summary();
+
+    /**
+     * Get a complete string representation of this {@link Atlas}. This string may include details
+     * on all contained entities.
+     *
+     * @return a complete string representation of this {@link Atlas}
+     */
+    String toStringDetailed();
 }

@@ -9,20 +9,21 @@ import org.openstreetmap.atlas.exception.CoreException;
  *
  * @author matthieun
  */
-public final class Duration implements Serializable
+public final class Duration implements Serializable, Comparable<Duration>
 {
     private static final long serialVersionUID = 8306012362496627267L;
 
-    private static final long NANOSECONDS_PER_MILLISECONDS = 1_000_000;
-    private static final long MILLISECONDS_PER_SECOND = 1000;
-    private static final long SECONDS_PER_MINUTE = 60;
-    private static final long MINUTES_PER_HOUR = 60;
     public static final Duration ONE_DAY = hours(24);
     public static final Duration ONE_HOUR = hours(1);
     public static final Duration ONE_MINUTE = minutes(1);
     public static final Duration ONE_SECOND = seconds(1);
     public static final Duration ZERO = milliseconds(0);
     public static final Duration MAXIMUM = milliseconds(Long.MAX_VALUE);
+
+    private static final long NANOSECONDS_PER_MILLISECONDS = 1_000_000;
+    private static final long MILLISECONDS_PER_SECOND = 1000;
+    private static final long SECONDS_PER_MINUTE = 60;
+    private static final long MINUTES_PER_HOUR = 60;
 
     private final long milliseconds;
 
@@ -78,6 +79,23 @@ public final class Duration implements Serializable
     public double asSeconds()
     {
         return (double) this.asMilliseconds() / MILLISECONDS_PER_SECOND;
+    }
+
+    @Override
+    public int compareTo(final Duration other)
+    {
+        if (this.milliseconds > other.milliseconds)
+        {
+            return 1;
+        }
+        else if (this.milliseconds == other.milliseconds)
+        {
+            return 0;
+        }
+        else
+        {
+            return -1;
+        }
     }
 
     public Duration difference(final Duration that)
@@ -160,10 +178,19 @@ public final class Duration implements Serializable
         {
             Thread.sleep(this.milliseconds);
         }
-        catch (final InterruptedException e)
+        catch (final Exception e)
         {
-            throw new RuntimeException("Could not sleep " + this, e);
+            throw new CoreException("Could not sleep {}", this, e);
         }
+    }
+
+    public Duration times(final double multiplier)
+    {
+        if (multiplier < 0)
+        {
+            throw new CoreException("Duration multiplier cannot be negative. Was {}", multiplier);
+        }
+        return Duration.seconds(this.asSeconds() * multiplier);
     }
 
     @Override

@@ -124,9 +124,7 @@ public class DynamicAtlasFilteredEntitiesTest
         Assert.assertEquals(8, dynamicAtlas.numberOfEdges());
 
         // Prompts load of 12-1349-1870
-        // Fixed by {@link MultiAtlasBorderFixer} due to inconsistent relations
-        Assert.assertNull(dynamicAtlas.edge(6000000));
-        Assert.assertNotNull(dynamicAtlas.edge(6000001));
+        Assert.assertNotNull(dynamicAtlas.edge(6000000));
         Assert.assertEquals(9, dynamicAtlas.numberOfEdges());
         Assert.assertNotNull(dynamicAtlas.edge(7000000));
         Assert.assertEquals(9, dynamicAtlas.numberOfEdges());
@@ -176,8 +174,10 @@ public class DynamicAtlasFilteredEntitiesTest
         Assert.assertNotNull(dynamicAtlas.edge(8000000));
         Assert.assertEquals(4, dynamicAtlas.numberOfEdges());
 
-        // Prompts load of 12-1350-1869
+        // Does not prompt load of 12-1350-1869
+        // Aggressive loading of relations works only in preemptive load.
         Assert.assertNotNull(dynamicAtlas.relation(1));
-        Assert.assertEquals(6, dynamicAtlas.numberOfEdges());
+        System.out.println(dynamicAtlas.relation(1));
+        Assert.assertEquals(4, dynamicAtlas.numberOfEdges());
     }
 }

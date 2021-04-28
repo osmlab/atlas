@@ -1,0 +1,4 @@
+This command provides an '--output-directory' option, which can be used to change the default
+location of any output files. This example changes the output location of an example
+command to your desktop:
+#$ example-output-command myatlas1.atlas --output-directory ~/Desktop

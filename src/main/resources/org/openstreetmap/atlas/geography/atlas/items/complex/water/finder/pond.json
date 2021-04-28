@@ -1,0 +1,15 @@
+{
+  "global": {
+    "filters": {
+      "default": {
+        "predicate": {
+          "imports": [
+            "org.openstreetmap.atlas.geography.atlas.items"
+          ],
+          "command": "e instanceof Area"
+        },
+        "taggableFilter": "natural->water&water->pond|landuse->pond"
+      }
+    }
+  }
+}

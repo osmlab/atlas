@@ -1,0 +1,91 @@
+.\"     Title: atlas-cli
+.\"    Author: Lucas Cram
+.\"    Source: atlas-shell-tools 1.0.0
+.\"  Language: English
+.\"
+.TH "ATLAS-CLI" "7" "28 September 2020" "atlas\-shell\-tools 1\&.0\&.0" "Atlas Shell Tools Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+
+.SH "NAME"
+.sp
+atlas\-cli \-\- Atlas Shell Tools command line interface and conventions
+
+.SH "SYNOPSIS"
+*
+
+.SH "DESCRIPTION"
+.sp
+\fBatlas\-shell\-tools\fR(7) makes use of various command line conventions and
+utilities to provide a comprehensive user experience.
+
+The \fBShells\fR section discusses the various shells supported by \fBatlas\-shell\-tools\fR(7).
+
+The \fBOptions\fR section explains the various ways \fBatlas\-shell\-tools\fR(7) parses
+command line options.
+
+The \fBTAB Complete\fR section shows the various ways that TAB completions can make command
+line interaction easier.
+
+.SH "SHELLS"
+.sp
+While \fBatlas\-shell\-tools\fR(7) is compatible with any command shell, \fBbash\fR(1) and
+\fBzsh\fR(1) users can take advantage of both the quick installation scripts and advanced TAB
+completion features.
+
+For \fBbash\fR(1) users, note that while \fBatlas\-shell\-tools\fR(7) works best with \fBbash\fR(1)
+version 4, version 3 can still utilize the full TAB complete feature set.
+
+.SH "OPTIONS"
+.sp
+\fBatlas\-shell\-tools\fR(7) has two ways of dealing with options:
+.sp
+1. Perl's Getopt::Long semantics are used when parsing global options suppled to the \fBatlas\fR(1) and
+\fBatlas\-config\fR(1) scripts. In the following command line, the '\-\-debug' option is a global option:
+.sp
+.RS 4
+$ atlas \-\-debug my\-command \-\-opt1
+.RE
+.sp
+2. Subcommand options are parsed with the SimpleOptionAndArgumentParser class, found in the
+Atlas repo <https://github.com/osmlab/atlas>. Please check the source of that class for
+javadoc documentation comments detailing the parsing semantics. They are similar to the
+GNU semantics found here:
+<https://www.gnu.org/software/libc/manual/html_node/Argument\-Syntax.html>.
+More links are provided in the class documentation. In the following command line,
+the '\-\-opt1' option is a subcommand option:
+.sp
+.RS 4
+$ atlas \-\-debug my\-command \-\-opt1
+.RE
+.sp
+Also note that both the Perl option parsing and the SimpleOptionAndArgumentParser class recognize options
+using a shortest non-ambiguous prefix. For example, suppose 'my\-command' takes two options '\-\-large\-option'
+and '\-\-lazy\-option'. You could specify the '\-\-lazy\-option' by simply
+supplying '\-\-lazy' at the command line. However, supplying '\-\-la' would cause an error since 'la'
+is an ambiguous prefix between those two options.
+
+.SH "TAB COMPLETE"
+.sp
+\fBatlas\-shell\-tools\fR(7) supports various TAB completions for the \fBbash\fR(1) and
+\fBzsh\fR(1) shells. \fBatlas\fR(1) will contextually complete subcommand names in the current activated
+module, the '\-\-preset' option with various available presets, and local files. \fBatlas\-config\fR(1)
+will contextually complete subcommands as well as relevant arguments to whatever subcommand is provided
+on the command line.
+
+.SH "ATLAS SHELL TOOLS"
+.sp
+Part of the \fBatlas\-shell\-tools\fR(7) suite

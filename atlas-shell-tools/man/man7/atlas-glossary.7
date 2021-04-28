@@ -1,0 +1,139 @@
+.\"     Title: atlas-glossary
+.\"    Author: Lucas Cram
+.\"    Source: atlas-shell-tools 1.0.0
+.\"  Language: English
+.\"
+.TH "ATLAS-GLOSSARY" "7" "28 September 2020" "atlas\-shell\-tools 1\&.0\&.0" "Atlas Shell Tools Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+
+.SH "NAME"
+.sp
+atlas\-glossary \-\- A glossary of Atlas Shell Tools terms and concepts
+
+.SH "SYNOPSIS"
+*
+
+.SH "DESCRIPTION"
+
+.sp
+\fBactive module index\fR
+.RS 4
+The active module index is a file containing metadata about
+the commands in the presently activated module. The metadata includes the command names
+as well as the full classnames of the command implementations. A new index is generated
+each time a new module is activated. The index can also be regenerated with
+\fBatlas-config-sync\fR(1). See \fBatlas\-plumbing\fR(5) for info on where the index
+is stored.
+.RE
+
+.sp
+\fBARGV\fR
+.RS 4
+Throughout the Atlas Shell Tools manual, ARGV refers to the argument vector from the
+command line. In the context of \fBatlas\fR(1), it generally refers to the
+actual arguments passed to the command. \fBatlas\fR(1) converts your command line
+like "$ atlas \-\-globalOpt MyCommand arg1 \-\-opt1" into a JVM call, so here ARGV refers
+to just ["arg1", "\-\-opt1"], the actual arguments given to the JVM. In the aforementioned
+example, '\-\-globalOpt' is referred to as a "global" option.
+
+See \fBoption\fR.
+.RE
+
+.sp
+\fBcommand\fR
+.RS 4
+A command generally refers to a Java class that implements an Atlas Shell Tools
+command. In order to implement an Atlas Shell Tools command, the class must be
+a subclass of \fBAbstractAtlasShellToolsCommand\fR, found in the Atlas project:
+see <https://github.com/osmlab/atlas>.
+.RE
+
+.sp
+\fBmodule\fR
+.RS 4
+Atlas Shell Tools lingo for a JARfile that contains implementations of commands
+(see "command" in this glossary). Once a JARfile has been installed into
+Atlas Shell Tools using \fBatlas\-config\fR(1), it is known as a module and
+is referred to using its module name, as reported by \fBatlas\-config\-list\fR(1).
+.sp
+See \fBmodule workspace\fR.
+.RE
+
+.sp
+\fBmodule workspace\fR
+.RS 4
+The module workspace is where \fBatlas\-shell\-tools\fR(7) stores installed modules.
+The workspace can be displayed with \fBatlas\-config\-list\fR(1). More info about
+the workspace structure is detailed in \fBatlas\-plumbing\fR(5).
+.sp
+See \fBmodule\fR.
+.RE
+
+.sp
+\fBoption\fR
+.RS 4
+An option refers to a special command line argument prefixed with a "\-"
+(a.k.a. a short option) or with a "\-\-" (a.k.a. a long option). Options can be
+either global (i.e. they come before the subcommand on the command line), or they
+can be tied to the subcommand itself. For example, in the command
+"atlas \-\-opt1 MyCommand \-\-opt2", "\-\-opt1" is a global option whereas "\-\-opt2" is an
+option of the MyCommand subcommand. Options can also
+take their own additional optional or required arguments. For more details on
+the intricacies of option syntax, see \fBatlas\-cli\fR(7).
+.sp
+Finally it should be noted that the option prefix dashes without attached options have special
+meanings. "\-" on its own is treated as a regular argument, and "\-\-" on its own is treated as
+the end\-of\-options marker. Again, see \fBatlas\-cli\fR(7) for more information.
+.RE
+
+.sp
+\fBpreset\fR
+.RS 4
+A preset is a list of saved options for a given command. Presets have a name,
+but they are meaningless without their associated command context \- i.e. the
+preset "p1" is not meaningful unless you say the preset "p1" for command
+"MyCommand". Technically speaking, presets are additionally qualified by a
+namespace, but this can be effectively ignored unless that behavior is desired.
+Presets and their namespaces are manipulated using the \fBatlas\fR(1) and \fBatlas\-config\fR(1) programs.
+See \fBatlas\-presets\fR(7) for more information.
+.RE
+
+.sp
+\fBrepo\fR
+.RS 4
+A repo is a remote \fBgit\fR(1) repository containing Atlas Shell Tools command implementations.
+The repo management interface is exposed by \fBatlas\-config\-repo\fR(1), and repo installation
+is performed using the \fBinstall\fR directive of \fBatlas\-config\-repo\fR(1). The repo object
+itself simply consists of some metadata \- specifically a remote URL, a ref
+name (could be a branch, commit, tag, etc.), and optional Gradle configuration data.
+More info on repo objects can be found in \fBatlas\-plumbing\fR(5).
+.RE
+
+.sp
+\fBtoolkit\fR
+.RS 4
+Throughout the Atlas Shell Tools documentation, toolkit generally refers to the
+\fBatlas\fR(1) and \fBatlas\-config\fR(1) programs, the manpages included
+in the \fBatlas\-shell\-tools\fR(7) suite, and anything else stored in the directory pointed to
+by the \fBATLAS_SHELL_TOOLS_HOME\fR environment variable. The toolkit does \fBnot\fR refer to
+installed modules, repos, or any saved presets. Those are stored in the toolkit's data directory.
+See \fBatlas\-plumbing\fR(5) for more on the data directory.
+.RE
+
+.SH "ATLAS SHELL TOOLS"
+.sp
+Part of the \fBatlas\-shell\-tools\fR(7) suite

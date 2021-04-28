@@ -4,12 +4,11 @@ import java.lang.reflect.Type;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Located;
-import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.GeoJsonType;
+import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
 
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 
 /**
@@ -23,7 +22,7 @@ public class LocatedDeserializer implements JsonDeserializer<Located>
     public Located deserialize(final JsonElement json, final Type typeOfT,
             final JsonDeserializationContext context) throws JsonParseException
     {
-        final GeoJsonType type = GeoJsonType.forType(((JsonObject) json).get("type").getAsString());
+        final GeoJsonType type = GeoJsonType.forJson(json.getAsJsonObject());
         if (GeoJsonType.POINT == type)
         {
             return new LocationDeserializer().deserialize(json, typeOfT, context);
@@ -39,6 +38,10 @@ public class LocatedDeserializer implements JsonDeserializer<Located>
         else if (GeoJsonType.MULTI_POLYGON == type)
         {
             return new MultiPolygonDeserializer().deserialize(json, typeOfT, context);
+        }
+        else if (GeoJsonType.MULTI_LINESTRING == type)
+        {
+            return new MultiPolyLineDeserializer().deserialize(json, typeOfT, context);
         }
         throw new CoreException("Unknown/unsupported geometry type: " + type);
     }

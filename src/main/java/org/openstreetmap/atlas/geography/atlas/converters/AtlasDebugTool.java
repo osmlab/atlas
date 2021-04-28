@@ -9,11 +9,14 @@ import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
-import org.openstreetmap.atlas.geography.atlas.pbf.OsmPbfLoader;
+import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.AtlasSectionProcessor;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.geography.atlas.routing.AStarRouter;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
 import org.openstreetmap.atlas.geography.boundary.converters.CountryListTwoWayStringConverter;
 import org.openstreetmap.atlas.geography.converters.MultiPolygonStringConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.runtime.Command;
@@ -77,7 +80,7 @@ public class AtlasDebugTool extends Command
         @SuppressWarnings("unchecked")
         final List<Location> startEndRoute = (List<Location>) command.get(ROUTE);
 
-        final Atlas atlas;
+        Atlas atlas;
         if (pbf != null && pbf.exists())
         {
             final AtlasLoadingOption option;
@@ -91,9 +94,10 @@ public class AtlasDebugTool extends Command
                 {
                     if (new CountryListTwoWayStringConverter().convert(country).size() == 1)
                     {
-                        multiPolygon = boundaryMap.countryBoundary(country).get(0).getBoundary();
+                        multiPolygon = new JtsPolygonToMultiPolygonConverter()
+                                .convert(boundaryMap.countryBoundary(country).get(0));
                     }
-                    option.setAdditionalCountryCodes(country);
+                    option.setCountryCode(country);
                 }
             }
             else
@@ -108,7 +112,13 @@ public class AtlasDebugTool extends Command
             {
                 multiPolygon = inputMultipolygon;
             }
-            atlas = new OsmPbfLoader(pbf, multiPolygon, option).read();
+
+            atlas = new RawAtlasGenerator(pbf, option, multiPolygon).build();
+            if (option.isCountrySlicing())
+            {
+                atlas = new RawAtlasSlicer(option, atlas).slice();
+            }
+            atlas = new AtlasSectionProcessor(atlas, option).run();
             atlas.save(atlasFile);
         }
         else if (atlasFile != null && atlasFile.exists())

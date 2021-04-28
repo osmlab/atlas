@@ -9,6 +9,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Latitude;
@@ -154,6 +156,25 @@ public class PackedAtlasSerializerTest
 
     private static final Logger logger = LoggerFactory.getLogger(PackedAtlasSerializerTest.class);
 
+    @Rule
+    public final PackedAtlasTestRule rule = new PackedAtlasTestRule();
+    private PackedAtlas atlas;
+
+    @Before
+    public void setup()
+    {
+        this.atlas = this.rule.getAtlas().cloneToPackedAtlas();
+    }
+
+    @Test
+    public void testDeserializeThenSerialize()
+    {
+        final Atlas deserialized = deserialized();
+        final ByteArrayResource resource = new ByteArrayResource(5_000_000)
+                .withName("testDeserializeThenSerialize");
+        deserialized.save(resource);
+    }
+
     @Test
     public void testDeserializedIntegrity()
     {
@@ -171,15 +192,6 @@ public class PackedAtlasSerializerTest
                 deserialized.areasIntersecting(Location.TEST_8.boxAround(Distance.ONE_METER))));
     }
 
-    @Test
-    public void testDeserializeThenSerialize()
-    {
-        final Atlas deserialized = deserialized();
-        final ByteArrayResource resource = new ByteArrayResource(5_000_000)
-                .withName("testDeserializeThenSerialize");
-        deserialized.save(resource);
-    }
-
     @Test(expected = CoreException.class)
     public void testInvalidFileFormat()
     {
@@ -193,11 +205,10 @@ public class PackedAtlasSerializerTest
     @Test
     public void testPartialLoad() throws NoSuchFieldException, SecurityException
     {
-        final PackedAtlas atlas = new PackedAtlasTest().getAtlas();
-        logger.info("{}", atlas);
+        logger.info("{}", this.atlas);
         final File file = File.temporary();
         logger.info("Saving atlas to {}", file);
-        atlas.save(file);
+        this.atlas.save(file);
         final Time start = Time.now();
         final PackedAtlas deserialized = PackedAtlas.load(file);
         logger.info("Deserialized Atlas File in {}", start.elapsedSince());
@@ -282,31 +293,27 @@ public class PackedAtlasSerializerTest
         atlas.setSaveSerializationFormat(AtlasSerializationFormat.PROTOBUF);
         atlas.save(protoResource);
 
-        final Atlas javaAtlas = new AtlasResourceLoader().withAtlasFileExtensionFilterSetTo(false)
-                .load(javaResource);
-        final Atlas protoAtlas = new AtlasResourceLoader().withAtlasFileExtensionFilterSetTo(false)
-                .load(protoResource);
+        final Atlas javaAtlas = PackedAtlas.load(javaResource);
+        final Atlas protoAtlas = PackedAtlas.load(protoResource);
 
-        Assert.assertEquals(1, javaResource.getNumberStreamsClosed());
-        Assert.assertEquals(2, protoResource.getNumberStreamsClosed());
+        Assert.assertEquals(2, javaResource.getNumberStreamsClosed());
+        Assert.assertEquals(1, protoResource.getNumberStreamsClosed());
     }
 
     @Test
     public void testSize()
     {
-        final PackedAtlas atlas = new PackedAtlasTest().getAtlas();
         final ByteArrayResource zipped = new ByteArrayResource(8192).withName("zippedByteArray");
         zipped.setCompressor(Compressor.GZIP);
-        atlas.save(zipped);
+        this.atlas.save(zipped);
         logger.info("Zipped Size: {}", zipped.length());
     }
 
     private Atlas deserialized()
     {
-        final Atlas atlas = new PackedAtlasTest().getAtlas();
         final ByteArrayResource resource = new ByteArrayResource(524288)
                 .withName("testSerializationByteArray");
-        atlas.save(resource);
+        this.atlas.save(resource);
         return PackedAtlas.load(resource);
     }
 

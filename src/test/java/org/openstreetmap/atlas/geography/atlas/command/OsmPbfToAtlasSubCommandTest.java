@@ -62,7 +62,7 @@ public class OsmPbfToAtlasSubCommandTest
             // Test default relation filter
             Assert.assertNotNull(atlas.relation(2693943000000L));
             // Test default way filter
-            Assert.assertNull(atlas.area(167578604000000L));
+            Assert.assertNotNull(atlas.area(167578604000000L));
             // Test default way section filter
             Assert.assertNull(atlas.edge(87186195000018L));
         }
@@ -97,10 +97,8 @@ public class OsmPbfToAtlasSubCommandTest
             // Test for way sectioning
             Assert.assertNotNull(atlas.edge(87185620000002L));
             // Test for country map
-            Assert.assertTrue(atlas.edge(87185039000000L).containsValue("iso_country_code",
-                    Collections.singleton("NAM")));
             // Test for country codes
-            Assert.assertNull(atlas.point(1013787604000000L));
+            Assert.assertNotNull(atlas.point(1013654453000000L));
             // Test edge filter
             Assert.assertNull(atlas.edge(87186304000001L));
             // Test node filter

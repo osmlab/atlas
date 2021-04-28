@@ -22,7 +22,13 @@ public enum CyclewayTag
     ASL,
     SHOULDER,
     NO,
-    YES;
+    YES,
+    LEFT,
+    RIGHT,
+    OPPOSITE_SHARE_BUSWAY,
+    SEGREGATED,
+    NONE,
+    SEPARATE;
 
     @TagKey
     public static final String KEY = "cycleway";

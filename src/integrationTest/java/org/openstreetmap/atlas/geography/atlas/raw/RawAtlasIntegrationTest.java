@@ -1,25 +1,29 @@
 package org.openstreetmap.atlas.geography.atlas.raw;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.locationtech.jts.geom.Polygon;
 import org.openstreetmap.atlas.geography.Location;
-import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.ShardFileOverlapsPolygonTest;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.raw.creation.RawAtlasGenerator;
-import org.openstreetmap.atlas.geography.atlas.raw.sectioning.WaySectionProcessor;
-import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasCountrySlicer;
+import org.openstreetmap.atlas.geography.atlas.raw.sectioning.AtlasSectionProcessor;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.sharding.DynamicTileSharding;
 import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
@@ -40,8 +44,14 @@ import org.slf4j.LoggerFactory;
  */
 public class RawAtlasIntegrationTest
 {
-    private static CountryBoundaryMap COUNTRY_BOUNDARY_MAP;
-    private static Set<String> COUNTRIES;
+    private static final AtlasLoadingOption loadingOptionAll;
+    private static final AtlasLoadingOption loadingOptionAntarctica;
+    private static final AtlasLoadingOption loadingOptionIvoryCoast;
+
+    private static final AtlasLoadingOption loadingOptionIntersectionAtEnd;
+    private static final AtlasLoadingOption loadingOptionIntersectionAtStart;
+
+    private static final AtlasLoadingOption loadingOptionIntersectionAtMiddle;
 
     private static final long LINE_OSM_IDENTIFIER_CROSSING_3_SHARDS = 541706;
 
@@ -49,15 +59,49 @@ public class RawAtlasIntegrationTest
 
     static
     {
-        COUNTRIES = new HashSet<>();
-        COUNTRIES.add("CIV");
-        COUNTRIES.add("GIN");
-        COUNTRIES.add("LBR");
-
-        COUNTRY_BOUNDARY_MAP = CountryBoundaryMap
+        final CountryBoundaryMap boundary = CountryBoundaryMap
                 .fromPlainText(new InputStreamResource(() -> RawAtlasIntegrationTest.class
                         .getResourceAsStream("CIV_GIN_LBR_osm_boundaries_with_grid_index.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
+        loadingOptionAll = AtlasLoadingOption.createOptionWithAllEnabled(boundary);
+
+        loadingOptionIvoryCoast = AtlasLoadingOption.createOptionWithAllEnabled(boundary)
+                .setCountryCode("CIV");
+
+        // This is an OSM node that doesn't have any tags, is not a member of a relation or part of
+        // a way. It should end up as a point in the final atlas.
+        final String antarctica = "ATA";
+
+        // Create a fake boundary as a bounding box around the target point
+        final Map<String, List<Polygon>> boundaries = new HashMap<>();
+        final Location targetPoint = Location.forString("-81.2022146, 51.6408578");
+        final List<Polygon> ataPolygons = new ArrayList<>();
+        ataPolygons
+                .add(new JtsPolygonConverter().convert(targetPoint.boxAround(Distance.meters(1))));
+        boundaries.put(antarctica, ataPolygons);
+
+        // Create a country boundary map with the fake Antarctica country boundary
+        final CountryBoundaryMap antarticaBoundary = CountryBoundaryMap.fromBoundaryMap(boundaries);
+        loadingOptionAntarctica = AtlasLoadingOption.createOptionWithAllEnabled(antarticaBoundary)
+                .setCountryCode(antarctica);
+
+        final CountryBoundaryMap intersectionAtEndBoundary = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> RawAtlasIntegrationTest.class
+                        .getResourceAsStream("layerIntersectionAtEndBoundaryMap.txt")));
+        loadingOptionIntersectionAtEnd = AtlasLoadingOption
+                .createOptionWithAllEnabled(intersectionAtEndBoundary).setCountryCode("RUS");
+
+        final CountryBoundaryMap intersectionAtStartBoundary = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> RawAtlasIntegrationTest.class
+                        .getResourceAsStream("layerIntersectionAtStartBoundaryMap.txt")));
+        loadingOptionIntersectionAtStart = AtlasLoadingOption
+                .createOptionWithAllEnabled(intersectionAtStartBoundary).setCountryCode("RUS");
+
+        final CountryBoundaryMap intersectionAtMiddleBoundary = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> RawAtlasIntegrationTest.class
+                        .getResourceAsStream("layerIntersectionInMiddleBoundaryMap.txt")));
+        loadingOptionIntersectionAtMiddle = AtlasLoadingOption
+                .createOptionWithAllEnabled(intersectionAtMiddleBoundary).setCountryCode("SGP");
     }
 
     @Rule
@@ -146,69 +190,48 @@ public class RawAtlasIntegrationTest
 
         Assert.assertEquals(0, rawAtlas.numberOfNodes());
         Assert.assertEquals(0, rawAtlas.numberOfEdges());
-        Assert.assertEquals(0, rawAtlas.numberOfAreas());
-        Assert.assertEquals(74311, rawAtlas.numberOfPoints());
-        Assert.assertEquals(7817, rawAtlas.numberOfLines());
-        Assert.assertEquals(11, rawAtlas.numberOfRelations());
+        Assert.assertEquals(5119, rawAtlas.numberOfAreas());
+        Assert.assertEquals(74342, rawAtlas.numberOfPoints());
 
-        final Atlas slicedRawAtlas = sliceRawAtlas(rawAtlas, COUNTRIES);
+        Assert.assertEquals(2699, rawAtlas.numberOfLines());
+        Assert.assertEquals(17, rawAtlas.numberOfRelations());
 
-        Assert.assertEquals(0, slicedRawAtlas.numberOfNodes());
-        Assert.assertEquals(0, slicedRawAtlas.numberOfEdges());
-        Assert.assertEquals(0, slicedRawAtlas.numberOfAreas());
-        Assert.assertEquals(74640, slicedRawAtlas.numberOfPoints());
-        Assert.assertEquals(8082, slicedRawAtlas.numberOfLines());
-        Assert.assertEquals(16, slicedRawAtlas.numberOfRelations());
-
-        // Assert all raw Atlas entities have a country code
-        assertAllEntitiesHaveCountryCode(slicedRawAtlas);
-    }
-
-    @Test
-    public void testPbfToSlicedRawAtlasFilterByCountry()
-    {
-        // This test is identical to test PbfToSlicedRawAtlas, with added country filter
-        final String pbfPath = RawAtlasIntegrationTest.class
-                .getResource("8-122-122-trimmed.osm.pbf").getPath();
-        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(pbfPath));
-        final Atlas rawAtlas = rawAtlasGenerator.build();
-
-        // We're only interested in CIV country
-        final Set<String> onlyIvoryCoast = new HashSet<>();
-        onlyIvoryCoast.add("CIV");
-        final Atlas slicedRawAtlas = sliceRawAtlas(rawAtlas, onlyIvoryCoast);
+        final Atlas slicedRawAtlas = new RawAtlasSlicer(loadingOptionAll, rawAtlas).slice();
 
         Assert.assertEquals(0, slicedRawAtlas.numberOfNodes());
         Assert.assertEquals(0, slicedRawAtlas.numberOfEdges());
-        Assert.assertEquals(0, slicedRawAtlas.numberOfAreas());
-        Assert.assertEquals(34784, slicedRawAtlas.numberOfPoints());
-        Assert.assertEquals(3636, slicedRawAtlas.numberOfLines());
-        Assert.assertEquals(6, slicedRawAtlas.numberOfRelations());
+        Assert.assertEquals(5132, slicedRawAtlas.numberOfAreas());
+        Assert.assertEquals(32524, slicedRawAtlas.numberOfPoints());
+        Assert.assertEquals(2956, slicedRawAtlas.numberOfLines());
+        Assert.assertEquals(17, slicedRawAtlas.numberOfRelations());
 
         // Assert all raw Atlas entities have a country code
         assertAllEntitiesHaveCountryCode(slicedRawAtlas);
-    }
 
-    @Test
-    public void testSectioningFromRawAtlas()
-    {
-        final String path = RawAtlasIntegrationTest.class.getResource("8-122-122-trimmed.osm.pbf")
-                .getPath();
-        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
-        final Atlas rawAtlas = rawAtlasGenerator.build();
-        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
-                .slice(rawAtlas);
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
-                AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
+        final Atlas ivoryCoast = new RawAtlasSlicer(loadingOptionIvoryCoast, rawAtlas).slice();
+
+        Assert.assertEquals(0, ivoryCoast.numberOfNodes());
+        Assert.assertEquals(0, ivoryCoast.numberOfEdges());
+        Assert.assertEquals(2400, ivoryCoast.numberOfAreas());
+        Assert.assertEquals(15075, ivoryCoast.numberOfPoints());
+        Assert.assertEquals(1236, ivoryCoast.numberOfLines());
+        Assert.assertEquals(12, ivoryCoast.numberOfRelations());
+
+        // Assert all raw Atlas entities have a country code
+        assertAllEntitiesHaveCountryCode(ivoryCoast);
+
+        // Test sectioning!
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas, loadingOptionAll).run();
 
         Assert.assertEquals(5011, finalAtlas.numberOfNodes());
         Assert.assertEquals(9764, finalAtlas.numberOfEdges());
-        Assert.assertEquals(5128, finalAtlas.numberOfAreas());
+        Assert.assertEquals(5132, finalAtlas.numberOfAreas());
         Assert.assertEquals(184, finalAtlas.numberOfPoints());
-        Assert.assertEquals(326, finalAtlas.numberOfLines());
-        Assert.assertEquals(16, finalAtlas.numberOfRelations());
+        Assert.assertEquals(329, finalAtlas.numberOfLines());
+        Assert.assertEquals(17, finalAtlas.numberOfRelations());
     }
 
+    @Ignore
     @Test
     public void testSectioningFromShard()
     {
@@ -216,8 +239,7 @@ public class RawAtlasIntegrationTest
                 .getPath();
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
         final Atlas rawAtlas = rawAtlasGenerator.build();
-        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(COUNTRIES, COUNTRY_BOUNDARY_MAP)
-                .slice(rawAtlas);
+        final Atlas slicedRawAtlas = new RawAtlasSlicer(loadingOptionAll, rawAtlas).slice();
 
         // Simple fetcher that returns the atlas from above for the corresponding shard
         final Map<Shard, Atlas> store = new HashMap<>();
@@ -234,58 +256,34 @@ public class RawAtlasIntegrationTest
             }
         };
 
-        final Atlas finalAtlas = new WaySectionProcessor(new SlippyTile(122, 122, 8),
-                AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP),
-                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class
-                        .getResource(
-                                "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
+        final Atlas finalAtlas = new AtlasSectionProcessor(new SlippyTile(122, 122, 8),
+                loadingOptionAll,
+                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class.getResource(
+                        "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
                         .getFile())),
                 rawAtlasFetcher).run();
 
         Assert.assertEquals(5009, finalAtlas.numberOfNodes());
         Assert.assertEquals(9760, finalAtlas.numberOfEdges());
-        Assert.assertEquals(5126, finalAtlas.numberOfAreas());
+        Assert.assertEquals(5128, finalAtlas.numberOfAreas());
         Assert.assertEquals(184, finalAtlas.numberOfPoints());
         Assert.assertEquals(271, finalAtlas.numberOfLines());
-
-        /*
-         * This has been updated to 16 instead of 14. This is because two of the relations in
-         * 8-122-122-trimmed.osm.pbf have subrelations, and so the WaySectionProcessor was simply
-         * dropping them when using the old BareAtlas.relationsLowerOrderFirstCode (We have now
-         * fixed BareAtlas.relationsLowerOrderFirst to not drop relations when the BareAtlas is a
-         * DynamicAtlas). In reality, we should process them and include then in the final atlas.
-         */
-        Assert.assertEquals(16, finalAtlas.numberOfRelations());
+        Assert.assertEquals(23, finalAtlas.numberOfRelations());
     }
 
+    @Ignore
     @Test
     public void testStandAloneNodeIngest()
     {
-        // This is an OSM node that doesn't have any tags, is not a member of a relation or part of
-        // a way. It should end up as a point in the final atlas.
-        final String antarctica = "ATA";
-
-        // Create a fake boundary as a bounding box around the target point
-        final Map<String, MultiPolygon> boundaries = new HashMap<>();
-        final Location targetPoint = Location.forString("-81.2022146, 51.6408578");
-        final MultiPolygon antarcticaBoundary = MultiPolygon
-                .forPolygon(targetPoint.boxAround(Distance.meters(1)));
-        boundaries.put(antarctica, antarcticaBoundary);
-
-        // Create a country boundary map with the fake Antarctica country boundary
-        final CountryBoundaryMap countryBoundaryMap = CountryBoundaryMap
-                .fromBoundaryMap(boundaries);
-
         // Create a raw atlas, slice and section it
         final String pbfPath = RawAtlasIntegrationTest.class.getResource("node-4353689487.pbf")
                 .getPath();
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(pbfPath));
         final Atlas rawAtlas = rawAtlasGenerator.build();
 
-        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer(antarctica, countryBoundaryMap)
-                .slice(rawAtlas);
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
-                AtlasLoadingOption.createOptionWithAllEnabled(countryBoundaryMap)).run();
+        final Atlas slicedRawAtlas = new RawAtlasSlicer(loadingOptionAntarctica, rawAtlas).slice();
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas, loadingOptionAntarctica)
+                .run();
 
         // Verify only a single point exists
         Assert.assertEquals(0, finalAtlas.numberOfNodes());
@@ -310,14 +308,10 @@ public class RawAtlasIntegrationTest
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
         final Atlas rawAtlas = rawAtlasGenerator.build();
 
-        // Prepare the boundary
-        final CountryBoundaryMap boundaryMap = CountryBoundaryMap
-                .fromPlainText(new InputStreamResource(() -> RawAtlasIntegrationTest.class
-                        .getResourceAsStream("layerIntersectionAtEndBoundaryMap.txt")));
-
-        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer("RUS", boundaryMap).slice(rawAtlas);
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
-                AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap)).run();
+        final Atlas slicedRawAtlas = new RawAtlasSlicer(loadingOptionIntersectionAtEnd, rawAtlas)
+                .slice();
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
+                loadingOptionIntersectionAtEnd).run();
 
         // Make sure there are exactly three edges created. Both ways are one-way and one of them
         // gets way-sectioned into two edges.
@@ -348,14 +342,10 @@ public class RawAtlasIntegrationTest
         final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(new File(path));
         final Atlas rawAtlas = rawAtlasGenerator.build();
 
-        // Prepare the boundary
-        final CountryBoundaryMap boundaryMap = CountryBoundaryMap
-                .fromPlainText(new InputStreamResource(() -> RawAtlasIntegrationTest.class
-                        .getResourceAsStream("layerIntersectionAtStartBoundaryMap.txt")));
-
-        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer("RUS", boundaryMap).slice(rawAtlas);
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
-                AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap)).run();
+        final Atlas slicedRawAtlas = new RawAtlasSlicer(loadingOptionIntersectionAtStart, rawAtlas)
+                .slice();
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
+                loadingOptionIntersectionAtStart).run();
 
         // Make sure there are exactly six edges created. The trunk link (551411163) is
         // way-sectioned into 2 pieces - at an intermediate crossing, while the trunk (67803311) is
@@ -391,14 +381,10 @@ public class RawAtlasIntegrationTest
         // Verify both points made it into the raw atlas
         Assert.assertTrue(Iterables.size(rawAtlas.pointsAt(overlappingLocation)) == 2);
 
-        // Prepare the boundary
-        final CountryBoundaryMap boundaryMap = CountryBoundaryMap
-                .fromPlainText(new InputStreamResource(() -> RawAtlasIntegrationTest.class
-                        .getResourceAsStream("layerIntersectionInMiddleBoundaryMap.txt")));
-
-        final Atlas slicedRawAtlas = new RawAtlasCountrySlicer("SGP", boundaryMap).slice(rawAtlas);
-        final Atlas finalAtlas = new WaySectionProcessor(slicedRawAtlas,
-                AtlasLoadingOption.createOptionWithAllEnabled(boundaryMap)).run();
+        final Atlas slicedRawAtlas = new RawAtlasSlicer(loadingOptionIntersectionAtMiddle, rawAtlas)
+                .slice();
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
+                loadingOptionIntersectionAtMiddle).run();
 
         // Make sure there is no sectioning happening between the two ways with different layer tag
         // values. There is a one-way overpass and a bi-directional residential street, resulting in
@@ -430,11 +416,9 @@ public class RawAtlasIntegrationTest
     private Atlas generateSectionedAtlasStartingAtShard(final Shard shard,
             final Function<Shard, Optional<Atlas>> rawAtlasFetcher)
     {
-        return new WaySectionProcessor(shard,
-                AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP),
-                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class
-                        .getResource(
-                                "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
+        return new AtlasSectionProcessor(shard, loadingOptionAll,
+                new DynamicTileSharding(new File(ShardFileOverlapsPolygonTest.class.getResource(
+                        "/org/openstreetmap/atlas/geography/boundary/tree-6-14-100000.txt.gz")
                         .getFile())),
                 rawAtlasFetcher).run();
     }
@@ -446,10 +430,5 @@ public class RawAtlasIntegrationTest
         store.put(new SlippyTile(123, 123, 8), this.setup.getAtlasz8x123y123());
         store.put(new SlippyTile(123, 122, 8), this.setup.getAtlasz8x123y122());
         return store;
-    }
-
-    private Atlas sliceRawAtlas(final Atlas rawAtlas, final Set<String> countries)
-    {
-        return new RawAtlasCountrySlicer(countries, COUNTRY_BOUNDARY_MAP).slice(rawAtlas);
     }
 }

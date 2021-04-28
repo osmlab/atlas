@@ -1,18 +1,18 @@
 package org.openstreetmap.atlas.tags.annotations.validation;
 
 import java.net.URI;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.openstreetmap.atlas.tags.annotations.Tag;
 import org.openstreetmap.atlas.tags.annotations.TagKey;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators.TagKeySearch;
 
-import com.google.common.base.Objects;
-
-import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ClassInfoList;
+import io.github.classgraph.ScanResult;
 
 /**
  * Class that walks across all Tags and generates metadata about them that can be converted into
@@ -69,16 +69,16 @@ public class TagDocumenter
             if (obj instanceof CallbackData)
             {
                 final CallbackData other = (CallbackData) obj;
-                boolean returnValue = Objects.equal(this.tagClassName, other.tagClassName);
-                returnValue = returnValue && Objects.equal(this.tagKey, other.tagKey);
+                boolean returnValue = Objects.equals(this.tagClassName, other.tagClassName);
+                returnValue = returnValue && Objects.equals(this.tagKey, other.tagKey);
                 returnValue = returnValue
-                        && Objects.equal(this.validTagValues, other.validTagValues);
-                returnValue = returnValue && Objects.equal(this.tagInfoLink, other.tagInfoLink);
-                returnValue = returnValue && Objects.equal(this.osmWikiLink, other.osmWikiLink);
+                        && Objects.equals(this.validTagValues, other.validTagValues);
+                returnValue = returnValue && Objects.equals(this.tagInfoLink, other.tagInfoLink);
+                returnValue = returnValue && Objects.equals(this.osmWikiLink, other.osmWikiLink);
                 returnValue = returnValue
-                        && Objects.equal(this.validationType, other.validationType);
-                returnValue = returnValue && Objects.equal(this.localized, other.localized);
-                returnValue = returnValue && Objects.equal(this.synthetic, other.synthetic);
+                        && Objects.equals(this.validationType, other.validationType);
+                returnValue = returnValue && Objects.equals(this.localized, other.localized);
+                returnValue = returnValue && Objects.equals(this.synthetic, other.synthetic);
                 return returnValue;
             }
             return false;
@@ -104,20 +104,20 @@ public class TagDocumenter
             return this.tagKey;
         }
 
-        public String getValidationType()
-        {
-            return this.validationType;
-        }
-
         public Iterable<String> getValidTagValues()
         {
             return this.validTagValues;
         }
 
+        public String getValidationType()
+        {
+            return this.validationType;
+        }
+
         @Override
         public int hashCode()
         {
-            return Objects.hashCode(this.tagKey, this.tagClassName);
+            return Objects.hash(this.tagKey, this.tagClassName);
         }
 
         public boolean isLocalized()
@@ -155,21 +155,29 @@ public class TagDocumenter
          * command line we shouldn't get any TestCase tags anyways, but when running this in
          * development mode under Eclipse with core in the classpath they will be picked up.
          */
-        new FastClasspathScanner(packageName).matchClassesWithAnnotation(Tag.class, tagClass ->
+
+        // Scan the given package
+        try (ScanResult scanResult = new ClassGraph().enableAllInfo().whitelistPackages(packageName)
+                .scan())
         {
-            if (!tagClass.getName().contains("TestCase"))
+            // Look at annotated classes
+            final ClassInfoList tagClassInfoList = scanResult
+                    .getClassesWithAnnotation("org.openstreetmap.atlas.tags.annotations.Tag");
+
+            // Ignore any TestCase classes
+            tagClassInfoList.loadClasses().forEach(klass ->
             {
-                this.tagData.add(createCallbackDataFromClass(tagClass));
-            }
-        }).scan();
+                if (!klass.getName().contains("TestCase"))
+                {
+                    this.tagData.add(createCallbackDataFromClass(klass));
+                }
+            });
+        }
     }
 
     public void walk(final Callback callback)
     {
-        this.tagData.stream().forEach(metadata ->
-        {
-            callback.tagFound(metadata);
-        });
+        this.tagData.stream().forEach(callback::tagFound);
     }
 
     private CallbackData createCallbackDataFromClass(final Class<?> tagClass)
@@ -182,9 +190,11 @@ public class TagDocumenter
             returnValue.tagKey = tagName;
             returnValue.tagClassName = tagClass.getName();
             returnValue.osmWikiLink = results.getTag().osm().length() > 0
-                    ? URI.create(results.getTag().osm()) : null;
+                    ? URI.create(results.getTag().osm())
+                    : null;
             returnValue.tagInfoLink = results.getTag().taginfo().length() > 0
-                    ? URI.create(results.getTag().taginfo()) : null;
+                    ? URI.create(results.getTag().taginfo())
+                    : null;
             returnValue.localized = tagKey.value() == TagKey.KeyType.LOCALIZED;
             returnValue.validationType = results.getTag().value().name();
             returnValue.synthetic = results.getTag().synthetic();

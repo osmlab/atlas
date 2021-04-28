@@ -52,29 +52,9 @@ public class AtlasFindByAtlasIdentifierSubCommand extends AbstractAtlasSubComman
     @Override
     public void usage(final PrintStream writer)
     {
-        writer.printf(AtlasCommandConstants.INPUT_PARAMETER_DESCRIPTION);
-        writer.printf("-id=1000000,2000000 : comma separated Atlas identifiers to search for\n");
-        writer.printf("-joinedOutput=path/to/joined.atlas : the path to the output Atlas file\n");
-    }
-
-    @Override
-    protected void start(final CommandMap command)
-    {
-        // Collect ids
-        this.identifiers.addAll((Set) command.get(ATLAS_ID_PARAMETER));
-    }
-
-    @Override
-    protected void handle(final Atlas atlas, final CommandMap command)
-    {
-        // Get all atlas entities with ids matching the input list
-        atlas.entities(identifierCheck()).forEach(item ->
-        {
-            // Print atlas and item information
-            System.out.printf(formatAtlasObject(item));
-            // Record shard name
-            this.shardNames.add(atlas.getName());
-        });
+        writer.print(AtlasCommandConstants.INPUT_PARAMETER_DESCRIPTION);
+        writer.print("-id=1000000,2000000 : comma separated Atlas identifiers to search for%n");
+        writer.print("-joinedOutput=path/to/joined.atlas : the path to the output Atlas file%n");
     }
 
     @Override
@@ -84,7 +64,7 @@ public class AtlasFindByAtlasIdentifierSubCommand extends AbstractAtlasSubComman
         // If joining is requested and there are shards to join...
         if (output.isPresent() && !this.shardNames.isEmpty())
         {
-            System.out.printf("Stitching shards and saving to output %s\n", output.get());
+            System.out.printf("Stitching shards and saving to output %s%n", output.get());
             // Use AtlasJoinerSubCommand to join found atlases
             AtlasReader.main("join",
                     String.format("-input=%s", command.get(super.switches().get(0))),
@@ -94,16 +74,24 @@ public class AtlasFindByAtlasIdentifierSubCommand extends AbstractAtlasSubComman
         return 0;
     }
 
-    /**
-     * Predicate to check an {@link AtlasObject} against the list of ids.
-     *
-     * @param <T>
-     *            Object type
-     * @return {@link Predicate}
-     */
-    private <T extends AtlasObject> Predicate<T> identifierCheck()
+    @Override
+    protected void handle(final Atlas atlas, final CommandMap command)
     {
-        return object -> this.identifiers.contains(object.getIdentifier());
+        // Get all atlas entities with ids matching the input list
+        atlas.entities(identifierCheck()).forEach(item ->
+        {
+            // Print atlas and item information
+            System.out.print(formatAtlasObject(item));
+            // Record shard name
+            this.shardNames.add(atlas.getName());
+        });
+    }
+
+    @Override
+    protected void start(final CommandMap command)
+    {
+        // Collect ids
+        this.identifiers.addAll((Set) command.get(ATLAS_ID_PARAMETER));
     }
 
     /**
@@ -117,8 +105,20 @@ public class AtlasFindByAtlasIdentifierSubCommand extends AbstractAtlasSubComman
     private String formatAtlasObject(final AtlasEntity entity)
     {
         final String shardName = entity.getAtlas().metaData().getShardName().orElse("UNKNOWN");
-        return String.format("[%s] [%d] [%d] --> [%s:%s] Tags: [%s]\n", entity.getType(),
+        return String.format("[%s] [%d] [%d] --> [%s:%s] Tags: [%s]%n", entity.getType(),
                 entity.getOsmIdentifier(), entity.getIdentifier(), shardName,
                 entity.getAtlas().getName(), entity.getTags());
+    }
+
+    /**
+     * Predicate to check an {@link AtlasObject} against the list of ids.
+     *
+     * @param <T>
+     *            Object type
+     * @return {@link Predicate}
+     */
+    private <T extends AtlasObject> Predicate<T> identifierCheck()
+    {
+        return object -> this.identifiers.contains(object.getIdentifier());
     }
 }

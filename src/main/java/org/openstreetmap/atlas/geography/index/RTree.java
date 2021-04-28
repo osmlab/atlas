@@ -5,10 +5,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.locationtech.jts.index.strtree.STRtree;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Rectangle;
-
-import com.vividsolutions.jts.index.strtree.STRtree;
 
 /**
  * A wrapper of JTS STRtree.
@@ -30,18 +29,18 @@ public class RTree<T> implements JtsSpatialIndex<T>
     private final STRtree tree;
     private Rectangle bound;
 
-    public static <K extends Located> RTree<K> forLocated(final Iterable<K> locatedIterable)
-    {
-        final RTree<K> toReturn = new RTree<>();
-        locatedIterable.forEach(located -> toReturn.add(located.bounds(), located));
-        return toReturn;
-    }
-
     public static <K> RTree<K> forCollection(final Iterable<K> iterable,
             final Function<K, Rectangle> transform)
     {
         final RTree<K> toReturn = new RTree<>();
         iterable.forEach(item -> toReturn.add(transform.apply(item), item));
+        return toReturn;
+    }
+
+    public static <K extends Located> RTree<K> forLocated(final Iterable<K> locatedIterable)
+    {
+        final RTree<K> toReturn = new RTree<>();
+        locatedIterable.forEach(located -> toReturn.add(located.bounds(), located));
         return toReturn;
     }
 

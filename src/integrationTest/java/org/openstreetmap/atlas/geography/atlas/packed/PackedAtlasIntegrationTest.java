@@ -91,7 +91,7 @@ public class PackedAtlasIntegrationTest extends AtlasIntegrationTest
 
         final Polygon polygon = atlas.area(24601488000000L).asPolygon();
 
-        Assert.assertEquals(6, Iterables.size(atlas.edgesIntersecting(polygon)));
+        Assert.assertEquals(40, Iterables.size(atlas.edgesIntersecting(polygon)));
         Assert.assertEquals(7, Iterables.size(atlas.areasIntersecting(polygon)));
     }
 

@@ -237,36 +237,6 @@ public class AtlasDelta implements Serializable
         }
     }
 
-    private boolean differentEdges(final Edge baseEdge, final Edge alterEdge)
-    {
-        try
-        {
-            boolean result = false;
-            if (!baseEdge.asPolyLine().equals(alterEdge.asPolyLine()))
-            {
-                result = true;
-            }
-            if (!result && baseEdge.start().getIdentifier() != alterEdge.start().getIdentifier())
-            {
-                result = true;
-            }
-            if (!result && baseEdge.end().getIdentifier() != alterEdge.end().getIdentifier())
-            {
-                result = true;
-            }
-            if (result)
-            {
-                // Make sure that there is not way to find a match with the other polylines
-                result = !hasGoodMatch(baseEdge, alterEdge.getAtlas());
-            }
-            return result;
-        }
-        catch (final Exception e)
-        {
-            throw new CoreException("Unable to compare edges {} and {}", baseEdge, alterEdge, e);
-        }
-    }
-
     private boolean differentEdgeSet(final SortedSet<Edge> baseEdges,
             final SortedSet<Edge> alterEdges)
     {
@@ -321,6 +291,36 @@ public class AtlasDelta implements Serializable
             }
         }
         return baseToAlterResult && alterToBaseResult;
+    }
+
+    private boolean differentEdges(final Edge baseEdge, final Edge alterEdge)
+    {
+        try
+        {
+            boolean result = false;
+            if (!baseEdge.asPolyLine().equals(alterEdge.asPolyLine()))
+            {
+                result = true;
+            }
+            if (!result && baseEdge.start().getIdentifier() != alterEdge.start().getIdentifier())
+            {
+                result = true;
+            }
+            if (!result && baseEdge.end().getIdentifier() != alterEdge.end().getIdentifier())
+            {
+                result = true;
+            }
+            if (result)
+            {
+                // Make sure that there is not way to find a match with the other polylines
+                result = !hasGoodMatch(baseEdge, alterEdge.getAtlas());
+            }
+            return result;
+        }
+        catch (final Exception e)
+        {
+            throw new CoreException("Unable to compare edges {} and {}", baseEdge, alterEdge, e);
+        }
     }
 
     private boolean differentInRelation(final AtlasEntity baseEntity, final AtlasEntity alterEntity)

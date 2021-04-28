@@ -1,9 +1,13 @@
 package org.openstreetmap.atlas.locale;
 
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.junit.Assert;
 import org.junit.Test;
+import org.openstreetmap.atlas.exception.CoreException;
 
 /**
  * Test case for IsoLanguage
@@ -12,6 +16,18 @@ import org.junit.Test;
  */
 public class IsoLanguageTest
 {
+    @Test
+    public void testEquals()
+    {
+        final Set<IsoLanguage> isoLanguages = IsoLanguage.all().collect(Collectors.toSet());
+        IsoLanguage.forLanguageCode("en").ifPresent(isoLanguage ->
+        {
+            final IsoLanguage clone = SerializationUtils
+                    .deserialize(SerializationUtils.serialize(isoLanguage));
+            Assert.assertTrue(isoLanguages.contains(clone));
+        });
+    }
+
     @Test
     public void testLanguage()
     {
@@ -35,5 +51,16 @@ public class IsoLanguageTest
         Assert.assertEquals("Spanish", isoLanguage3.get().getDisplayLanguage());
 
         Assert.assertTrue(IsoLanguage.allLanguageCodes().contains("ar"));
+    }
+
+    @Test
+    public void testSerialization()
+    {
+        final IsoLanguage spanish = IsoLanguage.forLanguageCode("es")
+                .orElseThrow(() -> new CoreException("es should correspond to Spanish."));
+        final IsoLanguage roundtrip = SerializationUtils
+                .deserialize(SerializationUtils.serialize(spanish));
+        Assert.assertEquals(spanish.getLanguageCode(), roundtrip.getLanguageCode());
+        Assert.assertEquals(spanish.getDisplayLanguage(), roundtrip.getDisplayLanguage());
     }
 }

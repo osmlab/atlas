@@ -1,15 +1,14 @@
 package org.openstreetmap.atlas.geography.converters;
 
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
+import org.locationtech.jts.io.WKTWriter;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
 import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
-
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKTReader;
-import com.vividsolutions.jts.io.WKTWriter;
 
 /**
  * Given an WKT string generate a {@link PolyLine} and vice-versa
@@ -29,7 +28,7 @@ public class WktPolyLineConverter implements TwoWayConverter<PolyLine, String>
         }
         catch (final ParseException | ClassCastException e)
         {
-            throw new CoreException("Cannot parse wkt : {}", wkt);
+            throw new CoreException("Cannot parse wkt : {}", wkt, e);
         }
         return new JtsPolyLineConverter().backwardConvert(geometry);
     }

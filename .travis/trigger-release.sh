@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-# Use Travis to trigger a release from Master
+# Use Travis to trigger a release from Main
 
 GITHUB_ORGANIZATION=osmlab
 GITHUB_REPOSITORY_NAME=atlas
@@ -18,7 +18,7 @@ body='
 {
 	"request":
 	{
-		"branch": "master",
+		"branch": "main",
 		"config":
 		{
 			"before_script": "export MANUAL_RELEASE_TRIGGERED=true"

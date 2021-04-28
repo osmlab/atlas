@@ -32,20 +32,19 @@ public class MergedConfiguration implements Configuration
     /**
      * Configurable that calls out to the underlying configuration's Configurables
      *
-     * @param <Raw>
+     * @param <R>
      *            configured type
-     * @param <Transformed>
+     * @param <T>
      *            transformed type
      * @author cstaylor
      */
-    private class MergedConfigurable<Raw, Transformed> implements Configurable
+    private class MergedConfigurable<R, T> implements Configurable
     {
-        private final Raw defaultValue;
+        private final R defaultValue;
         private final String key;
-        private final Function<Raw, Transformed> transform;
+        private final Function<R, T> transform;
 
-        MergedConfigurable(final String key, final Raw defaultValue,
-                final Function<Raw, Transformed> transform)
+        MergedConfigurable(final String key, final R defaultValue, final Function<R, T> transform)
         {
             this.key = key;
             this.transform = transform;
@@ -54,7 +53,7 @@ public class MergedConfiguration implements Configuration
 
         @SuppressWarnings({ "unchecked", "rawtypes" })
         @Override
-        public <Type> Type value()
+        public <V> V value()
         {
             Object value = MergedConfiguration.this.configurations.stream()
                     .map(config -> config.get(this.key)).map(Configurable::value)
@@ -65,17 +64,17 @@ public class MergedConfiguration implements Configuration
                 final Map mergeMap = new HashMap();
                 MergedConfiguration.this.configurations.stream()
                         .map(config -> config.get(this.key).value())
-                        .filter(found -> found != null && found instanceof Map)
+                        .filter(found -> found instanceof Map)
                         .collect(Collectors.toCollection(LinkedList::new)).descendingIterator()
                         .forEachRemaining(found -> mergeMap.putAll((Map) found));
                 value = mergeMap;
             }
 
-            return (Type) this.transform.apply((Raw) value);
+            return (V) this.transform.apply((R) value);
         }
 
         @Override
-        public <Type> Optional<Type> valueOption()
+        public <V> Optional<V> valueOption()
         {
             return Optional.ofNullable(value());
         }
@@ -116,10 +115,8 @@ public class MergedConfiguration implements Configuration
     {
         // merge the keysets of the underlying StandardConfigurations
         final Set<String> keySet = new HashSet<>();
-        this.configurations.forEach(configuration ->
-        {
-            keySet.addAll(configuration.configurationDataKeySet());
-        });
+        this.configurations
+                .forEach(configuration -> keySet.addAll(configuration.configurationDataKeySet()));
         return keySet;
     }
 
@@ -140,22 +137,43 @@ public class MergedConfiguration implements Configuration
     }
 
     @Override
-    public <Raw, Transformed> Configurable get(final String key,
-            final Function<Raw, Transformed> transform)
+    public <R, T> Configurable get(final String key, final Function<R, T> transform)
     {
         return new MergedConfigurable<>(key, null, transform);
     }
 
     @Override
-    public <Raw, Transformed> Configurable get(final String key, final Raw defaultValue,
-            final Function<Raw, Transformed> transform)
+    public <R, T> Configurable get(final String key, final R defaultValue,
+            final Function<R, T> transform)
     {
         return new MergedConfigurable<>(key, defaultValue, transform);
     }
 
     @Override
-    public <Type> Configurable get(final String key, final Type defaultValue)
+    public <T> Configurable get(final String key, final T defaultValue)
     {
         return new MergedConfigurable<>(key, defaultValue, Function.identity());
+    }
+
+    @Override
+    public Optional<Configuration> subConfiguration(final String key)
+    {
+        final Object all = this.get("").value();
+        if (all == null)
+        {
+            return Optional.empty();
+        }
+        final Map<String, Object> map;
+        if (all instanceof Map)
+        {
+            map = (Map<String, Object>) all;
+        }
+        else
+        {
+            map = new HashMap<>();
+            map.put("", all);
+        }
+        final StandardConfiguration standardConfiguration = new StandardConfiguration("", map);
+        return standardConfiguration.subConfiguration(key);
     }
 }

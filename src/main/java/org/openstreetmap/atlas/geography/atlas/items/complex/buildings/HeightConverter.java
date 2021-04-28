@@ -8,8 +8,12 @@ import org.openstreetmap.atlas.utilities.scalars.Distance;
 /**
  * Example use: Building Height
  *
+ * @deprecated use {@link org.openstreetmap.atlas.tags.HeightTag} {@code get()} or
+ *             {@link org.openstreetmap.atlas.tags.annotations.extraction.AltitudeExtractor}
+ *             instead.
  * @author matthieun
  */
+@Deprecated
 public class HeightConverter implements StringConverter<Distance>
 {
     private static final String METERS_SUFFIX = " m";

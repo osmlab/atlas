@@ -4,6 +4,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.locationtech.jts.geom.Envelope;
 import org.opengis.geometry.BoundingBox;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
@@ -11,8 +12,11 @@ import org.openstreetmap.atlas.utilities.collections.StringList;
 import org.openstreetmap.atlas.utilities.scalars.Angle;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.openstreetmap.atlas.utilities.scalars.Surface;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.vividsolutions.jts.geom.Envelope;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonPrimitive;
 
 /**
  * A rectangle on the surface of earth. It cannot span the date change line (longitude -180)
@@ -21,8 +25,6 @@ import com.vividsolutions.jts.geom.Envelope;
  */
 public final class Rectangle extends Polygon
 {
-    private static final long serialVersionUID = 6940095569975683891L;
-
     public static final Rectangle MAXIMUM = forCorners(
             new Location(Latitude.MINIMUM, Longitude.MINIMUM),
             new Location(Latitude.MAXIMUM, Longitude.MAXIMUM));
@@ -31,7 +33,8 @@ public final class Rectangle extends Polygon
             "37.328167,-122.031905:37.330394,-122.029051");
     public static final Rectangle TEST_RECTANGLE_2 = forString(
             "37.325194,-122.034281:37.325683,-122.033500");
-
+    private static final long serialVersionUID = 6940095569975683891L;
+    private static final Logger logger = LoggerFactory.getLogger(Rectangle.class);
     // A rectangle stores only two locations, despite being a 4 location Polygon.
     private final Location lowerLeft;
     private final Location upperRight;
@@ -59,6 +62,15 @@ public final class Rectangle extends Polygon
         if (lowerLeft == null || upperRight == null)
         {
             throw new CoreException("Cannot build a Rectangle with one of the corners being null.");
+        }
+        // Sanity check to avoid invalid Rectangles
+        else if (lowerLeft.isNorthOf(upperRight))
+        {
+            throw new CoreException("Lower left cannot be higher than upper right.");
+        }
+        else if (lowerLeft.isEastOf(upperRight))
+        {
+            throw new CoreException("Lower left cannot be to the right of the upper right.");
         }
         return new Rectangle(lowerLeft, upperRight);
     }
@@ -215,6 +227,16 @@ public final class Rectangle extends Polygon
                 this.upperRight.getLatitude().asDegrees());
     }
 
+    public JsonArray asGeoJsonBbox()
+    {
+        final JsonArray array = new JsonArray();
+        array.add(new JsonPrimitive(this.lowerLeft.getLongitude().asDegrees()));
+        array.add(new JsonPrimitive(this.lowerLeft.getLatitude().asDegrees()));
+        array.add(new JsonPrimitive(this.upperRight.getLongitude().asDegrees()));
+        array.add(new JsonPrimitive(this.upperRight.getLatitude().asDegrees()));
+        return array;
+    }
+
     @Override
     public Rectangle bounds()
     {
@@ -225,6 +247,18 @@ public final class Rectangle extends Polygon
     public Location center()
     {
         return new Segment(this.lowerLeft, this.upperRight).middle();
+    }
+
+    /**
+     * @param that
+     *            The other {@link Rectangle} to combine
+     * @return The {@link Rectangle} wrapping this {@link Rectangle} and the one passed as an
+     *         argument.
+     */
+    public Rectangle combine(final Rectangle that)
+    {
+        return Rectangle.forLocations(this.lowerLeft, this.upperRight, that.lowerLeft,
+                that.upperRight);
     }
 
     /**
@@ -277,19 +311,7 @@ public final class Rectangle extends Polygon
     }
 
     /**
-     * @param that
-     *            The other {@link Rectangle} to combine
-     * @return The {@link Rectangle} wrapping this {@link Rectangle} and the one passed as an
-     *         argument.
-     */
-    public Rectangle combine(final Rectangle that)
-    {
-        return Rectangle.forLocations(this.lowerLeft, this.upperRight, that.lowerLeft,
-                that.upperRight);
-    }
-
-    /**
-     * Expand a given distance on four directions
+     * Expand a given distance in all four directions
      *
      * @param distance
      *            The {@link Distance} to expand
@@ -297,12 +319,8 @@ public final class Rectangle extends Polygon
      */
     public Rectangle expand(final Distance distance)
     {
-        final Location newLowerLeft = this.lowerLeft.shiftAlongGreatCircle(Heading.SOUTH, distance)
-                .shiftAlongGreatCircle(Heading.WEST, distance);
-        final Location newUpperRight = this.upperRight
-                .shiftAlongGreatCircle(Heading.NORTH, distance)
-                .shiftAlongGreatCircle(Heading.EAST, distance);
-        return forCorners(newLowerLeft, newUpperRight);
+        final Rectangle expandedVertically = this.expandVertically(distance);
+        return expandedVertically.expandHorizontally(distance);
     }
 
     /**
@@ -329,10 +347,49 @@ public final class Rectangle extends Polygon
      */
     public Rectangle expandVertically(final Distance distance)
     {
-        final Location newLowerLeft = this.lowerLeft.shiftAlongGreatCircle(Heading.SOUTH, distance);
-        final Location newUpperRight = this.upperRight.shiftAlongGreatCircle(Heading.NORTH,
-                distance);
-        return forCorners(newLowerLeft, newUpperRight);
+        final double degreesLatitudeToShift = distance.asMeters()
+                / Distance.APPROXIMATE_DISTANCE_PER_DEGREE_AT_EQUATOR.asMeters();
+        final long meterBuffer = 1;
+
+        final Location oldLowerLeft = this.lowerLeft;
+        Distance southShiftDistance = distance;
+        // If the lowerLeft is about to be shifted south of the South Pole, stop it!
+        if (oldLowerLeft.getLatitude().asDegrees() - degreesLatitudeToShift <= Latitude.MINIMUM
+                .asDegrees())
+        {
+            logger.warn(
+                    "Provided distance {} would have shifted past the South Pole, truncating southward expansion...",
+                    distance);
+            final double degreesToHitMinimum = -1
+                    * (Latitude.MINIMUM.asDegrees() - oldLowerLeft.getLatitude().asDegrees());
+            // subtract a small buffer off the distance to just miss the pole.
+            southShiftDistance = Distance
+                    .meters((Distance.APPROXIMATE_DISTANCE_PER_DEGREE_AT_EQUATOR.asMeters()
+                            * degreesToHitMinimum) - meterBuffer);
+        }
+        final Location lowerLeftShiftedSouth = oldLowerLeft.shiftAlongGreatCircle(Heading.SOUTH,
+                southShiftDistance);
+
+        final Location oldUpperRight = this.upperRight;
+        Distance northShiftDistance = distance;
+        // If upperRight is about to be shifted north of the North Pole, stop it!
+        if (oldUpperRight.getLatitude().asDegrees() + degreesLatitudeToShift >= Latitude.MAXIMUM
+                .asDegrees())
+        {
+            logger.warn(
+                    "Provided distance {} would have shifted past the North Pole, truncating northward expansion...",
+                    distance);
+            final double degreesToHitMaximum = Latitude.MAXIMUM.asDegrees()
+                    - oldUpperRight.getLatitude().asDegrees();
+            // subtract a small buffer off the distance to just miss the pole.
+            northShiftDistance = Distance
+                    .meters((Distance.APPROXIMATE_DISTANCE_PER_DEGREE_AT_EQUATOR.asMeters()
+                            * degreesToHitMaximum) - meterBuffer);
+        }
+        final Location upperRightShiftedNorth = oldUpperRight.shiftAlongGreatCircle(Heading.NORTH,
+                northShiftDistance);
+
+        return forCorners(lowerLeftShiftedSouth, upperRightShiftedNorth);
     }
 
     /**
@@ -540,8 +597,13 @@ public final class Rectangle extends Polygon
      */
     public Angle width()
     {
-        return Angle.dm7(
-                this.upperRight.getLongitude().asDm7() - this.lowerLeft.getLongitude().asDm7());
+        long dm7Difference = this.upperRight.getLongitude().asDm7()
+                - this.lowerLeft.getLongitude().asDm7();
+        if (dm7Difference >= Angle.REVOLUTION_DM7)
+        {
+            dm7Difference = Angle.REVOLUTION_DM7 - 1;
+        }
+        return Angle.dm7(dm7Difference);
     }
 
     protected Rectangle2D asAwtRectangle()

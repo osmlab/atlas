@@ -3,8 +3,8 @@ package org.openstreetmap.atlas.geography.atlas.statistics;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasTest;
 import org.openstreetmap.atlas.geography.atlas.statistics.AtlasStatistics.StatisticKey;
 import org.openstreetmap.atlas.geography.atlas.statistics.AtlasStatistics.StatisticValue;
 
@@ -19,9 +19,19 @@ public class AtlasStatisticsTest
     public final AtlasStatisticsTestRule rule = new AtlasStatisticsTestRule();
 
     @Test
+    public void testCSVCompatability()
+    {
+        final StatisticKey key = new StatisticKey("", "last_edit_user_name", "kepta\"sds'sds");
+        // if there is a " or , or \n character within a field in a CSV, the CSV field is wrapped in
+        // double quotes and the interior double quote is escaped
+        final String correctlyFormattedCSVKey = ",last_edit_user_name,\"kepta\"\"sds'sds\"";
+        Assert.assertEquals(key.toString(), correctlyFormattedCSVKey);
+    }
+
+    @Test
     public void testCounting()
     {
-        final Atlas atlas = new PackedAtlasTest().getAtlas();
+        final Atlas atlas = this.rule.getPackedAtlas();
         final Counter counter = new Counter();
         final AtlasStatistics statistics = counter.processAtlas(atlas);
         Assert.assertEquals(7.245,
@@ -174,8 +184,7 @@ public class AtlasStatisticsTest
                 statistics.get(new StatisticKey("", "pool_surface", "true")).getCount(), 0.01);
 
         // Coastlines
-        // This needs to be addressed once the defaults allow for coastlines to be ingested
-        Assert.assertEquals(0.00,
+        Assert.assertEquals(4.803585,
                 statistics.get(new StatisticKey("", "coastline_distance", "true")).getCount(),
                 0.01);
 
@@ -215,13 +224,40 @@ public class AtlasStatisticsTest
     }
 
     @Test
-    public void testCSVCompatability()
+    public void testFormatting()
     {
-        final StatisticKey key = new StatisticKey("", "last_edit_user_name", "kepta\"sds'sds");
-        // if there is a " or , or \n character within a field in a CSV, the CSV field is wrapped in
-        // double quotes and the interior double quote is escaped
-        final String correctlyFormattedCSVKey = ",last_edit_user_name,\"kepta\"\"sds'sds\"";
-        Assert.assertEquals(key.toString(), correctlyFormattedCSVKey);
+        final Atlas atlas = this.rule.getWaterAtlas();
+        final AtlasStatistics statistics = new Counter().processAtlas(atlas);
+
+        Assert.assertEquals("6.00,34.00",
+                statistics.get(new StatisticKey("", "rivers", "true")).toString());
+        Assert.assertEquals("24.92,37.61",
+                statistics.get(new StatisticKey("", "rivers_distance", "true")).toString());
+
+    }
+
+    @Test(expected = CoreException.class)
+    public void testFormattingKeyTooHigh()
+    {
+        final double key = 1.0 / 0.0;
+        final double value = 100.0;
+        new StatisticValue(key, value);
+    }
+
+    @Test(expected = CoreException.class)
+    public void testFormattingKeyTooLow()
+    {
+        final double key = -1.0 / 0.0;
+        final double value = 100.0;
+        new StatisticValue(key, value);
+    }
+
+    @Test(expected = CoreException.class)
+    public void testFormattingValueTooHigh()
+    {
+        final double key = 100.0;
+        final double value = Double.MAX_VALUE / 1.5;
+        System.out.println(new StatisticValue(key, value));
     }
 
     @Test

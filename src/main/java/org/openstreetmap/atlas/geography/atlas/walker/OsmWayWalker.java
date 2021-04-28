@@ -18,15 +18,15 @@ import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.ReverseIde
 public class OsmWayWalker extends EdgeWalker
 {
     /**
-     * Filters in master Edges with the same OSM Identifier
+     * Filters in main Edges with the same OSM Identifier
      *
      * @author brian_l_davis
      */
-    private static class MasterEdgeByOsmIdentifierFilter implements Predicate<Edge>
+    private static class MainEdgeByOsmIdentifierFilter implements Predicate<Edge>
     {
         private final long osmIdentifier;
 
-        MasterEdgeByOsmIdentifierFilter(final long osmIdentifier)
+        MainEdgeByOsmIdentifierFilter(final long osmIdentifier)
         {
             this.osmIdentifier = osmIdentifier;
         }
@@ -34,7 +34,7 @@ public class OsmWayWalker extends EdgeWalker
         @Override
         public boolean test(final Edge edge)
         {
-            return edge.isMasterEdge() && edge.getOsmIdentifier() == this.osmIdentifier;
+            return edge.isMainEdge() && edge.getOsmIdentifier() == this.osmIdentifier;
         }
     }
 
@@ -59,7 +59,7 @@ public class OsmWayWalker extends EdgeWalker
     /**
      * Grows the {@link Edge} path by all edges connected to an {@link Edge}
      */
-    private static final Function<Edge, Stream<Edge>> CONNECTED_EDGES = (edge) -> edge
+    private static final Function<Edge, Stream<Edge>> CONNECTED_EDGES = edge -> edge
             .connectedEdges().stream();
 
     /**
@@ -70,8 +70,8 @@ public class OsmWayWalker extends EdgeWalker
      */
     public OsmWayWalker(final Edge edge)
     {
-        super(edge, new WaySectionComparator(),
-                new MasterEdgeByOsmIdentifierFilter(edge.getOsmIdentifier()), CONNECTED_EDGES);
+        super(edge.getMainEdge(), new WaySectionComparator(),
+                new MainEdgeByOsmIdentifierFilter(edge.getOsmIdentifier()), CONNECTED_EDGES);
     }
 
     /**
@@ -84,8 +84,8 @@ public class OsmWayWalker extends EdgeWalker
      */
     public OsmWayWalker(final Edge edge, final EdgeHandler edgeHandler)
     {
-        super(edge, new WaySectionComparator(),
-                new MasterEdgeByOsmIdentifierFilter(edge.getOsmIdentifier()), CONNECTED_EDGES,
+        super(edge.getMainEdge(), new WaySectionComparator(),
+                new MainEdgeByOsmIdentifierFilter(edge.getOsmIdentifier()), CONNECTED_EDGES,
                 edgeHandler);
     }
 }

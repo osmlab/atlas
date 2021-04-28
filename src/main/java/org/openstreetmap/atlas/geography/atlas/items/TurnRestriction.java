@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.atlas.items;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
+import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.tags.TurnRestrictionTag;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.StringList;
@@ -28,7 +30,7 @@ import org.slf4j.LoggerFactory;
  * @author matthieun
  * @author sbhalekar
  */
-public final class TurnRestriction implements Located, Serializable
+public final class TurnRestriction implements Located, Serializable, Taggable
 {
     /**
      * The type of a {@link TurnRestriction}
@@ -39,7 +41,7 @@ public final class TurnRestriction implements Located, Serializable
     {
         NO,
         ONLY,
-        OTHER;
+        OTHER
     }
 
     private static final Logger logger = LoggerFactory.getLogger(TurnRestriction.class);
@@ -50,8 +52,9 @@ public final class TurnRestriction implements Located, Serializable
     private final Relation relation;
     private Route route;
     private Route too;
-    private TurnRestrictionType type;
+    private final TurnRestrictionType type;
     private Route via;
+    private String invalidReason = null;
 
     /**
      * Create a {@link TurnRestriction} from a {@link Relation}
@@ -217,7 +220,7 @@ public final class TurnRestriction implements Located, Serializable
     /**
      * @param turnRestriction
      *            The {@link TurnRestriction} to use for comparison
-     * @param path
+     * @param route
      *            The target {@link Route} to examine
      * @return {@code true} if the given {@link Route} contains all parts - via/from/to edges
      */
@@ -234,7 +237,7 @@ public final class TurnRestriction implements Located, Serializable
                 && route.isSubRoute(turnRestriction.getFrom());
     }
 
-    private TurnRestriction(final Relation relation)
+    public TurnRestriction(final Relation relation)
     {
         Route fromMember = null;
         Route viaMember = null;
@@ -331,17 +334,20 @@ public final class TurnRestriction implements Located, Serializable
                 viaMember = Route.buildFullRouteIgnoringReverseEdges(viaEdges,
                         fromMember.end().end(), toMember.start().start());
             }
+            this.from = fromMember;
+            this.via = viaMember;
+            this.too = toMember;
+            // Make sure that the route can be built
+            route();
         }
         catch (final CoreException e)
         {
+            this.invalidReason = e.getMessage();
             logger.trace("Could not build TurnRestriction from relation {}", relation, e);
-            fromMember = null;
-            viaMember = null;
-            toMember = null;
+            this.from = null;
+            this.via = null;
+            this.too = null;
         }
-        this.from = fromMember;
-        this.via = viaMember;
-        this.too = toMember;
     }
 
     @SuppressWarnings("deprecation")
@@ -373,6 +379,23 @@ public final class TurnRestriction implements Located, Serializable
         return this.from;
     }
 
+    public String getInvalidReason()
+    {
+        return this.invalidReason;
+    }
+
+    @Override
+    public Optional<String> getTag(final String key)
+    {
+        return this.relation.getTag(key);
+    }
+
+    @Override
+    public Map<String, String> getTags()
+    {
+        return new HashMap<>(this.relation.getTags());
+    }
+
     /**
      * @return The "to" members of this {@link TurnRestriction}
      */
@@ -389,6 +412,11 @@ public final class TurnRestriction implements Located, Serializable
     public Optional<Route> getVia()
     {
         return Optional.ofNullable(this.via);
+    }
+
+    public boolean isValid()
+    {
+        return this.from != null && this.too != null && route() != null;
     }
 
     /**
@@ -417,7 +445,7 @@ public final class TurnRestriction implements Located, Serializable
             }
             catch (final Exception e)
             {
-                logger.trace("Can't build route from {}", this.relation, e);
+                throw new CoreException("Can't build route from {}", this.relation, e);
             }
         }
         return this.route;
@@ -481,10 +509,5 @@ public final class TurnRestriction implements Located, Serializable
         relation.members().stream().filter(member -> "from".equals(member.getRole()))
                 .forEach(member -> fromIdentifiers.add(member.getEntity().getIdentifier()));
         return fromIdentifiers.equals(toIdentifiers);
-    }
-
-    private boolean isValid()
-    {
-        return this.from != null && this.too != null && route() != null;
     }
 }

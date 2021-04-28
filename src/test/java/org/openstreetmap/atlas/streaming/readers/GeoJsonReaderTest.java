@@ -21,29 +21,15 @@ public class GeoJsonReaderTest
     public void testReadingMulti()
     {
         final GeoJsonReader reader = new GeoJsonReader(new InputStreamResource(
-                GeoJsonReaderTest.class.getResourceAsStream("geojson-sample.json")));
+                () -> GeoJsonReaderTest.class.getResourceAsStream("geojson-sample.json")));
         reader.forEachRemaining(located -> logger.info(located.toString()));
-    }
-
-    @Test
-    public void testReadingPolygon()
-    {
-        final GeoJsonReader reader = new GeoJsonReader(new InputStreamResource(
-                GeoJsonReaderTest.class.getResourceAsStream("geojson-polygon.json")));
-
-        Assert.assertTrue(reader.hasNext());
-        final PropertiesLocated located = reader.next();
-        final Polygon polygon = (Polygon) located.getItem();
-        Assert.assertEquals(4, polygon.segments().size());
-        Assert.assertTrue(polygon.finalHeading().isPresent());
-        Assert.assertTrue(polygon.isApproximatelyNSided(4, Angle.NONE));
     }
 
     @Test
     public void testReadingMultiPolygon()
     {
         final GeoJsonReader reader = new GeoJsonReader(new InputStreamResource(
-                GeoJsonReaderTest.class.getResourceAsStream("geojson-multipolygon.json")));
+                () -> GeoJsonReaderTest.class.getResourceAsStream("geojson-multipolygon.json")));
 
         Assert.assertTrue(reader.hasNext());
         final PropertiesLocated located = reader.next();
@@ -63,7 +49,21 @@ public class GeoJsonReaderTest
     public void testReadingPoint()
     {
         final GeoJsonReader reader = new GeoJsonReader(new InputStreamResource(
-                GeoJsonReaderTest.class.getResourceAsStream("geojson-point.json")));
+                () -> GeoJsonReaderTest.class.getResourceAsStream("geojson-point.json")));
         reader.forEachRemaining(located -> logger.info(located.toString()));
+    }
+
+    @Test
+    public void testReadingPolygon()
+    {
+        final GeoJsonReader reader = new GeoJsonReader(new InputStreamResource(
+                () -> GeoJsonReaderTest.class.getResourceAsStream("geojson-polygon.json")));
+
+        Assert.assertTrue(reader.hasNext());
+        final PropertiesLocated located = reader.next();
+        final Polygon polygon = (Polygon) located.getItem();
+        Assert.assertEquals(4, polygon.segments().size());
+        Assert.assertTrue(polygon.finalHeading().isPresent());
+        Assert.assertTrue(polygon.isApproximatelyNSided(4, Angle.NONE));
     }
 }

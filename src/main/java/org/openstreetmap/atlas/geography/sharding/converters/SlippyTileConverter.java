@@ -12,26 +12,27 @@ import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
  */
 public class SlippyTileConverter implements TwoWayConverter<SlippyTile, String>
 {
-    private static final String SEPARATOR = "-";
     private static final int TILE_DIMENSIONS = 3;
 
     @Override
     public SlippyTile backwardConvert(final String slippyTileParameters)
     {
-        final StringList splits = StringList.split(slippyTileParameters, SEPARATOR);
+        final StringList splits = StringList.split(slippyTileParameters,
+                SlippyTile.COORDINATE_SEPARATOR);
         if (splits.size() != TILE_DIMENSIONS)
         {
             throw new CoreException("Wrong format of input string {}", slippyTileParameters);
         }
-        final int zoom = Integer.valueOf(splits.get(0));
-        final int xAxis = Integer.valueOf(splits.get(1));
-        final int yAxis = Integer.valueOf(splits.get(2));
+        final int zoom = Integer.parseInt(splits.get(0));
+        final int xAxis = Integer.parseInt(splits.get(1));
+        final int yAxis = Integer.parseInt(splits.get(2));
         return new SlippyTile(xAxis, yAxis, zoom);
     }
 
     @Override
     public String convert(final SlippyTile slippyTile)
     {
-        return slippyTile.getZoom() + SEPARATOR + slippyTile.getX() + SEPARATOR + slippyTile.getY();
+        return slippyTile.getZoom() + SlippyTile.COORDINATE_SEPARATOR + slippyTile.getX()
+                + SlippyTile.COORDINATE_SEPARATOR + slippyTile.getY();
     }
 }

@@ -1,0 +1,197 @@
+.\"     Title: atlas-config
+.\"    Author: Lucas Cram
+.\"    Source: atlas-shell-tools 1.0.0
+.\"  Language: English
+.\"
+.TH "ATLAS-CONFIG" "1" "28 September 2020" "atlas\-shell\-tools 1\&.0\&.0" "Atlas Shell Tools Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+
+.SH "NAME"
+.sp
+atlas\-config \-\- Configure the Atlas Shell Tools installation
+
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIatlas\-config\fR [\-\-no-pager] \-\-help[=<\fIcommand\fR>]
+\fIatlas\-config\fR \-\-version
+\fIatlas\-config\fR [\-\-no-pager] [\-\-quiet] <\fIcommand\fR> [arg...]
+.fi
+
+.SH "DESCRIPTION"
+.sp
+\fBatlas\-config\fR exposes an interface for configuring the Atlas Shell Tools
+installation. It provides a way to install new modules, change the currently
+activated module, reset the installation, and more. \fBatlas\-config\fR operates
+using a subcommand interface, where each subcommand performs a different
+configuration action. See the \fBATLAS\-CONFIG COMMANDS\fR section for more
+information.
+.sp
+For running actual Atlas Shell Tools commands, see \fBatlas\fR(1).
+.sp
+For a glossary of Atlas Shell Tools terms, see \fBatlas\-glossary\fR(7).
+
+.SH "OPTIONS"
+
+.PP
+<\fIcommand\fR>
+.RS 4
+This indicates a command. See the \fBATLAS\-CONFIG COMMANDS\fR section for a list of available
+commands.
+.RE
+
+.PP
+\fB\-\-help\fR[=<\fIcommand\fR>]\fR
+.RS 4
+Show the help menu for a given command. If no command is given, show
+a general help menu and then exit.
+.RE
+
+.PP
+\fB\-\-no\-pager\fR
+.RS 4
+Disable pagination for all documentation.
+.RE
+
+.PP
+\fB\-\-quiet\fR, \fB\-q\fR
+.RS 4
+Suppress non-essential output.
+.RE
+
+.PP
+\fB\-\-version\fR, \fB-V\fR
+.RS 4
+Show the \fBatlas\-config\fR version info and then exit.
+.RE
+.sp
+
+.SH "ATLAS-CONFIG COMMANDS"
+.sp
+\fBatlas-config\fR uses a set of subcommands to present a high\-level interface
+for installation configuration.
+
+\fBatlas\-config\-activate\fR(1)
+.RS 4
+Activate an installed module.
+.RE
+
+\fBatlas\-config\-deactivate\fR(1)
+.RS 4
+Deactivate an installed module.
+.RE
+
+\fBatlas\-config\-install\fR(1)
+.RS 4
+Install a new module.
+.RE
+
+\fBatlas\-config\-list\fR(1)
+.RS 4
+List all installed modules and module statuses.
+.RE
+
+\fBatlas\-config\-log\fR(1)
+.RS 4
+Check or set log parameters.
+.RE
+
+\fBatlas\-config\-preset\fR(1)
+.RS 4
+Create and manage Atlas Shell Tools command presets.
+.RE
+
+\fBatlas\-config\-repo\fR(1)
+.RS 4
+Register and manage Atlas Shell Tools repositories.
+.RE
+
+\fBatlas\-config\-reset\fR(1)
+.RS 4
+Reset the installation.
+.RE
+
+\fBatlas\-config\-sync\fR(1)
+.RS 4
+Refresh the installation based on the active module.
+.RE
+
+\fBatlas\-config\-uninstall\fR(1)
+.RS 4
+Uninstall a module.
+.RE
+
+\fBatlas\-config\-update\fR(1)
+.RS 4
+Update the Atlas Shell Tools core toolkit.
+.RE
+
+.SH "TERMINAL AND ENVIRONMENT"
+.sp
+\fBatlas\-config\fR displays its various help and manual pages using \fBman\fR,
+which is paged by default. To disable paged output for all documentation, try
+the \fB\-\-no\-pager\fR option.
+.sp
+\fBatlas-config\fR uses formatted output when appropriate. To change this behavior,
+\fBatlas-config\fR checks for existence of the following environment variables:
+.sp
+.RS 4
+\fBNO_COLOR\fR \-
+Disable all special formatted output. Other popular CLI tools also
+respect this variable. See <https://no\-color.org>.
+.sp
+\fBATLAS_SHELL_TOOLS_NO_COLOR\fR \-
+Disable special formatted output for \fBatlas\fR and \fBatlas-config\fR only.
+.sp
+\fBATLAS_SHELL_TOOLS_USE_COLOR\fR \-
+Enable special formatted output. Overrides the setting of \fBNO_COLOR\fR and \fBATLAS_SHELL_TOOLS_NO_COLOR\fR.
+.sp
+.RE
+\fBatlas-config\fR stores program data in compliance with the XDG Base Directory
+specification, i.e. at $HOME/.local/share/atlas\-shell\-tools. It also respects the
+\fBXDG_DATA_HOME\fR environment variable \- if set, \fBatlas-config\fR will store program
+data at the base path specified by that variable. See \fBatlas\-plumbing\fR(5) for
+more information.
+.sp
+For more details about all the environment variables used by \fBatlas\-shell\-tools\fR(7),
+see the \fBatlas\-environment\fR(7) manpage.
+
+.SH "SEE ALSO"
+.sp
+\fBatlas\fR(1), \fBatlas\-plumbing\fR(5), \fBatlas\-presets\fR(7), \fBatlas\-environment\fR(7)
+
+.SH "AUTHOR"
+.sp
+This program was written by Lucas Cram <lucaspcram@gmail.com>.
+Please report any bugs you find.
+
+.SH "BUGS"
+.sp
+If you run the command:
+.sp
+.RS 4
+$ atlas\-config install <active\-module>
+.RE
+.sp
+where <active\-module> is the path to the currently active module JARfile, this
+will start the installation process but then delete the JARfile.
+.sp
+Please report any bugs you find to the \fBAUTHOR\fR.
+
+.SH "ATLAS SHELL TOOLS"
+.sp
+Part of the \fBatlas\-shell\-tools\fR(7) suite

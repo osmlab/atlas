@@ -3,14 +3,13 @@ package org.openstreetmap.atlas.geography.converters.jts;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.MultiLineString;
 import org.openstreetmap.atlas.geography.MultiPolyLine;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.conversion.TwoWayConverter;
-
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.MultiLineString;
 
 /**
  * Convert a {@link MultiPolyLine} to a JTS {@link MultiLineString}.
@@ -30,8 +29,13 @@ public class JtsMultiPolyLineConverter implements TwoWayConverter<MultiPolyLine,
         for (int i = 0; i < multiLineString.getNumGeometries(); i++)
         {
             final LineString lineString = (LineString) multiLineString.getGeometryN(i);
-            polyLineList.add(new PolyLine(COORDINATE_ARRAY_CONVERTER
-                    .backwardConvert(lineString.getCoordinateSequence())));
+            final PolyLine polyLine = new PolyLine(
+                    COORDINATE_ARRAY_CONVERTER.backwardConvert(lineString.getCoordinateSequence()));
+            // No duplicated polyline is allowed to add.
+            if (!polyLineList.contains(polyLine))
+            {
+                polyLineList.add(polyLine);
+            }
         }
         return new MultiPolyLine(polyLineList);
     }

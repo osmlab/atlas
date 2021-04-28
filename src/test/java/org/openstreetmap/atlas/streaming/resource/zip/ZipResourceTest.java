@@ -3,7 +3,10 @@ package org.openstreetmap.atlas.streaming.resource.zip;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.nio.file.FileSystem;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -20,6 +23,9 @@ import org.openstreetmap.atlas.streaming.resource.StringResource;
 import org.openstreetmap.atlas.utilities.random.RandomTextGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
 
 /**
  * @author matthieun
@@ -52,12 +58,11 @@ public class ZipResourceTest
         }
     }
 
-    private static final Logger logger = LoggerFactory.getLogger(ZipResourceTest.class);
-
     public static final String NAME_1 = "entry1.txt";
     public static final String CONTENTS_1 = "I am entry 1.";
     public static final String NAME_2 = "entry2.txt";
     public static final String CONTENTS_2 = "I am entry 2.";
+    private static final Logger logger = LoggerFactory.getLogger(ZipResourceTest.class);
 
     public static void main(final String[] args)
     {
@@ -154,6 +159,42 @@ public class ZipResourceTest
     }
 
     @Test
+    public void testWithJimfs()
+    {
+        try (FileSystem filesystem = Jimfs.newFileSystem(Configuration.osX()))
+        {
+            setupFilesystem1(filesystem);
+            final ZipFileWritableResource zipFile = new ZipFileWritableResource(
+                    new File("/Users/foo/file.zip", filesystem));
+            final Resource entry2 = zipFile.entryForName(NAME_2);
+            final String name2 = entry2.getName();
+            final String contents2 = entry2.all();
+            logger.info(name2 + " -> " + contents2);
+            Assert.assertEquals(NAME_2, name2);
+            Assert.assertEquals(CONTENTS_2, contents2);
+            // check contents again to test Resource re-read
+            final String contents2Again = entry2.all();
+            Assert.assertEquals(CONTENTS_2, contents2Again);
+
+            final ZipFileWritableResource zipFile2 = new ZipFileWritableResource(
+                    new File("/Users/foo/file.zip", filesystem));
+            final List<Resource> entries = new ArrayList<Resource>();
+            zipFile2.entries().forEach(entries::add);
+            Assert.assertEquals(NAME_1, entries.get(0).getName());
+            Assert.assertEquals(CONTENTS_1, entries.get(0).all());
+            Assert.assertEquals(NAME_2, entries.get(1).getName());
+            Assert.assertEquals(CONTENTS_2, entries.get(1).all());
+            // check contents again to test Resource re-read
+            Assert.assertEquals(CONTENTS_1, entries.get(0).all());
+            Assert.assertEquals(CONTENTS_2, entries.get(1).all());
+        }
+        catch (final IOException exception)
+        {
+            throw new CoreException("FileSystem operation failed", exception);
+        }
+    }
+
+    @Test
     public void testZipFile()
     {
         final File source = File.temporary();
@@ -223,8 +264,8 @@ public class ZipResourceTest
     @Test
     public void testZipResource()
     {
-        final ZipResource resource = new ZipResource(
-                new InputStreamResource(ZipResourceTest.class.getResourceAsStream("test.zip")));
+        final ZipResource resource = new ZipResource(new InputStreamResource(
+                () -> ZipResourceTest.class.getResourceAsStream("test.zip")));
         int counter = 0;
         for (final Resource entry : resource.entries())
         {
@@ -248,8 +289,8 @@ public class ZipResourceTest
     @Test
     public void testZipResourceStopBefore()
     {
-        final ZipResource resource = new ZipResource(
-                new InputStreamResource(ZipResourceTest.class.getResourceAsStream("test.zip")));
+        final ZipResource resource = new ZipResource(new InputStreamResource(
+                () -> ZipResourceTest.class.getResourceAsStream("test.zip")));
         final Iterator<Resource> entryIterator = resource.entries().iterator();
         entryIterator.next();
         final String failMessage = "Should not have been able to print the contents of "
@@ -294,5 +335,13 @@ public class ZipResourceTest
             }
             counter++;
         }
+    }
+
+    private void setupFilesystem1(final FileSystem filesystem)
+    {
+        final ZipFileWritableResource zipFile = new ZipFileWritableResource(
+                new File("/Users/foo/file.zip", filesystem));
+        zipFile.writeAndClose(new StringResource(CONTENTS_1).withName(NAME_1),
+                new StringResource(CONTENTS_2).withName(NAME_2));
     }
 }

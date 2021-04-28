@@ -1,7 +1,6 @@
 {
     "filters": [
-    	"boundary->!|highway->*|railway->*|waterway->*",
-    	"natural->!coastline",
-    	"hires->!yes"
+        "boundary->!|boundary->marker,national_park,protected_area|highway->*|railway->*|waterway->*",
+        "hires->!yes"
     ]
 }

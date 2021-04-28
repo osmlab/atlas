@@ -1,0 +1,12 @@
+See the dynamic shard (defined in tree.txt) that covers POINT (10 30):
+#$ wkt-shard --sharding=dynamic@/Users/example/path/to/tree.txt "POINT (10 30)"
+See all dynamic shards (defined in tree.txt) that intersect some given lines:
+#$ wkt-shard --sharding=dynamic@/Users/example/path/to/tree.txt "LINESTRING (30 10, 10 30, 40 40)" "LINESTRING (40 15, 15 30, 50 50)"
+See all slippy tile shards that intersect a point, using a slippy tile sharding at zoom 10:
+#$ wkt-shard --sharding=slippy@10 "POINT (10 30)"
+See all precision 5 geohash tile shards that intersect some WKTs, taken from a file:
+#$ wkt-shard --sharding=geohash@5 --input /Users/example/Desktop/wkt-input.txt
+See countries that intersect some given shards and WKTs:
+#$ wkt-shard --country-boundary /Users/example/world_boundaries.txt 1-2-3 7zzz 'POINT (10 30)'
+See which dynamic shards from tree 'tree.txt' intersect with geohash tile 7zzz
+#$ wkt-shard --sharding dynamic@/Users/example/tree.txt 7zzz

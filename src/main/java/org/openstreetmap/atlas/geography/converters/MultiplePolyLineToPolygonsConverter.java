@@ -5,10 +5,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.operation.polygonize.Polygonizer;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.collections.StringList;
@@ -31,25 +35,27 @@ public class MultiplePolyLineToPolygonsConverter
     {
         private static final long serialVersionUID = -278028096455310936L;
 
+        public static final String OPEN_LOCATIONS_ARE = " Open Locations are: ";
+
         private final List<Location> openLocations;
 
         public OpenPolygonException(final String message, final List<Location> openLocations)
         {
-            super(message + " Open Locations are: " + openLocations.toString());
+            super(message + OPEN_LOCATIONS_ARE + openLocations.toString());
             this.openLocations = openLocations;
         }
 
         public OpenPolygonException(final String message, final List<Location> openLocations,
                 final Object... arguments)
         {
-            super(message + " Open Locations are: " + openLocations.toString(), arguments);
+            super(message + OPEN_LOCATIONS_ARE + openLocations.toString(), arguments);
             this.openLocations = openLocations;
         }
 
         public OpenPolygonException(final String message, final List<Location> openLocations,
                 final Throwable cause, final Object... arguments)
         {
-            super(message + " Open Locations are: " + openLocations.toString(), cause, arguments);
+            super(message + OPEN_LOCATIONS_ARE + openLocations.toString(), cause, arguments);
             this.openLocations = openLocations;
         }
 
@@ -90,8 +96,8 @@ public class MultiplePolyLineToPolygonsConverter
         @Override
         public String toString()
         {
-            return this.connected ? "Connected" + (this.reversed ? " and reversed" : "")
-                    : "Not connected";
+            final String isReversed = this.reversed ? " and reversed" : "";
+            return this.connected ? "Connected" + isReversed : "Not connected";
         }
     }
 
@@ -341,8 +347,96 @@ public class MultiplePolyLineToPolygonsConverter
         }
     }
 
+    private static final JtsPolyLineConverter JTS_POLY_LINE_CONVERTER = new JtsPolyLineConverter();
+    private static final JtsPolygonConverter JTS_POLYGON_CONVERTER = new JtsPolygonConverter();
+
+    private final boolean usePolygonizer;
+
+    public MultiplePolyLineToPolygonsConverter()
+    {
+        this.usePolygonizer = false;
+    }
+
+    public MultiplePolyLineToPolygonsConverter(final boolean usePolygonizer)
+    {
+        this.usePolygonizer = usePolygonizer;
+    }
+
     @Override
     public Iterable<Polygon> convert(final Iterable<PolyLine> candidates)
+    {
+        if (this.usePolygonizer)
+        {
+            return convertAttemptPolygonizer(candidates);
+        }
+        else
+        {
+            return convertLegacy(candidates);
+        }
+    }
+
+    public Iterable<Polygon> convertAttemptPolygonizer(final Iterable<PolyLine> candidates)
+    {
+        final Polygonizer polygonizer = new Polygonizer();
+        candidates.forEach(polyLine -> polygonizer.add(JTS_POLY_LINE_CONVERTER.convert(polyLine)));
+
+        // Check for missing parts
+        final List<LineString> errors = new ArrayList<>();
+        Exception potentialException = null;
+        try
+        {
+            errors.addAll(polygonizer.getDangles());
+            errors.addAll(polygonizer.getCutEdges());
+            errors.addAll(polygonizer.getInvalidRingLines());
+        }
+        catch (final Exception e)
+        {
+            potentialException = e;
+        }
+        if (errors.isEmpty() && potentialException == null)
+        {
+            // Get results
+            final List<org.locationtech.jts.geom.Polygon> result = (List<org.locationtech.jts.geom.Polygon>) polygonizer
+                    .getPolygons();
+            return result.stream().map(polygon ->
+            {
+                polygon.normalize();
+                return JTS_POLYGON_CONVERTER.backwardConvert(polygon);
+            }).collect(Collectors.toList());
+        }
+        else
+        {
+            final List<Location> locations = errors.stream()
+                    .map(JTS_POLY_LINE_CONVERTER::backwardConvert)
+                    .flatMap(dangle -> Iterables
+                            .asList(Iterables.from(dangle.first(), dangle.last())).stream())
+                    .collect(Collectors.toList());
+            final OpenPolygonException jtsException;
+            final String errorMessage = "Unable to close all the polygons!";
+            if (potentialException != null)
+            {
+                jtsException = new OpenPolygonException(errorMessage, locations,
+                        potentialException);
+            }
+            else
+            {
+                jtsException = new OpenPolygonException(errorMessage, locations);
+            }
+            // Try the legacy convert
+            try
+            {
+                return convertLegacy(candidates);
+            }
+            catch (final Exception e)
+            {
+                throw new OpenPolygonException(
+                        "Failed second legacy attempt. JTS Exception was: \"{}\"",
+                        jtsException.getOpenLocations(), jtsException.getMessage(), e);
+            }
+        }
+    }
+
+    public Iterable<Polygon> convertLegacy(final Iterable<PolyLine> candidates) // NOSONAR
     {
         // The complete polygons
         final List<PossiblePolygon> completes = new ArrayList<>();

@@ -1,0 +1,61 @@
+.\"     Title: atlas-config-sync
+.\"    Author: Lucas Cram
+.\"    Source: atlas-shell-tools 1.0.0
+.\"  Language: English
+.\"
+.TH "ATLAS-CONFIG-SYNC" "1" "28 September 2020" "atlas\-shell\-tools 1\&.0\&.0" "Atlas Shell Tools Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+
+.SH "NAME"
+.sp
+atlas\-config\-sync \-\- Refresh the Atlas Shell Tools installation based on the active module
+
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIatlas\-config\fR \fIsync\fR \-\-help
+\fIatlas\-config\fR \fIsync\fR
+.fi
+
+.SH "DESCRIPTION"
+.sp
+Refresh the command index for the current active module. Additionally, this will
+perform some runtime checks to validate that all commands in the active module
+registered their documentation and options/arguments correctly.
+
+This command is useful when a module JAR is installed using a symlink, and has
+been updated at the other end of the link. If you made changes to a command
+name or description, running this command will reflect those changes in
+\fBatlas \-\-list\fR. If you altered some option/argument or documentation
+registration, running \fBsync\fR will perform a quick validation \- preventing
+you from having to test each altered command individually.
+
+.SH "OPTIONS"
+.sp
+.PP
+\fB\-\-help\fR
+.RS 4
+Show this help menu.
+.RE
+
+.SH "SEE ALSO"
+.sp
+\fBatlas\-config\fR(1)
+
+.SH "ATLAS SHELL TOOLS"
+.sp
+Part of the \fBatlas\-shell\-tools\fR(7) suite

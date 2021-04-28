@@ -1,0 +1,12 @@
+Given a shard (or multiple shards) in any format, output the WKT of the shard's boundary. This
+boundary will always be a rectangle. The shards should be specified using their getName() string
+format, e.g. the SlippyTile shard for [Zoom: 9, X: 168, Y: 233] would be specified as '9-168-233'.
+
+This command also supports a reverse match for SlippyTile and GeoHashTile shards using the
+'--reverse' option. The reverse match expects WKT polygon(s) as input, and will spit out any shards
+whose bounds exactly match a given WKT. If no matches are found, the command will print nothing and
+exit.
+
+Use the '--country-boundary' option to instead show the WKT boundary for given country code(s). The
+code(s) should be provided in ISO3 format. If you are unsure of the ISO code for your desired
+country, try using the 'iso-country-code' command.

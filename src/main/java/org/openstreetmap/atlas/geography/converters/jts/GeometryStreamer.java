@@ -1,12 +1,9 @@
 package org.openstreetmap.atlas.geography.converters.jts;
 
-import java.util.Iterator;
-
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryCollection;
+import org.locationtech.jts.geom.Polygon;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
-
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryCollection;
-import com.vividsolutions.jts.geom.Polygon;
 
 /**
  * Transform a JTS {@link GeometryCollection} into a real {@link Iterable}.
@@ -23,22 +20,7 @@ public final class GeometryStreamer
     public static Iterable<Geometry> stream(final GeometryCollection collection)
     {
         final int size = collection.getNumGeometries();
-        return () -> new Iterator<Geometry>()
-        {
-            private int index = 0;
-
-            @Override
-            public boolean hasNext()
-            {
-                return this.index < size;
-            }
-
-            @Override
-            public Geometry next()
-            {
-                return collection.getGeometryN(this.index++);
-            }
-        };
+        return Iterables.indexBasedIterable(size, index -> collection.getGeometryN((int) index));
     }
 
     /**

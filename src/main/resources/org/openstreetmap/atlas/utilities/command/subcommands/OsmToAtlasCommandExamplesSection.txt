@@ -1,0 +1,6 @@
+Convert foo.osm to foo.atlas:
+#osm2atlas foo.osm foo.atlas
+Convert the JOSM formatted foo.josm.osm to foo.atlas, and apply a DMA country code:
+#osm2atlas --josm foo.josm.osm foo.atlas --country DMA
+Convert foo.osm on your desktop to foo.atlas and save it in your home folder:
+#osm2atlas ~/Desktop/foo.osm ~/foo.atlas

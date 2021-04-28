@@ -4,6 +4,7 @@ functions for manipulating the geometry. These primitives are built using
 lat-long locations on the Earth.
 """
 
+import math
 import shapely.geometry
 
 # --- Location definition constants ---
@@ -67,9 +68,9 @@ class Location(Boundable):
         Location with degrees, use the geometry.location_with_degrees() module
         function.
         """
-        if not isinstance(latitude, (int, long)):
+        if not isinstance(latitude, int):
             raise TypeError('latitude must be an integer')
-        if not isinstance(longitude, (int, long)):
+        if not isinstance(longitude, int):
             raise TypeError('longitude must be an integer')
 
         if latitude > _LATITUDE_MAX_DM7 or latitude < _LATITUDE_MIN_DM7:
@@ -94,6 +95,20 @@ class Location(Boundable):
         latitude and equal longitude.
         """
         return self.latitude == other.latitude and self.longitude == other.longitude
+
+    def __ne__(self, other):
+        """
+        Check if two Locations are NOT equal.
+        """
+        return not (self.latitude == other.latitude and self.longitude == other.longitude)
+
+    def __hash__(self):
+        """
+        Compute a hashcode for this Location.
+        """
+        hash_value = self.latitude * 31
+        hash_value = hash_value * 31 + self.longitude
+        return hash_value
 
     def get_as_packed_int(self):
         """
@@ -182,6 +197,26 @@ class PolyLine(Boundable):
                 return False
         return True
 
+    def __ne__(self, other):
+        """
+        Check if this PolyLine is NOT the same as another PolyLine.
+        """
+        if len(self.location_list) != len(other.location_list):
+            return True
+        for point, other_point in zip(self.locations(), other.locations()):
+            if not point == other_point:
+                return True
+        return False
+
+    def __hash__(self):
+        """
+        Compute a hashcode for this PolyLine.
+        """
+        hash_value = 31
+        for point in self.locations():
+            hash_value = hash_value * 31 + point.__hash__()
+        return hash_value
+
     def compress(self):
         """
         Transform this PolyLine into its compressed representation. The
@@ -198,7 +233,6 @@ class PolyLine(Boundable):
         for point in self.locations():
             latitude = int(round(dm7_as_degree(point.latitude) * precision))
             longitude = int(round(dm7_as_degree(point.longitude) * precision))
-
             encoded += _encode_number(latitude - old_latitude)
             delta_longitude = longitude - old_longitude
             if delta_longitude > _MAXIMUM_DELTA_LONGITUDE:
@@ -211,6 +245,9 @@ class PolyLine(Boundable):
             old_longitude = longitude
             last = point
 
+        if type(encoded) is str:
+            encoded = bytes(encoded, 'utf-8')
+
         return encoded
 
     def bounds(self):
@@ -218,6 +255,14 @@ class PolyLine(Boundable):
         Get the bounding Rectangle of this PolyLine.
         """
         return bounds_locations(self.locations())
+
+    def intersects_polyline(self, polyline):
+        """
+        Check if this PolyLine intersects some PolyLine.
+        """
+        shapely_polyline = polyline_to_shapely_linestring(polyline)
+        shapely_polyline_self = polyline_to_shapely_linestring(self)
+        return shapely_polyline_self.intersects(shapely_polyline)
 
     def intersects(self, polygon):
         """
@@ -230,6 +275,20 @@ class PolyLine(Boundable):
         Get the underlying Location list for this PolyLine.
         """
         return self.location_list
+
+    def length(self):
+        """
+        Get the length of this PolyLine along the surface of the Earth, in meters.
+        """
+        prev_location = None
+        sum_distance = 0
+
+        for cur_location in self.locations():
+            if prev_location is not None:
+                sum_distance += location_haversine_distance(cur_location, prev_location)
+            prev_location = cur_location
+
+        return sum_distance
 
     def locations(self):
         """
@@ -458,6 +517,40 @@ def bounds_atlasentities(entities):
     return Rectangle(Location(lower_lat, left_lon), Location(upper_lat, right_lon))
 
 
+def location_haversine_distance(location1, location2):
+    """
+    Given two locations, compute the Haversine distance between them. This is
+    the great circle distance between the points on the sphere of the Earth.
+    See https://en.wikipedia.org/wiki/Haversine_formula.
+    """
+    mean_radius = 6371000  # meters
+    lat1 = convert_to_radians(location1.get_latitude_deg())
+    lat2 = convert_to_radians(location2.get_latitude_deg())
+    delta_lat = lat2 - lat1
+    delta_lon = convert_to_radians(location2.get_longitude_deg()) - convert_to_radians(
+        location1.get_longitude_deg())
+
+    hav = (math.sin(delta_lat / 2)**
+           2) + math.cos(lat1) * math.cos(lat2) * (math.sin(delta_lon / 2)**2)
+    constant = 2 * math.atan2(math.sqrt(hav), math.sqrt(1 - hav))
+
+    return constant * mean_radius
+
+
+def convert_to_radians(degree):
+    """
+    Convert an angle in degrees to the equivalent angle in radians.
+    """
+    return degree * (math.pi / 180)
+
+
+def convert_to_degrees(radian):
+    """
+    Convert an angle in radians to the equivalent angle in degrees.
+    """
+    return radian * (180 / math.pi)
+
+
 def boundable_to_shapely_box(boundable):
     """
     Convert a pyatlas Boundable type to its Shapely Polygon representation.
@@ -543,9 +636,9 @@ def _encode_number(number):
     encoded = ""
     while number >= _SIXTH_BIT_MASK:
         code_point = (_SIXTH_BIT_MASK | number & _FIVE_BIT_MASK) + _ENCODING_OFFSET_MINUS_ONE
-        encoded += unichr(code_point)
+        encoded += chr(code_point)
         number = _urshift32(number, _BIT_SHIFT)
-    encoded += unichr(number + _ENCODING_OFFSET_MINUS_ONE)
+    encoded += chr(number + _ENCODING_OFFSET_MINUS_ONE)
     return encoded
 
 
@@ -564,7 +657,7 @@ def _decompress_bytestring(bytestring):
         shift = 0
         result = 0
         while True:
-            byte_encoded = ord(bytestring[index]) - _ENCODING_OFFSET_MINUS_ONE
+            byte_encoded = bytestring[index] - _ENCODING_OFFSET_MINUS_ONE
             result |= (byte_encoded & _FIVE_BIT_MASK) << shift
             shift += _BIT_SHIFT
             index += 1
@@ -580,7 +673,7 @@ def _decompress_bytestring(bytestring):
         shift = 0
         result = 0
         while True:
-            byte_encoded = ord(bytestring[index]) - _ENCODING_OFFSET_MINUS_ONE
+            byte_encoded = bytestring[index] - _ENCODING_OFFSET_MINUS_ONE
             result |= (byte_encoded & _FIVE_BIT_MASK) << shift
             shift += _BIT_SHIFT
             index += 1

@@ -18,23 +18,23 @@ def main(argv):
 
             if mode == "CHECK":
                 if detect_formatting_violation(filepath):
-                    print str(argv[0]) + ": ERROR: formatting violation detected in " + str(file_to_style)
+                    print(str(argv[0]) + ": ERROR: formatting violation detected in " + str(file_to_style))
                     violation_detected = True
 
             elif mode == "APPLY":
                 if detect_formatting_violation(filepath):
-                    print str(file_to_style) + ": found issue, reformatting..."
+                    print(str(file_to_style) + ": found issue, reformatting...")
                     FormatFile(filepath, in_place=True, style_config='style.yapf')
                     violation_detected = True
 
             else:
-                print "ERROR: invalid mode " + str(mode)
+                print("ERROR: invalid mode " + str(mode))
                 exit(1)
 
     if mode == 'CHECK' and violation_detected:
         exit(1)
     elif not violation_detected:
-        print str(argv[0]) + " INFO: all formatting for targets in " + str(argv[1]) + " OK!"
+        print(str(argv[0]) + " INFO: all formatting for targets in " + str(argv[1]) + " OK!")
 
 def detect_formatting_violation(filepath):
     original = read_file_contents(filepath)
@@ -52,6 +52,6 @@ def read_file_contents(filepath):
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print "usage: " + str(sys.argv[0]) + " <srcpath> <mode>"
+        print("usage: " + str(sys.argv[0]) + " <srcpath> <mode>")
         exit(1)
     main(sys.argv)

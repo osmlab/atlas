@@ -1,7 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.routing;
 
 import java.util.Iterator;
-import java.util.SortedSet;
+import java.util.List;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
@@ -75,8 +75,8 @@ public abstract class AbstractRouter implements Router
             throw new CoreException(
                     "Cannot compute route on null arguments: start = {} and end = {}", start, end);
         }
-        final SortedSet<SnappedEdge> startEdges = this.atlas.snaps(start, this.threshold);
-        final SortedSet<SnappedEdge> endEdges = this.atlas.snaps(end, this.threshold);
+        final List<SnappedEdge> startEdges = this.atlas.snaps(start, this.threshold);
+        final List<SnappedEdge> endEdges = this.atlas.snaps(end, this.threshold);
         if (startEdges.isEmpty())
         {
             // logger.warn("Could not find a snap for start location {}", start);

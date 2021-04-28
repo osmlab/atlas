@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.multi;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -8,6 +9,8 @@ import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+
+import com.google.common.collect.Sets;
 
 /**
  * {@link Edge} made from a {@link MultiAtlas}.
@@ -21,7 +24,7 @@ public class MultiEdge extends Edge
     // Not index!
     private final long identifier;
 
-    private Edge subEdge;
+    private SubEdgeList subEdgeList;
 
     protected MultiEdge(final MultiAtlas atlas, final long identifier)
     {
@@ -32,14 +35,14 @@ public class MultiEdge extends Edge
     @Override
     public PolyLine asPolyLine()
     {
-        return this.getSubEdge().asPolyLine();
+        return this.getRepresentativeSubEdge().asPolyLine();
     }
 
     @Override
     public Node end()
     {
         return new MultiNode(multiAtlas(),
-                masteriseNodeIdentifier(this.getSubEdge().end().getIdentifier()));
+                getMainNodeIdentifier(this.getRepresentativeSubEdge().end().getIdentifier()));
     }
 
     @Override
@@ -51,50 +54,63 @@ public class MultiEdge extends Edge
     @Override
     public Map<String, String> getTags()
     {
-        return this.getSubEdge().getTags();
+        return this.getRepresentativeSubEdge().getTags();
     }
 
     @Override
     public Set<Relation> relations()
     {
-        return multiAtlas().multifyRelations(getSubEdge());
+        Set<Relation> unionOfAllParentRelations = new HashSet<>();
+        for (final Edge subEdge : getSubEdges().getSubEdges())
+        {
+            final Set<Relation> currentSubEdgeParentRelations = multiAtlas()
+                    .multifyRelations(subEdge);
+            unionOfAllParentRelations = Sets.union(unionOfAllParentRelations,
+                    currentSubEdgeParentRelations);
+        }
+        return unionOfAllParentRelations;
     }
 
     @Override
     public Node start()
     {
         return new MultiNode(multiAtlas(),
-                masteriseNodeIdentifier(this.getSubEdge().start().getIdentifier()));
-    }
-
-    private Edge getSubEdge()
-    {
-        if (this.subEdge == null)
-        {
-            this.subEdge = this.multiAtlas().subEdge(this.identifier);
-        }
-        return this.subEdge;
+                getMainNodeIdentifier(this.getRepresentativeSubEdge().start().getIdentifier()));
     }
 
     /**
-     * In case there is another node that overlaps this one, and the other one is the master, get
-     * the other one
+     * In case there is another node that overlaps this one, and the other one is the main, get the
+     * other one
      *
      * @param identifier
-     *            The node odentifier
-     * @return The master node identifier if any, or identity
+     *            The node identifier
+     * @return The main node identifier if any, or identity
      */
-    private Long masteriseNodeIdentifier(final long identifier)
+    private Long getMainNodeIdentifier(final long identifier)
     {
-        final Optional<Long> masterNodeIdentifier = multiAtlas().masterNode(identifier);
-        if (masterNodeIdentifier.isPresent())
+        final Optional<Long> mainNodeIdentifier = multiAtlas().mainNode(identifier);
+        if (mainNodeIdentifier.isPresent())
         {
-            return masterNodeIdentifier.get();
+            return mainNodeIdentifier.get();
         }
         else
         {
             return identifier;
         }
+    }
+
+    private Edge getRepresentativeSubEdge()
+    {
+        return getSubEdges().getSubEdges().get(0);
+    }
+
+    private SubEdgeList getSubEdges()
+    {
+        if (this.subEdgeList == null)
+        {
+            this.subEdgeList = this.multiAtlas().subEdge(this.identifier);
+        }
+        return this.subEdgeList;
     }
 
     private MultiAtlas multiAtlas()

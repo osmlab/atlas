@@ -1,0 +1,134 @@
+.\"     Title: atlas-config-reset
+.\"    Author: Lucas Cram
+.\"    Source: atlas-shell-tools 1.0.0
+.\"  Language: English
+.\"
+.TH "ATLAS-CONFIG-RESET" "1" "28 September 2020" "atlas\-shell\-tools 1\&.0\&.0" "Atlas Shell Tools Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+
+.SH "NAME"
+.sp
+atlas\-config\-reset \-\- Reset the Atlas Shell Tools installation
+
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIatlas\-config\fR \fIreset\fR \-\-help
+\fIatlas\-config\fR \fIreset\fR all
+\fIatlas\-config\fR \fIreset\fR index
+\fIatlas\-config\fR \fIreset\fR log
+\fIatlas\-config\fR \fIreset\fR modules
+\fIatlas\-config\fR \fIreset\fR presets
+\fIatlas\-config\fR \fIreset\fR repos
+.fi
+
+.SH "DESCRIPTION"
+.sp
+Completely reset the \fBatlas\fR installation. A full reset (using \fIall\fR) consists
+of the following steps:
+
+.RS 4
+\fB1)\fR Uninstalling all installed modules
+
+\fB2)\fR Removing all presets
+
+\fB3)\fR Setting the log level back to \fBERROR\fR
+
+\fB4)\fR Setting the log stream back to \fBstderr\fR
+
+\fB5)\fR Deleting the active command index
+
+\fB6)\fR Removing all saved repos
+.RE
+
+You can use various directives to only run some subset of these steps. See
+the \fBDIRECTIVES\fR section for more details.
+
+.SH "OPTIONS"
+.sp
+
+.PP
+\fB\-\-help\fR
+.RS 4
+Show this help menu.
+.RE
+
+.SH "DIRECTIVES"
+\fBatlas\-config\-reset\fR(1) exposes its interface through various directives,
+detailed below.
+.sp
+
+.PP
+\fIall\fR
+.RS 4
+Perform all the reset steps, fully resetting the environment to the
+state it was in at install time.
+.RE
+
+.PP
+\fIindex\fR
+.RS 4
+Reset the active module index.
+.RE
+
+.PP
+\fIlog\fR
+.RS 4
+Reset the log parameters to default, i.e. level=\fBERROR\fR and stream=\fBstderr\fR.
+This is equivalent to running \fBatlas\-config log reset\fR.
+.RE
+
+.PP
+\fImodules\fR
+.RS 4
+Uninstall all installed modules. This is equivalent to running \fBatlas\-config uninstall \-\-all\fR.
+.RE
+
+.PP
+\fIpresets\fR
+.RS 4
+Remove all saved presets in all namespaces. Also resets the current namespace
+to 'default'.
+.RE
+
+.PP
+\fIrepos\fR
+.RS 4
+Remove all saved repos.
+.RE
+
+.SH "EXAMPLES"
+.sp
+Reset everything:
+.sp
+.RS 4
+$ atlas\-config reset all
+.RE
+.sp
+Reset only the repos:
+.sp
+.RS 4
+$ atlas\-config reset repos
+.RE
+
+.SH "SEE ALSO"
+.sp
+\fBatlas\-config\fR(1)
+
+.SH "ATLAS SHELL TOOLS"
+.sp
+Part of the \fBatlas\-shell\-tools\fR(7) suite
