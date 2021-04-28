@@ -130,10 +130,6 @@ public enum BuildingTag
     GOVERNMENT,
     SPORTS_CENTRE;
 
-    @TagKey
-    public static final String KEY = "building";
-    public static final String BUILDING_ROLE_OUTLINE = "outline";
-    public static final String BUILDING_ROLE_PART = "part";
     private static final EnumSet<BuildingTag> VALID_BUILDINGS = EnumSet.of(YES, RESIDENTIAL,
             COMMERCIAL, SHOP, HOUSE, GARAGE, APARTMENTS, HUT, INDUSTRIAL, DETACHED, ROOF, SHED,
             TERRACE, SCHOOL, RETAIL, FARM_AUXILIARY, CHURCH, BARN, CONSTRUCTION, GREENHOUSE,
