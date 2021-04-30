@@ -103,7 +103,7 @@ public abstract class Relation extends AtlasEntity
         // We want multipolygons, but not boundaries, as we can render boundaries' ways by
         // themselves fine.
         // The isMultiPolygon() method also includes boundaries, which we do not want.
-        if (this.isMultiPolygon())
+        if (this.isGeometric())
         {
             try
             {
@@ -272,7 +272,7 @@ public abstract class Relation extends AtlasEntity
 
     public boolean hasMultiPolygonMembers(final Ring ring)
     {
-        if (isMultiPolygon())
+        if (isGeometric())
         {
             for (final RelationMember member : members())
             {
@@ -304,10 +304,15 @@ public abstract class Relation extends AtlasEntity
         return intersectsInternal(surface, new LinkedHashSet<>());
     }
 
-    public boolean isMultiPolygon()
+    public boolean isGeometric()
     {
         return Validators.isOfType(this, RelationTypeTag.class, RelationTypeTag.MULTIPOLYGON,
-                RelationTypeTag.BOUNDARY);
+                RelationTypeTag.BOUNDARY, RelationTypeTag.LAND_AREA);
+    }
+
+    public boolean isMultiPolygon()
+    {
+        return Validators.isOfType(this, RelationTypeTag.class, RelationTypeTag.MULTIPOLYGON);
     }
 
     @Override

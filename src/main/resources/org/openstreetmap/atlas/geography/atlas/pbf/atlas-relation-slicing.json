@@ -1,6 +1,10 @@
 {
     "atlas-relation-slicing":
     {
-        "taggableFilter": "type->multipolygon"
+        "taggableFilter": "type->multipolygon,boundary"
+    },
+    "atlas-relation-slicing-consolidate":
+    {
+        "taggableFilter": "type->boundary"
     }
 }

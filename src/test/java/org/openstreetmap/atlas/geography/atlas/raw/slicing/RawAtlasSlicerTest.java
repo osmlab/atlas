@@ -61,6 +61,220 @@ public class RawAtlasSlicerTest
     public final RawAtlasSlicerTestRule setup = new RawAtlasSlicerTestRule();
 
     /**
+     * This test uses a simple relation that is tagged as boundary, and has only a very small
+     * percentage crossing the boundary. As a result, it meets both the tagging and percentage
+     * criteria for being consolidated, and only one slice should be generated
+     */
+    @Test
+    public void testBoundaryRelationsConsolidatedSpanningTwoCountries()
+    {
+        final Atlas rawAtlas = this.setup.getSimpleBoundaryRelationConsolidateAtlas();
+        final Atlas civSlicedAtlas = new RawAtlasSlicer(
+                AtlasLoadingOption.createOptionWithAllEnabled(boundary).setCountryCode("CIV"),
+                rawAtlas).slice();
+        final Atlas lbrSlicedAtlas = new RawAtlasSlicer(
+                AtlasLoadingOption.createOptionWithAllEnabled(boundary).setCountryCode("LBR"),
+                rawAtlas).slice();
+
+        Assert.assertEquals(0, civSlicedAtlas.numberOfPoints());
+        Assert.assertEquals(2, civSlicedAtlas.numberOfLines());
+        Assert.assertEquals(2, civSlicedAtlas.numberOfAreas());
+        Assert.assertEquals(1, civSlicedAtlas.numberOfRelations());
+        Assert.assertTrue(Iterables.stream(civSlicedAtlas.entities())
+                .allMatch(entity -> entity.getTag(ISOCountryTag.KEY).get().equals("CIV")));
+
+        Assert.assertEquals(1, lbrSlicedAtlas.numberOfLines());
+        Assert.assertEquals(3, lbrSlicedAtlas.numberOfAreas());
+        Assert.assertEquals(0, lbrSlicedAtlas.numberOfPoints());
+        Assert.assertEquals(0, lbrSlicedAtlas.numberOfRelations());
+        Assert.assertTrue(Iterables.stream(lbrSlicedAtlas.entities())
+                .allMatch(entity -> entity.getTag(ISOCountryTag.KEY).get().equals("LBR")));
+
+        final SortedSet<String> civSyntheticRelationMembers = new TreeSet<>();
+        civSlicedAtlas.lines().forEach(line ->
+        {
+            if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
+            {
+                final Area rawArea = rawAtlas.areas(rawAreaCandidate -> rawAreaCandidate
+                        .getOsmIdentifier() == line.getOsmIdentifier()).iterator().next();
+                Assert.assertNotNull(civSlicedAtlas.area(line.getIdentifier()));
+                Assert.assertEquals(rawArea.getOsmTags(), line.getOsmTags());
+                Assert.assertEquals(rawArea.getOsmTags(),
+                        civSlicedAtlas.area(line.getIdentifier()).getOsmTags());
+                Assert.assertEquals(1, line.relations().size());
+                Assert.assertEquals(0,
+                        civSlicedAtlas.area(line.getIdentifier()).relations().size());
+            }
+            else
+            {
+                Assert.assertTrue(line.getTag(SyntheticSyntheticRelationMemberTag.KEY).isPresent());
+                civSyntheticRelationMembers.add(Long.toString(line.getIdentifier()));
+            }
+        });
+
+        final SortedSet<String> lbrSyntheticRelationMembers = new TreeSet<>();
+        lbrSlicedAtlas.lines().forEach(line ->
+        {
+            if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
+            {
+                final Area rawArea = rawAtlas.areas(rawAreaCandidate -> rawAreaCandidate
+                        .getOsmIdentifier() == line.getOsmIdentifier()).iterator().next();
+                Assert.assertNotNull(lbrSlicedAtlas.area(line.getIdentifier()));
+                Assert.assertEquals(rawArea.getOsmTags(), line.getOsmTags());
+                Assert.assertEquals(rawArea.getOsmTags(),
+                        lbrSlicedAtlas.area(line.getIdentifier()).getOsmTags());
+                Assert.assertEquals(0, line.relations().size());
+                Assert.assertEquals(0,
+                        lbrSlicedAtlas.area(line.getIdentifier()).relations().size());
+            }
+            else if (rawAtlas.line(line.getIdentifier()) != null)
+            {
+                Assert.assertEquals(rawAtlas.line(line.getIdentifier()).getOsmTags(),
+                        line.getOsmTags());
+                Assert.assertEquals(rawAtlas.line(line.getIdentifier()).asPolyLine(),
+                        line.asPolyLine());
+                Assert.assertEquals(1, line.relations().size());
+            }
+            else
+            {
+                Assert.assertTrue(line.getTag(SyntheticSyntheticRelationMemberTag.KEY).isPresent());
+                lbrSyntheticRelationMembers.add(Long.toString(line.getIdentifier()));
+            }
+        });
+
+        final CountrySlicingIdentifierFactory relationIdentifierFactory = new CountrySlicingIdentifierFactory(
+                1);
+
+        final Relation civRelation = civSlicedAtlas
+                .relation(relationIdentifierFactory.nextIdentifier());
+
+        Assert.assertEquals("CIV", civRelation.getTag(ISOCountryTag.KEY).get());
+        Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
+                civRelation.getTag(SyntheticGeometrySlicedTag.KEY).get());
+        Assert.assertEquals(
+                String.join(SyntheticRelationMemberAdded.MEMBER_DELIMITER,
+                        civSyntheticRelationMembers),
+                civRelation.getTag(SyntheticRelationMemberAdded.KEY).get());
+        Assert.assertTrue(civRelation
+                .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).isEmpty());
+        Assert.assertTrue(jtsConverter.backwardConvert(converter.convert(civRelation)).isValid());
+    }
+
+    /**
+     * This test uses the same simple relation for the multipolygon tests, but is tagged as
+     * boundary. While it meets meets the tagging criteria, it significant pieces on both sides and
+     * thus does not meet the percentage cutoff and should not be consolidated
+     */
+    @Test
+    public void testBoundaryRelationsSpanningTwoCountries()
+    {
+        final Atlas rawAtlas = this.setup.getSimpleBoundaryRelationAtlas();
+        final Atlas civSlicedAtlas = new RawAtlasSlicer(
+                AtlasLoadingOption.createOptionWithAllEnabled(boundary).setCountryCode("CIV"),
+                rawAtlas).slice();
+        final Atlas lbrSlicedAtlas = new RawAtlasSlicer(
+                AtlasLoadingOption.createOptionWithAllEnabled(boundary).setCountryCode("LBR"),
+                rawAtlas).slice();
+
+        Assert.assertEquals(0, civSlicedAtlas.numberOfPoints());
+        Assert.assertEquals(4, civSlicedAtlas.numberOfLines());
+        Assert.assertEquals(2, civSlicedAtlas.numberOfAreas());
+        Assert.assertEquals(1, civSlicedAtlas.numberOfRelations());
+        Assert.assertTrue(Iterables.stream(civSlicedAtlas.entities())
+                .allMatch(entity -> entity.getTag(ISOCountryTag.KEY).get().equals("CIV")));
+
+        Assert.assertEquals(4, lbrSlicedAtlas.numberOfLines());
+        Assert.assertEquals(3, lbrSlicedAtlas.numberOfAreas());
+        Assert.assertEquals(0, lbrSlicedAtlas.numberOfPoints());
+        Assert.assertEquals(1, lbrSlicedAtlas.numberOfRelations());
+        Assert.assertTrue(Iterables.stream(lbrSlicedAtlas.entities())
+                .allMatch(entity -> entity.getTag(ISOCountryTag.KEY).get().equals("LBR")));
+
+        final SortedSet<String> civSyntheticRelationMembers = new TreeSet<>();
+        civSlicedAtlas.lines().forEach(line ->
+        {
+            if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
+            {
+                final Area rawArea = rawAtlas.areas(rawAreaCandidate -> rawAreaCandidate
+                        .getOsmIdentifier() == line.getOsmIdentifier()).iterator().next();
+                Assert.assertNotNull(civSlicedAtlas.area(line.getIdentifier()));
+                Assert.assertEquals(rawArea.getOsmTags(), line.getOsmTags());
+                Assert.assertEquals(rawArea.getOsmTags(),
+                        civSlicedAtlas.area(line.getIdentifier()).getOsmTags());
+                Assert.assertEquals(1, line.relations().size());
+                Assert.assertEquals(0,
+                        civSlicedAtlas.area(line.getIdentifier()).relations().size());
+            }
+            else
+            {
+                Assert.assertTrue(line.getTag(SyntheticSyntheticRelationMemberTag.KEY).isPresent());
+                civSyntheticRelationMembers.add(Long.toString(line.getIdentifier()));
+            }
+        });
+
+        final SortedSet<String> lbrSyntheticRelationMembers = new TreeSet<>();
+        lbrSlicedAtlas.lines().forEach(line ->
+        {
+            if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
+            {
+                final Area rawArea = rawAtlas.areas(rawAreaCandidate -> rawAreaCandidate
+                        .getOsmIdentifier() == line.getOsmIdentifier()).iterator().next();
+                Assert.assertNotNull(lbrSlicedAtlas.area(line.getIdentifier()));
+                Assert.assertEquals(rawArea.getOsmTags(), line.getOsmTags());
+                Assert.assertEquals(rawArea.getOsmTags(),
+                        lbrSlicedAtlas.area(line.getIdentifier()).getOsmTags());
+                Assert.assertEquals(1, line.relations().size());
+                Assert.assertEquals(0,
+                        lbrSlicedAtlas.area(line.getIdentifier()).relations().size());
+            }
+            else if (rawAtlas.line(line.getIdentifier()) != null)
+            {
+                Assert.assertEquals(rawAtlas.line(line.getIdentifier()).getOsmTags(),
+                        line.getOsmTags());
+                Assert.assertEquals(rawAtlas.line(line.getIdentifier()).asPolyLine(),
+                        line.asPolyLine());
+                Assert.assertEquals(1, line.relations().size());
+            }
+            else
+            {
+                Assert.assertTrue(line.getTag(SyntheticSyntheticRelationMemberTag.KEY).isPresent());
+                lbrSyntheticRelationMembers.add(Long.toString(line.getIdentifier()));
+            }
+        });
+
+        final CountrySlicingIdentifierFactory relationIdentifierFactory = new CountrySlicingIdentifierFactory(
+                1);
+
+        final Relation civRelation = civSlicedAtlas
+                .relation(relationIdentifierFactory.nextIdentifier());
+        final Relation lbrRelation = lbrSlicedAtlas
+                .relation(relationIdentifierFactory.nextIdentifier());
+
+        Assert.assertEquals("CIV", civRelation.getTag(ISOCountryTag.KEY).get());
+        Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
+                civRelation.getTag(SyntheticGeometrySlicedTag.KEY).get());
+        Assert.assertEquals(
+                String.join(SyntheticRelationMemberAdded.MEMBER_DELIMITER,
+                        civSyntheticRelationMembers),
+                civRelation.getTag(SyntheticRelationMemberAdded.KEY).get());
+        Assert.assertTrue(civRelation
+                .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).isEmpty());
+
+        Assert.assertEquals("LBR", lbrRelation.getTag(ISOCountryTag.KEY).get());
+        Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
+                lbrRelation.getTag(SyntheticGeometrySlicedTag.KEY).get());
+        Assert.assertEquals(
+                String.join(SyntheticRelationMemberAdded.MEMBER_DELIMITER,
+                        lbrSyntheticRelationMembers),
+                lbrRelation.getTag(SyntheticRelationMemberAdded.KEY).get());
+        Assert.assertTrue(lbrRelation
+                .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).isEmpty());
+
+        Assert.assertTrue(jtsConverter.backwardConvert(converter.convert(civRelation)).isValid());
+        Assert.assertTrue(jtsConverter.backwardConvert(converter.convert(lbrRelation)).isValid());
+    }
+
+    /**
      * This test examines a number of important behaviors. For a closed edge, it's important that
      * slicing logic recognizes that it should be sliced linearly, as slicing polygonally would
      * destroy its ability to be converted to an Edge. Additionally, this test checks that the

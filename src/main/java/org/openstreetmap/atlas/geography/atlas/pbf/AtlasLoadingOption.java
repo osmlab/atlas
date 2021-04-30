@@ -21,6 +21,7 @@ public final class AtlasLoadingOption implements Serializable
     public static final String ATLAS_EDGE_FILTER_NAME = "atlas-edge";
     public static final String ATLAS_AREA_FILTER_NAME = "atlas-area";
     public static final String ATLAS_RELATION_SLICING_FILTER_NAME = "atlas-relation-slicing";
+    public static final String ATLAS_RELATION_SLICING_CONSOLIDATE_FILTER_NAME = "atlas-relation-slicing-consolidate";
     public static final String ATLAS_WAY_SECTION_FILTER_NAME = "atlas-way-section";
 
     private static final BridgeConfiguredFilter DEFAULT_EDGE_FILTER = new BridgeConfiguredFilter("",
@@ -34,6 +35,12 @@ public final class AtlasLoadingOption implements Serializable
 
     private static final BridgeConfiguredFilter DEFAULT_RELATION_SLICING_FILTER = new BridgeConfiguredFilter(
             "", ATLAS_RELATION_SLICING_FILTER_NAME,
+            new StandardConfiguration(
+                    new InputStreamResource(() -> AtlasLoadingOption.class.getResourceAsStream(
+                            ATLAS_RELATION_SLICING_FILTER_NAME + FileSuffix.JSON.toString()))));
+
+    private static final BridgeConfiguredFilter DEFAULT_RELATION_SLICING_CONSOLIDATE_FILTER = new BridgeConfiguredFilter(
+            "", ATLAS_RELATION_SLICING_CONSOLIDATE_FILTER_NAME,
             new StandardConfiguration(
                     new InputStreamResource(() -> AtlasLoadingOption.class.getResourceAsStream(
                             ATLAS_RELATION_SLICING_FILTER_NAME + FileSuffix.JSON.toString()))));
@@ -65,6 +72,7 @@ public final class AtlasLoadingOption implements Serializable
     private ConfiguredTaggableFilter osmPbfNodeFilter = DEFAULT_OSM_PBF_NODE_FILTER;
     private ConfiguredTaggableFilter osmPbfRelationFilter = DEFAULT_OSM_PBF_RELATION_FILTER;
     private BridgeConfiguredFilter relationSlicingFilter = DEFAULT_RELATION_SLICING_FILTER;
+    private BridgeConfiguredFilter relationSlicingConsolidateFilter = DEFAULT_RELATION_SLICING_CONSOLIDATE_FILTER;
 
     private boolean loadAtlasRelation;
     private boolean loadOsmBound;
@@ -183,6 +191,11 @@ public final class AtlasLoadingOption implements Serializable
     public ConfiguredTaggableFilter getOsmPbfWayFilter()
     {
         return this.osmPbfWayFilter;
+    }
+
+    public BridgeConfiguredFilter getRelationSlicingConsolidateFilter()
+    {
+        return this.relationSlicingConsolidateFilter;
     }
 
     public BridgeConfiguredFilter getRelationSlicingFilter()
@@ -349,6 +362,12 @@ public final class AtlasLoadingOption implements Serializable
     public void setOsmPbfWayFilter(final ConfiguredTaggableFilter osmPbfWayFilter)
     {
         this.osmPbfWayFilter = osmPbfWayFilter;
+    }
+
+    public void setRelationSlicingConsolidateFilter(
+            final BridgeConfiguredFilter relationSlicingConsolidateFilter)
+    {
+        this.relationSlicingConsolidateFilter = relationSlicingConsolidateFilter;
     }
 
     public void setRelationSlicingFilter(final BridgeConfiguredFilter relationSlicingFilter)
