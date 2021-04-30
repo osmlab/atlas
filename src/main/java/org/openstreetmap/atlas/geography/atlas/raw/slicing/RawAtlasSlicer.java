@@ -93,6 +93,7 @@ public class RawAtlasSlicer
     public static final double LINE_BUFFER = 0.000001;
     public static final double AREA_BUFFER = 0.000000005;
     public static final double BUFFER_PERCENTAGE = 0.005;
+    public static final double PERCENTAGE = 100;
 
     // JTS converters
     private static final JtsPolygonConverter JTS_POLYGON_CONVERTER = new JtsPolygonConverter();
@@ -101,7 +102,7 @@ public class RawAtlasSlicer
     private static final RelationOrAreaToMultiPolygonConverter RELATION_TO_MULTIPOLYGON_CONVERTER = new RelationOrAreaToMultiPolygonConverter(
             true);
     private static final Logger logger = LoggerFactory.getLogger(RawAtlasSlicer.class);
-
+    private static final double MINIMUM_CONSOLIDATE_THRESHOLD = 0.8;
     private static final long SLICING_DURATION_WARN = 10;
 
     // Logging constants
@@ -134,6 +135,7 @@ public class RawAtlasSlicer
     private final Atlas inputAtlas;
     private final Shard initialShard;
     private final Predicate<AtlasEntity> relationPredicate;
+    private final Predicate<AtlasEntity> consolidatePredicate;
     private final Predicate<AtlasEntity> isInCountry;
     private final Predicate<AtlasEntity> isAtlasEdge;
     private final CountryBoundaryMap boundary;
@@ -168,6 +170,8 @@ public class RawAtlasSlicer
         this.country = loadingOption.getCountryCode();
         this.relationPredicate = entity -> entity.getType().equals(ItemType.RELATION)
                 && loadingOption.getRelationSlicingFilter().test(entity);
+        this.consolidatePredicate = entity -> entity.getType().equals(ItemType.RELATION)
+                && loadingOption.getRelationSlicingConsolidateFilter().test(entity);
         if (loadingOption.getCountryCode() == null || loadingOption.getCountryCode().isEmpty())
         {
             this.isInCountry = entity -> true;
@@ -212,6 +216,8 @@ public class RawAtlasSlicer
         this.country = loadingOption.getCountryCode();
         this.relationPredicate = entity -> entity.getType().equals(ItemType.RELATION)
                 && loadingOption.getRelationSlicingFilter().test(entity);
+        this.consolidatePredicate = entity -> entity.getType().equals(ItemType.RELATION)
+                && loadingOption.getRelationSlicingConsolidateFilter().test(entity);
         if (loadingOption.getCountryCode() == null || loadingOption.getCountryCode().isEmpty())
         {
             this.isInCountry = entity -> true;
@@ -304,13 +310,14 @@ public class RawAtlasSlicer
             // the first part of this predicate checks to see if the relation qualifies for slicing
             // based on tagging, the second checks its members since a relation with no sliced
             // members shouldn't need slicing
-            if (this.relationPredicate.test(relation) && !this.stagedRelations
-                    .get(relation.getIdentifier())
-                    .membersMatching(member -> member.getEntity().getType().equals(ItemType.LINE)
-                            && this.inputAtlas.line(member.getEntity().getIdentifier()) == null)
-                    .isEmpty())
+            if (relation.isGeometric() && this.relationPredicate.test(relation)
+                    && !this.stagedRelations.get(relation.getIdentifier()).membersMatching(
+                            member -> member.getEntity().getType().equals(ItemType.LINE)
+                                    && this.inputAtlas
+                                            .line(member.getEntity().getIdentifier()) == null)
+                            .isEmpty())
             {
-                sliceMultiPolygonRelation(this.stagedRelations.get(relation.getIdentifier()));
+                sliceRelation(this.stagedRelations.get(relation.getIdentifier()));
             }
         });
         logger.info(FINISHED_RELATION_SLICING, this.shardOrAtlasName,
@@ -543,7 +550,8 @@ public class RawAtlasSlicer
         final Predicate<AtlasEntity> expandPredicate = entity -> entity.getType()
                 .equals(ItemType.LINE)
                 && entity.relations().stream()
-                        .anyMatch(relation -> this.relationPredicate.test(relation)
+                        .anyMatch(relation -> relation.isGeometric()
+                                && this.relationPredicate.test(relation)
                                 && initialAtlas.relation(relation.getIdentifier()) != null);
         final DynamicAtlasPolicy policy = new DynamicAtlasPolicy(atlasFetcher, sharding,
                 initialShard, Rectangle.MAXIMUM).withDeferredLoading(true)
@@ -1080,13 +1088,13 @@ public class RawAtlasSlicer
     }
 
     /**
-     * Given a multipolygon Relation, purge any members that don't meet the criteria in the OSM
+     * Given a geometric Relation, purge any members that don't meet the criteria in the OSM
      * specification
      *
      * @param relation
      *            The Relation to check
      */
-    private void purgeInvalidMultiPolygonMembers(final CompleteRelation relation)
+    private void purgeInvalidGeometricRelationMembers(final CompleteRelation relation)
     {
         final Set<String> memberIdentifiersRemoved = new HashSet<>();
         relation.membersMatching(member -> member.getEntity().getType() != ItemType.LINE
@@ -1115,10 +1123,20 @@ public class RawAtlasSlicer
                     }
                     else if (invalidMember.getEntity().getType().equals(ItemType.POINT))
                     {
-                        relation.withRemovedMember(invalidMember.getEntity());
-                        this.stagedPoints.get(identifier)
-                                .withRemovedRelationIdentifier(relation.getIdentifier());
-                        memberIdentifiersRemoved.add(Long.toString(identifier));
+                        if (Validators.isOfType(relation, RelationTypeTag.class,
+                                RelationTypeTag.BOUNDARY)
+                                && (invalidMember.getRole().equals("admin_centre")
+                                        || invalidMember.getRole().equals("label")))
+                        {
+                            // keep admin centre or lable nodes
+                        }
+                        else
+                        {
+                            relation.withRemovedMember(invalidMember.getEntity());
+                            this.stagedPoints.get(identifier)
+                                    .withRemovedRelationIdentifier(relation.getIdentifier());
+                            memberIdentifiersRemoved.add(Long.toString(identifier));
+                        }
                     }
                     else
                     {
@@ -1652,154 +1670,6 @@ public class RawAtlasSlicer
     }
 
     /**
-     * Slice a multipolygon Relation by constructing its geometry out of the valid raw Atlas
-     * members, calculating its slices, and creating the new sliced Relations with valid
-     * MultiPolygon geometry. If it belongs to just one country or cannot be sliced, update the
-     * ISOCountryTag appropriately instead
-     *
-     * @param Relation
-     *            The Relation to slice as a multipolygon
-     */
-    private void sliceMultiPolygonRelation(final CompleteRelation relation)
-    {
-        final Time time = Time.now();
-        purgeInvalidMultiPolygonMembers(relation);
-        org.locationtech.jts.geom.MultiPolygon jtsMp;
-        try
-        {
-            final MultiPolygon multipolygon = RELATION_TO_MULTIPOLYGON_CONVERTER
-                    .convert(this.inputAtlas.relation(relation.getIdentifier()));
-            jtsMp = JTS_MULTIPOLYGON_CONVERTER.backwardConvert(multipolygon);
-        }
-        catch (final CoreException exception)
-        {
-            logger.error(MULTIPOLYGON_RELATION_EXCEPTION_CREATING_POLYGON,
-                    relation.getOsmIdentifier(), this.shardOrAtlasName, exception);
-            relation.withAddedTag(SyntheticInvalidGeometryTag.KEY,
-                    SyntheticInvalidGeometryTag.YES.toString());
-            return;
-        }
-
-        // Check to see if the relation is one country only, short circuit if it is
-        final Set<PreparedPolygon> polygons = this.boundary.query(jtsMp.getEnvelopeInternal())
-                .stream().distinct().collect(Collectors.toSet());
-
-        if (CountryBoundaryMap.isSameCountry(polygons))
-        {
-            final String country = CountryBoundaryMap.getGeometryProperty(
-                    polygons.iterator().next().getGeometry(), ISOCountryTag.KEY);
-            // just tag with the country code and move on, no slicing needed
-            relation.withAddedTag(ISOCountryTag.KEY, country);
-            return;
-        }
-
-        if (!jtsMp.isValid())
-        {
-            jtsMp = removeOsmValidOverlappingInners(relation, jtsMp);
-            if (!jtsMp.isValid())
-            {
-                if (logger.isErrorEnabled())
-                {
-                    logger.error(MULTIPOLYGON_RELATION_INVALID_GEOMETRY,
-                            relation.getOsmIdentifier(), this.shardOrAtlasName, jtsMp.toText());
-                }
-                relation.withAddedTag(SyntheticInvalidGeometryTag.KEY,
-                        SyntheticInvalidGeometryTag.YES.toString());
-                return;
-            }
-            else
-            {
-                logger.warn(MULTIPOLYGON_RELATION_OVERLAPPING_INNERS, relation.getOsmIdentifier(),
-                        this.shardOrAtlasName);
-            }
-        }
-
-        final SortedMap<String, org.locationtech.jts.geom.MultiPolygon> clippedMultiPolygons = sliceMultiPolygonGeometry(
-                relation.getIdentifier(), jtsMp, polygons);
-
-        if (clippedMultiPolygons.isEmpty())
-        {
-            logger.error(MULTIPOLYGON_RELATION_HAD_NO_SLICED_GEOMETRY, relation.getOsmIdentifier(),
-                    this.shardOrAtlasName);
-            return;
-        }
-
-        final SortedMap<String, PreparedPolygon> preparedClippedPolygons = new TreeMap<>();
-        for (final Map.Entry<String, org.locationtech.jts.geom.MultiPolygon> entry : clippedMultiPolygons
-                .entrySet())
-        {
-            final String country = entry.getKey();
-            final org.locationtech.jts.geom.MultiPolygon countryMultipolygon = entry.getValue();
-            if (countryMultipolygon.equals(jtsMp))
-            {
-                logger.info(MULTIPOLYGON_RELATION_HAD_EQUIVALENT_SLICED_GEOMETRY,
-                        relation.getOsmIdentifier(), this.shardOrAtlasName);
-                // just tag with the country code and move on, no slicing needed
-                relation.withAddedTag(ISOCountryTag.KEY, country);
-                return;
-            }
-            preparedClippedPolygons.put(country,
-                    (PreparedPolygon) this.preparer.create(countryMultipolygon));
-        }
-
-        // because this is a SortedSet, iterating over the keys guarantees that we will split our
-        // relation into a deterministic identifier each time. note that this is why we put all
-        // countries that this relation spans into the key set for the map, even if it's associated
-        // with empty polygons. that way, if a relation spans country A and country B, country A
-        // will get 001000 and country B will get 002000, no matter what the country parameter for
-        // slicing is
-        final CountrySlicingIdentifierFactory relationIdentifierFactory = new CountrySlicingIdentifierFactory(
-                relation.getIdentifier());
-        final List<Long> newRelationIds = new ArrayList<>();
-        final Map<String, CompleteRelation> newRelations = new HashMap<>();
-        preparedClippedPolygons.keySet().forEach(countryCode ->
-        {
-            final CompleteRelation newRelation = CompleteRelation.shallowFrom(relation)
-                    .withIdentifier(relationIdentifierFactory.nextIdentifier())
-                    .withTags(relation.getTags())
-                    .withAddedTag(SyntheticGeometrySlicedTag.KEY,
-                            SyntheticGeometrySlicedTag.YES.toString())
-                    .withAddedTag(ISOCountryTag.KEY, countryCode)
-                    .withRelationIdentifiers(relation.relationIdentifiers())
-                    .withOsmRelationIdentifier(relation.getOsmIdentifier());
-            newRelationIds.add(newRelation.getIdentifier());
-            if (this.isInCountry.test(newRelation))
-            {
-                addCountryMembersToSplitRelation(newRelation, relation,
-                        preparedClippedPolygons.get(countryCode));
-                createSyntheticRelationMembers(newRelation,
-                        preparedClippedPolygons.get(countryCode));
-                final SortedSet<String> syntheticIds = new TreeSet<>();
-                if (!syntheticIds.isEmpty())
-                {
-                    newRelation.withAddedTag(SyntheticRelationMemberAdded.KEY,
-                            SyntheticRelationMemberAdded.join(syntheticIds));
-                }
-                newRelations.put(countryCode, newRelation);
-            }
-        });
-
-        final HashMap<String, CompleteRelation> relationByCountry = new HashMap<>();
-        newRelations.values().forEach(newRelation ->
-        {
-            // update so each split relation knows about the other split relations
-            newRelation.withAllRelationsWithSameOsmIdentifier(newRelationIds);
-            relationByCountry.put(newRelation.getTag(ISOCountryTag.KEY).get(), newRelation);
-            this.stagedRelations.put(newRelation.getIdentifier(), newRelation);
-        });
-
-        // remove the old relation
-        this.changes.add(FeatureChange.remove(relation, this.inputAtlas));
-        this.stagedRelations.remove(relation.getIdentifier());
-        this.splitRelations.put(relation.getIdentifier(), relationByCountry);
-        if (time.elapsedSince().isMoreThan(Duration.minutes(SLICING_DURATION_WARN)))
-        {
-            logger.warn(MULTIPOLYGON_RELATION_SLICING_DURATION_EXCEEDED,
-                    relation.getOsmIdentifier(), this.shardOrAtlasName, time.elapsedSince());
-        }
-    }
-
-    /**
      * Given a point, either remove it from the Atlas if it has no pre-existing tags and doesn't
      * belong to an Edge, OR update its ISOCountryTag value
      *
@@ -1884,5 +1754,207 @@ public class RawAtlasSlicer
             results.put(countryCode, slicedPolygons);
         }
         return results;
+    }
+
+    /**
+     * Slice a geometric Relation by constructing its geometry out of the valid raw Atlas members,
+     * calculating its slices, and creating the new sliced Relations with valid geometry. If it
+     * belongs to just one country or cannot be sliced, update the ISOCountryTag appropriately
+     * instead
+     *
+     * @param Relation
+     *            The Relation to slice geometrically
+     */
+    private void sliceRelation(final CompleteRelation relation)
+    {
+        final Time time = Time.now();
+        if (relation.isGeometric())
+        {
+            purgeInvalidGeometricRelationMembers(relation);
+        }
+        org.locationtech.jts.geom.MultiPolygon jtsMp;
+        try
+        {
+            final MultiPolygon multipolygon = RELATION_TO_MULTIPOLYGON_CONVERTER
+                    .convert(this.inputAtlas.relation(relation.getIdentifier()));
+            jtsMp = JTS_MULTIPOLYGON_CONVERTER.backwardConvert(multipolygon);
+        }
+        catch (final CoreException exception)
+        {
+            logger.error(MULTIPOLYGON_RELATION_EXCEPTION_CREATING_POLYGON,
+                    relation.getOsmIdentifier(), this.shardOrAtlasName, exception);
+            relation.withAddedTag(SyntheticInvalidGeometryTag.KEY,
+                    SyntheticInvalidGeometryTag.YES.toString());
+            return;
+        }
+
+        // Check to see if the relation is one country only, short circuit if it is
+        final Set<PreparedPolygon> polygons = this.boundary.query(jtsMp.getEnvelopeInternal())
+                .stream().distinct().collect(Collectors.toSet());
+
+        if (CountryBoundaryMap.isSameCountry(polygons))
+        {
+            final String country = CountryBoundaryMap.getGeometryProperty(
+                    polygons.iterator().next().getGeometry(), ISOCountryTag.KEY);
+            // just tag with the country code and move on, no slicing needed
+            relation.withAddedTag(ISOCountryTag.KEY, country);
+            return;
+        }
+
+        if (!jtsMp.isValid())
+        {
+            jtsMp = removeOsmValidOverlappingInners(relation, jtsMp);
+            if (!jtsMp.isValid())
+            {
+                if (logger.isErrorEnabled())
+                {
+                    logger.error(MULTIPOLYGON_RELATION_INVALID_GEOMETRY,
+                            relation.getOsmIdentifier(), this.shardOrAtlasName, jtsMp.toText());
+                }
+                relation.withAddedTag(SyntheticInvalidGeometryTag.KEY,
+                        SyntheticInvalidGeometryTag.YES.toString());
+                return;
+            }
+            else
+            {
+                logger.warn(MULTIPOLYGON_RELATION_OVERLAPPING_INNERS, relation.getOsmIdentifier(),
+                        this.shardOrAtlasName);
+            }
+        }
+
+        final SortedMap<String, org.locationtech.jts.geom.MultiPolygon> clippedMultiPolygons = sliceMultiPolygonGeometry(
+                relation.getIdentifier(), jtsMp, polygons);
+
+        if (clippedMultiPolygons.isEmpty())
+        {
+            logger.error(MULTIPOLYGON_RELATION_HAD_NO_SLICED_GEOMETRY, relation.getOsmIdentifier(),
+                    this.shardOrAtlasName);
+            return;
+        }
+
+        final SortedMap<String, PreparedPolygon> preparedClippedPolygons = new TreeMap<>();
+        for (final Map.Entry<String, org.locationtech.jts.geom.MultiPolygon> entry : clippedMultiPolygons
+                .entrySet())
+        {
+            final String country = entry.getKey();
+            final org.locationtech.jts.geom.MultiPolygon countryMultipolygon = entry.getValue();
+            if (countryMultipolygon.equals(jtsMp))
+            {
+                logger.info(MULTIPOLYGON_RELATION_HAD_EQUIVALENT_SLICED_GEOMETRY,
+                        relation.getOsmIdentifier(), this.shardOrAtlasName);
+                // just tag with the country code and move on, no slicing needed
+                relation.withAddedTag(ISOCountryTag.KEY, country);
+                return;
+            }
+            preparedClippedPolygons.put(country,
+                    (PreparedPolygon) this.preparer.create(countryMultipolygon));
+        }
+
+        if (this.consolidatePredicate.test(relation))
+        {
+            final Set<String> removedCountries = new HashSet<>();
+            double size = 0;
+            double percentSize = 0;
+            org.locationtech.jts.geom.MultiPolygon largest = null;
+            for (final PreparedPolygon polygon : preparedClippedPolygons.values())
+            {
+                if (largest == null || polygon.getGeometry().getArea() > largest.getArea())
+                {
+                    largest = (org.locationtech.jts.geom.MultiPolygon) polygon.getGeometry();
+                }
+            }
+
+            if (largest.getArea() / jtsMp.getArea() > MINIMUM_CONSOLIDATE_THRESHOLD)
+            {
+                final Set<String> countrySlices = new HashSet<>();
+                countrySlices.addAll(preparedClippedPolygons.keySet());
+                for (final String country : countrySlices)
+                {
+                    if (!preparedClippedPolygons.get(country).getGeometry().equals(largest))
+                    {
+                        size += preparedClippedPolygons.get(country).getGeometry().getArea();
+                        percentSize += preparedClippedPolygons.get(country).getGeometry().getArea()
+                                / jtsMp.getArea() * PERCENTAGE;
+                        logger.info(
+                                "Removing sliced relation {} with size {} and percentage size {}",
+                                relation.getOsmIdentifier(),
+                                preparedClippedPolygons.get(country).getGeometry().getArea(),
+                                preparedClippedPolygons.get(country).getGeometry().getArea()
+                                        / jtsMp.getArea());
+                        preparedClippedPolygons.remove(country);
+                        removedCountries.add(country);
+                    }
+                }
+                logger.info(
+                        "Consolidated relation {} to country {}, ignoring countries {} with sliced size {} and percent size {}",
+                        relation.getOsmIdentifier(),
+                        preparedClippedPolygons.keySet().iterator().next(),
+                        String.join(ISOCountryTag.COUNTRY_DELIMITER, removedCountries), size,
+                        percentSize);
+            }
+            else
+            {
+                logger.info(
+                        "Relation {} met tagging criteria for consolidation, but largest piece with size {} did not meet percentage threshold {}",
+                        relation.getOsmIdentifier(), largest.getArea() / jtsMp.getArea(),
+                        MINIMUM_CONSOLIDATE_THRESHOLD);
+            }
+        }
+
+        // because this is a SortedSet, iterating over the keys guarantees that we will split our
+        // relation into a deterministic identifier each time. note that this is why we put all
+        // countries that this relation spans into the key set for the map, even if it's associated
+        // with empty polygons. that way, if a relation spans country A and country B, country A
+        // will get 001000 and country B will get 002000, no matter what the country parameter for
+        // slicing is
+        final CountrySlicingIdentifierFactory relationIdentifierFactory = new CountrySlicingIdentifierFactory(
+                relation.getIdentifier());
+        final List<Long> newRelationIds = new ArrayList<>();
+        final Map<String, CompleteRelation> newRelations = new HashMap<>();
+        preparedClippedPolygons.keySet().forEach(countryCode ->
+        {
+            final CompleteRelation newRelation = CompleteRelation.shallowFrom(relation)
+                    .withIdentifier(relationIdentifierFactory.nextIdentifier())
+                    .withTags(relation.getTags())
+                    .withAddedTag(SyntheticGeometrySlicedTag.KEY,
+                            SyntheticGeometrySlicedTag.YES.toString())
+                    .withAddedTag(ISOCountryTag.KEY, countryCode)
+                    .withRelationIdentifiers(relation.relationIdentifiers())
+                    .withOsmRelationIdentifier(relation.getOsmIdentifier());
+            newRelationIds.add(newRelation.getIdentifier());
+            if (this.isInCountry.test(newRelation))
+            {
+                addCountryMembersToSplitRelation(newRelation, relation,
+                        preparedClippedPolygons.get(countryCode));
+                createSyntheticRelationMembers(newRelation,
+                        preparedClippedPolygons.get(countryCode));
+                final SortedSet<String> syntheticIds = new TreeSet<>();
+                if (!syntheticIds.isEmpty())
+                {
+                    newRelation.withAddedTag(SyntheticRelationMemberAdded.KEY,
+                            SyntheticRelationMemberAdded.join(syntheticIds));
+                }
+                newRelations.put(countryCode, newRelation);
+            }
+        });
+
+        final HashMap<String, CompleteRelation> relationByCountry = new HashMap<>();
+        newRelations.values().forEach(newRelation ->
+        {
+            // update so each split relation knows about the other split relations
+            newRelation.withAllRelationsWithSameOsmIdentifier(newRelationIds);
+            relationByCountry.put(newRelation.getTag(ISOCountryTag.KEY).get(), newRelation);
+            this.stagedRelations.put(newRelation.getIdentifier(), newRelation);
+        });
+
+        // remove the old relation
+        this.changes.add(FeatureChange.remove(relation, this.inputAtlas));
+        this.stagedRelations.remove(relation.getIdentifier());
+        this.splitRelations.put(relation.getIdentifier(), relationByCountry);
+        if (time.elapsedSince().isMoreThan(Duration.minutes(SLICING_DURATION_WARN)))
+        {
+            logger.warn(MULTIPOLYGON_RELATION_SLICING_DURATION_EXCEEDED,
+                    relation.getOsmIdentifier(), this.shardOrAtlasName, time.elapsedSince());
+        }
     }
 }

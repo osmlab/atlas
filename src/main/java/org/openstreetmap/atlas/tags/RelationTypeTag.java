@@ -18,6 +18,7 @@ public enum RelationTypeTag
     ROUTE,
     ROUTE_MASTER,
     BOUNDARY,
+    LAND_AREA,
     SITE,
     ASSOCIATEDSTREET,
     PUBLIC_TRANSPORT,

@@ -46,7 +46,7 @@ public class RelationOrAreaToMultiPolygonConverter implements Converter<AtlasEnt
         if (entity instanceof Relation)
         {
             final Relation relation = (Relation) entity;
-            if (relation.isMultiPolygon())
+            if (relation.isGeometric())
             {
                 // Loop through the relation members, extract the inners and outers, and create the
                 // outline.

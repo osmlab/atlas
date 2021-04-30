@@ -549,6 +549,79 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
 
             })
     private Atlas simpleMultiPolygon;
+
+    @TestAtlas(
+
+            points = { @Point(id = "214602000000", coordinates = @Loc(value = LOCATION_1)),
+                    @Point(id = "214600000000", coordinates = @Loc(value = LOCATION_2)),
+                    @Point(id = "214598000000", coordinates = @Loc(value = LOCATION_3)),
+                    @Point(id = "214597000000", coordinates = @Loc(value = LOCATION_4)),
+                    @Point(id = "214593000000", coordinates = @Loc(value = LOCATION_5)),
+                    @Point(id = "214591000000", coordinates = @Loc(value = LOCATION_6)),
+                    @Point(id = "214589000000", coordinates = @Loc(value = LOCATION_7)),
+                    @Point(id = "214588000000", coordinates = @Loc(value = LOCATION_8)),
+                    @Point(id = "214584000000", coordinates = @Loc(value = LOCATION_9)),
+                    @Point(id = "214582000000", coordinates = @Loc(value = LOCATION_10)),
+                    @Point(id = "214580000000", coordinates = @Loc(value = LOCATION_11)),
+                    @Point(id = "214579000000", coordinates = @Loc(value = LOCATION_12)) },
+
+            areas = { @Area(id = "214599000000", coordinates = { @Loc(value = LOCATION_4),
+                    @Loc(value = LOCATION_3), @Loc(value = LOCATION_2), @Loc(value = LOCATION_1),
+                    @Loc(value = LOCATION_4) }, tags = { "leisure=park" }),
+                    @Area(id = "214590000000", coordinates = { @Loc(value = LOCATION_8),
+                            @Loc(value = LOCATION_7), @Loc(value = LOCATION_6),
+                            @Loc(value = LOCATION_5),
+                            @Loc(value = LOCATION_8) }, tags = { "leisure=park" }),
+                    @Area(id = "214581000000", coordinates = { @Loc(value = LOCATION_12),
+                            @Loc(value = LOCATION_11), @Loc(value = LOCATION_10),
+                            @Loc(value = LOCATION_9),
+                            @Loc(value = LOCATION_12) }, tags = { "leisure=park" }) },
+
+            relations = {
+
+                    @Relation(id = "1", tags = { "type=boundary" }, members = {
+                            @Member(id = "214599000000", role = "outer", type = "area"),
+                            @Member(id = "214590000000", role = "outer", type = "area"),
+                            @Member(id = "214581000000", role = "outer", type = "area") })
+
+            })
+    private Atlas simpleBoundaryRelation;
+
+    @TestAtlas(
+
+            points = { @Point(id = "214602000000", coordinates = @Loc(value = LOCATION_1)),
+                    @Point(id = "214600000000", coordinates = @Loc(value = LOCATION_2)),
+                    @Point(id = "214598000000", coordinates = @Loc(value = LOCATION_3)),
+                    @Point(id = "214597000000", coordinates = @Loc(value = LOCATION_4)),
+                    @Point(id = "214593000000", coordinates = @Loc(value = LOCATION_5)),
+                    @Point(id = "214591000000", coordinates = @Loc(value = LOCATION_6)),
+                    @Point(id = "214589000000", coordinates = @Loc(value = LOCATION_7)),
+                    @Point(id = "214588000000", coordinates = @Loc(value = LOCATION_8)),
+                    @Point(id = "214584000000", coordinates = @Loc(value = LOCATION_9)),
+                    @Point(id = "214582000000", coordinates = @Loc(value = LOCATION_10)),
+                    @Point(id = "214580000000", coordinates = @Loc(value = LOCATION_11)),
+                    @Point(id = "214579000000", coordinates = @Loc(value = LOCATION_12)) },
+
+            areas = { @Area(id = "214599000000", coordinates = { @Loc(value = LOCATION_4),
+                    @Loc(value = LOCATION_3), @Loc(value = LOCATION_2), @Loc(value = LOCATION_1),
+                    @Loc(value = LOCATION_4) }, tags = { "leisure=park" }),
+                    @Area(id = "214590000000", coordinates = { @Loc(value = LOCATION_8),
+                            @Loc(value = LOCATION_7), @Loc(value = LOCATION_6),
+                            @Loc(value = LOCATION_5),
+                            @Loc(value = LOCATION_8) }, tags = { "leisure=park" }),
+                    @Area(id = "214581000000", coordinates = { @Loc(value = LOCATION_12),
+                            @Loc(value = LOCATION_11), @Loc(value = LOCATION_10),
+                            @Loc(value = LOCATION_9),
+                            @Loc(value = LOCATION_12) }, tags = { "leisure=park" }) },
+
+            relations = {
+
+                    @Relation(id = "1", tags = { "type=boundary" }, members = {
+                            @Member(id = "214590000000", role = "outer", type = "area") })
+
+            })
+    private Atlas simpleBoundaryRelationConsolidate;
+
     @TestAtlas(
 
             points = { @Point(id = "106032000000", coordinates = @Loc(value = LOCATION_21)),
@@ -908,6 +981,16 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
     public Atlas getSelfIntersectingOuterMemberRelationAtlas()
     {
         return this.selfIntersectingOuterMemberRelation;
+    }
+
+    public Atlas getSimpleBoundaryRelationAtlas()
+    {
+        return this.simpleBoundaryRelation;
+    }
+
+    public Atlas getSimpleBoundaryRelationConsolidateAtlas()
+    {
+        return this.simpleBoundaryRelationConsolidate;
     }
 
     public Atlas getSimpleMultiPolygonAtlas()
