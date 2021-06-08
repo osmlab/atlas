@@ -1,8 +1,10 @@
 package org.openstreetmap.atlas.geography.atlas.items.complex.bignode;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -19,8 +21,10 @@ import org.openstreetmap.atlas.geography.atlas.items.complex.bignode.BigNode.Typ
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.streaming.writers.JsonWriter;
+import org.openstreetmap.atlas.tags.HighwayTag;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
+import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.openstreetmap.atlas.utilities.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -112,6 +116,33 @@ public class BigNodeFinderTest extends AtlasLoadingCommand
                 .collect(Collectors.toSet());
         Arrays.stream(expectedDualCarriageWayNodeIdentifiers)
                 .forEach(nodeId -> Assert.assertTrue(dualCarriageWayNodes.contains(nodeId)));
+    }
+
+    @Test
+    public void testConfigurableSearchRadius()
+    {
+        final Map<String, Distance> configurableRadius = new HashMap<>();
+        configurableRadius.put(HighwayTag.MOTORWAY.name().toLowerCase(), Distance.meters(10));
+        configurableRadius.put(HighwayTag.TRUNK.name().toLowerCase(), Distance.meters(10));
+        configurableRadius.put(HighwayTag.PRIMARY.name().toLowerCase(), Distance.meters(10));
+        configurableRadius.put(HighwayTag.SECONDARY.name().toLowerCase(), Distance.meters(10));
+        configurableRadius.put(HighwayTag.TERTIARY.name().toLowerCase(), Distance.meters(10));
+        configurableRadius.put(HighwayTag.RESIDENTIAL.name().toLowerCase(), Distance.meters(5));
+
+        final Atlas atlas = this.setup.getOverMergeAtlas();
+        logger.info("Atlas: {}", atlas);
+        final List<BigNode> bigNodes = Iterables
+                .asList(new BigNodeFinder(configurableRadius).find(atlas));
+        final Set<BigNode> dualCarriageWayBigNodes = bigNodes.stream()
+                .filter(bigNode -> bigNode.getType().equals(Type.DUAL_CARRIAGEWAY))
+                .collect(Collectors.toSet());
+        Assert.assertEquals("Expect to find 1 Dual Carriageway Big Node for this atlas", 2,
+                dualCarriageWayBigNodes.size());
+        final Set<Long> dualCarriageWayNodes = dualCarriageWayBigNodes.stream()
+                .flatMap(bigNode -> bigNode.nodes().stream()).map(node -> node.getIdentifier())
+                .collect(Collectors.toSet());
+        Assert.assertEquals("Expect to find 13 Dual Carriageway Sub Nodes", 7,
+                dualCarriageWayNodes.size());
     }
 
     @Test

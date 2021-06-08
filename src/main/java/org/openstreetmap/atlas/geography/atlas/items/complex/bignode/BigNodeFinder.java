@@ -254,7 +254,6 @@ public class BigNodeFinder implements Finder<BigNode>
      */
     private static final int LEVENSHTEIN_DISTANCE_THRESHOLD = 1;
     private static final Logger logger = LoggerFactory.getLogger(BigNodeFinder.class);
-
     /**
      * The limits below are used as upper bounds for length of the junction edge. The limits for the
      * junction edge are based not on road classification of the junction edge but the highest road
@@ -279,10 +278,18 @@ public class BigNodeFinder implements Finder<BigNode>
      * OSM ways overlap.
      */
     private static final int MAXIMUM_CANDIDATE_JUNCTION_ROUTE_SET_SIZE = 10_000;
-
+    private Map<String, Distance> radiusMap;
     private final EdgeDirectionComparator edgeDirectionComparator = new EdgeDirectionComparator();
-
     private final NameFinder nameFinder = new NameFinder().withTags(STANDARD_TAGS);
+
+    public BigNodeFinder()
+    {
+    }
+
+    public BigNodeFinder(final Map<String, Distance> radiusMap)
+    {
+        this.radiusMap = radiusMap;
+    }
 
     @Override
     public Iterable<BigNode> find(final Atlas atlas)
@@ -759,6 +766,11 @@ public class BigNodeFinder implements Finder<BigNode>
 
     private Distance searchRadius(final HighwayTag highwayTag)
     {
+        if (this.radiusMap != null && this.radiusMap.containsKey(highwayTag.getTagValue()))
+        {
+            return this.radiusMap.get(highwayTag.getTagValue());
+        }
+
         if (highwayTag == HighwayTag.MOTORWAY || highwayTag == HighwayTag.MOTORWAY_LINK)
         {
             return SEARCH_RADIUS_MOTORWAY;
