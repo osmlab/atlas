@@ -1,0 +1,8 @@
+{
+    "filters": [
+      "landuse->*",
+      "natural->*",
+      "surface->*",
+      "landcover->*"
+      ]
+  }
