@@ -185,8 +185,7 @@ public class ComplexLandCoverFinderTestRule extends CoreTestRule
                                             @Relation(id = "39190", members = {
                                                     @Member(id = "39010", type = "area", role = "outer"),
                                                     @Member(id = "38989", type = "area", role = "inner") }, tags = {
-                                                            "type=multipolygon",
-                                                            "surface=paved" }),
+                                                            "type=multipolygon", "surface=paved" }),
                                             @Relation(id = "39990", members = {
                                                     @Member(id = "38987", type = "area", role = "outer") }, tags = {
                                                             "type=boundary",
