@@ -157,7 +157,7 @@ public class BigNodeFinderTest extends AtlasLoadingCommand
         configurableRadius.put(HighwayTag.RESIDENTIAL.name().toLowerCase(), Distance.meters(5));
 
         final Map<String, String> nonJunctionEdgeTagMap = new HashMap<>();
-        nonJunctionEdgeTagMap.put("kittyhawk.form_of_way", "CROSSWALK");
+        nonJunctionEdgeTagMap.put("test.way", "CROSSWALK");
 
         final Atlas atlas = this.setup.getOverMergeAtlas();
         logger.info("Atlas: {}", atlas);
