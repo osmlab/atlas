@@ -279,6 +279,7 @@ public class BigNodeFinder implements Finder<BigNode>
      */
     private static final int MAXIMUM_CANDIDATE_JUNCTION_ROUTE_SET_SIZE = 10_000;
     private Map<String, Distance> radiusMap;
+    private Map<String, String> nonJunctionEdgeTagMap;
     private final EdgeDirectionComparator edgeDirectionComparator = new EdgeDirectionComparator();
     private final NameFinder nameFinder = new NameFinder().withTags(STANDARD_TAGS);
 
@@ -286,9 +287,11 @@ public class BigNodeFinder implements Finder<BigNode>
     {
     }
 
-    public BigNodeFinder(final Map<String, Distance> radiusMap)
+    public BigNodeFinder(final Map<String, Distance> radiusMap,
+            final Map<String, String> nonJunctionEdgeTagMap)
     {
         this.radiusMap = radiusMap;
+        this.nonJunctionEdgeTagMap = nonJunctionEdgeTagMap;
     }
 
     @Override
@@ -424,6 +427,20 @@ public class BigNodeFinder implements Finder<BigNode>
     }
 
     /*
+     * Check if an edge contains any tags to be excluded as junction edges
+     */
+    protected boolean hasJunctionEdgeTags(final Edge edge)
+    {
+        if (this.nonJunctionEdgeTagMap != null)
+        {
+            return this.nonJunctionEdgeTagMap.entrySet().stream()
+                    .noneMatch(entry -> edge.getTags().containsKey(entry.getKey())
+                            && edge.getTags().get(entry.getKey()).equals(entry.getValue()));
+        }
+        return true;
+    }
+
+    /*
      * Check if the start and end node of an edge connects to the same edge. Example is
      * https://www.openstreetmap.org/way/798542598 This type of edge should not be considered as
      * junction edge
@@ -491,7 +508,8 @@ public class BigNodeFinder implements Finder<BigNode>
     {
         final HighwayTag highwayTag = edge.highwayTag();
         return isShortEnough(edge) && highwayTag.isMoreImportantThanOrEqualTo(HighwayTag.SERVICE)
-                && !JunctionTag.isRoundabout(edge) && !startAndEndNodesConnectedToSameEdge(edge);
+                && hasJunctionEdgeTags(edge) && !JunctionTag.isRoundabout(edge)
+                && !startAndEndNodesConnectedToSameEdge(edge);
     }
 
     private boolean isDualCarriageWayJunctionEdge(final Edge candidateEdge)
