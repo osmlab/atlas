@@ -258,7 +258,7 @@ public class BigNodeFinderTest extends AtlasLoadingCommand
         Assert.assertEquals("Expect to find 4 Dual Carriageway Sub Nodes", 4,
                 dualCarriageWayNodes.size());
     }
-    
+
     @Test
     public void testOverMergeBigNodes()
     {
