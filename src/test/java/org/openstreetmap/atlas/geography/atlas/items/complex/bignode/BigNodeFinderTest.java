@@ -146,36 +146,6 @@ public class BigNodeFinderTest extends AtlasLoadingCommand
     }
 
     @Test
-    public void testHasJunctionEdgeTags()
-    {
-        final Map<String, Distance> configurableRadius = new HashMap<>();
-        configurableRadius.put(HighwayTag.MOTORWAY.name().toLowerCase(), Distance.meters(10));
-        configurableRadius.put(HighwayTag.TRUNK.name().toLowerCase(), Distance.meters(10));
-        configurableRadius.put(HighwayTag.PRIMARY.name().toLowerCase(), Distance.meters(10));
-        configurableRadius.put(HighwayTag.SECONDARY.name().toLowerCase(), Distance.meters(10));
-        configurableRadius.put(HighwayTag.TERTIARY.name().toLowerCase(), Distance.meters(10));
-        configurableRadius.put(HighwayTag.RESIDENTIAL.name().toLowerCase(), Distance.meters(5));
-
-        final Map<String, String> nonJunctionEdgeTagMap = new HashMap<>();
-        nonJunctionEdgeTagMap.put("test.way", "CROSSWALK");
-
-        final Atlas atlas = this.setup.getOverMergeAtlas();
-        logger.info("Atlas: {}", atlas);
-        final List<BigNode> bigNodes = Iterables
-                .asList(new BigNodeFinder(configurableRadius, nonJunctionEdgeTagMap).find(atlas));
-        final Set<BigNode> dualCarriageWayBigNodes = bigNodes.stream()
-                .filter(bigNode -> bigNode.getType().equals(Type.DUAL_CARRIAGEWAY))
-                .collect(Collectors.toSet());
-        Assert.assertEquals("Expect to find 1 Dual Carriageway Big Node for this atlas", 1,
-                dualCarriageWayBigNodes.size());
-        final Set<Long> dualCarriageWayNodes = dualCarriageWayBigNodes.stream()
-                .flatMap(bigNode -> bigNode.nodes().stream()).map(node -> node.getIdentifier())
-                .collect(Collectors.toSet());
-        Assert.assertEquals("Expect to find 4 Dual Carriageway Sub Nodes", 4,
-                dualCarriageWayNodes.size());
-    }
-
-    @Test
     public void testDualCarriageWayMerging()
     {
         logger.info("Atlas: {}", this.setup.getAtlas());
@@ -259,6 +229,36 @@ public class BigNodeFinderTest extends AtlasLoadingCommand
         Assert.assertEquals("Expect to find 31 simple big nodes", 31, bigNodes.size());
     }
 
+    @Test
+    public void testHasJunctionEdgeTags()
+    {
+        final Map<String, Distance> configurableRadius = new HashMap<>();
+        configurableRadius.put(HighwayTag.MOTORWAY.name().toLowerCase(), Distance.meters(10));
+        configurableRadius.put(HighwayTag.TRUNK.name().toLowerCase(), Distance.meters(10));
+        configurableRadius.put(HighwayTag.PRIMARY.name().toLowerCase(), Distance.meters(10));
+        configurableRadius.put(HighwayTag.SECONDARY.name().toLowerCase(), Distance.meters(10));
+        configurableRadius.put(HighwayTag.TERTIARY.name().toLowerCase(), Distance.meters(10));
+        configurableRadius.put(HighwayTag.RESIDENTIAL.name().toLowerCase(), Distance.meters(5));
+
+        final Map<String, String> nonJunctionEdgeTagMap = new HashMap<>();
+        nonJunctionEdgeTagMap.put("test.way", "CROSSWALK");
+
+        final Atlas atlas = this.setup.getOverMergeAtlas();
+        logger.info("Atlas: {}", atlas);
+        final List<BigNode> bigNodes = Iterables
+                .asList(new BigNodeFinder(configurableRadius, nonJunctionEdgeTagMap).find(atlas));
+        final Set<BigNode> dualCarriageWayBigNodes = bigNodes.stream()
+                .filter(bigNode -> bigNode.getType().equals(Type.DUAL_CARRIAGEWAY))
+                .collect(Collectors.toSet());
+        Assert.assertEquals("Expect to find 1 Dual Carriageway Big Node for this atlas", 1,
+                dualCarriageWayBigNodes.size());
+        final Set<Long> dualCarriageWayNodes = dualCarriageWayBigNodes.stream()
+                .flatMap(bigNode -> bigNode.nodes().stream()).map(node -> node.getIdentifier())
+                .collect(Collectors.toSet());
+        Assert.assertEquals("Expect to find 4 Dual Carriageway Sub Nodes", 4,
+                dualCarriageWayNodes.size());
+    }
+    
     @Test
     public void testOverMergeBigNodes()
     {
