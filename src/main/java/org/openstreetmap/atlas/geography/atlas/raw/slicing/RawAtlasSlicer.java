@@ -1680,7 +1680,8 @@ public class RawAtlasSlicer
     {
         if (point.getOsmTags().isEmpty()
                 && !this.pointsBelongingToEdge.contains(point.getIdentifier())
-                && !this.stagedPoints.get(point.getIdentifier()).getTag(SyntheticBoundaryNodeTag.KEY).isPresent())
+                && !this.stagedPoints.get(point.getIdentifier())
+                        .getTag(SyntheticBoundaryNodeTag.KEY).isPresent())
         {
             // we care about a point if and only if it has pre-existing OSM tags OR it belongs
             // to a future edge
