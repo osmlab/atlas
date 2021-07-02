@@ -372,7 +372,8 @@ public class AtlasSectionProcessor
     {
         if (!this.inputAtlas.pointsAt(nodeLocation).iterator().hasNext())
         {
-            throw new CoreException("Couldn't find node at {} while sectioning Line {} for Atlas {}",
+            throw new CoreException(
+                    "Couldn't find node at {} while sectioning Line {} for Atlas {}",
                     nodeLocation.toString(), line.toString(), getShardOrAtlasName());
         }
         final Point pointForNode = this.inputAtlas.pointsAt(nodeLocation).iterator().next();
