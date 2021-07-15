@@ -414,6 +414,26 @@ public class RawAtlasSlicerTest
     }
 
     /**
+     * This is a pretty straightforward case-- just looking to confirm the geometry isn't altered,
+     * the country tag is updated, and the tagless points are <i>not</i> removed ("keepAll" option)
+     */
+    @Test
+    public void testClosedLineInsideSingleCountryKeepAll()
+    {
+        final Atlas rawAtlas = this.setup.getClosedLineFullyInOneCountryAtlas();
+        final Atlas slicedAtlas = new RawAtlasSlicer(AtlasLoadingOption
+                .createOptionWithAllEnabled(boundary).setCountryCode("GIN").setKeepAll(true),
+                rawAtlas).slice();
+
+        Assert.assertEquals(1, slicedAtlas.numberOfLines());
+        Assert.assertTrue(slicedAtlas.line(1).isClosed());
+        Assert.assertEquals(rawAtlas.line(1).asPolyLine(), slicedAtlas.line(1).asPolyLine());
+        Assert.assertEquals("GIN", slicedAtlas.line(1).getTag(ISOCountryTag.KEY).get());
+        Assert.assertTrue(slicedAtlas.line(1).getTag(SyntheticGeometrySlicedTag.KEY).isEmpty());
+        Assert.assertEquals(4, slicedAtlas.numberOfPoints());
+    }
+
+    /**
      * This is the same geometry as the line in testClosedEdgeSpanningTwoCountries(), but the
      * tagging here no longer qualifies it as an Edge. The result should be different, accordingly,
      * as the closed line will now be sliced as a polygon and tagless points will be removed.
@@ -541,7 +561,6 @@ public class RawAtlasSlicerTest
      * This line is an Edge candidate that goes across the boundary multiple times. Expect geometry
      * to be sliced and new synthetic nodes to be made.
      */
-
     @Test
     public void testEdgeWeavingAcrossBoundary()
     {
@@ -611,6 +630,111 @@ public class RawAtlasSlicerTest
                 Assert.assertEquals(rawAtlas.point(point.getIdentifier()).getOsmTags(),
                         point.getOsmTags());
                 Assert.assertEquals("LBR", point.getTag(ISOCountryTag.KEY).get());
+            }
+            else
+            {
+                Assert.assertEquals("CIV,LBR", point.getTag(ISOCountryTag.KEY).get());
+                Assert.assertEquals(SyntheticBoundaryNodeTag.YES.toString(),
+                        point.getTag(SyntheticBoundaryNodeTag.KEY).get());
+                Assert.assertNotNull(civSlicedAtlas.point(point.getIdentifier()));
+                civSlicedAtlas.linesContaining(point.getLocation()).forEach(lineContaining ->
+                {
+                    Assert.assertTrue(lineContaining.asPolyLine().first()
+                            .equals(point.getLocation())
+                            || lineContaining.asPolyLine().last().equals(point.getLocation()));
+                });
+            }
+        }
+    }
+
+    /**
+     * This line is an Edge candidate that goes across the boundary multiple times. Expect geometry
+     * to be sliced and new synthetic nodes to be made. The nodes/points should all still be there.
+     */
+    @Test
+    public void testEdgeWeavingAcrossBoundaryKeepAll()
+    {
+        final Atlas rawAtlas = this.setup.getRoadWeavingAlongBoundaryAtlas();
+        final Atlas civSlicedAtlas = new RawAtlasSlicer(AtlasLoadingOption
+                .createOptionWithAllEnabled(boundary).setCountryCode("CIV").setKeepAll(true),
+                rawAtlas).slice();
+        final Atlas lbrSlicedAtlas = new RawAtlasSlicer(AtlasLoadingOption
+                .createOptionWithAllEnabled(boundary).setCountryCode("LBR").setKeepAll(true),
+                rawAtlas).slice();
+
+        final CountrySlicingIdentifierFactory lineIdentifierFactory = new CountrySlicingIdentifierFactory(
+                1);
+
+        final Line firstCreatedLine = civSlicedAtlas.line(lineIdentifierFactory.nextIdentifier());
+        Assert.assertNotNull("Check new way addition", firstCreatedLine);
+        Assert.assertEquals("Expect the first segment to be on the Ivory Coast side", "CIV",
+                firstCreatedLine.getTag(ISOCountryTag.KEY).get());
+
+        final Line secondCreatedLine = civSlicedAtlas.line(lineIdentifierFactory.nextIdentifier());
+        Assert.assertNotNull("Check new way addition", secondCreatedLine);
+        Assert.assertEquals("Expect the second segment to be on the Ivory Coast side", "CIV",
+                secondCreatedLine.getTag(ISOCountryTag.KEY).get());
+
+        final Line thirdCreatedLine = lbrSlicedAtlas.line(lineIdentifierFactory.nextIdentifier());
+        Assert.assertNotNull("Check new way addition", thirdCreatedLine);
+        Assert.assertEquals("Expect the third segment to be on the Liberia side", "LBR",
+                thirdCreatedLine.getTag(ISOCountryTag.KEY).get());
+
+        final Line fourthCreatedLine = lbrSlicedAtlas.line(lineIdentifierFactory.nextIdentifier());
+        Assert.assertNotNull("Check new way addition", fourthCreatedLine);
+        Assert.assertEquals("Expect the fourth segment to be on the Liberia side", "LBR",
+                fourthCreatedLine.getTag(ISOCountryTag.KEY).get());
+
+        // We keep all the points
+        Assert.assertEquals(8, civSlicedAtlas.numberOfPoints());
+        Assert.assertEquals(5, Iterables.stream(civSlicedAtlas.points())
+                .filter(point -> point.getIdentifier() > 0).collectToList().size());
+        Assert.assertEquals(8, lbrSlicedAtlas.numberOfPoints());
+        Assert.assertEquals(5, Iterables.stream(lbrSlicedAtlas.points())
+                .filter(point -> point.getIdentifier() > 0).collectToList().size());
+        for (final Point point : civSlicedAtlas.points())
+        {
+            if (rawAtlas.point(point.getIdentifier()) != null)
+            {
+                Assert.assertEquals(rawAtlas.point(point.getIdentifier()).getOsmTags(),
+                        point.getOsmTags());
+                if ("CIV".equals(
+                        boundary.getCountryCodeISO3(point.getLocation()).getIso3CountryCode()))
+                {
+                    Assert.assertEquals("CIV", point.getTag(ISOCountryTag.KEY).get());
+                }
+            }
+            else
+            {
+                Assert.assertEquals("CIV,LBR", point.getTag(ISOCountryTag.KEY).get());
+                Assert.assertEquals(SyntheticBoundaryNodeTag.YES.toString(),
+                        point.getTag(SyntheticBoundaryNodeTag.KEY).get());
+                Assert.assertNotNull(lbrSlicedAtlas.point(point.getIdentifier()));
+                civSlicedAtlas.linesContaining(point.getLocation()).forEach(lineContaining ->
+                {
+                    Assert.assertTrue(lineContaining.asPolyLine().first()
+                            .equals(point.getLocation())
+                            || lineContaining.asPolyLine().last().equals(point.getLocation()));
+                });
+            }
+        }
+
+        for (final Point point : lbrSlicedAtlas.points())
+        {
+            if (rawAtlas.point(point.getIdentifier()) != null)
+            {
+                Assert.assertEquals(rawAtlas.point(point.getIdentifier()).getOsmTags(),
+                        point.getOsmTags());
+                if ("LBR".equals(
+                        boundary.getCountryCodeISO3(point.getLocation()).getIso3CountryCode()))
+                {
+                    Assert.assertEquals("LBR", point.getTag(ISOCountryTag.KEY).get());
+                }
+                else if ("CIV".equals(
+                        boundary.getCountryCodeISO3(point.getLocation()).getIso3CountryCode()))
+                {
+                    Assert.assertEquals("CIV", point.getTag(ISOCountryTag.KEY).get());
+                }
             }
             else
             {

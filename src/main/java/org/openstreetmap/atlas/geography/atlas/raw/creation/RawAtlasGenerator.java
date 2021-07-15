@@ -227,7 +227,15 @@ public class RawAtlasGenerator
         else
         {
             final Time trimTime = Time.now();
-            final Atlas trimmedAtlas = removeDuplicateAndExtraneousPointsFromAtlas(atlas);
+            final Atlas trimmedAtlas;
+            if (this.atlasLoadingOption.isKeepAll())
+            {
+                trimmedAtlas = atlas;
+            }
+            else
+            {
+                trimmedAtlas = removeDuplicateAndExtraneousPointsFromAtlas(atlas);
+            }
             logger.info("Trimmed Raw Atlas for {} in {}", shardName, trimTime.elapsedSince());
 
             if (trimmedAtlas == null)

@@ -156,7 +156,8 @@ public class OsmPbfCounter implements Sink
             }
             if (shouldLoadOsmNode(rawEntity))
             {
-                // This node is within the boundary, bring it in
+                // This node is within the boundary or we are using the generated atlas file for QA
+                // purposes, bring it in
                 this.nodeIdentifiersToInclude.add(rawEntity.getId());
             }
             else if (shouldLoadOsmWay(rawEntity))
@@ -385,8 +386,12 @@ public class OsmPbfCounter implements Sink
 
     private boolean shouldLoadOsmNode(final Entity entity)
     {
+        // For QA purposes, it is necessary to keep nodes that are outside the target boundary.
+        // For example, atlas-checks needs to know all the node ids in order to reverse a way and
+        // then create an
+        // osmChange file for MapRoulette.
         return this.loadingOption.isLoadOsmNode() && entity instanceof Node
-                && nodeWithinTargetBoundary((Node) entity);
+                && (nodeWithinTargetBoundary((Node) entity) || this.loadingOption.isKeepAll());
     }
 
     private boolean shouldLoadOsmRelation(final Entity entity)

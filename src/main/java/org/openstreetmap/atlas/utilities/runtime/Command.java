@@ -211,7 +211,7 @@ public abstract class Command
                         final Switch<?> foundSwitch = switches.get(switchName);
                         if (foundSwitch instanceof Flag)
                         {
-                            logger.info("Found flag {}", switchName, Boolean.TRUE.toString());
+                            logger.info("Found flag {} with value {}", switchName, Boolean.TRUE);
                             inputValues.put(foundSwitch, Boolean.TRUE.toString());
                         }
                         else

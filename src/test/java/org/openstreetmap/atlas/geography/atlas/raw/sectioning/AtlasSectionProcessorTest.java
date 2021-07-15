@@ -193,6 +193,24 @@ public class AtlasSectionProcessorTest
         Assert.assertEquals("Four edges, each having a reverse counterpart", 4,
                 finalAtlas.numberOfEdges());
         Assert.assertEquals("Two nodes", 2, finalAtlas.numberOfNodes());
+        Assert.assertEquals("No points", 0, finalAtlas.numberOfPoints());
+        Assert.assertEquals("This way got sectioned 4 times, with reverse edges", 4,
+                Iterables.size(finalAtlas.edges(edge -> edge.getOsmIdentifier() == 488453376L)));
+    }
+
+    @Test
+    public void testLineWithRepeatedLocationKeepAll()
+    {
+        // Based on a prior version of https://www.openstreetmap.org/way/488453376
+        final Atlas slicedRawAtlas = this.setup.getLineWithRepeatedLocationAtlas();
+        // setKeepAll is not set in createOptionWithAllEnabled since it may break downstream users.
+        final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas, AtlasLoadingOption
+                .createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP).setKeepAll(true)).run();
+
+        Assert.assertEquals("Four edges, each having a reverse counterpart", 4,
+                finalAtlas.numberOfEdges());
+        Assert.assertEquals("Two nodes", 2, finalAtlas.numberOfNodes());
+        Assert.assertEquals("Eight points", 8, finalAtlas.numberOfPoints());
         Assert.assertEquals("This way got sectioned 4 times, with reverse edges", 4,
                 Iterables.size(finalAtlas.edges(edge -> edge.getOsmIdentifier() == 488453376L)));
     }

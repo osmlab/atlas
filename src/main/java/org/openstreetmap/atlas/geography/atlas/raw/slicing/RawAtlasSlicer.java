@@ -141,6 +141,8 @@ public class RawAtlasSlicer
     private final CountryBoundaryMap boundary;
     private final String shardOrAtlasName;
     private final String country;
+    /** See {@link AtlasLoadingOption#isKeepAll} */
+    private final boolean keepAll;
     private final Map<Long, CompleteArea> stagedAreas = new ConcurrentHashMap<>();
     private final Map<Long, CompleteRelation> stagedRelations = new ConcurrentHashMap<>();
     private final Map<Long, CompleteLine> stagedLines = new ConcurrentHashMap<>();
@@ -193,6 +195,8 @@ public class RawAtlasSlicer
                 line -> this.stagedLines.put(line.getIdentifier(), CompleteLine.from(line)));
         this.inputAtlas.relations().forEach(relation -> this.stagedRelations
                 .put(relation.getIdentifier(), CompleteRelation.from(relation)));
+
+        this.keepAll = loadingOption.isKeepAll();
     }
 
     /**
@@ -278,6 +282,8 @@ public class RawAtlasSlicer
                 line -> this.stagedLines.put(line.getIdentifier(), CompleteLine.from(line)));
         this.inputAtlas.relations().forEach(relation -> this.stagedRelations
                 .put(relation.getIdentifier(), CompleteRelation.from(relation)));
+
+        this.keepAll = loadingOption.isKeepAll();
     }
 
     /**
@@ -1679,12 +1685,12 @@ public class RawAtlasSlicer
     private void slicePoint(final Point point)
     {
         if (point.getOsmTags().isEmpty()
-                && !this.pointsBelongingToEdge.contains(point.getIdentifier())
-                && !this.stagedPoints.get(point.getIdentifier())
-                        .getTag(SyntheticBoundaryNodeTag.KEY).isPresent())
+                && !this.pointsBelongingToEdge.contains(point.getIdentifier()) && !this.stagedPoints
+                        .get(point.getIdentifier()).getTag(SyntheticBoundaryNodeTag.KEY).isPresent()
+                && !this.keepAll)
         {
             // we care about a point if and only if it has pre-existing OSM tags OR it belongs
-            // to a future edge
+            // to a future edge OR we are keeping all points for QC
             this.stagedPoints.remove(point.getIdentifier());
             this.changes.add(FeatureChange.remove(CompletePoint.shallowFrom(point)));
         }
@@ -1701,7 +1707,7 @@ public class RawAtlasSlicer
                 updatedPoint.withAddedTag(SyntheticBoundaryNodeTag.KEY,
                         SyntheticBoundaryNodeTag.EXISTING.toString());
             }
-            if (!this.isInCountry.test(updatedPoint))
+            if (!this.isInCountry.test(updatedPoint) && !this.keepAll)
             {
                 this.stagedPoints.remove(point.getIdentifier());
                 this.changes.add(FeatureChange.remove(updatedPoint, this.inputAtlas));

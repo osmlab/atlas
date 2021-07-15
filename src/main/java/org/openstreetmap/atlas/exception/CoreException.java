@@ -78,6 +78,15 @@ public class CoreException extends RuntimeException
         super(message);
     }
 
+    /**
+     * Create a new CoreException with a specified message
+     *
+     * @param message
+     *            The message (formatted with {@link MessageFormatter#arrayFormat})
+     * @param arguments
+     *            The arguments (if the <i>last</i> argument is a {@link Throwable}, that becomes
+     *            the cause)
+     */
     public CoreException(final String message, final Object... arguments)
     {
         super(MessageFormatter.arrayFormat(message, REFINE_ARGUMENTS.apply(arguments)).getMessage(),

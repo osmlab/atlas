@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.raw.creation;
 
+import java.nio.file.FileSystems;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -115,10 +116,32 @@ public class RawAtlasGeneratorTest
 
         // Verify Atlas Entities
         assertBasicRawAtlasPrinciples(atlas);
+        // A duplicate point is removed
         Assert.assertEquals(5, atlas.numberOfPoints());
         Assert.assertEquals(0, atlas.numberOfLines());
         Assert.assertEquals(1, atlas.numberOfAreas());
         Assert.assertEquals(2, atlas.numberOfRelations());
+    }
+
+    @Test
+    public void testNestedSingleRelationsKeepAll()
+    {
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(
+                new InputStreamResource(() -> RawAtlasGeneratorTest.class
+                        .getResourceAsStream("nestedSingleRelations.osm.pbf")),
+                AtlasLoadingOption.withNoFilter().setKeepAll(true), MultiPolygon.MAXIMUM);
+
+        final Atlas atlas = rawAtlasGenerator.build();
+
+        // Verify Atlas Entities
+        assertBasicRawAtlasPrinciples(atlas);
+        // The duplicate point is not removed
+        Assert.assertEquals(6, atlas.numberOfPoints());
+        Assert.assertEquals(0, atlas.numberOfLines());
+        Assert.assertEquals(1, atlas.numberOfAreas());
+        // No relations are dropped (there are four in the source PBF: `parent1`, `parent1-1`,
+        // `parent2`, `parent2-2`).
+        Assert.assertEquals(4, atlas.numberOfRelations());
     }
 
     @Test
@@ -153,6 +176,31 @@ public class RawAtlasGeneratorTest
         Assert.assertEquals(5399, atlas.numberOfAreas());
         Assert.assertEquals(686, atlas.numberOfLines());
         Assert.assertEquals(5, atlas.numberOfRelations());
+        // Duplicated nodes (same tags all round). These are deduplicated without the keepAll flag
+        // in the atlas loading options.
+        Assert.assertEquals(1, Iterables
+                .size(atlas.points(1070166221000000L, 1070191833000000L, 1070195543000000L)));
+    }
+
+    @Test
+    public void testRawAtlasCreationKeepAll()
+    {
+        final String path = RawAtlasGeneratorTest.class.getResource("9-433-268.osm.pbf").getPath();
+        final RawAtlasGenerator rawAtlasGenerator = new RawAtlasGenerator(
+                new File(path, FileSystems.getDefault()),
+                AtlasLoadingOption.withNoFilter().setKeepAll(true), MultiPolygon.MAXIMUM);
+        final Atlas atlas = rawAtlasGenerator.build();
+
+        // Verify Atlas Entities
+        assertBasicRawAtlasPrinciples(atlas);
+        Assert.assertEquals(55265, atlas.numberOfPoints());
+        Assert.assertEquals(5399, atlas.numberOfAreas());
+        Assert.assertEquals(694, atlas.numberOfLines());
+        Assert.assertEquals(11, atlas.numberOfRelations());
+        // Duplicated nodes (same tags all round). These are deduplicated without the keepAll flag
+        // in the atlas loading options.
+        Assert.assertEquals(3, Iterables
+                .size(atlas.points(1070166221000000L, 1070191833000000L, 1070195543000000L)));
     }
 
     @Test

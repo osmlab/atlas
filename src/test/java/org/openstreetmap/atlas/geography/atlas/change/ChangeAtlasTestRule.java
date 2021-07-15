@@ -4,6 +4,7 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.utilities.testing.CoreTestRule;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Edge;
+import org.openstreetmap.atlas.utilities.testing.TestAtlas.Line;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Loc;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Node;
 import org.openstreetmap.atlas.utilities.testing.TestAtlas.Point;
@@ -121,6 +122,13 @@ public class ChangeAtlasTestRule extends CoreTestRule
     )
     private Atlas pointAtlas;
 
+    @TestAtlas(points = { @Point(id = "1000000", coordinates = @Loc(value = ONE)),
+            @Point(id = "2000000", coordinates = @Loc(value = TWO)),
+            @Point(id = "3000000", coordinates = @Loc(value = THREE)) }, lines = {
+                    @Line(id = "1000000", coordinates = { @Loc(value = ONE), @Loc(value = TWO),
+                            @Loc(value = THREE) }, tags = { "name=Something" }) })
+    private Atlas geometryChangeAtlas;
+
     public Atlas differentNodeAndEdgeProperties1()
     {
         return this.differentNodeAndEdgeProperties1;
@@ -139,6 +147,16 @@ public class ChangeAtlasTestRule extends CoreTestRule
     public Atlas getAtlasEdge()
     {
         return this.atlasEdge;
+    }
+
+    /**
+     * Get an atlas designed to test geometry changes
+     *
+     * @return The geometry atlas
+     */
+    public Atlas getGeometryChangeAtlas()
+    {
+        return this.geometryChangeAtlas;
     }
 
     public Atlas getPointAtlas()

@@ -19,7 +19,7 @@ import com.google.gson.JsonObject;
 /**
  * A {@link ChangeDescriptor} for geometry changes. Utilizes a granular diff algorithm to show the
  * individual {@link Location}s within the linestring that actually changed.
- * 
+ *
  * @author lcram
  */
 public final class GeometryChangeDescriptor implements ChangeDescriptor
@@ -28,6 +28,15 @@ public final class GeometryChangeDescriptor implements ChangeDescriptor
     private final AbstractDelta<Location> delta;
     private final int sourceMaterialSize;
 
+    /**
+     * Create a descriptor for a geometry change
+     *
+     * @param beforeList
+     *            The node locations of the geometry prior to the change
+     * @param afterList
+     *            The node locations of the geometry after the change
+     * @return A collection of GeometryChangeDescriptors
+     */
     public static List<GeometryChangeDescriptor> getDescriptorsForGeometry(
             final List<Location> beforeList, final List<Location> afterList)
     {
@@ -41,7 +50,6 @@ public final class GeometryChangeDescriptor implements ChangeDescriptor
             throw new CoreException("Failed to compute diff for GeometryChangeDescriptor",
                     exception);
         }
-
         final List<GeometryChangeDescriptor> descriptors = new ArrayList<>();
         for (final AbstractDelta<Location> delta : diff.getDeltas())
         {
