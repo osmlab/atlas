@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.locationtech.jts.geom.MultiPolygon;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
@@ -56,6 +58,12 @@ public class MultiRelation extends Relation
     public List<Relation> allRelationsWithSameOsmIdentifier()
     {
         return multiAtlas().relationAllRelationsWithSameOsmIdentifier(this.identifier);
+    }
+
+    @Override
+    public Optional<MultiPolygon> asMultiPolygon()
+    {
+        return getSingleSubRelation().asMultiPolygon();
     }
 
     @Override

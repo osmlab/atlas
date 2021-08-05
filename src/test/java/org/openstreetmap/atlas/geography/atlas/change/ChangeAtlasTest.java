@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -31,7 +33,16 @@ import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.geography.atlas.items.Relation.Ring;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
+import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicer;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicerTest;
+import org.openstreetmap.atlas.geography.atlas.raw.slicing.RawAtlasSlicerTestRule;
+import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
+import org.openstreetmap.atlas.streaming.compression.Decompressor;
+import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
@@ -45,11 +56,98 @@ public class ChangeAtlasTest
 {
     private static final Location NEW_LOCATION = Location.forString("37.592796,-122.2457961");
 
+    private static final CountryBoundaryMap boundary;
+    static
+    {
+        boundary = CountryBoundaryMap
+                .fromPlainText(new InputStreamResource(() -> RawAtlasSlicerTest.class
+                        .getResourceAsStream("CIV_GIN_LBR_osm_boundaries.txt.gz"))
+                                .withDecompressor(Decompressor.GZIP));
+    }
+
     @Rule
     public ChangeAtlasTestRule rule = new ChangeAtlasTestRule();
 
     @Rule
     public final ExpectedException expectedException = ExpectedException.none();
+
+    @Rule
+    public final RawAtlasSlicerTestRule setup = new RawAtlasSlicerTestRule();
+
+    @Test
+    public void aChangeMemberGeometryTest()
+    {
+        final Atlas rawAtlas = this.setup.getSimpleMultiPolygonAtlas();
+        final Atlas lbrSlicedAtlas = new RawAtlasSlicer(
+                AtlasLoadingOption.createOptionWithAllEnabled(boundary).setCountryCode("LBR"),
+                rawAtlas).slice();
+        final ChangeBuilder removeChanges = new ChangeBuilder();
+        removeChanges.add(
+                FeatureChange.remove(CompleteArea.shallowFrom(lbrSlicedAtlas.area(214581000000L))));
+        removeChanges.add(FeatureChange.add(CompleteRelation.from(lbrSlicedAtlas.relation(2000L))
+                .withRemovedMember(lbrSlicedAtlas.area(214581000000L)), lbrSlicedAtlas));
+        final ChangeAtlas removed = new ChangeAtlas(lbrSlicedAtlas, removeChanges.get());
+
+        Assert.assertNotEquals(removed.relation(2000L).asMultiPolygon().get(),
+                lbrSlicedAtlas.relation(2000L).asMultiPolygon().get());
+        Assert.assertTrue(removed.relation(2000L).asMultiPolygon().get().getArea() < lbrSlicedAtlas
+                .relation(2000L).asMultiPolygon().get().getArea());
+
+        final ChangeBuilder changes = new ChangeBuilder();
+        final CompleteArea area = CompleteArea.from(lbrSlicedAtlas.area(214581000000L));
+        changes.add(FeatureChange.add(area, removed));
+        final CompleteRelation relation = CompleteRelation.from(removed.relation(2000L));
+        relation.withAddedMember(area, Ring.OUTER.toString());
+        changes.add(FeatureChange.add(relation, removed));
+        final ChangeAtlas added = new ChangeAtlas(removed, changes.get());
+        Assert.assertEquals(added.relation(2000L).asMultiPolygon().get().norm(),
+                lbrSlicedAtlas.relation(2000L).asMultiPolygon().get().norm());
+    }
+
+    @Test(expected = CoreException.class)
+    public void aChangeMemberGeometryTest2()
+    {
+        final Atlas rawAtlas = this.setup.getComplexMultiPolygonWithHoleUsingOpenLinesAtlas();
+        final Atlas civSlicedAtlas = new RawAtlasSlicer(
+                AtlasLoadingOption.createOptionWithAllEnabled(boundary).setCountryCode("CIV"),
+                rawAtlas).slice();
+
+        final ChangeBuilder removeChanges = new ChangeBuilder();
+        removeChanges.add(
+                FeatureChange.remove(CompleteLine.shallowFrom(civSlicedAtlas.line(106033001000L))));
+        removeChanges
+                .add(FeatureChange.add(
+                        CompleteRelation.from(civSlicedAtlas.relation(214805001000L))
+                                .withRemovedMember(civSlicedAtlas.line(106033001000L)),
+                        civSlicedAtlas));
+        final ChangeAtlas removed = new ChangeAtlas(civSlicedAtlas, removeChanges.get());
+    }
+
+    @Test
+    public void aChangeMemberGeometryTest3()
+    {
+        final Atlas rawAtlas = this.setup.getComplexMultiPolygonWithHoleUsingOpenLinesAtlas();
+        final Atlas civSlicedAtlas = new RawAtlasSlicer(
+                AtlasLoadingOption.createOptionWithAllEnabled(boundary).setCountryCode("CIV"),
+                rawAtlas).slice();
+
+        final ChangeBuilder changes = new ChangeBuilder();
+        changes.add(
+                FeatureChange.remove(CompleteLine.shallowFrom(civSlicedAtlas.line(106033001000L))));
+
+        final CompleteLine replace = new CompleteLine(106033002000L,
+                civSlicedAtlas.line(106033001000L).asPolyLine(), new HashMap<>(), new HashSet<>());
+        final CompleteRelation relation = CompleteRelation
+                .shallowFrom(civSlicedAtlas.relation(214805001000L));
+        relation.withAddedMember(replace, Ring.OUTER.toString());
+        changes.add(FeatureChange.add(relation, civSlicedAtlas));
+        changes.add(FeatureChange.add(replace));
+
+        final ChangeAtlas replaced = new ChangeAtlas(civSlicedAtlas, changes.get());
+
+        Assert.assertEquals(replaced.relation(214805001000L).asMultiPolygon().get().norm(),
+                replaced.relation(214805001000L).asMultiPolygon().get().norm());
+    }
 
     @Test
     public void testAntimeridian()
@@ -348,7 +446,7 @@ public class ChangeAtlasTest
     }
 
     @Test
-    public void testRemoveEdgeWhenAConnectedNodeIsMissing()
+    public void testRemovedEdgeWhenAConnectedNodeIsMissing()
     {
         final Atlas atlas = this.rule.getAtlas();
         final ChangeBuilder changeBuilder = new ChangeBuilder();
@@ -374,7 +472,7 @@ public class ChangeAtlasTest
     }
 
     @Test
-    public void testRemoveRelationMember()
+    public void testRemovedRelationMember()
     {
         final Atlas atlas = this.rule.getAtlas();
         final ChangeBuilder changeBuilder = new ChangeBuilder();
@@ -401,7 +499,7 @@ public class ChangeAtlasTest
     }
 
     @Test
-    public void testRemoveRelationMemberEasy()
+    public void testRemovedRelationMemberEasy()
     {
         final Atlas atlas = this.rule.getPointAtlas();
         final ChangeBuilder changeBuilder = new ChangeBuilder();
@@ -430,7 +528,37 @@ public class ChangeAtlasTest
     }
 
     @Test
-    public void testRemoveRelationMemberIsReflectedInMemberListAutomatically()
+    public void testRemovedRelationMemberFromIndirectRemoval()
+    {
+        final Atlas atlas = this.rule.getAtlas();
+
+        // Remove a node. This removal will trigger an indirect removal of the connected edges. This
+        // should also trigger an indirect removal of these members from any relation member lists.
+        final ChangeBuilder changeBuilder = new ChangeBuilder();
+        changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
+                CompleteNode.shallowFrom(atlas.node(38984000000L))));
+        final Atlas changeAtlas = new ChangeAtlas(atlas, changeBuilder.get());
+        final RelationMemberList memberList = changeAtlas.relation(39008000000L).members();
+        final RelationMemberList newMembers = new RelationMemberList(
+                changeAtlas.relation(39008000000L).members().stream()
+                        .filter(member -> member.getEntity().getIdentifier() == -39002000001L
+                                || member.getEntity().getIdentifier() == 39002000001L)
+                        .collect(Collectors.toList()));
+        Assert.assertEquals(newMembers, memberList);
+
+        // Now, let's do the same thing but remove an additional node. This will trigger the
+        // indirect removal of all the relation's members - so we should see the relation disappear.
+        final ChangeBuilder changeBuilder2 = new ChangeBuilder();
+        changeBuilder2.add(new FeatureChange(ChangeType.REMOVE,
+                CompleteNode.shallowFrom(atlas.node(38984000000L))));
+        changeBuilder2.add(new FeatureChange(ChangeType.REMOVE,
+                CompleteNode.shallowFrom(atlas.node(38982000000L))));
+        final Atlas changeAtlas2 = new ChangeAtlas(atlas, changeBuilder2.get());
+        Assert.assertNull(changeAtlas2.relation(39008000000L));
+    }
+
+    @Test
+    public void testRemovedRelationMemberIsReflectedInMemberListAutomatically()
     {
         final Atlas atlas = this.rule.getAtlas();
         final ChangeBuilder changeBuilder = new ChangeBuilder();
@@ -456,7 +584,7 @@ public class ChangeAtlasTest
     }
 
     @Test
-    public void testRemoveShallowRelations()
+    public void testRemovedShallowRelations()
     {
         final Atlas atlas = this.rule.getAtlas();
         final ChangeBuilder changeBuilder = new ChangeBuilder();
@@ -504,36 +632,6 @@ public class ChangeAtlasTest
         // contains members which still exist and so must be preserved.
         Assert.assertFalse(changeAtlas.relation(39010000000L).members().isEmpty());
         Assert.assertNotNull(changeAtlas.relation(39010000000L));
-    }
-
-    @Test
-    public void testRemovedRelationMemberFromIndirectRemoval()
-    {
-        final Atlas atlas = this.rule.getAtlas();
-
-        // Remove a node. This removal will trigger an indirect removal of the connected edges. This
-        // should also trigger an indirect removal of these members from any relation member lists.
-        final ChangeBuilder changeBuilder = new ChangeBuilder();
-        changeBuilder.add(new FeatureChange(ChangeType.REMOVE,
-                CompleteNode.shallowFrom(atlas.node(38984000000L))));
-        final Atlas changeAtlas = new ChangeAtlas(atlas, changeBuilder.get());
-        final RelationMemberList memberList = changeAtlas.relation(39008000000L).members();
-        final RelationMemberList newMembers = new RelationMemberList(
-                changeAtlas.relation(39008000000L).members().stream()
-                        .filter(member -> member.getEntity().getIdentifier() == -39002000001L
-                                || member.getEntity().getIdentifier() == 39002000001L)
-                        .collect(Collectors.toList()));
-        Assert.assertEquals(newMembers, memberList);
-
-        // Now, let's do the same thing but remove an additional node. This will trigger the
-        // indirect removal of all the relation's members - so we should see the relation disappear.
-        final ChangeBuilder changeBuilder2 = new ChangeBuilder();
-        changeBuilder2.add(new FeatureChange(ChangeType.REMOVE,
-                CompleteNode.shallowFrom(atlas.node(38984000000L))));
-        changeBuilder2.add(new FeatureChange(ChangeType.REMOVE,
-                CompleteNode.shallowFrom(atlas.node(38982000000L))));
-        final Atlas changeAtlas2 = new ChangeAtlas(atlas, changeBuilder2.get());
-        Assert.assertNull(changeAtlas2.relation(39008000000L));
     }
 
     @Test
@@ -611,6 +709,69 @@ public class ChangeAtlasTest
         final ChangeAtlas changeAtlas8 = new ChangeAtlas(changeAtlas7, change8);
         Assert.assertEquals(Maps.hashMap("new_a", "new_1", "new_b", "new_2", "new_c", "new_3"),
                 changeAtlas8.point(1L).getTags());
+    }
+
+    @Test
+    public void testUpdateAreaGeometry()
+    {
+        final Atlas rawAtlas = this.setup.getSimpleMultiPolygonAtlas();
+        final Atlas lbrSlicedAtlas = new RawAtlasSlicer(
+                AtlasLoadingOption.createOptionWithAllEnabled(boundary).setCountryCode("LBR"),
+                rawAtlas).slice();
+
+        final ChangeBuilder removeChanges = new ChangeBuilder();
+        final CompleteArea area = CompleteArea.from(lbrSlicedAtlas.area(214581000000L))
+                .withPolygon(Polygon.SILICON_VALLEY);
+        removeChanges.add(FeatureChange.add(area, lbrSlicedAtlas));
+
+        final CompleteRelation relation = CompleteRelation.from(lbrSlicedAtlas.relation(2000L));
+        relation.getAddedGeometry().add(new JtsPolyLineConverter().convert(area.asPolygon()));
+        relation.getRemovedGeometry().add(
+                new JtsPolyLineConverter().convert(lbrSlicedAtlas.area(214581000000L).asPolygon()));
+        removeChanges.add(FeatureChange.add(relation, lbrSlicedAtlas));
+        final ChangeAtlas removed = new ChangeAtlas(lbrSlicedAtlas, removeChanges.get());
+    }
+
+    @Test(expected = CoreException.class)
+    public void testUpdateAreaGeometryButNotGeometricRelation()
+    {
+        final Atlas rawAtlas = this.setup.getSimpleMultiPolygonAtlas();
+        final Atlas lbrSlicedAtlas = new RawAtlasSlicer(
+                AtlasLoadingOption.createOptionWithAllEnabled(boundary).setCountryCode("LBR"),
+                rawAtlas).slice();
+
+        final ChangeBuilder removeChanges = new ChangeBuilder();
+        final CompleteArea area = CompleteArea.from(lbrSlicedAtlas.area(214581000000L))
+                .withPolygon(Polygon.CENTER);
+        removeChanges.add(FeatureChange.add(area, lbrSlicedAtlas));
+        final ChangeAtlas removed = new ChangeAtlas(lbrSlicedAtlas, removeChanges.get());
+
+        final CompleteRelation relation = CompleteRelation.from(lbrSlicedAtlas.relation(2000L));
+        relation.getAddedGeometry().add(new JtsPolyLineConverter().convert(area.asPolygon()));
+        relation.getRemovedGeometry().add(
+                new JtsPolyLineConverter().convert(lbrSlicedAtlas.area(214581000000L).asPolygon()));
+        removeChanges.add(FeatureChange.add(relation, lbrSlicedAtlas));
+        final ChangeAtlas removed2 = new ChangeAtlas(lbrSlicedAtlas, removeChanges.get());
+    }
+
+    @Test(expected = CoreException.class)
+    public void testUpdateAreaGeometryButNotGeometricRelation2()
+    {
+        final Atlas rawAtlas = this.setup.getSimpleMultiPolygonAtlas();
+        final Atlas lbrSlicedAtlas = new RawAtlasSlicer(
+                AtlasLoadingOption.createOptionWithAllEnabled(boundary).setCountryCode("LBR"),
+                rawAtlas).slice();
+
+        final ChangeBuilder removeChanges = new ChangeBuilder();
+        final CompleteArea area = CompleteArea.from(lbrSlicedAtlas.area(214581000000L))
+                .withPolygon(Polygon.CENTER);
+        removeChanges.add(FeatureChange.add(area, lbrSlicedAtlas));
+        final ChangeAtlas removed = new ChangeAtlas(lbrSlicedAtlas, removeChanges.get());
+
+        final CompleteRelation relation = CompleteRelation.from(lbrSlicedAtlas.relation(2000L));
+        relation.getAddedGeometry().add(new JtsPolyLineConverter().convert(area.asPolygon()));
+        removeChanges.add(FeatureChange.add(relation, lbrSlicedAtlas));
+        final ChangeAtlas removed2 = new ChangeAtlas(lbrSlicedAtlas, removeChanges.get());
     }
 
     /**

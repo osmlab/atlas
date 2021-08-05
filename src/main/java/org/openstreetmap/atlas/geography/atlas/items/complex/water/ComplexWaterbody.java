@@ -8,6 +8,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.complex.RelationOrAreaToMultiPolygonConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,7 @@ public class ComplexWaterbody extends ComplexWaterEntity
 
     private static final RelationOrAreaToMultiPolygonConverter RELATION_OR_AREA_TO_MULTI_POLYGON_CONVERTER = new RelationOrAreaToMultiPolygonConverter(
             true);
+    private static final JtsMultiPolygonToMultiPolygonConverter MULTIPOLYGON_CONVERTER = new JtsMultiPolygonToMultiPolygonConverter();
 
     private static final Logger logger = LoggerFactory.getLogger(ComplexWaterbody.class);
 
@@ -78,9 +80,11 @@ public class ComplexWaterbody extends ComplexWaterEntity
         {
             final Relation relation = (Relation) source;
             final String type = relation.tag(RelationTypeTag.KEY);
-            if (RelationTypeTag.MULTIPOLYGON_TYPE.equals(type))
+            if (RelationTypeTag.MULTIPOLYGON_TYPE.equals(type)
+                    && relation.asMultiPolygon().isPresent())
             {
-                this.geometry = RELATION_OR_AREA_TO_MULTI_POLYGON_CONVERTER.convert(relation);
+                this.geometry = MULTIPOLYGON_CONVERTER.convert(
+                        (org.locationtech.jts.geom.MultiPolygon) relation.asMultiPolygon().get());
                 return;
             }
         }

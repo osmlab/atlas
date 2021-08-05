@@ -307,7 +307,7 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
 
                     @Relation(id = "1", tags = { "type=multipolygon", "building=yes" }, members = {
                             @Member(id = "108768000000", role = "outer", type = "line"),
-                            @Member(id = "108769000000", role = "inner", type = "line") })
+                            @Member(id = "108769000000", role = "inner", type = "line") }, wkt = "MULTIPOLYGON (((-8.3381369 6.9456756, -8.3321111 6.9456756, -8.3321111 6.9232146, -8.3390373 6.9233135, -8.3390373 6.9213135, -8.3380373 6.9213135, -8.3381369 6.9456756, -8.3381369 6.9456756), (-8.3370369 6.9452756, -8.3330369 6.9452756, -8.3330369 6.9402756, -8.3370369 6.9402756, -8.3370369 6.9452756, -8.3370369 6.9452756)))")
 
             })
     private Atlas selfIntersectingOuterMemberRelation;
@@ -483,7 +483,7 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
                     @Relation(id = "214805000000", tags = { "type=multipolygon",
                             "leisure=park" }, members = {
                                     @Member(id = "214777000000", role = "outer", type = "line"),
-                                    @Member(id = "214778000000", role = "outer", type = "line") }) })
+                                    @Member(id = "214778000000", role = "outer", type = "line") }, wkt = "MULTIPOLYGON (((-8.3399363 6.8782232, -8.3403974 6.8740788, -8.3375094 6.871332, -8.3343786 6.8714284, -8.3314905 6.8719344, -8.3287723 6.8744162, -8.3319768 6.8801705, -8.3399363 6.8782232)))") })
     private Atlas singleOuterMadeOfOpenLinesSpanningTwoCountriesWithDuplicatePoints;
     @TestAtlas(
 
@@ -511,7 +511,8 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
                     @Relation(id = "214805000000", tags = { "type=multipolygon",
                             "leisure=park" }, members = {
                                     @Member(id = "214777000000", role = "outer", type = "line"),
-                                    @Member(id = "214778000000", role = "outer", type = "line") }) })
+                                    @Member(id = "214778000000", role = "outer", type = "line") }, wkt = "MULTIPOLYGON (((-8.3399363 6.8782232, -8.3403974 6.8740788, -8.3375094 6.871332, -8.3343786 6.8714284, -8.3314905 6.8719344, -8.3287723 6.8744162, -8.3319768 6.8801705, -8.3399363 6.8782232)))\n"
+                                            + "") })
     private Atlas singleOuterMadeOfOpenLinesSpanningTwoCountries;
     @TestAtlas(
 
@@ -545,7 +546,7 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
                     @Relation(id = "1", tags = { "type=multipolygon", "leisure=park" }, members = {
                             @Member(id = "214599000000", role = "outer", type = "area"),
                             @Member(id = "214590000000", role = "outer", type = "area"),
-                            @Member(id = "214581000000", role = "outer", type = "area") })
+                            @Member(id = "214581000000", role = "outer", type = "area") }, wkt = "MULTIPOLYGON (((-8.3372107 6.8921817, -8.3389237 6.8837848, -8.328271 6.883466, -8.3286993 6.8914376, -8.3372107 6.8921817, -8.3372107 6.8921817)), ((-8.3426173 6.9044046, -8.3478098 6.8973366, -8.3415467 6.8936697, -8.3346947 6.8984526, -8.3426173 6.9044046, -8.3426173 6.9044046)), ((-8.3259156 6.8970709, -8.3170295 6.8994623, -8.3154771 6.8895776, -8.3262368 6.8915439, -8.3259156 6.8970709, -8.3259156 6.8970709)))")
 
             })
     private Atlas simpleMultiPolygon;
@@ -582,7 +583,7 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
                     @Relation(id = "1", tags = { "type=boundary" }, members = {
                             @Member(id = "214599000000", role = "outer", type = "area"),
                             @Member(id = "214590000000", role = "outer", type = "area"),
-                            @Member(id = "214581000000", role = "outer", type = "area") })
+                            @Member(id = "214581000000", role = "outer", type = "area") }, wkt = "MULTIPOLYGON (((-8.3372107 6.8921817, -8.3389237 6.8837848, -8.328271 6.883466, -8.3286993 6.8914376, -8.3372107 6.8921817, -8.3372107 6.8921817)), ((-8.3426173 6.9044046, -8.3478098 6.8973366, -8.3415467 6.8936697, -8.3346947 6.8984526, -8.3426173 6.9044046, -8.3426173 6.9044046)), ((-8.3259156 6.8970709, -8.3170295 6.8994623, -8.3154771 6.8895776, -8.3262368 6.8915439, -8.3259156 6.8970709, -8.3259156 6.8970709)))")
 
             })
     private Atlas simpleBoundaryRelation;
@@ -617,7 +618,7 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
             relations = {
 
                     @Relation(id = "1", tags = { "type=boundary" }, members = {
-                            @Member(id = "214590000000", role = "outer", type = "area") })
+                            @Member(id = "214590000000", role = "outer", type = "area") }, wkt = "MULTIPOLYGON (((-8.3259156 6.8970709, -8.3170295 6.8994623, -8.3154771 6.8895776, -8.3262368 6.8915439, -8.3259156 6.8970709, -8.3259156 6.8970709)))")
 
             })
     private Atlas simpleBoundaryRelationConsolidate;
@@ -652,7 +653,7 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
                                     @Member(id = "106033000000", role = "outer", type = "line"),
                                     @Member(id = "106034000000", role = "outer", type = "line"),
                                     @Member(id = "106035000000", role = "inner", type = "line"),
-                                    @Member(id = "106036000000", role = "inner", type = "line") })
+                                    @Member(id = "106036000000", role = "inner", type = "line") }, wkt = "MULTIPOLYGON (((-8.3250444 6.8667618, -8.3281209 6.8657317, -8.3269825 6.862384, -8.3232288 6.8632281, -8.3232864 6.865417, -8.3250444 6.8667618), (-8.3252389 6.8656388, -8.3245112 6.8643154, -8.325945 6.8636788, -8.3263629 6.8648233, -8.3252389 6.8656388)))")
 
             })
     private Atlas complexMuliPolygonWithHoleUsingOpenLines;
@@ -682,7 +683,7 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
                     @Relation(id = "214805000000", tags = { "type=multipolygon",
                             "natural=water" }, members = {
                                     @Member(id = "106034000000", role = "outer", type = "area"),
-                                    @Member(id = "106036000000", role = "inner", type = "area") })
+                                    @Member(id = "106036000000", role = "inner", type = "area") }, wkt = "MULTIPOLYGON (((-8.3269825 6.862384, -8.3281209 6.8657317, -8.3250444 6.8667618, -8.3232864 6.865417, -8.3232288 6.8632281, -8.3269825 6.862384, -8.3269825 6.862384), (-8.3245112 6.8643154, -8.3252389 6.8656388, -8.3263629 6.8648233, -8.325945 6.8636788, -8.3245112 6.8643154, -8.3245112 6.8643154)))")
 
             })
     private Atlas complexMuliPolygonWithHoleUsingClosedLines;
@@ -709,7 +710,7 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
 
                     @Relation(tags = { "type=multipolygon", "building=yes" }, members = {
                             @Member(id = "108768000000", role = "outer", type = "area"),
-                            @Member(id = "108770000000", role = "inner", type = "area") })
+                            @Member(id = "108770000000", role = "inner", type = "area") }, wkt = "MULTIPOLYGON (((-8.3381369 6.9456756, -8.3380373 6.9233135, -8.2995623 6.9232146, -8.3012568 6.948545, -8.3381369 6.9456756, -8.3381369 6.9456756), (-8.3299635 6.9393431, -8.3289667 6.9309326, -8.3134173 6.9314273, -8.314414 6.9411241, -8.3299635 6.9393431, -8.3299635 6.9393431)))")
 
             })
     private Atlas multiPolygonWithHole;
@@ -755,7 +756,7 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
                             @Member(id = "108770000000", role = "inner", type = "area"),
                             @Member(id = "108752000000", role = "badType", type = "point"),
                             @Member(id = "5", role = "badType", type = "relation"),
-                            @Member(id = "3", role = "badRole", type = "area") }) })
+                            @Member(id = "3", role = "badRole", type = "area") }, wkt = "MULTIPOLYGON (((-8.3381369 6.9456756, -8.3380373 6.9233135, -8.2995623 6.9232146, -8.3012568 6.948545, -8.3381369 6.9456756, -8.3381369 6.9456756), (-8.3299635 6.9393431, -8.3289667 6.9309326, -8.3134173 6.9314273, -8.314414 6.9411241, -8.3299635 6.9393431, -8.3299635 6.9393431)))") })
     private Atlas relationWithInvalidMultiPolygonMembers;
     @TestAtlas(points = { @Point(id = "214775000000", coordinates = @Loc(value = LOCATION_31)),
             @Point(id = "214774000000", coordinates = @Loc(value = LOCATION_32)),
@@ -824,7 +825,7 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
                     @Relation(id = "1", tags = { "type=multipolygon", "building=yes" }, members = {
                             @Member(id = "108768000000", role = "outer", type = "line"),
                             @Member(id = "108770000000", role = "inner", type = "line"),
-                            @Member(id = "108760000000", role = "inner", type = "line") })
+                            @Member(id = "108760000000", role = "inner", type = "line") }, wkt = "MULTIPOLYGON (((-8.3381369 6.9456756, -8.3380373 6.9233135, -8.2995623 6.9232146, -8.3012568 6.948545, -8.3381369 6.9456756, -8.3381369 6.9456756), (-8.3299635 6.9393431, -8.3299635 6.9393531, -8.3299535 6.9393531, -8.3299535 6.9393431, -8.3299635 6.9393431, -8.3299635 6.9393431), (-8.3299635 6.9393431, -8.3299635 6.9309326, -8.3134173 6.9309326, -8.3134173 6.9393431, -8.3299635 6.9393431, -8.3299635 6.9393431)))")
 
             })
     private Atlas multiPolygonWithOverlappingSlicedInners;
@@ -858,7 +859,7 @@ public class RawAtlasSlicerTestRule extends CoreTestRule
                     @Relation(tags = { "type=multipolygon", "building=yes" }, members = {
                             @Member(id = "108768000000", role = "outer", type = "line"),
                             @Member(id = "108770000000", role = "inner", type = "line"),
-                            @Member(id = "108760000000", role = "inner", type = "line") })
+                            @Member(id = "108760000000", role = "inner", type = "line") }, wkt = "MULTIPOLYGON (((-8.3381369 6.9456756, -8.3380373 6.9233135, -8.2995623 6.9232146, -8.3012568 6.948545, -8.3381369 6.9456756, -8.3381369 6.9456756), (-8.3299635 6.9393431, -8.3299635 6.9393531, -8.3299535 6.9393531, -8.3299535 6.9393431, -8.3299635 6.9393431, -8.3299635 6.9393431), (-8.3299635 6.9393431, -8.3299635 6.9309326, -8.3234173 6.9309326, -8.3234173 6.9393431, -8.3299635 6.9393431, -8.3299635 6.9393431)))")
 
             })
     private Atlas multiPolygonWithOverlappingUnslicedInners;

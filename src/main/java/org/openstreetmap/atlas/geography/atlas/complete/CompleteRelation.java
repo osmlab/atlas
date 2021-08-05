@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.complete;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -12,6 +13,10 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.MultiPolygon;
+import org.locationtech.jts.geom.Polygon;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
@@ -20,11 +25,20 @@ import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean.RelationBeanItem;
 import org.openstreetmap.atlas.geography.atlas.change.eventhandling.event.TagChangeEvent;
 import org.openstreetmap.atlas.geography.atlas.change.eventhandling.listener.TagChangeListener;
+import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
+import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
+import org.openstreetmap.atlas.geography.atlas.items.complex.RelationOrAreaToMultiPolygonConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -38,6 +52,7 @@ import com.google.gson.JsonObject;
 public class CompleteRelation extends Relation implements CompleteEntity<CompleteRelation>
 {
     private static final long serialVersionUID = -8295865049110084558L;
+    private static final Logger logger = LoggerFactory.getLogger(CompleteRelation.class);
 
     private Rectangle bounds;
     private long identifier;
@@ -47,6 +62,10 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     private RelationBean allKnownOsmMembers;
     private Long osmRelationIdentifier;
     private Set<Long> relationIdentifiers;
+    private MultiPolygon storedGeometry;
+    private boolean overrideGeometry = false;
+    private final Set<LineString> addedGeometry = new HashSet<>();
+    private final Set<LineString> removedGeometry = new HashSet<>();
 
     private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
@@ -72,7 +91,8 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
                         .collect(Collectors.toList()),
                 relation.allKnownOsmMembers().asBean(), relation.osmRelationIdentifier(),
                 relation.relations().stream().map(Relation::getIdentifier)
-                        .collect(Collectors.toSet()));
+                        .collect(Collectors.toSet()),
+                relation.asMultiPolygon().orElse(null));
     }
 
     /**
@@ -106,6 +126,16 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
             final RelationBean allKnownOsmMembers, final Long osmRelationIdentifier,
             final Set<Long> relationIdentifiers)
     {
+        this(identifier, tags, bounds, members, allRelationsWithSameOsmIdentifier,
+                allKnownOsmMembers, osmRelationIdentifier, relationIdentifiers, null);
+    }
+
+    public CompleteRelation(final Long identifier, final Map<String, String> tags, // NOSONAR
+            final Rectangle bounds, final RelationBean members,
+            final List<Long> allRelationsWithSameOsmIdentifier,
+            final RelationBean allKnownOsmMembers, final Long osmRelationIdentifier,
+            final Set<Long> relationIdentifiers, final MultiPolygon jtsGeometry)
+    {
         super(new EmptyAtlas());
 
         if (identifier == null)
@@ -122,6 +152,7 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
         this.allKnownOsmMembers = allKnownOsmMembers;
         this.osmRelationIdentifier = osmRelationIdentifier;
         this.relationIdentifiers = relationIdentifiers;
+        this.storedGeometry = jtsGeometry;
     }
 
     protected CompleteRelation(final Atlas atlas)
@@ -154,6 +185,12 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     }
 
     @Override
+    public Optional<MultiPolygon> asMultiPolygon()
+    {
+        return Optional.ofNullable(this.storedGeometry);
+    }
+
+    @Override
     public Rectangle bounds()
     {
         return this.bounds;
@@ -165,13 +202,21 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
                 member.getType());
         if (oldItem.isPresent())
         {
-            final RelationBeanItem old = oldItem.get();
-            this.members.removeItem(old);
-            final RelationBeanItem newItem = new RelationBeanItem(member.getIdentifier(), role,
-                    member.getType());
-            this.members.addItem(newItem);
-            this.members.addItemExplicitlyExcluded(member.getIdentifier(), old.getRole(),
-                    member.getType());
+            if (isGeometric() && this.asMultiPolygon().isPresent())
+            {
+                throw new CoreException(
+                        "Cannot modify roles directly for relations with existing geometry! Please remove and add members directly instead");
+            }
+            else
+            {
+                final RelationBeanItem old = oldItem.get();
+                this.members.removeItem(old);
+                final RelationBeanItem newItem = new RelationBeanItem(member.getIdentifier(), role,
+                        member.getType());
+                this.members.addItem(newItem);
+                this.members.addItemExplicitlyExcluded(member.getIdentifier(), old.getRole(),
+                        member.getType());
+            }
         }
         return this;
     }
@@ -186,7 +231,7 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     {
         return new CompleteRelation(this.identifier, this.tags, this.bounds, this.members,
                 this.allRelationsWithSameOsmIdentifier, this.allKnownOsmMembers,
-                this.osmRelationIdentifier, this.relationIdentifiers);
+                this.osmRelationIdentifier, this.relationIdentifiers, this.storedGeometry);
     }
 
     @Override
@@ -202,7 +247,10 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
                             that.allRelationsWithSameOsmIdentifier())
                     && CompleteEntity.equalThroughGet(this.allKnownOsmMembers(),
                             that.allKnownOsmMembers(), RelationMemberList::asBean)
-                    && Objects.equals(this.osmRelationIdentifier(), that.osmRelationIdentifier());
+                    && Objects.equals(this.osmRelationIdentifier(), that.osmRelationIdentifier())
+                    && Objects.equals(this.asMultiPolygon(), that.asMultiPolygon())
+                    && Objects.equals(this.getAddedGeometry(), that.getAddedGeometry())
+                    && Objects.equals(this.getRemovedGeometry(), that.getRemovedGeometry());
         }
         return false;
     }
@@ -213,9 +261,19 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
         this.tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
     }
 
+    public Set<LineString> getAddedGeometry()
+    {
+        if (this.overrideGeometry)
+        {
+            return new HashSet<>();
+        }
+        return this.addedGeometry;
+    }
+
     @Override
     public Iterable<Location> getGeometry()
     {
+        // TO DO enable for geometric?
         throw new UnsupportedOperationException("Relations do not have an explicit geometry."
                 + " Please instead use bounds to check the apparent geometry.");
     }
@@ -224,6 +282,15 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     public long getIdentifier()
     {
         return this.identifier;
+    }
+
+    public Set<LineString> getRemovedGeometry()
+    {
+        if (this.overrideGeometry)
+        {
+            return new HashSet<>();
+        }
+        return this.removedGeometry;
     }
 
     @Override
@@ -243,7 +310,19 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     {
         return this.bounds != null && this.tags != null && this.members != null
                 && this.allRelationsWithSameOsmIdentifier != null && this.allKnownOsmMembers != null
-                && this.osmRelationIdentifier != null && this.relationIdentifiers != null;
+                && this.osmRelationIdentifier != null && this.relationIdentifiers != null
+                && (!this.isGeometric() || this.storedGeometry != null);
+    }
+
+    @Override
+    public boolean isGeometric()
+    {
+        return this.getTags() == null ? false : super.isGeometric();
+    }
+
+    public boolean isOverrideGeometry()
+    {
+        return this.overrideGeometry;
     }
 
     @Override
@@ -252,7 +331,7 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
         return this.bounds == null && this.members == null
                 && this.allRelationsWithSameOsmIdentifier == null && this.allKnownOsmMembers == null
                 && this.osmRelationIdentifier == null && this.tags == null
-                && this.relationIdentifiers == null;
+                && this.relationIdentifiers == null && this.storedGeometry == null;
     }
 
     @Override
@@ -306,6 +385,12 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
             builder.append("bounds: " + this.bounds.toWkt() + ", ");
             builder.append(separator);
         }
+        if (this.isGeometric())
+        {
+            builder.append("multiPolygonGeometry: "
+                    + this.asMultiPolygon().map(Geometry::toText).orElse("null"));
+        }
+        builder.append(separator);
         builder.append("]");
 
         return builder.toString();
@@ -356,6 +441,8 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
             membersArray.add(memberObject);
         }
         relationObject.add("members", membersArray);
+        relationObject.addProperty("multiPolygonGeometry",
+                this.asMultiPolygon().map(Geometry::toText).orElse("null"));
 
         return relationObject;
     }
@@ -371,6 +458,10 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     @Override
     public String toWkt()
     {
+        if (this.isGeometric() && this.storedGeometry != null)
+        {
+            return this.storedGeometry.toText();
+        }
         if (this.bounds == null)
         {
             return null;
@@ -378,9 +469,24 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
         return this.bounds.toWkt();
     }
 
+    public void updateGeometry()
+    {
+        try
+        {
+            this.storedGeometry = new JtsMultiPolygonToMultiPolygonConverter()
+                    .backwardConvert(new RelationOrAreaToMultiPolygonConverter().convert(this));
+        }
+        catch (final Exception exc)
+        {
+            logger.error("Couldn't reconstruct geometry for relation {}", this, exc);
+            this.storedGeometry = null;
+        }
+    }
+
     public CompleteRelation withAddedMember(final AtlasEntity newMember,
             final AtlasEntity memberFromWhichToCopyRole)
     {
+        // TO DO support geometry
         final Relation parentRelation = Iterables.stream(memberFromWhichToCopyRole.relations())
                 .firstMatching(relation -> relation.getIdentifier() == this.getIdentifier())
                 .orElseThrow(() -> new CoreException(
@@ -410,6 +516,31 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
         }
         this.members.addItem(
                 new RelationBeanItem(newMember.getIdentifier(), role, newMember.getType()));
+        if (this.isGeometric() && this.asMultiPolygon().isPresent()
+                && (role.equalsIgnoreCase(Ring.INNER.toString())
+                        || role.equalsIgnoreCase(Ring.OUTER.toString())))
+        {
+            switch (newMember.getType())
+            {
+                case LINE:
+                    this.addedGeometry.add(
+                            new JtsPolyLineConverter().convert(((Line) newMember).asPolyLine()));
+                    break;
+                case AREA:
+                    this.addedGeometry.add(
+                            new JtsPolyLineConverter().convert(((Area) newMember).asPolygon()));
+                    break;
+                case EDGE:
+                    this.addedGeometry.add(
+                            new JtsPolyLineConverter().convert(((Edge) newMember).asPolyLine()));
+                    break;
+                case NODE:
+                case POINT:
+                case RELATION:
+                default:
+                    break;
+            }
+        }
         this.withBoundsExtendedBy(newMember.bounds());
         return this;
     }
@@ -560,6 +691,18 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
         return withMembersAndSource(members.asBean(), source, members.bounds());
     }
 
+    public CompleteRelation withMultiPolygonGeometry(final MultiPolygon geometry)
+    {
+        this.storedGeometry = geometry;
+        this.overrideGeometry = true;
+        if (geometry != null && geometry.getEnvelope() instanceof Polygon)
+        {
+            this.bounds = Rectangle.forLocated(
+                    new JtsPolygonConverter().backwardConvert((Polygon) geometry.getEnvelope()));
+        }
+        return this;
+    }
+
     public CompleteRelation withOsmRelationIdentifier(final Long osmRelationIdentifier)
     {
         this.osmRelationIdentifier = osmRelationIdentifier;
@@ -587,6 +730,32 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
                 .removeAllMatchingItems(memberToRemove.getIdentifier(), memberToRemove.getType());
         roles.forEach(role -> this.members.addItemExplicitlyExcluded(memberToRemove.getIdentifier(),
                 role, memberToRemove.getType()));
+        if (this.isGeometric() && this.asMultiPolygon().isPresent()
+                && (roles.contains(Ring.INNER.toString()) || roles.contains(Ring.OUTER.toString())
+                        || roles.contains(Ring.INNER.toString().toLowerCase())
+                        || roles.contains(Ring.OUTER.toString().toLowerCase())))
+        {
+            switch (memberToRemove.getType())
+            {
+                case LINE:
+                    this.removedGeometry.add(new JtsPolyLineConverter()
+                            .convert(((Line) memberToRemove).asPolyLine()));
+                    break;
+                case AREA:
+                    this.removedGeometry.add(new JtsPolyLineConverter()
+                            .convert(((Area) memberToRemove).asPolygon()));
+                    break;
+                case EDGE:
+                    this.removedGeometry.add(new JtsPolyLineConverter()
+                            .convert(((Edge) memberToRemove).asPolyLine()));
+                    break;
+                case NODE:
+                case POINT:
+                case RELATION:
+                default:
+                    break;
+            }
+        }
         return this;
     }
 
@@ -598,6 +767,31 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
         {
             this.members.addItemExplicitlyExcluded(memberToRemove.getIdentifier(), role,
                     memberToRemove.getType());
+            if (this.isGeometric() && this.asMultiPolygon().isPresent()
+                    && (role.equalsIgnoreCase(Ring.INNER.toString())
+                            || role.equalsIgnoreCase(Ring.OUTER.toString())))
+            {
+                switch (memberToRemove.getType())
+                {
+                    case LINE:
+                        this.removedGeometry.add(new JtsPolyLineConverter()
+                                .convert(((Line) memberToRemove).asPolyLine()));
+                        break;
+                    case AREA:
+                        this.removedGeometry.add(new JtsPolyLineConverter()
+                                .convert(((Area) memberToRemove).asPolygon()));
+                        break;
+                    case EDGE:
+                        this.removedGeometry.add(new JtsPolyLineConverter()
+                                .convert(((Edge) memberToRemove).asPolyLine()));
+                        break;
+                    case NODE:
+                    case POINT:
+                    case RELATION:
+                    default:
+                        break;
+                }
+            }
         }
         return this;
     }

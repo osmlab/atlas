@@ -2,8 +2,6 @@ package org.openstreetmap.atlas.geography.atlas.raw.slicing;
 
 import java.util.Iterator;
 import java.util.Optional;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -11,12 +9,10 @@ import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
-import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Line;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.complex.Finder;
-import org.openstreetmap.atlas.geography.atlas.items.complex.RelationOrAreaToMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.atlas.items.complex.buildings.ComplexBuilding;
 import org.openstreetmap.atlas.geography.atlas.items.complex.buildings.ComplexBuildingFinder;
 import org.openstreetmap.atlas.geography.atlas.items.complex.water.ComplexWaterEntity;
@@ -24,7 +20,6 @@ import org.openstreetmap.atlas.geography.atlas.items.complex.water.finder.Comple
 import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
 import org.openstreetmap.atlas.geography.atlas.pbf.slicing.identifier.CountrySlicingIdentifierFactory;
 import org.openstreetmap.atlas.geography.boundary.CountryBoundaryMap;
-import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.streaming.compression.Decompressor;
 import org.openstreetmap.atlas.streaming.resource.InputStreamResource;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
@@ -32,8 +27,6 @@ import org.openstreetmap.atlas.tags.SyntheticBoundaryNodeTag;
 import org.openstreetmap.atlas.tags.SyntheticGeometrySlicedTag;
 import org.openstreetmap.atlas.tags.SyntheticInvalidGeometryTag;
 import org.openstreetmap.atlas.tags.SyntheticInvalidMultiPolygonRelationMembersRemovedTag;
-import org.openstreetmap.atlas.tags.SyntheticRelationMemberAdded;
-import org.openstreetmap.atlas.tags.SyntheticSyntheticRelationMemberTag;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 
 /**
@@ -45,16 +38,12 @@ import org.openstreetmap.atlas.utilities.collections.Iterables;
 public class RawAtlasSlicerTest
 {
     private static final CountryBoundaryMap boundary;
-    private static final RelationOrAreaToMultiPolygonConverter converter;
-    private static final JtsMultiPolygonToMultiPolygonConverter jtsConverter;
     static
     {
         boundary = CountryBoundaryMap
                 .fromPlainText(new InputStreamResource(() -> RawAtlasSlicerTest.class
                         .getResourceAsStream("CIV_GIN_LBR_osm_boundaries.txt.gz"))
                                 .withDecompressor(Decompressor.GZIP));
-        converter = new RelationOrAreaToMultiPolygonConverter();
-        jtsConverter = new JtsMultiPolygonToMultiPolygonConverter();
     }
 
     @Rule
@@ -77,20 +66,19 @@ public class RawAtlasSlicerTest
                 rawAtlas).slice();
 
         Assert.assertEquals(0, civSlicedAtlas.numberOfPoints());
-        Assert.assertEquals(2, civSlicedAtlas.numberOfLines());
+        Assert.assertEquals(0, civSlicedAtlas.numberOfLines());
         Assert.assertEquals(2, civSlicedAtlas.numberOfAreas());
         Assert.assertEquals(1, civSlicedAtlas.numberOfRelations());
         Assert.assertTrue(Iterables.stream(civSlicedAtlas.entities())
                 .allMatch(entity -> entity.getTag(ISOCountryTag.KEY).get().equals("CIV")));
 
-        Assert.assertEquals(1, lbrSlicedAtlas.numberOfLines());
+        Assert.assertEquals(0, lbrSlicedAtlas.numberOfLines());
         Assert.assertEquals(3, lbrSlicedAtlas.numberOfAreas());
         Assert.assertEquals(0, lbrSlicedAtlas.numberOfPoints());
         Assert.assertEquals(0, lbrSlicedAtlas.numberOfRelations());
         Assert.assertTrue(Iterables.stream(lbrSlicedAtlas.entities())
                 .allMatch(entity -> entity.getTag(ISOCountryTag.KEY).get().equals("LBR")));
 
-        final SortedSet<String> civSyntheticRelationMembers = new TreeSet<>();
         civSlicedAtlas.lines().forEach(line ->
         {
             if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
@@ -105,14 +93,8 @@ public class RawAtlasSlicerTest
                 Assert.assertEquals(0,
                         civSlicedAtlas.area(line.getIdentifier()).relations().size());
             }
-            else
-            {
-                Assert.assertTrue(line.getTag(SyntheticSyntheticRelationMemberTag.KEY).isPresent());
-                civSyntheticRelationMembers.add(Long.toString(line.getIdentifier()));
-            }
         });
 
-        final SortedSet<String> lbrSyntheticRelationMembers = new TreeSet<>();
         lbrSlicedAtlas.lines().forEach(line ->
         {
             if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
@@ -135,11 +117,6 @@ public class RawAtlasSlicerTest
                         line.asPolyLine());
                 Assert.assertEquals(1, line.relations().size());
             }
-            else
-            {
-                Assert.assertTrue(line.getTag(SyntheticSyntheticRelationMemberTag.KEY).isPresent());
-                lbrSyntheticRelationMembers.add(Long.toString(line.getIdentifier()));
-            }
         });
 
         final CountrySlicingIdentifierFactory relationIdentifierFactory = new CountrySlicingIdentifierFactory(
@@ -151,13 +128,9 @@ public class RawAtlasSlicerTest
         Assert.assertEquals("CIV", civRelation.getTag(ISOCountryTag.KEY).get());
         Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
                 civRelation.getTag(SyntheticGeometrySlicedTag.KEY).get());
-        Assert.assertEquals(
-                String.join(SyntheticRelationMemberAdded.MEMBER_DELIMITER,
-                        civSyntheticRelationMembers),
-                civRelation.getTag(SyntheticRelationMemberAdded.KEY).get());
         Assert.assertTrue(civRelation
                 .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).isEmpty());
-        Assert.assertTrue(jtsConverter.backwardConvert(converter.convert(civRelation)).isValid());
+        Assert.assertTrue(civRelation.asMultiPolygon().get().isValid());
     }
 
     /**
@@ -177,20 +150,19 @@ public class RawAtlasSlicerTest
                 rawAtlas).slice();
 
         Assert.assertEquals(0, civSlicedAtlas.numberOfPoints());
-        Assert.assertEquals(4, civSlicedAtlas.numberOfLines());
+        Assert.assertEquals(0, civSlicedAtlas.numberOfLines());
         Assert.assertEquals(2, civSlicedAtlas.numberOfAreas());
         Assert.assertEquals(1, civSlicedAtlas.numberOfRelations());
         Assert.assertTrue(Iterables.stream(civSlicedAtlas.entities())
                 .allMatch(entity -> entity.getTag(ISOCountryTag.KEY).get().equals("CIV")));
 
-        Assert.assertEquals(4, lbrSlicedAtlas.numberOfLines());
+        Assert.assertEquals(0, lbrSlicedAtlas.numberOfLines());
         Assert.assertEquals(3, lbrSlicedAtlas.numberOfAreas());
         Assert.assertEquals(0, lbrSlicedAtlas.numberOfPoints());
         Assert.assertEquals(1, lbrSlicedAtlas.numberOfRelations());
         Assert.assertTrue(Iterables.stream(lbrSlicedAtlas.entities())
                 .allMatch(entity -> entity.getTag(ISOCountryTag.KEY).get().equals("LBR")));
 
-        final SortedSet<String> civSyntheticRelationMembers = new TreeSet<>();
         civSlicedAtlas.lines().forEach(line ->
         {
             if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
@@ -205,14 +177,8 @@ public class RawAtlasSlicerTest
                 Assert.assertEquals(0,
                         civSlicedAtlas.area(line.getIdentifier()).relations().size());
             }
-            else
-            {
-                Assert.assertTrue(line.getTag(SyntheticSyntheticRelationMemberTag.KEY).isPresent());
-                civSyntheticRelationMembers.add(Long.toString(line.getIdentifier()));
-            }
         });
 
-        final SortedSet<String> lbrSyntheticRelationMembers = new TreeSet<>();
         lbrSlicedAtlas.lines().forEach(line ->
         {
             if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
@@ -235,11 +201,6 @@ public class RawAtlasSlicerTest
                         line.asPolyLine());
                 Assert.assertEquals(1, line.relations().size());
             }
-            else
-            {
-                Assert.assertTrue(line.getTag(SyntheticSyntheticRelationMemberTag.KEY).isPresent());
-                lbrSyntheticRelationMembers.add(Long.toString(line.getIdentifier()));
-            }
         });
 
         final CountrySlicingIdentifierFactory relationIdentifierFactory = new CountrySlicingIdentifierFactory(
@@ -253,25 +214,17 @@ public class RawAtlasSlicerTest
         Assert.assertEquals("CIV", civRelation.getTag(ISOCountryTag.KEY).get());
         Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
                 civRelation.getTag(SyntheticGeometrySlicedTag.KEY).get());
-        Assert.assertEquals(
-                String.join(SyntheticRelationMemberAdded.MEMBER_DELIMITER,
-                        civSyntheticRelationMembers),
-                civRelation.getTag(SyntheticRelationMemberAdded.KEY).get());
         Assert.assertTrue(civRelation
                 .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).isEmpty());
 
         Assert.assertEquals("LBR", lbrRelation.getTag(ISOCountryTag.KEY).get());
         Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
                 lbrRelation.getTag(SyntheticGeometrySlicedTag.KEY).get());
-        Assert.assertEquals(
-                String.join(SyntheticRelationMemberAdded.MEMBER_DELIMITER,
-                        lbrSyntheticRelationMembers),
-                lbrRelation.getTag(SyntheticRelationMemberAdded.KEY).get());
         Assert.assertTrue(lbrRelation
                 .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).isEmpty());
 
-        Assert.assertTrue(jtsConverter.backwardConvert(converter.convert(civRelation)).isValid());
-        Assert.assertTrue(jtsConverter.backwardConvert(converter.convert(lbrRelation)).isValid());
+        Assert.assertTrue(civRelation.asMultiPolygon().get().isValid());
+        Assert.assertTrue(lbrRelation.asMultiPolygon().get().isValid());
     }
 
     /**
@@ -706,58 +659,10 @@ public class RawAtlasSlicerTest
         Assert.assertEquals(1, civSlicedAtlas.numberOfRelations());
         Assert.assertEquals(1, lbrSlicedAtlas.numberOfRelations());
 
-        final CountrySlicingIdentifierFactory lineIdentifierFactory = new CountrySlicingIdentifierFactory(
-                108768000000L);
-        final Area rawArea = rawAtlas.area(108768000000L);
-        final Line civLine = civSlicedAtlas.line(lineIdentifierFactory.nextIdentifier());
-        Assert.assertEquals("CIV", civLine.getTag(ISOCountryTag.KEY).get());
-        Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
-                civLine.getTag(SyntheticGeometrySlicedTag.KEY).get());
-        Assert.assertEquals(rawArea.getOsmTags(), civLine.getOsmTags());
-
-        final Line lbrLine = lbrSlicedAtlas.line(lineIdentifierFactory.nextIdentifier());
-        Assert.assertEquals("LBR", lbrLine.getTag(ISOCountryTag.KEY).get());
-        Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
-                lbrLine.getTag(SyntheticGeometrySlicedTag.KEY).get());
-        Assert.assertEquals(rawArea.getOsmTags(), lbrLine.getOsmTags());
-
-        final Area civArea = civSlicedAtlas.area(civLine.getIdentifier());
-        Assert.assertEquals("CIV", civArea.getTag(ISOCountryTag.KEY).get());
-        Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
-                civArea.getTag(SyntheticGeometrySlicedTag.KEY).get());
-        Assert.assertEquals(rawArea.getOsmTags(), civArea.getOsmTags());
-
-        final Area lbrArea = lbrSlicedAtlas.area(lbrLine.getIdentifier());
-        Assert.assertEquals("LBR", lbrArea.getTag(ISOCountryTag.KEY).get());
-        Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
-                lbrArea.getTag(SyntheticGeometrySlicedTag.KEY).get());
-        Assert.assertEquals(rawArea.getOsmTags(), lbrArea.getOsmTags());
-
         Assert.assertEquals("CIV", civSlicedAtlas.relation(1).getTag(ISOCountryTag.KEY).get());
         Assert.assertTrue(
                 civSlicedAtlas.relation(1).getTag(SyntheticGeometrySlicedTag.KEY).isEmpty());
         Assert.assertEquals(1, civSlicedAtlas.relation(1).members().size());
-        Assert.assertEquals(ItemType.LINE,
-                civSlicedAtlas.relation(1).members().get(0).getEntity().getType());
-        Assert.assertEquals(civLine.getIdentifier(),
-                civSlicedAtlas.relation(1).members().get(0).getEntity().getIdentifier());
-        Assert.assertTrue(civSlicedAtlas.relation(1)
-                .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).isEmpty());
-        Assert.assertEquals(rawAtlas.relation(1).getOsmTags(),
-                civSlicedAtlas.relation(1).getOsmTags());
-
-        Assert.assertEquals("LBR", lbrSlicedAtlas.relation(1).getTag(ISOCountryTag.KEY).get());
-        Assert.assertTrue(
-                lbrSlicedAtlas.relation(1).getTag(SyntheticGeometrySlicedTag.KEY).isEmpty());
-        Assert.assertEquals(1, lbrSlicedAtlas.relation(1).members().size());
-        Assert.assertEquals(ItemType.LINE,
-                lbrSlicedAtlas.relation(1).members().get(0).getEntity().getType());
-        Assert.assertEquals(lbrLine.getIdentifier(),
-                lbrSlicedAtlas.relation(1).members().get(0).getEntity().getIdentifier());
-        Assert.assertTrue(lbrSlicedAtlas.relation(1)
-                .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).isEmpty());
-        Assert.assertEquals(rawAtlas.relation(1).getOsmTags(),
-                lbrSlicedAtlas.relation(1).getOsmTags());
     }
 
     /**
@@ -805,20 +710,17 @@ public class RawAtlasSlicerTest
                 rawAtlas).slice();
 
         Assert.assertEquals(0, civSlicedAtlas.numberOfPoints());
-        Assert.assertEquals(4, civSlicedAtlas.numberOfLines());
         Assert.assertEquals(2, civSlicedAtlas.numberOfAreas());
         Assert.assertEquals(1, civSlicedAtlas.numberOfRelations());
         Assert.assertTrue(Iterables.stream(civSlicedAtlas.entities())
                 .allMatch(entity -> entity.getTag(ISOCountryTag.KEY).get().equals("CIV")));
 
-        Assert.assertEquals(4, lbrSlicedAtlas.numberOfLines());
         Assert.assertEquals(3, lbrSlicedAtlas.numberOfAreas());
         Assert.assertEquals(0, lbrSlicedAtlas.numberOfPoints());
         Assert.assertEquals(1, lbrSlicedAtlas.numberOfRelations());
         Assert.assertTrue(Iterables.stream(lbrSlicedAtlas.entities())
                 .allMatch(entity -> entity.getTag(ISOCountryTag.KEY).get().equals("LBR")));
 
-        final SortedSet<String> civSyntheticRelationMembers = new TreeSet<>();
         civSlicedAtlas.lines().forEach(line ->
         {
             if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
@@ -833,14 +735,8 @@ public class RawAtlasSlicerTest
                 Assert.assertEquals(0,
                         civSlicedAtlas.area(line.getIdentifier()).relations().size());
             }
-            else
-            {
-                Assert.assertTrue(line.getTag(SyntheticSyntheticRelationMemberTag.KEY).isPresent());
-                civSyntheticRelationMembers.add(Long.toString(line.getIdentifier()));
-            }
         });
 
-        final SortedSet<String> lbrSyntheticRelationMembers = new TreeSet<>();
         lbrSlicedAtlas.lines().forEach(line ->
         {
             if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
@@ -863,11 +759,6 @@ public class RawAtlasSlicerTest
                         line.asPolyLine());
                 Assert.assertEquals(1, line.relations().size());
             }
-            else
-            {
-                Assert.assertTrue(line.getTag(SyntheticSyntheticRelationMemberTag.KEY).isPresent());
-                lbrSyntheticRelationMembers.add(Long.toString(line.getIdentifier()));
-            }
         });
 
         final CountrySlicingIdentifierFactory relationIdentifierFactory = new CountrySlicingIdentifierFactory(
@@ -881,25 +772,17 @@ public class RawAtlasSlicerTest
         Assert.assertEquals("CIV", civRelation.getTag(ISOCountryTag.KEY).get());
         Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
                 civRelation.getTag(SyntheticGeometrySlicedTag.KEY).get());
-        Assert.assertEquals(
-                String.join(SyntheticRelationMemberAdded.MEMBER_DELIMITER,
-                        civSyntheticRelationMembers),
-                civRelation.getTag(SyntheticRelationMemberAdded.KEY).get());
         Assert.assertTrue(civRelation
                 .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).isEmpty());
 
         Assert.assertEquals("LBR", lbrRelation.getTag(ISOCountryTag.KEY).get());
         Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
                 lbrRelation.getTag(SyntheticGeometrySlicedTag.KEY).get());
-        Assert.assertEquals(
-                String.join(SyntheticRelationMemberAdded.MEMBER_DELIMITER,
-                        lbrSyntheticRelationMembers),
-                lbrRelation.getTag(SyntheticRelationMemberAdded.KEY).get());
         Assert.assertTrue(lbrRelation
                 .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).isEmpty());
 
-        Assert.assertTrue(jtsConverter.backwardConvert(converter.convert(civRelation)).isValid());
-        Assert.assertTrue(jtsConverter.backwardConvert(converter.convert(lbrRelation)).isValid());
+        Assert.assertTrue(civRelation.asMultiPolygon().get().isValid());
+        Assert.assertTrue(lbrRelation.asMultiPolygon().get().isValid());
     }
 
     /**
@@ -917,7 +800,6 @@ public class RawAtlasSlicerTest
                 AtlasLoadingOption.createOptionWithAllEnabled(boundary).setCountryCode("LBR"),
                 rawAtlas).slice();
 
-        Assert.assertEquals(2, civSlicedAtlas.numberOfLines());
         Assert.assertEquals(1, civSlicedAtlas.numberOfAreas());
         Assert.assertEquals(0, civSlicedAtlas.numberOfPoints());
         Assert.assertEquals(1, civSlicedAtlas.numberOfRelations());
@@ -925,7 +807,6 @@ public class RawAtlasSlicerTest
                 .find(civSlicedAtlas, Finder::ignore);
         Assert.assertEquals(1, Iterables.size(civWaterEntities));
 
-        Assert.assertEquals(2, lbrSlicedAtlas.numberOfLines());
         Assert.assertEquals(2, lbrSlicedAtlas.numberOfAreas());
         Assert.assertEquals(0, lbrSlicedAtlas.numberOfPoints());
         Assert.assertEquals(1, lbrSlicedAtlas.numberOfRelations());
@@ -933,7 +814,6 @@ public class RawAtlasSlicerTest
                 .find(lbrSlicedAtlas, Finder::ignore);
         Assert.assertEquals(1, Iterables.size(lbrWaterEntities));
 
-        final SortedSet<String> civSyntheticRelationMembers = new TreeSet<>();
         civSlicedAtlas.lines().forEach(line ->
         {
             if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
@@ -956,14 +836,8 @@ public class RawAtlasSlicerTest
                         line.asPolyLine());
                 Assert.assertEquals(1, line.relations().size());
             }
-            else
-            {
-                Assert.assertTrue(line.getTag(SyntheticSyntheticRelationMemberTag.KEY).isPresent());
-                civSyntheticRelationMembers.add(Long.toString(line.getIdentifier()));
-            }
         });
 
-        final SortedSet<String> lbrSyntheticRelationMembers = new TreeSet<>();
         lbrSlicedAtlas.lines().forEach(line ->
         {
             if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
@@ -986,11 +860,6 @@ public class RawAtlasSlicerTest
                         line.asPolyLine());
                 Assert.assertEquals(1, line.relations().size());
             }
-            else
-            {
-                Assert.assertTrue(line.getTag(SyntheticSyntheticRelationMemberTag.KEY).isPresent());
-                lbrSyntheticRelationMembers.add(Long.toString(line.getIdentifier()));
-            }
         });
 
         final CountrySlicingIdentifierFactory relationIdentifierFactory = new CountrySlicingIdentifierFactory(
@@ -1004,20 +873,12 @@ public class RawAtlasSlicerTest
         Assert.assertEquals("CIV", civRelation.getTag(ISOCountryTag.KEY).get());
         Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
                 civRelation.getTag(SyntheticGeometrySlicedTag.KEY).get());
-        Assert.assertEquals(
-                String.join(SyntheticRelationMemberAdded.MEMBER_DELIMITER,
-                        civSyntheticRelationMembers),
-                civRelation.getTag(SyntheticRelationMemberAdded.KEY).get());
         Assert.assertTrue(civRelation
                 .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).isEmpty());
 
         Assert.assertEquals("LBR", lbrRelation.getTag(ISOCountryTag.KEY).get());
         Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
                 lbrRelation.getTag(SyntheticGeometrySlicedTag.KEY).get());
-        Assert.assertEquals(
-                String.join(SyntheticRelationMemberAdded.MEMBER_DELIMITER,
-                        lbrSyntheticRelationMembers),
-                lbrRelation.getTag(SyntheticRelationMemberAdded.KEY).get());
         Assert.assertTrue(lbrRelation
                 .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).isEmpty());
     }
@@ -1040,7 +901,6 @@ public class RawAtlasSlicerTest
                 rawAtlas).slice();
 
         Assert.assertEquals(0, civSlicedAtlas.numberOfPoints());
-        Assert.assertEquals(5, civSlicedAtlas.numberOfLines());
         Assert.assertEquals(3, civSlicedAtlas.numberOfAreas());
         Assert.assertEquals(1, civSlicedAtlas.numberOfRelations());
         final Iterable<ComplexBuilding> civBuildings = new ComplexBuildingFinder()
@@ -1048,14 +908,12 @@ public class RawAtlasSlicerTest
         Assert.assertEquals(1, Iterables.size(civBuildings));
 
         Assert.assertEquals(0, lbrSlicedAtlas.numberOfPoints());
-        Assert.assertEquals(5, lbrSlicedAtlas.numberOfLines());
         Assert.assertEquals(3, lbrSlicedAtlas.numberOfAreas());
         Assert.assertEquals(1, lbrSlicedAtlas.numberOfRelations());
         final Iterable<ComplexBuilding> lbrBuildings = new ComplexBuildingFinder()
                 .find(lbrSlicedAtlas, Finder::ignore);
         Assert.assertEquals(1, Iterables.size(lbrBuildings));
 
-        final SortedSet<String> civSyntheticRelationMembers = new TreeSet<>();
         civSlicedAtlas.lines().forEach(line ->
         {
             if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
@@ -1064,14 +922,8 @@ public class RawAtlasSlicerTest
                         .getOsmIdentifier() == line.getOsmIdentifier()).iterator().next();
                 Assert.assertEquals(rawArea.getOsmTags(), line.getOsmTags());
             }
-            else
-            {
-                Assert.assertTrue(line.getTag(SyntheticSyntheticRelationMemberTag.KEY).isPresent());
-                civSyntheticRelationMembers.add(Long.toString(line.getIdentifier()));
-            }
         });
 
-        final SortedSet<String> lbrSyntheticRelationMembers = new TreeSet<>();
         lbrSlicedAtlas.lines().forEach(line ->
         {
             if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
@@ -1088,11 +940,6 @@ public class RawAtlasSlicerTest
                         line.asPolyLine());
                 Assert.assertEquals(1, line.relations().size());
             }
-            else
-            {
-                Assert.assertTrue(line.getTag(SyntheticSyntheticRelationMemberTag.KEY).isPresent());
-                lbrSyntheticRelationMembers.add(Long.toString(line.getIdentifier()));
-            }
         });
 
         final CountrySlicingIdentifierFactory relationIdentifierFactory = new CountrySlicingIdentifierFactory(
@@ -1106,22 +953,10 @@ public class RawAtlasSlicerTest
         Assert.assertEquals("CIV", civRelation.getTag(ISOCountryTag.KEY).get());
         Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
                 civRelation.getTag(SyntheticGeometrySlicedTag.KEY).get());
-        Assert.assertEquals(
-                String.join(SyntheticRelationMemberAdded.MEMBER_DELIMITER,
-                        civSyntheticRelationMembers),
-                civRelation.getTag(SyntheticRelationMemberAdded.KEY).get());
-        Assert.assertEquals("5,1000,108752000000", civRelation
-                .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).get());
 
         Assert.assertEquals("LBR", lbrRelation.getTag(ISOCountryTag.KEY).get());
         Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
                 lbrRelation.getTag(SyntheticGeometrySlicedTag.KEY).get());
-        Assert.assertEquals(
-                String.join(SyntheticRelationMemberAdded.MEMBER_DELIMITER,
-                        lbrSyntheticRelationMembers),
-                lbrRelation.getTag(SyntheticRelationMemberAdded.KEY).get());
-        Assert.assertEquals("5,2000,108752000000", lbrRelation
-                .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).get());
     }
 
     /**
@@ -1140,7 +975,7 @@ public class RawAtlasSlicerTest
                 AtlasLoadingOption.createOptionWithAllEnabled(boundary).setCountryCode("LBR"),
                 rawAtlas).slice();
 
-        Assert.assertEquals(3, civSlicedAtlas.numberOfLines());
+        Assert.assertEquals(2, civSlicedAtlas.numberOfLines());
         Assert.assertEquals(0, civSlicedAtlas.numberOfAreas());
         Assert.assertEquals(0, civSlicedAtlas.numberOfPoints());
         Assert.assertEquals(1, civSlicedAtlas.numberOfRelations());
@@ -1148,7 +983,7 @@ public class RawAtlasSlicerTest
                 .find(civSlicedAtlas, Finder::ignore);
         Assert.assertEquals(1, Iterables.size(civWaterEntities));
 
-        Assert.assertEquals(5, lbrSlicedAtlas.numberOfLines());
+        Assert.assertEquals(4, lbrSlicedAtlas.numberOfLines());
         Assert.assertEquals(0, lbrSlicedAtlas.numberOfAreas());
         Assert.assertEquals(0, lbrSlicedAtlas.numberOfPoints());
         Assert.assertEquals(1, lbrSlicedAtlas.numberOfRelations());
@@ -1156,7 +991,6 @@ public class RawAtlasSlicerTest
                 .find(lbrSlicedAtlas, Finder::ignore);
         Assert.assertEquals(1, Iterables.size(lbrWaterEntities));
 
-        final SortedSet<String> civSyntheticRelationMembers = new TreeSet<>();
         civSlicedAtlas.lines().forEach(line ->
         {
             if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
@@ -1166,14 +1000,8 @@ public class RawAtlasSlicerTest
                 Assert.assertEquals(rawLine.getOsmTags(), line.getOsmTags());
                 Assert.assertEquals(1, line.relations().size());
             }
-            else
-            {
-                Assert.assertTrue(line.getTag(SyntheticSyntheticRelationMemberTag.KEY).isPresent());
-                civSyntheticRelationMembers.add(Long.toString(line.getIdentifier()));
-            }
         });
 
-        final SortedSet<String> lbrSyntheticRelationMembers = new TreeSet<>();
         lbrSlicedAtlas.lines().forEach(line ->
         {
             if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
@@ -1191,11 +1019,6 @@ public class RawAtlasSlicerTest
                         line.asPolyLine());
                 Assert.assertEquals(1, line.relations().size());
             }
-            else
-            {
-                Assert.assertTrue(line.getTag(SyntheticSyntheticRelationMemberTag.KEY).isPresent());
-                lbrSyntheticRelationMembers.add(Long.toString(line.getIdentifier()));
-            }
         });
 
         final CountrySlicingIdentifierFactory relationIdentifierFactory = new CountrySlicingIdentifierFactory(
@@ -1209,20 +1032,12 @@ public class RawAtlasSlicerTest
         Assert.assertEquals("CIV", civRelation.getTag(ISOCountryTag.KEY).get());
         Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
                 civRelation.getTag(SyntheticGeometrySlicedTag.KEY).get());
-        Assert.assertEquals(
-                String.join(SyntheticRelationMemberAdded.MEMBER_DELIMITER,
-                        civSyntheticRelationMembers),
-                civRelation.getTag(SyntheticRelationMemberAdded.KEY).get());
         Assert.assertTrue(civRelation
                 .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).isEmpty());
 
         Assert.assertEquals("LBR", lbrRelation.getTag(ISOCountryTag.KEY).get());
         Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
                 lbrRelation.getTag(SyntheticGeometrySlicedTag.KEY).get());
-        Assert.assertEquals(
-                String.join(SyntheticRelationMemberAdded.MEMBER_DELIMITER,
-                        lbrSyntheticRelationMembers),
-                lbrRelation.getTag(SyntheticRelationMemberAdded.KEY).get());
         Assert.assertTrue(lbrRelation
                 .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).isEmpty());
     }
@@ -1400,8 +1215,6 @@ public class RawAtlasSlicerTest
         Assert.assertEquals("CIV,LBR", civSlicedAtlas.relation(1).getTag(ISOCountryTag.KEY).get());
         Assert.assertTrue(
                 civSlicedAtlas.relation(1).getTag(SyntheticGeometrySlicedTag.KEY).isEmpty());
-        Assert.assertTrue(
-                civSlicedAtlas.relation(1).getTag(SyntheticRelationMemberAdded.KEY).isEmpty());
         Assert.assertTrue(civSlicedAtlas.relation(1)
                 .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).isEmpty());
 
@@ -1416,8 +1229,6 @@ public class RawAtlasSlicerTest
         Assert.assertEquals("CIV,LBR", lbrSlicedAtlas.relation(1).getTag(ISOCountryTag.KEY).get());
         Assert.assertTrue(
                 lbrSlicedAtlas.relation(1).getTag(SyntheticGeometrySlicedTag.KEY).isEmpty());
-        Assert.assertTrue(
-                lbrSlicedAtlas.relation(1).getTag(SyntheticRelationMemberAdded.KEY).isEmpty());
         Assert.assertTrue(lbrSlicedAtlas.relation(1)
                 .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).isEmpty());
     }
@@ -1437,7 +1248,6 @@ public class RawAtlasSlicerTest
         final Atlas lbrSlicedAtlas = new RawAtlasSlicer(
                 AtlasLoadingOption.createOptionWithAllEnabled(boundary).setCountryCode("LBR"),
                 rawAtlas).slice();
-
         // Assert that we CAN build a valid building with this relation
         new ComplexBuildingFinder().find(lbrSlicedAtlas)
                 .forEach(building -> Assert.assertFalse(building.getError().isPresent()));
@@ -1467,7 +1277,6 @@ public class RawAtlasSlicerTest
                 rawAtlas).slice();
 
         Assert.assertEquals(0, civSlicedAtlas.numberOfPoints());
-        Assert.assertEquals(4, civSlicedAtlas.numberOfLines());
         Assert.assertEquals(2, civSlicedAtlas.numberOfAreas());
         Assert.assertEquals(1, civSlicedAtlas.numberOfRelations());
         final Iterable<ComplexBuilding> civBuildings = new ComplexBuildingFinder()
@@ -1475,14 +1284,12 @@ public class RawAtlasSlicerTest
         Assert.assertEquals(1, Iterables.size(civBuildings));
 
         Assert.assertEquals(0, lbrSlicedAtlas.numberOfPoints());
-        Assert.assertEquals(4, lbrSlicedAtlas.numberOfLines());
         Assert.assertEquals(2, lbrSlicedAtlas.numberOfAreas());
         Assert.assertEquals(1, lbrSlicedAtlas.numberOfRelations());
         final Iterable<ComplexBuilding> lbrBuildings = new ComplexBuildingFinder()
                 .find(lbrSlicedAtlas, Finder::ignore);
         Assert.assertEquals(1, Iterables.size(lbrBuildings));
 
-        final SortedSet<String> civSyntheticRelationMembers = new TreeSet<>();
         civSlicedAtlas.lines().forEach(line ->
         {
             if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
@@ -1492,14 +1299,8 @@ public class RawAtlasSlicerTest
                 Assert.assertEquals(rawArea.getOsmTags(), line.getOsmTags());
                 Assert.assertEquals(1, line.relations().size());
             }
-            else
-            {
-                Assert.assertTrue(line.getTag(SyntheticSyntheticRelationMemberTag.KEY).isPresent());
-                civSyntheticRelationMembers.add(Long.toString(line.getIdentifier()));
-            }
         });
 
-        final SortedSet<String> lbrSyntheticRelationMembers = new TreeSet<>();
         lbrSlicedAtlas.lines().forEach(line ->
         {
             if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
@@ -1517,11 +1318,6 @@ public class RawAtlasSlicerTest
                         line.asPolyLine());
                 Assert.assertEquals(1, line.relations().size());
             }
-            else
-            {
-                Assert.assertTrue(line.getTag(SyntheticSyntheticRelationMemberTag.KEY).isPresent());
-                lbrSyntheticRelationMembers.add(Long.toString(line.getIdentifier()));
-            }
         });
 
         final CountrySlicingIdentifierFactory relationIdentifierFactory = new CountrySlicingIdentifierFactory(
@@ -1535,20 +1331,12 @@ public class RawAtlasSlicerTest
         Assert.assertEquals("CIV", civRelation.getTag(ISOCountryTag.KEY).get());
         Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
                 civRelation.getTag(SyntheticGeometrySlicedTag.KEY).get());
-        Assert.assertEquals(
-                String.join(SyntheticRelationMemberAdded.MEMBER_DELIMITER,
-                        civSyntheticRelationMembers),
-                civRelation.getTag(SyntheticRelationMemberAdded.KEY).get());
         Assert.assertTrue(civRelation
                 .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).isEmpty());
 
         Assert.assertEquals("LBR", lbrRelation.getTag(ISOCountryTag.KEY).get());
         Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
                 lbrRelation.getTag(SyntheticGeometrySlicedTag.KEY).get());
-        Assert.assertEquals(
-                String.join(SyntheticRelationMemberAdded.MEMBER_DELIMITER,
-                        lbrSyntheticRelationMembers),
-                lbrRelation.getTag(SyntheticRelationMemberAdded.KEY).get());
         Assert.assertTrue(lbrRelation
                 .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).isEmpty());
     }
@@ -1591,16 +1379,15 @@ public class RawAtlasSlicerTest
                 rawAtlas).slice();
 
         Assert.assertEquals(3, civSlicedAtlas.numberOfPoints());
-        Assert.assertEquals(3, civSlicedAtlas.numberOfLines());
+        Assert.assertEquals(2, civSlicedAtlas.numberOfLines());
         Assert.assertEquals(0, civSlicedAtlas.numberOfAreas());
         Assert.assertEquals(1, civSlicedAtlas.numberOfRelations());
 
         Assert.assertEquals(8, lbrSlicedAtlas.numberOfPoints());
-        Assert.assertEquals(3, lbrSlicedAtlas.numberOfLines());
+        Assert.assertEquals(2, lbrSlicedAtlas.numberOfLines());
         Assert.assertEquals(0, lbrSlicedAtlas.numberOfAreas());
         Assert.assertEquals(1, lbrSlicedAtlas.numberOfRelations());
 
-        final SortedSet<String> civSyntheticRelationMembers = new TreeSet<>();
         civSlicedAtlas.lines().forEach(line ->
         {
             if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
@@ -1610,14 +1397,8 @@ public class RawAtlasSlicerTest
                 Assert.assertEquals(rawLine.getOsmTags(), line.getOsmTags());
                 Assert.assertEquals(1, line.relations().size());
             }
-            else
-            {
-                Assert.assertTrue(line.getTag(SyntheticSyntheticRelationMemberTag.KEY).isPresent());
-                civSyntheticRelationMembers.add(Long.toString(line.getIdentifier()));
-            }
         });
 
-        final SortedSet<String> lbrSyntheticRelationMembers = new TreeSet<>();
         lbrSlicedAtlas.lines().forEach(line ->
         {
             if (line.getTag(SyntheticGeometrySlicedTag.KEY).isPresent())
@@ -1635,38 +1416,25 @@ public class RawAtlasSlicerTest
                         line.asPolyLine());
                 Assert.assertEquals(1, line.relations().size());
             }
-            else
-            {
-                Assert.assertTrue(line.getTag(SyntheticSyntheticRelationMemberTag.KEY).isPresent());
-                lbrSyntheticRelationMembers.add(Long.toString(line.getIdentifier()));
-            }
         });
 
         final CountrySlicingIdentifierFactory relationIdentifierFactory = new CountrySlicingIdentifierFactory(
                 214805000000L);
         final Relation civRelation = civSlicedAtlas
                 .relation(relationIdentifierFactory.nextIdentifier());
-        Assert.assertTrue(jtsConverter.backwardConvert(converter.convert(civRelation)).isValid());
+        Assert.assertTrue(civRelation.asMultiPolygon().get().isValid());
         Assert.assertEquals("CIV", civRelation.getTag(ISOCountryTag.KEY).get());
         Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
                 civRelation.getTag(SyntheticGeometrySlicedTag.KEY).get());
-        Assert.assertEquals(
-                String.join(SyntheticRelationMemberAdded.MEMBER_DELIMITER,
-                        civSyntheticRelationMembers),
-                civRelation.getTag(SyntheticRelationMemberAdded.KEY).get());
         Assert.assertTrue(civRelation
                 .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).isEmpty());
 
         final Relation lbrRelation = lbrSlicedAtlas
                 .relation(relationIdentifierFactory.nextIdentifier());
-        Assert.assertTrue(jtsConverter.backwardConvert(converter.convert(lbrRelation)).isValid());
+        Assert.assertTrue(lbrRelation.asMultiPolygon().get().isValid());
         Assert.assertEquals("LBR", lbrRelation.getTag(ISOCountryTag.KEY).get());
         Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
                 lbrRelation.getTag(SyntheticGeometrySlicedTag.KEY).get());
-        Assert.assertEquals(
-                String.join(SyntheticRelationMemberAdded.MEMBER_DELIMITER,
-                        lbrSyntheticRelationMembers),
-                lbrRelation.getTag(SyntheticRelationMemberAdded.KEY).get());
         Assert.assertTrue(lbrRelation
                 .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).isEmpty());
     }
@@ -1689,16 +1457,15 @@ public class RawAtlasSlicerTest
                 rawAtlas).slice();
 
         Assert.assertEquals(3, civSlicedAtlas.numberOfPoints());
-        Assert.assertEquals(3, civSlicedAtlas.numberOfLines());
+        Assert.assertEquals(2, civSlicedAtlas.numberOfLines());
         Assert.assertEquals(0, civSlicedAtlas.numberOfAreas());
         Assert.assertEquals(1, civSlicedAtlas.numberOfRelations());
 
         Assert.assertEquals(8, lbrSlicedAtlas.numberOfPoints());
-        Assert.assertEquals(3, lbrSlicedAtlas.numberOfLines());
+        Assert.assertEquals(2, lbrSlicedAtlas.numberOfLines());
         Assert.assertEquals(0, lbrSlicedAtlas.numberOfAreas());
         Assert.assertEquals(1, lbrSlicedAtlas.numberOfRelations());
 
-        final SortedSet<String> civSyntheticRelationMembers = new TreeSet<>();
         civSlicedAtlas.lines().forEach(line ->
         {
             final Iterator<Location> lineLocations = line.iterator();
@@ -1717,14 +1484,8 @@ public class RawAtlasSlicerTest
                 Assert.assertEquals(rawLine.getOsmTags(), line.getOsmTags());
                 Assert.assertEquals(1, line.relations().size());
             }
-            else
-            {
-                Assert.assertTrue(line.getTag(SyntheticSyntheticRelationMemberTag.KEY).isPresent());
-                civSyntheticRelationMembers.add(Long.toString(line.getIdentifier()));
-            }
         });
 
-        final SortedSet<String> lbrSyntheticRelationMembers = new TreeSet<>();
         lbrSlicedAtlas.lines().forEach(line ->
         {
             final Iterator<Location> lineLocations = line.iterator();
@@ -1751,38 +1512,25 @@ public class RawAtlasSlicerTest
                         line.asPolyLine());
                 Assert.assertEquals(1, line.relations().size());
             }
-            else
-            {
-                Assert.assertTrue(line.getTag(SyntheticSyntheticRelationMemberTag.KEY).isPresent());
-                lbrSyntheticRelationMembers.add(Long.toString(line.getIdentifier()));
-            }
         });
 
         final CountrySlicingIdentifierFactory relationIdentifierFactory = new CountrySlicingIdentifierFactory(
                 214805000000L);
         final Relation civRelation = civSlicedAtlas
                 .relation(relationIdentifierFactory.nextIdentifier());
-        Assert.assertTrue(jtsConverter.backwardConvert(converter.convert(civRelation)).isValid());
+        Assert.assertTrue(civRelation.asMultiPolygon().get().isValid());
         Assert.assertEquals("CIV", civRelation.getTag(ISOCountryTag.KEY).get());
         Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
                 civRelation.getTag(SyntheticGeometrySlicedTag.KEY).get());
-        Assert.assertEquals(
-                String.join(SyntheticRelationMemberAdded.MEMBER_DELIMITER,
-                        civSyntheticRelationMembers),
-                civRelation.getTag(SyntheticRelationMemberAdded.KEY).get());
         Assert.assertTrue(civRelation
                 .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).isEmpty());
 
         final Relation lbrRelation = lbrSlicedAtlas
                 .relation(relationIdentifierFactory.nextIdentifier());
-        Assert.assertTrue(jtsConverter.backwardConvert(converter.convert(lbrRelation)).isValid());
+        Assert.assertTrue(lbrRelation.asMultiPolygon().get().isValid());
         Assert.assertEquals("LBR", lbrRelation.getTag(ISOCountryTag.KEY).get());
         Assert.assertEquals(SyntheticGeometrySlicedTag.YES.toString(),
                 lbrRelation.getTag(SyntheticGeometrySlicedTag.KEY).get());
-        Assert.assertEquals(
-                String.join(SyntheticRelationMemberAdded.MEMBER_DELIMITER,
-                        lbrSyntheticRelationMembers),
-                lbrRelation.getTag(SyntheticRelationMemberAdded.KEY).get());
         Assert.assertTrue(lbrRelation
                 .getTag(SyntheticInvalidMultiPolygonRelationMembersRemovedTag.KEY).isEmpty());
 

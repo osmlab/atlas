@@ -581,6 +581,25 @@ public class FeatureChange implements Located, Taggable, Serializable, Comparabl
      *            the format type for the this {@link FeatureChange}
      * @param completeEntityFormat
      *            the format type for the constituent {@link CompleteEntity}s
+     * @return the pretty string
+     */
+    public String prettify(final PrettifyStringFormat format,
+            final PrettifyStringFormat completeEntityFormat)
+    {
+        return this.prettify(PrettifyStringFormat.MINIMAL_MULTI_LINE,
+                PrettifyStringFormat.MINIMAL_SINGLE_LINE, true);
+    }
+
+    /**
+     * Transform this {@link FeatureChange} into a pretty string. This will use the pretty strings
+     * for {@link CompleteEntity} classes. If you are unsure about which
+     * {@link PrettifyStringFormat}s to use, try {@link FeatureChange#prettify()} which has some
+     * sane defaults.
+     *
+     * @param format
+     *            the format type for the this {@link FeatureChange}
+     * @param completeEntityFormat
+     *            the format type for the constituent {@link CompleteEntity}s
      * @param truncate
      *            whether or not to truncate long fields
      * @return the pretty string
@@ -628,25 +647,6 @@ public class FeatureChange implements Located, Taggable, Serializable, Comparabl
         builder.append("]");
 
         return builder.toString();
-    }
-
-    /**
-     * Transform this {@link FeatureChange} into a pretty string. This will use the pretty strings
-     * for {@link CompleteEntity} classes. If you are unsure about which
-     * {@link PrettifyStringFormat}s to use, try {@link FeatureChange#prettify()} which has some
-     * sane defaults.
-     *
-     * @param format
-     *            the format type for the this {@link FeatureChange}
-     * @param completeEntityFormat
-     *            the format type for the constituent {@link CompleteEntity}s
-     * @return the pretty string
-     */
-    public String prettify(final PrettifyStringFormat format,
-            final PrettifyStringFormat completeEntityFormat)
-    {
-        return this.prettify(PrettifyStringFormat.MINIMAL_MULTI_LINE,
-                PrettifyStringFormat.MINIMAL_SINGLE_LINE, true);
     }
 
     /**
@@ -882,6 +882,14 @@ public class FeatureChange implements Located, Taggable, Serializable, Comparabl
             {
                 ((CompleteRelation) beforeViewUpdatesOnly).withOsmRelationIdentifier(
                         beforeRelationViewFromAtlas.osmRelationIdentifier());
+            }
+            if (afterRelationView.asMultiPolygon().isPresent())
+            {
+                if (beforeRelationViewFromAtlas.asMultiPolygon().isPresent())
+                {
+                    ((CompleteRelation) beforeViewUpdatesOnly).withMultiPolygonGeometry(
+                            beforeRelationViewFromAtlas.asMultiPolygon().get());
+                }
             }
         }
         else

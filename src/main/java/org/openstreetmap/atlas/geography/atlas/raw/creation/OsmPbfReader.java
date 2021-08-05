@@ -6,6 +6,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Latitude;
@@ -542,7 +545,77 @@ public class OsmPbfReader implements Sink
         // relation will become whole again.
         if (currentStagedRelationSize == previousStagedRelationSize && !stagedRelations.isEmpty())
         {
-            stagedRelations.forEach(this::addRelation);
+            boolean changesMade = false;
+            while (!stagedRelations.isEmpty())
+            {
+                final List<Relation> staging = new ArrayList<>();
+                staging.addAll(stagedRelations);
+                for (final Relation relation : stagedRelations)
+                {
+                    if (relation.getMembers().stream()
+                            .anyMatch(member -> member.getMemberType().equals(EntityType.Relation)
+                                    && staging.stream().anyMatch(
+                                            staged -> staged.getId() == member.getMemberId())))
+                    {
+                        logger.error("Relation {} had staging member {}", relation.getId(), relation
+                                .getMembers().stream()
+                                .filter(member -> member.getMemberType().equals(EntityType.Relation)
+                                        && staging.stream().anyMatch(
+                                                staged -> staged.getId() == member.getMemberId()))
+                                .collect(Collectors.toSet()));
+                    }
+                    else
+                    {
+                        addRelation(relation);
+                        staging.remove(relation);
+                        changesMade = true;
+                    }
+                }
+                stagedRelations = staging;
+                if (!changesMade)
+                {
+                    logger.error(
+                            "No changes found for staged relation loop. Staged relations were {}",
+                            stagedRelations);
+                    logger.error("Just in case, first relation was ",
+                            stagedRelations.iterator().next());
+                    break;
+                }
+                changesMade = false;
+            }
+            if (!stagedRelations.isEmpty())
+            {
+                final List<Relation> stagedRelationsButFinal = stagedRelations;
+                final SortedSet<Relation> sortedByNumberOfParents = new TreeSet<Relation>(
+                        (r1, r2) ->
+                        {
+                            final int r1Parents = r1.getMembers().stream().filter(member1 -> member1
+                                    .getMemberType().equals(EntityType.Relation)
+                                    && stagedRelationsButFinal.stream().anyMatch(
+                                            staged1 -> staged1.getId() == member1.getMemberId()))
+                                    .collect(Collectors.toSet()).size();
+                            final int r2Parents = r2.getMembers().stream().filter(member2 -> member2
+                                    .getMemberType().equals(EntityType.Relation)
+                                    && stagedRelationsButFinal.stream().anyMatch(
+                                            staged2 -> staged2.getId() == member2.getMemberId()))
+                                    .collect(Collectors.toSet()).size();
+                            if (r1Parents < r2Parents)
+                            {
+                                return 1;
+                            }
+                            else if (r1Parents > r2Parents)
+                            {
+                                return -1;
+                            }
+                            else
+                            {
+                                return Long.compare(r1.getId(), r2.getId());
+                            }
+
+                        });
+                stagedRelations.forEach(sortedByNumberOfParents::add);
+                sortedByNumberOfParents.forEach(this::addRelation);
+            }
         }
     }
 

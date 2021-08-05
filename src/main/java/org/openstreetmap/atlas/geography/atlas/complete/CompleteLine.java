@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.complete;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -31,6 +32,7 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
     private long identifier;
     private PolyLine polyLine;
     private Map<String, String> tags;
+    private Set<Long> geometricRelationIdentifiers;
     private Set<Long> relationIdentifiers;
 
     private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
@@ -52,7 +54,12 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
                     line);
         }
         return new CompleteLine(line.getIdentifier(), line.asPolyLine(), line.getTags(),
-                line.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
+                line.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()))
+                        .withGeometricRelationIdentifiers(
+                                line.relations().stream().filter(Relation::isGeometric)
+                                        .filter(relation -> relation.asMultiPolygon().isPresent()
+                                                && !relation.asMultiPolygon().get().isEmpty())
+                                        .map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
 
     /**
@@ -90,9 +97,10 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
         this.polyLine = polyLine;
         this.tags = tags;
         this.relationIdentifiers = relationIdentifiers;
+        this.geometricRelationIdentifiers = new HashSet<>();
     }
 
-    CompleteLine(final long identifier)
+    protected CompleteLine(final long identifier)
     {
         this(identifier, null, null, null);
     }
@@ -143,6 +151,11 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
     public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
     {
         this.tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
+    }
+
+    public Set<Long> geometricRelationIdentifiers()
+    {
+        return this.geometricRelationIdentifiers;
     }
 
     @Override
@@ -293,6 +306,13 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
         return this;
     }
 
+    public CompleteLine withGeometricRelationIdentifiers(
+            final Set<Long> geometricRelationIdentifiers)
+    {
+        this.geometricRelationIdentifiers = geometricRelationIdentifiers;
+        return this;
+    }
+
     @Override
     public CompleteEntity withGeometry(final Iterable<Location> locations)
     {
@@ -329,6 +349,10 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
                 .collect(Collectors.toSet());
+        this.geometricRelationIdentifiers = relations.stream().filter(Relation::isGeometric)
+                .filter(relation -> relation.asMultiPolygon().isPresent()
+                        && !relation.asMultiPolygon().get().isEmpty())
+                .map(Relation::getIdentifier).collect(Collectors.toSet());
         return this;
     }
 
@@ -336,6 +360,9 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
     public CompleteLine withRemovedRelationIdentifier(final Long relationIdentifier)
     {
         this.relationIdentifiers = this.relationIdentifiers.stream()
+                .filter(keepId -> keepId != relationIdentifier.longValue())
+                .collect(Collectors.toSet());
+        this.geometricRelationIdentifiers = this.geometricRelationIdentifiers.stream()
                 .filter(keepId -> keepId != relationIdentifier.longValue())
                 .collect(Collectors.toSet());
         return this;

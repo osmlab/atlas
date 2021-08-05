@@ -20,6 +20,7 @@ import org.openstreetmap.atlas.geography.atlas.items.LineItem;
 import org.openstreetmap.atlas.geography.atlas.items.LocationItem;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.conversion.Converter;
@@ -137,7 +138,15 @@ public class FeatureChangeGeoJsonSerializer
             else
             {
                 // Relation
-                result = ((Relation) source).bounds();
+                if (((Relation) source).asMultiPolygon().isPresent())
+                {
+                    result = new JtsMultiPolygonToMultiPolygonConverter()
+                            .convert(((Relation) source).asMultiPolygon().get());
+                }
+                else
+                {
+                    result = ((Relation) source).bounds();
+                }
             }
             if (result == null)
             {
@@ -228,6 +237,11 @@ public class FeatureChangeGeoJsonSerializer
         result.addProperty(name, property == null ? null : writer.apply(property).toString());
     }
 
+    public FeatureChangeGeoJsonSerializer(final boolean prettyPrint)
+    {
+        this(prettyPrint, true);
+    }
+
     public FeatureChangeGeoJsonSerializer(final boolean prettyPrint, final boolean showDescription)
     {
         final GsonBuilder gsonBuilder = new GsonBuilder();
@@ -239,11 +253,6 @@ public class FeatureChangeGeoJsonSerializer
         gsonBuilder.registerTypeHierarchyAdapter(FeatureChange.class,
                 new FeatureChangeTypeHierarchyAdapter(showDescription));
         this.jsonSerializer = gsonBuilder.create();
-    }
-
-    public FeatureChangeGeoJsonSerializer(final boolean prettyPrint)
-    {
-        this(prettyPrint, true);
     }
 
     @Override

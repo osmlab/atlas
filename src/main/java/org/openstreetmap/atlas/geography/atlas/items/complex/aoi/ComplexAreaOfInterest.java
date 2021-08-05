@@ -11,9 +11,11 @@ import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
+import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.complex.ComplexEntity;
 import org.openstreetmap.atlas.geography.atlas.items.complex.RelationOrAreaToMultiPolygonConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.tags.Taggable;
 import org.openstreetmap.atlas.tags.filters.TaggableFilter;
 import org.slf4j.Logger;
@@ -76,8 +78,8 @@ public final class ComplexAreaOfInterest extends ComplexEntity
             {
                 computeDefaultFilter();
             }
-            return ((source instanceof Relation || source instanceof Area)
-                    && (hasAOITag(source) || aoiFilter.test(source)))
+            return (source instanceof Relation || source instanceof Area)
+                    && (hasAOITag(source) || aoiFilter.test(source))
                             ? Optional.of(new ComplexAreaOfInterest(source))
                             : Optional.empty();
         }
@@ -131,7 +133,17 @@ public final class ComplexAreaOfInterest extends ComplexEntity
         super(source);
         try
         {
-            this.multiPolygon = RELATION_OR_AREA_TO_MULTI_POLYGON_CONVERTER.convert(source);
+            if (source.getType().equals(ItemType.RELATION))
+            {
+                this.multiPolygon = new JtsMultiPolygonToMultiPolygonConverter()
+                        .convert((org.locationtech.jts.geom.MultiPolygon) ((Relation) source)
+                                .asMultiPolygon().get());
+            }
+            else
+            {
+                this.multiPolygon = RELATION_OR_AREA_TO_MULTI_POLYGON_CONVERTER.convert(source);
+            }
+
         }
         catch (final Exception exception)
         {

@@ -17,6 +17,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.locationtech.jts.geom.GeometryFactory;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Located;
@@ -28,6 +29,8 @@ import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.items.complex.RelationOrAreaToMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.atlas.multi.MultiAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
+import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonFeatureCollection;
@@ -70,6 +73,10 @@ public abstract class Relation extends AtlasEntity
     private static final Logger logger = LoggerFactory.getLogger(Relation.class);
     private static final long serialVersionUID = -9013894610780915685L;
     private static final RelationOrAreaToMultiPolygonConverter MULTI_POLYGON_CONVERTER = new RelationOrAreaToMultiPolygonConverter();
+    private static final JtsMultiPolygonToMultiPolygonConverter JTS_CONVERTER = new JtsMultiPolygonToMultiPolygonConverter();
+    private org.locationtech.jts.geom.MultiPolygon geom;
+    private boolean badGeom = false;
+    private Rectangle bounds = null;
 
     protected Relation(final Atlas atlas)
     {
@@ -132,9 +139,42 @@ public abstract class Relation extends AtlasEntity
         return geometry;
     }
 
+    public Optional<org.locationtech.jts.geom.MultiPolygon> asMultiPolygon()
+    {
+        return this.asMultiPolygon(false);
+    }
+
+    public Optional<org.locationtech.jts.geom.MultiPolygon> asMultiPolygon(final boolean assemble)
+    {
+        try
+        {
+            if (assemble && !this.badGeom && this.geom == null && isGeometric())
+            {
+                this.geom = JTS_CONVERTER.backwardConvert(MULTI_POLYGON_CONVERTER.convert(this));
+            }
+        }
+        catch (final Exception exc)
+        {
+            logger.trace("Exception making multipolygon geometry for relation {}",
+                    this.getIdentifier(), exc);
+            this.badGeom = true;
+        }
+        return Optional.ofNullable(this.geom);
+    }
+
     @Override
     public Rectangle bounds()
     {
+        if (this.isGeometric() && !this.getBadGeom() && this.asMultiPolygon().isPresent())
+        {
+            if (this.bounds == null)
+            {
+                this.bounds = Rectangle.forLocated(new JtsPolygonConverter()
+                        .backwardConvert((org.locationtech.jts.geom.Polygon) new GeometryFactory()
+                                .toGeometry(this.asMultiPolygon().get().getEnvelopeInternal())));
+            }
+            return this.bounds;
+        }
         return boundsInternal(new LinkedHashSet<>());
     }
 
@@ -446,6 +486,10 @@ public abstract class Relation extends AtlasEntity
     @Override
     public String toWkt()
     {
+        if (this.isGeometric() && this.asMultiPolygon().isPresent())
+        {
+            return this.asMultiPolygon().get().toText();
+        }
         return WktPrintable.toWktCollection(leafMembers().collect(Collectors.toList()));
     }
 
@@ -513,6 +557,16 @@ public abstract class Relation extends AtlasEntity
         return Rectangle.forLocated(itemsToConsider);
     }
 
+    protected boolean getBadGeom()
+    {
+        return this.badGeom;
+    }
+
+    protected org.locationtech.jts.geom.MultiPolygon getGeom()
+    {
+        return this.geom;
+    }
+
     /**
      * Avoid stack overflows in case a relation has looping members. This should never happen with a
      * {@link PackedAtlas} but could happen when two {@link Atlas} are combined into a
@@ -552,6 +606,11 @@ public abstract class Relation extends AtlasEntity
             }
         }
         return false;
+    }
+
+    protected void setGeom(final org.locationtech.jts.geom.MultiPolygon geom)
+    {
+        this.geom = geom;
     }
 
     /**

@@ -25,6 +25,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPrecisionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -318,6 +319,31 @@ public final class AtlasDiffHelper
                 completeRelation.withMembersAndSource(afterRelation.members(), beforeRelation);
                 featureChangeWouldBeUseful = true;
             }
+
+            if (beforeRelation.isGeometric())
+            {
+                if (afterRelation.asMultiPolygon().isPresent())
+                {
+                    if (beforeRelation.asMultiPolygon().isPresent() && beforeRelation
+                            .asMultiPolygon().get().equals(afterRelation.asMultiPolygon().get()))
+                    {
+                        // nothing to see here, move along!
+                    }
+                    else
+                    {
+                        completeRelation
+                                .withMultiPolygonGeometry(afterRelation.asMultiPolygon().get());
+                        featureChangeWouldBeUseful = true;
+                    }
+                }
+                else if (beforeRelation.asMultiPolygon().isPresent())
+                {
+                    completeRelation.withMultiPolygonGeometry(
+                            JtsPrecisionManager.getGeometryFactory().createMultiPolygon());
+                    featureChangeWouldBeUseful = true;
+                }
+            }
+
             if (featureChangeWouldBeUseful)
             {
                 return Optional.of(FeatureChange.add(completeRelation, beforeViewAtlas));

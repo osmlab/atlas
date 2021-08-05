@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.change.ChangeRelation;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.utilities.time.Time;
@@ -32,6 +33,7 @@ public class AtlasValidator
         logger.trace("Starting relation validation of Atlas {}", this.atlas.getName());
         final Time startRelations = Time.now();
         validateRelationsPresentAndLinked();
+        validateGeometricRelations();
         logger.trace("Finished relation validation of Atlas {} in {}", this.atlas.getName(),
                 startRelations.elapsedSince());
         logger.trace("Starting tags validation of Atlas {}", this.atlas.getName());
@@ -45,6 +47,21 @@ public class AtlasValidator
         new AtlasNodeValidator(this.atlas).validate();
         logger.info("Finished validation of Atlas {} in {}", this.atlas.getName(),
                 start.elapsedSince());
+    }
+
+    protected void validateGeometricRelations()
+    {
+        for (final Relation relation : this.atlas.relations())
+        {
+            if (relation instanceof ChangeRelation && relation.isGeometric()
+                    && !((ChangeRelation) relation).preservedValidGeometry())
+            {
+                throw new CoreException(
+                        "Relation {} had valid source geometry but invalid change geometry!",
+                        relation.getIdentifier());
+
+            }
+        }
     }
 
     protected void validateRelationsPresentAndLinked()

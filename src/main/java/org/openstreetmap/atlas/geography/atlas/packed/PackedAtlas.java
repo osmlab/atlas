@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.packed;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,9 @@ import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import org.locationtech.jts.geom.MultiPolygon;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -32,6 +36,9 @@ import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
+import org.openstreetmap.atlas.streaming.compression.Compressor;
+import org.openstreetmap.atlas.streaming.compression.Decompressor;
+import org.openstreetmap.atlas.streaming.resource.ByteArrayResource;
 import org.openstreetmap.atlas.streaming.resource.Resource;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.arrays.ByteArrayOfArrays;
@@ -78,85 +85,89 @@ public final class PackedAtlas extends AbstractAtlas
     protected static final String FIELD_SERIALIZER = "serializer";
     protected static final String FIELD_SAVE_SERIALIZATION_FORMAT = "saveSerializationFormat";
     protected static final String FIELD_LOAD_SERIALIZATION_FORMAT = "loadSerializationFormat";
+    protected static final String FIELD_CONTAINS_ENHANCED_RELATION_GEOMETRY = "containsEnhancedRelationGeometry";
     protected static final String FIELD_META_DATA = "metaData";
     protected static final String FIELD_DICTIONARY = "dictionary";
-    protected static final Object FIELD_DICTIONARY_LOCK = new Object();
+    private final transient Object fieldDictionaryLock = new Object();
     protected static final String FIELD_EDGE_IDENTIFIERS = "edgeIdentifiers";
-    protected static final Object FIELD_EDGE_IDENTIFIERS_LOCK = new Object();
+    private final transient Object fieldEdgeIdentifiersLock = new Object();
     protected static final String FIELD_NODE_IDENTIFIERS = "nodeIdentifiers";
-    protected static final Object FIELD_NODE_IDENTIFIERS_LOCK = new Object();
+    private final transient Object fieldNodeIdentifiersLock = new Object();
     protected static final String FIELD_AREA_IDENTIFIERS = "areaIdentifiers";
-    protected static final Object FIELD_AREA_IDENTIFIERS_LOCK = new Object();
+    private final transient Object fieldAreaIdentifiersLock = new Object();
     protected static final String FIELD_LINE_IDENTIFIERS = "lineIdentifiers";
-    protected static final Object FIELD_LINE_IDENTIFIERS_LOCK = new Object();
+    private final transient Object fieldLineIdentifiersLock = new Object();
     protected static final String FIELD_POINT_IDENTIFIERS = "pointIdentifiers";
-    protected static final Object FIELD_POINT_IDENTIFIERS_LOCK = new Object();
+    private final transient Object fieldPointIdentifiersLock = new Object();
     protected static final String FIELD_RELATION_IDENTIFIERS = "relationIdentifiers";
-    protected static final Object FIELD_RELATION_IDENTIFIERS_LOCK = new Object();
+    private final transient Object fieldRelationIdentifiersLock = new Object();
     protected static final String FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX = "edgeIdentifierToEdgeArrayIndex";
-    protected static final Object FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX_LOCK = new Object();
+    private final transient Object fieldEdgeIdentifierToEdgeArrayIndexLock = new Object();
     protected static final String FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX = "nodeIdentifierToNodeArrayIndex";
-    protected static final Object FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX_LOCK = new Object();
+    private final transient Object fieldNodeIdentifierToNodeArrayIndexLock = new Object();
     protected static final String FIELD_AREA_IDENTIFIER_TO_AREA_ARRAY_INDEX = "areaIdentifierToAreaArrayIndex";
-    protected static final Object FIELD_AREA_IDENTIFIER_TO_AREA_ARRAY_INDEX_LOCK = new Object();
+    private final transient Object fieldAreaIdentifierToAreaArrayIndexLock = new Object();
     protected static final String FIELD_LINE_IDENTIFIER_TO_LINE_ARRAY_INDEX = "lineIdentifierToLineArrayIndex";
-    protected static final Object FIELD_LINE_IDENTIFIER_TO_LINE_ARRAY_INDEX_LOCK = new Object();
+    private final transient Object fieldLineIdentifierToLineArrayIndexLock = new Object();
     protected static final String FIELD_POINT_IDENTIFIER_TO_POINT_ARRAY_INDEX = "pointIdentifierToPointArrayIndex";
-    protected static final Object FIELD_POINT_IDENTIFIER_TO_POINT_ARRAY_INDEX_LOCK = new Object();
+    private final transient Object fieldPointIdentifierToPointArrayIndexLock = new Object();
     protected static final String FIELD_RELATION_IDENTIFIER_TO_RELATION_ARRAY_INDEX = "relationIdentifierToRelationArrayIndex";
-    protected static final Object FIELD_RELATION_IDENTIFIER_TO_RELATION_ARRAY_INDEX_LOCK = new Object();
+    private final transient Object fieldRelationIdentifierToRelationArrayIndexLock = new Object();
     protected static final String FIELD_NODE_LOCATIONS = "nodeLocations";
-    protected static final Object FIELD_NODE_LOCATIONS_LOCK = new Object();
+    private final transient Object fieldNodeLocationsLock = new Object();
     protected static final String FIELD_NODE_IN_EDGES_INDICES = "nodeInEdgesIndices";
-    protected static final Object FIELD_NODE_IN_EDGES_INDICES_LOCK = new Object();
+    private final transient Object fieldNodeInEdgesIndicesLock = new Object();
     protected static final String FIELD_NODE_OUT_EDGES_INDICES = "nodeOutEdgesIndices";
-    protected static final Object FIELD_NODE_OUT_EDGES_INDICES_LOCK = new Object();
+    private final transient Object fieldNodeOutEdgesIndicesLock = new Object();
     protected static final String FIELD_NODE_TAGS = "nodeTags";
-    protected static final Object FIELD_NODE_TAGS_LOCK = new Object();
+    private final transient Object fieldNodeTagsLock = new Object();
     protected static final String FIELD_NODE_INDEX_TO_RELATION_INDICES = "nodeIndexToRelationIndices";
-    protected static final Object FIELD_NODE_INDEX_TO_RELATION_INDICES_LOCK = new Object();
+    private final transient Object fieldNodeIndexToRelationIndicesLock = new Object();
     protected static final String FIELD_EDGE_START_NODE_INDEX = "edgeStartNodeIndex";
-    protected static final Object FIELD_EDGE_START_NODE_INDEX_LOCK = new Object();
+    private final transient Object fieldEdgeStartNodeIndexLock = new Object();
     protected static final String FIELD_EDGE_END_NODE_INDEX = "edgeEndNodeIndex";
-    protected static final Object FIELD_EDGE_END_NODE_INDEX_LOCK = new Object();
+    private final transient Object fieldEdgeEndNodeIndexLock = new Object();
     protected static final String FIELD_EDGE_POLY_LINES = "edgePolyLines";
-    protected static final Object FIELD_EDGE_POLY_LINES_LOCK = new Object();
+    private final transient Object fieldEdgePolyLinesLock = new Object();
     protected static final String FIELD_EDGE_TAGS = "edgeTags";
-    protected static final Object FIELD_EDGE_TAGS_LOCK = new Object();
+    private final transient Object fieldEdgeTagsLock = new Object();
     protected static final String FIELD_EDGE_INDEX_TO_RELATION_INDICES = "edgeIndexToRelationIndices";
-    protected static final Object FIELD_EDGE_INDEX_TO_RELATION_INDICES_LOCK = new Object();
+    private final transient Object fieldEdgeIndexToRelationIndicesLock = new Object();
     protected static final String FIELD_AREA_POLYGONS = "areaPolygons";
-    protected static final Object FIELD_AREA_POLYGONS_LOCK = new Object();
+    private final transient Object fieldAreaPolygonsLock = new Object();
     protected static final String FIELD_AREA_TAGS = "areaTags";
-    protected static final Object FIELD_AREA_TAGS_LOCK = new Object();
+    private final transient Object fieldAreaTagsLock = new Object();
     protected static final String FIELD_AREA_INDEX_TO_RELATION_INDICES = "areaIndexToRelationIndices";
-    protected static final Object FIELD_AREA_INDEX_TO_RELATION_INDICES_LOCK = new Object();
+    private final transient Object fieldAreaIndexToRelationIndicesLock = new Object();
     protected static final String FIELD_LINE_POLYLINES = "linePolyLines";
-    protected static final Object FIELD_LINE_POLYLINES_LOCK = new Object();
+    private final transient Object fieldLinePolyLinesLock = new Object();
     protected static final String FIELD_LINE_TAGS = "lineTags";
-    protected static final Object FIELD_LINE_TAGS_LOCK = new Object();
+    private final transient Object fieldLineTagsLock = new Object();
     protected static final String FIELD_LINE_INDEX_TO_RELATION_INDICES = "lineIndexToRelationIndices";
-    protected static final Object FIELD_LINE_INDEX_TO_RELATION_INDICES_LOCK = new Object();
+    private final transient Object fieldLindIndexToRelationIndicesLock = new Object();
     protected static final String FIELD_POINT_LOCATIONS = "pointLocations";
-    protected static final Object FIELD_POINT_LOCATIONS_LOCK = new Object();
+    private final transient Object fieldPointLocationsLock = new Object();
     protected static final String FIELD_POINT_TAGS = "pointTags";
-    protected static final Object FIELD_POINT_TAGS_LOCK = new Object();
+    private final transient Object fieldPointTagsLock = new Object();
     protected static final String FIELD_POINT_INDEX_TO_RELATION_INDICES = "pointIndexToRelationIndices";
-    protected static final Object FIELD_POINT_INDEX_TO_RELATION_INDICES_LOCK = new Object();
+    private final transient Object fieldPointIndexToRelationIndicesLock = new Object();
     protected static final String FIELD_RELATION_MEMBERS_INDICES = "relationMemberIndices";
-    protected static final Object FIELD_RELATION_MEMBERS_INDICES_LOCK = new Object();
+    private final transient Object fieldRelationMembersIndicesLock = new Object();
     protected static final String FIELD_RELATION_MEMBER_TYPES = "relationMemberTypes";
-    protected static final Object FIELD_RELATION_MEMBER_TYPES_LOCK = new Object();
+    private final transient Object fieldRelationMemberTypesLock = new Object();
     protected static final String FIELD_RELATION_MEMBER_ROLES = "relationMemberRoles";
-    protected static final Object FIELD_RELATION_MEMBER_ROLES_LOCK = new Object();
+    private final transient Object fieldRelationMemberRolesLock = new Object();
     protected static final String FIELD_RELATION_TAGS = "relationTags";
-    protected static final Object FIELD_RELATION_TAGS_LOCK = new Object();
+    private final transient Object fieldRelationTagsLock = new Object();
     protected static final String FIELD_RELATION_INDEX_TO_RELATION_INDICES = "relationIndexToRelationIndices";
-    protected static final Object FIELD_RELATION_INDEX_TO_RELATION_INDICES_LOCK = new Object();
+    private final transient Object fieldRelationIndexToRelationIndicesLock = new Object();
     protected static final String FIELD_RELATION_OSM_IDENTIFIER_TO_RELATION_IDENTIFIERS = "relationOsmIdentifierToRelationIdentifiers";
-    protected static final Object FIELD_RELATION_OSM_IDENTIFIER_TO_RELATION_IDENTIFIERS_LOCK = new Object();
+    private final transient Object fieldRelationOsmIdentifierToRelationIdentifiersLock = new Object();
     protected static final String FIELD_RELATION_OSM_IDENTIFIERS = "relationOsmIdentifiers";
-    protected static final Object FIELD_RELATION_OSM_IDENTIFIERS_LOCK = new Object();
+    private final transient Object fieldRelationOsmIdentifiersLock = new Object();
+    protected static final String FIELD_RELATION_GEOMETRIES = "relationGeometries";
+    private final transient Object fieldRelationGeometriesLock = new Object();
+    protected static final String FIELD_BUILT_RELATION_GEOMETRIES = "builtRelationGeometries";
 
     private static final long serialVersionUID = -7582554057580336684L;
     private static final Logger logger = LoggerFactory.getLogger(PackedAtlas.class);
@@ -167,6 +178,7 @@ public final class PackedAtlas extends AbstractAtlas
     // Serialization formats for saving/loading this PackedAtlas
     private AtlasSerializationFormat saveSerializationFormat = AtlasSerializationFormat.PROTOBUF;
     private AtlasSerializationFormat loadSerializationFormat = AtlasSerializationFormat.PROTOBUF;
+    private boolean containsEnhancedRelationGeometry = false;
 
     // Meta-Data
     private AtlasMetaData metaData = new AtlasMetaData();
@@ -227,6 +239,8 @@ public final class PackedAtlas extends AbstractAtlas
     private final LongToLongMultiMap relationIndexToRelationIndices;
     private final LongToLongMultiMap relationOsmIdentifierToRelationIdentifiers;
     private final LongArray relationOsmIdentifiers;
+    private ByteArrayOfArrays relationGeometries;
+    private Map<Long, MultiPolygon> builtRelationGeometries = new HashMap<>();
 
     // Bounds of the Atlas
     private Rectangle bounds;
@@ -302,6 +316,7 @@ public final class PackedAtlas extends AbstractAtlas
         this.relationIndexToRelationIndices = null;
         this.relationOsmIdentifierToRelationIdentifiers = null;
         this.relationOsmIdentifiers = null;
+        this.relationGeometries = null;
     }
 
     /**
@@ -311,6 +326,11 @@ public final class PackedAtlas extends AbstractAtlas
      *            The size estimates
      */
     protected PackedAtlas(final AtlasSize estimates)
+    {
+        this(estimates, false);
+    }
+
+    protected PackedAtlas(final AtlasSize estimates, final boolean containsEnhancedRelationGeometry)
     {
         final long edgeNumberEstimate = estimates.getEdgeNumber();
         final long nodeNumberEstimate = estimates.getNodeNumber();
@@ -461,6 +481,14 @@ public final class PackedAtlas extends AbstractAtlas
         this.relationMemberTypes.setName("PackedAtlas - relationMemberTypes");
         this.relationMemberRoles.setName("PackedAtlas - relationMemberRoles");
         this.relationOsmIdentifiers.setName("PackedAtlas - relationOsmIdentifiers");
+
+        if (containsEnhancedRelationGeometry)
+        {
+            this.containsEnhancedRelationGeometry = containsEnhancedRelationGeometry;
+            this.relationGeometries = new ByteArrayOfArrays(maximumSize, relationMemoryBlockSize,
+                    subArraySize);
+            this.relationGeometries.setName("PackedAtlas - relationGeometries");
+        }
     }
 
     @Override
@@ -490,6 +518,11 @@ public final class PackedAtlas extends AbstractAtlas
             this.bounds = Rectangle.forLocated(boundedEntities);
         }
         return this.bounds;
+    }
+
+    public boolean containsEnhancedRelationGeometry()
+    {
+        return this.containsEnhancedRelationGeometry;
     }
 
     @Override
@@ -660,6 +693,10 @@ public final class PackedAtlas extends AbstractAtlas
     public void setSaveSerializationFormat(final AtlasSerializationFormat format)
     {
         this.saveSerializationFormat = format;
+        if (this.saveSerializationFormat != AtlasSerializationFormat.PROTOBUF)
+        {
+            this.containsEnhancedRelationGeometry = false;
+        }
     }
 
     /**
@@ -716,6 +753,10 @@ public final class PackedAtlas extends AbstractAtlas
         this.relationIndexToRelationIndices.trim();
         this.relationOsmIdentifierToRelationIdentifiers.trim();
         this.relationOsmIdentifiers.trim();
+        if (this.containsEnhancedRelationGeometry)
+        {
+            this.relationGeometries.trim();
+        }
 
         logger.info("Trimmed Atlas {} in {}.", this.getName(), start.elapsedSince());
     }
@@ -881,10 +922,12 @@ public final class PackedAtlas extends AbstractAtlas
      *            The member roles in the same order as the member identifiers
      * @param tags
      *            The relation's tags
+     * @param geometry
+     *            the JTS geometry for the relation, if it is a multipolygon
      */
     protected void addRelation(final long relationIdentifier, final long relationOsmIdentifier,
             final List<Long> identifiers, final List<ItemType> types, final List<String> roles,
-            final Map<String, String> tags)
+            final Map<String, String> tags, final MultiPolygon geometry)
     {
         if (identifiers.size() != types.size() || types.size() != roles.size())
         {
@@ -962,6 +1005,28 @@ public final class PackedAtlas extends AbstractAtlas
                     default:
                         throw new CoreException("Cannot recognize ItemType {}", type);
                 }
+            }
+
+            if (geometry != null)
+            {
+                if (!this.containsEnhancedRelationGeometry)
+                {
+                    throw new AtlasIntegrityException(
+                            "Could not add Relation {} with enhanced geometry because it was not enabled for this atlas",
+                            relationIdentifier);
+                }
+                final ByteArrayResource compressedGeom = new ByteArrayResource(
+                        geometry.toText().getBytes().length * Byte.SIZE);
+                compressedGeom.setCompressor(Compressor.GZIP);
+                compressedGeom.writeAndClose(geometry.toText());
+                this.relationGeometries.add(compressedGeom.readBytesAndClose());
+            }
+            else if (this.containsEnhancedRelationGeometry)
+            {
+                final ByteArrayResource compressedGeom = new ByteArrayResource();
+                compressedGeom.setCompressor(Compressor.GZIP);
+                compressedGeom.writeAndClose("");
+                this.relationGeometries.add(compressedGeom.readBytesAndClose());
             }
             this.relationMemberTypes.add(typeValues);
             this.relationMemberIndices.add(memberIndices);
@@ -1236,6 +1301,30 @@ public final class PackedAtlas extends AbstractAtlas
         return result;
     }
 
+    protected MultiPolygon relationGeometry(final long index)
+    {
+        if (this.builtRelationGeometries.containsKey(index))
+        {
+            return this.builtRelationGeometries.get(index);
+        }
+        try
+        {
+            final ByteArrayResource compressed = new ByteArrayResource(
+                    this.relationGeometries().get(index).length * Byte.SIZE);
+            compressed.writeAndClose(this.relationGeometries().get(index));
+            compressed.setDecompressor(Decompressor.GZIP);
+            final MultiPolygon geom = (MultiPolygon) new WKTReader()
+                    .read(new String(compressed.readBytesAndClose()));
+            this.builtRelationGeometries.put(index, geom);
+            return geom;
+        }
+        catch (final ParseException exc)
+        {
+            logger.warn("Couldn't deserialized relation geometry for relation {}", index, exc);
+            return null;
+        }
+    }
+
     protected long relationIdentifier(final long index)
     {
         return this.relationIdentifiers().get(index);
@@ -1335,6 +1424,16 @@ public final class PackedAtlas extends AbstractAtlas
         super.setName(name);
     }
 
+    ByteArrayOfArrays enhancedRelationGeometries()
+    {
+        return relationGeometries();
+    }
+
+    void setContainsEnhancedRelationGeometry(final boolean flag)
+    {
+        this.containsEnhancedRelationGeometry = flag;
+    }
+
     /**
      * Add a {@link RelationMember}
      *
@@ -1373,38 +1472,32 @@ public final class PackedAtlas extends AbstractAtlas
     private LongToLongMap areaIdentifierToAreaArrayIndex()
     {
         return deserializedIfNeeded(() -> this.areaIdentifierToAreaArrayIndex,
-                FIELD_AREA_IDENTIFIER_TO_AREA_ARRAY_INDEX_LOCK,
+                this.fieldAreaIdentifierToAreaArrayIndexLock,
                 FIELD_AREA_IDENTIFIER_TO_AREA_ARRAY_INDEX);
     }
 
     private LongArray areaIdentifiers()
     {
-        return deserializedIfNeeded(() -> this.areaIdentifiers, FIELD_AREA_IDENTIFIERS_LOCK,
+        return deserializedIfNeeded(() -> this.areaIdentifiers, this.fieldAreaIdentifiersLock,
                 FIELD_AREA_IDENTIFIERS);
     }
 
     private LongToLongMultiMap areaIndexToRelationIndices()
     {
         return deserializedIfNeeded(() -> this.areaIndexToRelationIndices,
-                FIELD_AREA_INDEX_TO_RELATION_INDICES_LOCK, FIELD_AREA_INDEX_TO_RELATION_INDICES);
+                this.fieldAreaIndexToRelationIndicesLock, FIELD_AREA_INDEX_TO_RELATION_INDICES);
     }
 
     private PolygonArray areaPolygons()
     {
-        return deserializedIfNeeded(() -> this.areaPolygons, FIELD_AREA_POLYGONS_LOCK,
+        return deserializedIfNeeded(() -> this.areaPolygons, this.fieldAreaPolygonsLock,
                 FIELD_AREA_POLYGONS);
     }
 
     private PackedTagStore areaTags()
     {
         return deserializedIfNeeded(() -> this.areaTags, tags -> tags.setDictionary(dictionary()),
-                FIELD_AREA_TAGS_LOCK, FIELD_AREA_TAGS);
-    }
-
-    private <T> T deserializedIfNeeded(final Supplier<T> supplier, final Object lock,
-            final String fieldName)
-    {
-        return deserializedIfNeeded(supplier, null, lock, fieldName);
+                this.fieldAreaTagsLock, FIELD_AREA_TAGS);
     }
 
     private <T> T deserializedIfNeeded(final Supplier<T> supplier, final Consumer<T> consumer,
@@ -1427,52 +1520,59 @@ public final class PackedAtlas extends AbstractAtlas
         return supplier.get();
     }
 
+    private <T> T deserializedIfNeeded(final Supplier<T> supplier, final Object lock,
+            final String fieldName)
+    {
+        return deserializedIfNeeded(supplier, null, lock, fieldName);
+    }
+
     private IntegerDictionary<String> dictionary()
     {
-        return deserializedIfNeeded(() -> this.dictionary, FIELD_DICTIONARY_LOCK, FIELD_DICTIONARY);
+        return deserializedIfNeeded(() -> this.dictionary, this.fieldDictionaryLock,
+                FIELD_DICTIONARY);
     }
 
     private LongArray edgeEndNodeIndex()
     {
-        return deserializedIfNeeded(() -> this.edgeEndNodeIndex, FIELD_EDGE_END_NODE_INDEX_LOCK,
+        return deserializedIfNeeded(() -> this.edgeEndNodeIndex, this.fieldEdgeEndNodeIndexLock,
                 FIELD_EDGE_END_NODE_INDEX);
     }
 
     private LongToLongMap edgeIdentifierToEdgeArrayIndex()
     {
         return deserializedIfNeeded(() -> this.edgeIdentifierToEdgeArrayIndex,
-                FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX_LOCK,
+                this.fieldEdgeIdentifierToEdgeArrayIndexLock,
                 FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX);
     }
 
     private LongArray edgeIdentifiers()
     {
-        return deserializedIfNeeded(() -> this.edgeIdentifiers, FIELD_EDGE_IDENTIFIERS_LOCK,
+        return deserializedIfNeeded(() -> this.edgeIdentifiers, this.fieldEdgeIdentifiersLock,
                 FIELD_EDGE_IDENTIFIERS);
     }
 
     private LongToLongMultiMap edgeIndexToRelationIndices()
     {
         return deserializedIfNeeded(() -> this.edgeIndexToRelationIndices,
-                FIELD_EDGE_INDEX_TO_RELATION_INDICES_LOCK, FIELD_EDGE_INDEX_TO_RELATION_INDICES);
+                this.fieldEdgeIndexToRelationIndicesLock, FIELD_EDGE_INDEX_TO_RELATION_INDICES);
     }
 
     private PolyLineArray edgePolyLines()
     {
-        return deserializedIfNeeded(() -> this.edgePolyLines, FIELD_EDGE_POLY_LINES_LOCK,
+        return deserializedIfNeeded(() -> this.edgePolyLines, this.fieldEdgePolyLinesLock,
                 FIELD_EDGE_POLY_LINES);
     }
 
     private LongArray edgeStartNodeIndex()
     {
-        return deserializedIfNeeded(() -> this.edgeStartNodeIndex, FIELD_EDGE_START_NODE_INDEX_LOCK,
+        return deserializedIfNeeded(() -> this.edgeStartNodeIndex, this.fieldEdgeStartNodeIndexLock,
                 FIELD_EDGE_START_NODE_INDEX);
     }
 
     private PackedTagStore edgeTags()
     {
         return deserializedIfNeeded(() -> this.edgeTags, tags -> tags.setDictionary(dictionary()),
-                FIELD_EDGE_TAGS_LOCK, FIELD_EDGE_TAGS);
+                this.fieldEdgeTagsLock, FIELD_EDGE_TAGS);
     }
 
     private Set<Relation> itemRelations(final long[] relationIndices)
@@ -1492,32 +1592,32 @@ public final class PackedAtlas extends AbstractAtlas
     private LongToLongMap lineIdentifierToLineArrayIndex()
     {
         return deserializedIfNeeded(() -> this.lineIdentifierToLineArrayIndex,
-                FIELD_LINE_IDENTIFIER_TO_LINE_ARRAY_INDEX_LOCK,
+                this.fieldLineIdentifierToLineArrayIndexLock,
                 FIELD_LINE_IDENTIFIER_TO_LINE_ARRAY_INDEX);
     }
 
     private LongArray lineIdentifiers()
     {
-        return deserializedIfNeeded(() -> this.lineIdentifiers, FIELD_LINE_IDENTIFIERS_LOCK,
+        return deserializedIfNeeded(() -> this.lineIdentifiers, this.fieldLineIdentifiersLock,
                 FIELD_LINE_IDENTIFIERS);
     }
 
     private LongToLongMultiMap lineIndexToRelationIndices()
     {
         return deserializedIfNeeded(() -> this.lineIndexToRelationIndices,
-                FIELD_LINE_INDEX_TO_RELATION_INDICES_LOCK, FIELD_LINE_INDEX_TO_RELATION_INDICES);
+                this.fieldLindIndexToRelationIndicesLock, FIELD_LINE_INDEX_TO_RELATION_INDICES);
     }
 
     private PolyLineArray linePolyLines()
     {
-        return deserializedIfNeeded(() -> this.linePolyLines, FIELD_LINE_POLYLINES_LOCK,
+        return deserializedIfNeeded(() -> this.linePolyLines, this.fieldLinePolyLinesLock,
                 FIELD_LINE_POLYLINES);
     }
 
     private PackedTagStore lineTags()
     {
         return deserializedIfNeeded(() -> this.lineTags, tags -> tags.setDictionary(dictionary()),
-                FIELD_LINE_TAGS_LOCK, FIELD_LINE_TAGS);
+                this.fieldLineTagsLock, FIELD_LINE_TAGS);
     }
 
     // Keep this method around so legacy Atlas files can still be deserialized.
@@ -1534,132 +1634,138 @@ public final class PackedAtlas extends AbstractAtlas
     private LongToLongMap nodeIdentifierToNodeArrayIndex()
     {
         return deserializedIfNeeded(() -> this.nodeIdentifierToNodeArrayIndex,
-                FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX_LOCK,
+                this.fieldNodeIdentifierToNodeArrayIndexLock,
                 FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX);
     }
 
     private LongArray nodeIdentifiers()
     {
-        return deserializedIfNeeded(() -> this.nodeIdentifiers, FIELD_NODE_IDENTIFIERS_LOCK,
+        return deserializedIfNeeded(() -> this.nodeIdentifiers, this.fieldNodeIdentifiersLock,
                 FIELD_NODE_IDENTIFIERS);
     }
 
     private LongArrayOfArrays nodeInEdgesIndices()
     {
-        return deserializedIfNeeded(() -> this.nodeInEdgesIndices, FIELD_NODE_IN_EDGES_INDICES_LOCK,
+        return deserializedIfNeeded(() -> this.nodeInEdgesIndices, this.fieldNodeInEdgesIndicesLock,
                 FIELD_NODE_IN_EDGES_INDICES);
     }
 
     private LongToLongMultiMap nodeIndexToRelationIndices()
     {
         return deserializedIfNeeded(() -> this.nodeIndexToRelationIndices,
-                FIELD_NODE_INDEX_TO_RELATION_INDICES_LOCK, FIELD_NODE_INDEX_TO_RELATION_INDICES);
+                this.fieldNodeIndexToRelationIndicesLock, FIELD_NODE_INDEX_TO_RELATION_INDICES);
     }
 
     private LongArray nodeLocations()
     {
-        return deserializedIfNeeded(() -> this.nodeLocations, FIELD_NODE_LOCATIONS_LOCK,
+        return deserializedIfNeeded(() -> this.nodeLocations, this.fieldNodeLocationsLock,
                 FIELD_NODE_LOCATIONS);
     }
 
     private LongArrayOfArrays nodeOutEdgesIndices()
     {
         return deserializedIfNeeded(() -> this.nodeOutEdgesIndices,
-                FIELD_NODE_OUT_EDGES_INDICES_LOCK, FIELD_NODE_OUT_EDGES_INDICES);
+                this.fieldNodeOutEdgesIndicesLock, FIELD_NODE_OUT_EDGES_INDICES);
     }
 
     private PackedTagStore nodeTags()
     {
         return deserializedIfNeeded(() -> this.nodeTags, tags -> tags.setDictionary(dictionary()),
-                FIELD_NODE_TAGS_LOCK, FIELD_NODE_TAGS);
+                this.fieldNodeTagsLock, FIELD_NODE_TAGS);
     }
 
     private LongToLongMap pointIdentifierToPointArrayIndex()
     {
         return deserializedIfNeeded(() -> this.pointIdentifierToPointArrayIndex,
-                FIELD_POINT_IDENTIFIER_TO_POINT_ARRAY_INDEX_LOCK,
+                this.fieldPointIdentifierToPointArrayIndexLock,
                 FIELD_POINT_IDENTIFIER_TO_POINT_ARRAY_INDEX);
     }
 
     private LongArray pointIdentifiers()
     {
-        return deserializedIfNeeded(() -> this.pointIdentifiers, FIELD_POINT_IDENTIFIERS_LOCK,
+        return deserializedIfNeeded(() -> this.pointIdentifiers, this.fieldPointIdentifiersLock,
                 FIELD_POINT_IDENTIFIERS);
     }
 
     private LongToLongMultiMap pointIndexToRelationIndices()
     {
         return deserializedIfNeeded(() -> this.pointIndexToRelationIndices,
-                FIELD_POINT_INDEX_TO_RELATION_INDICES_LOCK, FIELD_POINT_INDEX_TO_RELATION_INDICES);
+                this.fieldPointIndexToRelationIndicesLock, FIELD_POINT_INDEX_TO_RELATION_INDICES);
     }
 
     private LongArray pointLocations()
     {
-        return deserializedIfNeeded(() -> this.pointLocations, FIELD_POINT_LOCATIONS_LOCK,
+        return deserializedIfNeeded(() -> this.pointLocations, this.fieldPointLocationsLock,
                 FIELD_POINT_LOCATIONS);
     }
 
     private PackedTagStore pointTags()
     {
         return deserializedIfNeeded(() -> this.pointTags, tags -> tags.setDictionary(dictionary()),
-                FIELD_POINT_TAGS_LOCK, FIELD_POINT_TAGS);
+                this.fieldPointTagsLock, FIELD_POINT_TAGS);
+    }
+
+    private ByteArrayOfArrays relationGeometries()
+    {
+        return deserializedIfNeeded(() -> this.relationGeometries, this.fieldRelationGeometriesLock,
+                FIELD_RELATION_GEOMETRIES);
     }
 
     private LongToLongMap relationIdentifierToRelationArrayIndex()
     {
         return deserializedIfNeeded(() -> this.relationIdentifierToRelationArrayIndex,
-                FIELD_RELATION_IDENTIFIER_TO_RELATION_ARRAY_INDEX_LOCK,
+                this.fieldRelationIdentifierToRelationArrayIndexLock,
                 FIELD_RELATION_IDENTIFIER_TO_RELATION_ARRAY_INDEX);
     }
 
     private LongArray relationIdentifiers()
     {
-        return deserializedIfNeeded(() -> this.relationIdentifiers, FIELD_RELATION_IDENTIFIERS_LOCK,
-                FIELD_RELATION_IDENTIFIERS);
+        return deserializedIfNeeded(() -> this.relationIdentifiers,
+                this.fieldRelationIdentifiersLock, FIELD_RELATION_IDENTIFIERS);
     }
 
     private LongToLongMultiMap relationIndexToRelationIndices()
     {
         return deserializedIfNeeded(() -> this.relationIndexToRelationIndices,
-                FIELD_RELATION_INDEX_TO_RELATION_INDICES_LOCK,
+                this.fieldRelationIndexToRelationIndicesLock,
                 FIELD_RELATION_INDEX_TO_RELATION_INDICES);
     }
 
     private LongArrayOfArrays relationMemberIndices()
     {
         return deserializedIfNeeded(() -> this.relationMemberIndices,
-                FIELD_RELATION_MEMBERS_INDICES_LOCK, FIELD_RELATION_MEMBERS_INDICES);
+                this.fieldRelationMembersIndicesLock, FIELD_RELATION_MEMBERS_INDICES);
     }
 
     private IntegerArrayOfArrays relationMemberRoles()
     {
         return deserializedIfNeeded(() -> this.relationMemberRoles,
-                FIELD_RELATION_MEMBER_ROLES_LOCK, FIELD_RELATION_MEMBER_ROLES);
+                this.fieldRelationMemberRolesLock, FIELD_RELATION_MEMBER_ROLES);
     }
 
     private ByteArrayOfArrays relationMemberTypes()
     {
         return deserializedIfNeeded(() -> this.relationMemberTypes,
-                FIELD_RELATION_MEMBER_TYPES_LOCK, FIELD_RELATION_MEMBER_TYPES);
+                this.fieldRelationMemberTypesLock, FIELD_RELATION_MEMBER_TYPES);
     }
 
     private LongToLongMultiMap relationOsmIdentifierToRelationIdentifiers()
     {
         return deserializedIfNeeded(() -> this.relationOsmIdentifierToRelationIdentifiers,
-                FIELD_RELATION_OSM_IDENTIFIER_TO_RELATION_IDENTIFIERS_LOCK,
+                this.fieldRelationOsmIdentifierToRelationIdentifiersLock,
                 FIELD_RELATION_OSM_IDENTIFIER_TO_RELATION_IDENTIFIERS);
     }
 
     private LongArray relationOsmIdentifiers()
     {
         return deserializedIfNeeded(() -> this.relationOsmIdentifiers,
-                FIELD_RELATION_OSM_IDENTIFIERS_LOCK, FIELD_RELATION_OSM_IDENTIFIERS);
+                this.fieldRelationOsmIdentifiersLock, FIELD_RELATION_OSM_IDENTIFIERS);
     }
 
     private PackedTagStore relationTags()
     {
         return deserializedIfNeeded(() -> this.relationTags,
-                tags -> tags.setDictionary(dictionary()), FIELD_RELATION_TAGS_LOCK,
+                tags -> tags.setDictionary(dictionary()), this.fieldRelationTagsLock,
                 FIELD_RELATION_TAGS);
     }
 

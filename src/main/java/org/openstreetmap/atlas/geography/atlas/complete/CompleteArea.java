@@ -33,6 +33,7 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
     private Polygon polygon;
     private Map<String, String> tags;
     private Set<Long> relationIdentifiers;
+    private Set<Long> geometricRelationIdentifiers;
 
     private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
@@ -53,7 +54,12 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
                     area);
         }
         return new CompleteArea(area.getIdentifier(), area.asPolygon(), area.getTags(),
-                area.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
+                area.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()))
+                        .withGeometricRelationIdentifiers(
+                                area.relations().stream().filter(Relation::isGeometric)
+                                        .filter(relation -> relation.asMultiPolygon().isPresent()
+                                                && !relation.asMultiPolygon().get().isEmpty())
+                                        .map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
 
     /**
@@ -93,7 +99,7 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
         this.relationIdentifiers = relationIdentifiers;
     }
 
-    CompleteArea(final long identifier)
+    protected CompleteArea(final long identifier)
     {
         this(identifier, null, null, null);
     }
@@ -143,6 +149,11 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
     public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
     {
         this.tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
+    }
+
+    public Set<Long> geometricRelationIdentifiers()
+    {
+        return this.geometricRelationIdentifiers;
     }
 
     @Override
@@ -303,6 +314,13 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
         return this;
     }
 
+    public CompleteArea withGeometricRelationIdentifiers(
+            final Set<Long> geometricRelationIdentifiers)
+    {
+        this.geometricRelationIdentifiers = geometricRelationIdentifiers;
+        return this;
+    }
+
     @Override
     public CompleteEntity withGeometry(final Iterable<Location> locations)
     {
@@ -338,6 +356,10 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
                 .collect(Collectors.toSet());
+        this.geometricRelationIdentifiers = relations.stream().filter(Relation::isGeometric)
+                .filter(relation -> relation.asMultiPolygon().isPresent()
+                        && !relation.asMultiPolygon().get().isEmpty())
+                .map(Relation::getIdentifier).collect(Collectors.toSet());
         return this;
     }
 
@@ -345,6 +367,9 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
     public CompleteArea withRemovedRelationIdentifier(final Long relationIdentifier)
     {
         this.relationIdentifiers = this.relationIdentifiers.stream()
+                .filter(keepId -> keepId != relationIdentifier.longValue())
+                .collect(Collectors.toSet());
+        this.geometricRelationIdentifiers = this.geometricRelationIdentifiers.stream()
                 .filter(keepId -> keepId != relationIdentifier.longValue())
                 .collect(Collectors.toSet());
         return this;

@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
@@ -215,6 +216,7 @@ public class AtlasSectionProcessorTest
                 Iterables.size(finalAtlas.edges(edge -> edge.getOsmIdentifier() == 310540519L)));
     }
 
+    @Ignore
     @Test
     public void testLoopWithRepeatedLocation()
     {

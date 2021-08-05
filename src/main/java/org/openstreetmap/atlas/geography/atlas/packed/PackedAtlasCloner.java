@@ -58,6 +58,7 @@ public class PackedAtlasCloner
         }
 
         builder.setMetaData(metaData);
+        builder.withEnhancedRelationGeometry();
         atlas.nodes().forEach(
                 node -> builder.addNode(node.getIdentifier(), node.getLocation(), node.getTags()));
         atlas.edges().forEach(
@@ -97,7 +98,16 @@ public class PackedAtlasCloner
         final RelationBean bean = new RelationBean();
         relation.members().forEach(member -> bean.addItem(member.getEntity().getIdentifier(),
                 member.getRole(), member.getEntity().getType()));
-        builder.addRelation(relation.getIdentifier(), relation.osmRelationIdentifier(), bean,
-                relation.getTags());
+        if (relation.asMultiPolygon().isPresent())
+        {
+            builder.addRelation(relation.getIdentifier(), relation.osmRelationIdentifier(), bean,
+                    relation.getTags(), relation.asMultiPolygon().get());
+        }
+        else
+        {
+            builder.addRelation(relation.getIdentifier(), relation.osmRelationIdentifier(), bean,
+                    relation.getTags());
+        }
+
     }
 }

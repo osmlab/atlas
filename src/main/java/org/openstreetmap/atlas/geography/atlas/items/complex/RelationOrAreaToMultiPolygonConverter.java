@@ -13,6 +13,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.Relation.Ring;
+import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.utilities.conversion.Converter;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
@@ -28,6 +29,7 @@ public class RelationOrAreaToMultiPolygonConverter implements Converter<AtlasEnt
 {
     private final RelationToMultiPolygonMemberConverter outerConverter;
     private final RelationToMultiPolygonMemberConverter innerConverter;
+    private final JtsMultiPolygonToMultiPolygonConverter multipolygonConverter;
 
     public RelationOrAreaToMultiPolygonConverter()
     {
@@ -38,6 +40,7 @@ public class RelationOrAreaToMultiPolygonConverter implements Converter<AtlasEnt
     {
         this.outerConverter = new RelationToMultiPolygonMemberConverter(Ring.OUTER, usePolygonizer);
         this.innerConverter = new RelationToMultiPolygonMemberConverter(Ring.INNER, usePolygonizer);
+        this.multipolygonConverter = new JtsMultiPolygonToMultiPolygonConverter();
     }
 
     @Override

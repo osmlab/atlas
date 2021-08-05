@@ -79,10 +79,12 @@ public class ComplexAreaOfInterestFinderTestRule extends CoreTestRule
                                     @Relation(id = "39190", members = {
                                             @Member(id = "39010", type = "area", role = "outer"),
                                             @Member(id = "38989", type = "area", role = "inner") }, tags = {
-                                                    "type=multipolygon", "amenity=SCHOOL" }),
+                                                    "type=multipolygon",
+                                                    "amenity=SCHOOL" }, wkt = "MULTIPOLYGON (((103.906961 1.4507141, 103.8965406 1.4341903, 103.8960016 1.4140743, 103.9162137 1.4085064, 103.9232205 1.3983585, 103.9454987 1.4114699, 103.9637345 1.4115597, 103.9703821 1.4341903, 103.964543 1.4511631, 103.9378631 1.4523305, 103.9184595 1.4536776, 103.906961 1.4507141, 103.906961 1.4507141), (103.9130631 1.4395897, 103.9048884 1.4277357, 103.9145902 1.4119302, 103.9418092 1.4162408, 103.9462109 1.4263886, 103.9639975 1.4314176, 103.9544754 1.4427328, 103.9385752 1.4384223, 103.9256395 1.4483904, 103.9130631 1.4395897, 103.9130631 1.4395897)))"),
                                     @Relation(id = "39990", members = {
                                             @Member(id = "38987", type = "area", role = "outer") }, tags = {
-                                                    "type=boundary", "landuse=CEMETERY" }) })
+                                                    "type=boundary",
+                                                    "landuse=CEMETERY" }, wkt = "MULTIPOLYGON (((103.9378631 1.4523305, 103.964543 1.4511631, 103.9385752 1.4384223, 103.9544754 1.4427328, 103.9378631 1.4523305)))") })
     private Atlas multipolygonAOIRelationAtlas;
 
     @TestAtlas(
@@ -188,11 +190,11 @@ public class ComplexAreaOfInterestFinderTestRule extends CoreTestRule
                                                     @Member(id = "39010", type = "area", role = "outer"),
                                                     @Member(id = "38989", type = "area", role = "inner") }, tags = {
                                                             "type=multipolygon",
-                                                            "amenity=PARKING" }),
+                                                            "amenity=PARKING" }, wkt = "MULTIPOLYGON (((103.906961 1.4507141, 103.8965406 1.4341903, 103.8960016 1.4140743, 103.9162137 1.4085064, 103.9232205 1.3983585, 103.9454987 1.4114699, 103.9637345 1.4115597, 103.9703821 1.4341903, 103.964543 1.4511631, 103.9378631 1.4523305, 103.9184595 1.4536776, 103.906961 1.4507141, 103.906961 1.4507141), (103.9130631 1.4395897, 103.9048884 1.4277357, 103.9145902 1.4119302, 103.9418092 1.4162408, 103.9462109 1.4263886, 103.9639975 1.4314176, 103.9544754 1.4427328, 103.9385752 1.4384223, 103.9256395 1.4483904, 103.9130631 1.4395897, 103.9130631 1.4395897)))"),
                                             @Relation(id = "39990", members = {
                                                     @Member(id = "38987", type = "area", role = "outer") }, tags = {
                                                             "type=boundary",
-                                                            "landuse=VINEYARD" }) })
+                                                            "landuse=VINEYARD" }, wkt = "MULTIPOLYGON (((103.9378631 1.4523305, 103.964543 1.4511631, 103.9385752 1.4384223, 103.9544754 1.4427328, 103.9378631 1.4523305)))") })
     private Atlas complexAOIWithRelationsAndAreas;
 
     public Atlas getAoiAreaAtlas()

@@ -3,9 +3,11 @@ package org.openstreetmap.atlas.geography.atlas.dynamic;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.locationtech.jts.geom.MultiPolygon;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
@@ -40,6 +42,12 @@ public class DynamicRelation extends Relation
         return subRelation().allRelationsWithSameOsmIdentifier().stream()
                 .map(relation -> new DynamicRelation(dynamicAtlas(), relation.getIdentifier()))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<MultiPolygon> asMultiPolygon()
+    {
+        return subRelation().asMultiPolygon();
     }
 
     @Override

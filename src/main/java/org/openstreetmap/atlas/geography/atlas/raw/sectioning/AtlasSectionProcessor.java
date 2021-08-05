@@ -86,11 +86,58 @@ public class AtlasSectionProcessor
     // Bring in all lines that will become edges
     private final List<Shard> loadedShards = new ArrayList<>();
     private final Predicate<AtlasEntity> dynamicAtlasExpansionFilter;
-    private final Atlas edgeOnlySubAtlas;
 
     private final Set<FeatureChange> changes = Collections
             .newSetFromMap(new ConcurrentHashMap<FeatureChange, Boolean>());
     private final Map<Location, CompleteNode> nodeMap = new ConcurrentHashMap<>();
+
+    /**
+     * Determines if we should section at the given {@link Location}. Relies on the underlying
+     * {@link AtlasLoadingOption} configuration to make the decision. If true, this implies the
+     * point at this {@link Location} should be a {@link Node}. Sectioning is either based on the
+     * tag values of the underlying points at the location, or the existence of an intersecting Edge
+     * at that location
+     *
+     * @param location
+     *            The {@link Location} to check
+     * @param line
+     *            The {@link Line} this {@link Location} belongs to
+     * @param loading
+     *            The AtlasLoadingOption to use for Edge test
+     * @param inputAtlas
+     *            The source input atlas
+     * @return {@code true} if we should section at the given {@link Location}
+     */
+    public static boolean shouldSectionAtLocation(final Location location, final Line line,
+            final AtlasLoadingOption loading, final Atlas inputAtlas)
+    {
+        final long targetLayerValue = LayerTag.getTaggedOrImpliedValue(line, 0L);
+
+        return Iterables.stream(inputAtlas.pointsAt(location))
+                .anyMatch(point -> loading.getWaySectionFilter().test(point))
+                || Iterables
+                        // Find all intersecting edges
+                        .stream(inputAtlas.linesContaining(location,
+                                target -> target.getIdentifier() != line.getIdentifier()
+                                        && target.asPolyLine().contains(location)))
+                        .filter(loading.getEdgeFilter()::test)
+                        // Check whether that edge has a different layer value as the line we're
+                        // looking at and that our point is its start or end node
+                        .anyMatch(candidate ->
+                        {
+                            final long layerValue = LayerTag.getTaggedOrImpliedValue(candidate, 0L);
+                            if (targetLayerValue == layerValue)
+                            {
+                                return true;
+                            }
+                            final boolean edgesOnDifferentLayers = targetLayerValue != layerValue;
+                            final PolyLine candidatePolyline = candidate.asPolyLine();
+                            final boolean intersectionIsAtEndPoint = candidatePolyline.first()
+                                    .equals(location) || candidatePolyline.last().equals(location);
+
+                            return edgesOnDifferentLayers && intersectionIsAtEndPoint;
+                        });
+    }
 
     /**
      * Default constructor. Will section given raw {@link Atlas} file.
@@ -106,17 +153,6 @@ public class AtlasSectionProcessor
         this.loadingOption = loadingOption;
         this.dynamicAtlasExpansionFilter = entity -> entity instanceof Line
                 && this.loadingOption.getEdgeFilter().test(entity);
-        final Optional<Atlas> edgeOnlySubAtlasOptional = inputAtlas
-                .subAtlas(this.dynamicAtlasExpansionFilter, AtlasCutType.SILK_CUT);
-        if (edgeOnlySubAtlasOptional.isPresent())
-        {
-            logger.info("Cut subatlas for edges-only");
-            this.edgeOnlySubAtlas = edgeOnlySubAtlasOptional.get();
-        }
-        else
-        {
-            this.edgeOnlySubAtlas = inputAtlas;
-        }
     }
 
     /**
@@ -155,17 +191,6 @@ public class AtlasSectionProcessor
                     "Must supply a valid sharding and fetcher function for sectioning!");
         }
         this.inputAtlas = buildExpandedAtlas(initialShard, sharding, atlasFetcher);
-        final Optional<Atlas> edgeOnlySubAtlasOptional = this.inputAtlas
-                .subAtlas(this.dynamicAtlasExpansionFilter, AtlasCutType.SILK_CUT);
-        if (edgeOnlySubAtlasOptional.isPresent())
-        {
-            logger.info("Cut subatlas for edges-only");
-            this.edgeOnlySubAtlas = edgeOnlySubAtlasOptional.get();
-        }
-        else
-        {
-            this.edgeOnlySubAtlas = this.inputAtlas;
-        }
     }
 
     /**
@@ -342,9 +367,17 @@ public class AtlasSectionProcessor
 
         final CompleteEdge newEdge = new CompleteEdge(edgeIdentifier, edgePolyLine, tags,
                 startNode.getIdentifier(), endNode.getIdentifier(), relations);
+        final Set<Long> nonGeometricRelations = new HashSet<>();
+        for (final Long relationId : relations)
+        {
+            if (!this.inputAtlas.relation(relationId).isGeometric())
+            {
+                nonGeometricRelations.add(relationId);
+            }
+        }
         final CompleteEdge newReverseEdge = new CompleteEdge(-edgeIdentifier,
                 edgePolyLine.reversed(), tags, endNode.getIdentifier(), startNode.getIdentifier(),
-                relations);
+                nonGeometricRelations);
         updateRelations(line, newEdge, newReverseEdge, hasReverseEdge);
 
         this.changes.add(FeatureChange.add(newEdge, this.inputAtlas));
@@ -466,7 +499,8 @@ public class AtlasSectionProcessor
 
                 // if we need a section at the last location, we'll make the remainder its own edge.
                 // otherwise, we'll combine it with the last edge to reduce excess edges
-                if (shouldSectionAtLocation(potentialStitchLocation, line))
+                if (shouldSectionAtLocation(potentialStitchLocation, line, this.loadingOption,
+                        this.inputAtlas))
                 {
                     final long remainderIdentifier = identifierFactory.nextIdentifier();
                     createEdge(line, remainder, remainderIdentifier, hasReverseEdge, tags);
@@ -537,7 +571,7 @@ public class AtlasSectionProcessor
                 // NOOP
             }
             else if (selfIntersections.contains(location)
-                    || shouldSectionAtLocation(location, line))
+                    || shouldSectionAtLocation(location, line, this.loadingOption, this.inputAtlas))
             {
                 nodesForEdge.add(i);
             }
@@ -606,7 +640,8 @@ public class AtlasSectionProcessor
                 // like a cul-de-sac
                 if (nodesForEdge.get(0) == 0
                         && nodesForEdge.get(1) == line.numberOfShapePoints() - 1
-                        && shouldSectionAtLocation(polyLine.get(0), line))
+                        && shouldSectionAtLocation(polyLine.get(0), line, this.loadingOption,
+                                this.inputAtlas))
                 {
                     // we just want a single Edge for the whole loop, connecting back to itself
                     // noop
@@ -625,7 +660,8 @@ public class AtlasSectionProcessor
                 final int nextIndex = nodesForEdge.get(nodesForEdge.size() - 2);
                 remainder = new PolyLine(polyLine.truncate(nextIndex, 0));
                 nodesForEdge.remove(nodesForEdge.size() - 1);
-                if (!shouldSectionAtLocation(polyLine.get(0), line))
+                if (!shouldSectionAtLocation(polyLine.get(0), line, this.loadingOption,
+                        this.inputAtlas))
                 {
                     nodesForEdge.remove(0);
                     final int startIndex = nodesForEdge.get(0);
@@ -641,48 +677,6 @@ public class AtlasSectionProcessor
 
         createSections(line, nodesForEdge, isReversed, hasReverseEdge, remainder);
         this.changes.add(FeatureChange.remove(CompleteLine.shallowFrom(line), this.inputAtlas));
-    }
-
-    /**
-     * Determines if we should section at the given {@link Location}. Relies on the underlying
-     * {@link AtlasLoadingOption} configuration to make the decision. If {@link true}, this implies
-     * the point at this {@link Location} should be a {@link Node}. Sectioning is either based on
-     * the tag values of the underlying points at the location, or the existence of an intersecting
-     * Edge at that location
-     *
-     * @param location
-     *            The {@link Location} to check
-     * @param line
-     *            The {@link Line} this {@link Location} belongs to
-     * @return {@code true} if we should section at the given {@link Location}
-     */
-    private boolean shouldSectionAtLocation(final Location location, final Line line)
-    {
-        final long targetLayerValue = LayerTag.getTaggedOrImpliedValue(line, 0L);
-
-        return Iterables.stream(this.inputAtlas.pointsAt(location))
-                .anyMatch(point -> this.loadingOption.getWaySectionFilter().test(point))
-                || Iterables
-                        // Find all intersecting edges
-                        .stream(this.edgeOnlySubAtlas.linesContaining(location,
-                                target -> target.getIdentifier() != line.getIdentifier()
-                                        && target.asPolyLine().contains(location)))
-                        // Check whether that edge has a different layer value as the line we're
-                        // looking at and that our point is its start or end node
-                        .anyMatch(candidate ->
-                        {
-                            final long layerValue = LayerTag.getTaggedOrImpliedValue(candidate, 0L);
-                            if (targetLayerValue == layerValue)
-                            {
-                                return true;
-                            }
-                            final boolean edgesOnDifferentLayers = targetLayerValue != layerValue;
-                            final PolyLine candidatePolyline = candidate.asPolyLine();
-                            final boolean intersectionIsAtEndPoint = candidatePolyline.first()
-                                    .equals(location) || candidatePolyline.last().equals(location);
-
-                            return edgesOnDifferentLayers && intersectionIsAtEndPoint;
-                        });
     }
 
     /**
@@ -707,7 +701,7 @@ public class AtlasSectionProcessor
                 {
                     this.changes.add(FeatureChange.add(CompleteRelation.shallowFrom(relation)
                             .withAddedMember(newEdge, member.getRole())));
-                    if (hasReverseEdge)
+                    if (hasReverseEdge && !relation.isGeometric())
                     {
                         this.changes.add(FeatureChange.add(CompleteRelation.shallowFrom(relation)
                                 .withAddedMember(newReverseEdge, member.getRole())));
