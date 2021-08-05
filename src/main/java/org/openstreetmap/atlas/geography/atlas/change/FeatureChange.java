@@ -883,13 +883,11 @@ public class FeatureChange implements Located, Taggable, Serializable, Comparabl
                 ((CompleteRelation) beforeViewUpdatesOnly).withOsmRelationIdentifier(
                         beforeRelationViewFromAtlas.osmRelationIdentifier());
             }
-            if (afterRelationView.asMultiPolygon().isPresent())
+            if (afterRelationView.asMultiPolygon().isPresent()
+                    && beforeRelationViewFromAtlas.asMultiPolygon().isPresent())
             {
-                if (beforeRelationViewFromAtlas.asMultiPolygon().isPresent())
-                {
-                    ((CompleteRelation) beforeViewUpdatesOnly).withMultiPolygonGeometry(
-                            beforeRelationViewFromAtlas.asMultiPolygon().get());
-                }
+                ((CompleteRelation) beforeViewUpdatesOnly).withMultiPolygonGeometry(
+                        beforeRelationViewFromAtlas.asMultiPolygon().get());
             }
         }
         else

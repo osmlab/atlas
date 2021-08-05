@@ -458,7 +458,6 @@ public class TextAtlasBuilder
         }
         catch (final ParseException e)
         {
-            // TODO Auto-generated catch block
             throw new CoreException("Bad relation data for relation {}", identifier);
         }
     }

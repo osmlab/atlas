@@ -153,33 +153,7 @@ public class RawAtlasSlicer
      */
     public RawAtlasSlicer(final AtlasLoadingOption loadingOption, final Atlas startingAtlas)
     {
-        this.inputAtlas = startingAtlas;
-        this.initialShard = SlippyTile.forName("1-1-1");
-        this.loadingOption = loadingOption;
-        this.country = loadingOption.getCountryCode();
-        this.consolidatePredicate = entity -> entity.getType().equals(ItemType.RELATION)
-                && loadingOption.getRelationSlicingConsolidateFilter().test(entity);
-        if (loadingOption.getCountryCode() == null || loadingOption.getCountryCode().isEmpty())
-        {
-            this.isInCountry = entity -> true;
-        }
-        else
-        {
-            this.isInCountry = entity -> ISOCountryTag.isIn(loadingOption.getCountryCode())
-                    .test(entity);
-        }
-        this.isAtlasEdge = entity -> loadingOption.getEdgeFilter().test(entity);
-        this.boundary = loadingOption.getCountryBoundaryMap();
-        this.shardOrAtlasName = startingAtlas.metaData().getShardName()
-                .orElse(startingAtlas.getName());
-        this.inputAtlas.areas().forEach(
-                area -> this.stagedAreas.put(area.getIdentifier(), CompleteArea.from(area)));
-        this.inputAtlas.points().forEach(
-                point -> this.stagedPoints.put(point.getIdentifier(), CompletePoint.from(point)));
-        this.inputAtlas.lines().forEach(
-                line -> this.stagedLines.put(line.getIdentifier(), CompleteLine.from(line)));
-        this.inputAtlas.relations().forEach(relation -> this.stagedRelations
-                .put(relation.getIdentifier(), CompleteRelation.from(relation)));
+        this(loadingOption, startingAtlas, SlippyTile.forName("1-1-1"));
     }
 
     /**
@@ -292,8 +266,7 @@ public class RawAtlasSlicer
         logger.info(FINISHED_SLICING, this.shardOrAtlasName,
                 overallTime.elapsedSince().asMilliseconds());
 
-        final ChangeAtlas slicedAtlas = new ChangeAtlas(this.inputAtlas,
-                new ChangeBuilder().addAll(this.changes).get())
+        return new ChangeAtlas(this.inputAtlas, new ChangeBuilder().addAll(this.changes).get())
         {
             private static final long serialVersionUID = -1379576156041355921L;
 
@@ -308,7 +281,6 @@ public class RawAtlasSlicer
                         RawAtlasSlicer.this.shardOrAtlasName, new HashMap<>());
             }
         };
-        return slicedAtlas;
     }
 
     /**

@@ -83,8 +83,7 @@ public class ComplexWaterbody extends ComplexWaterEntity
             if (RelationTypeTag.MULTIPOLYGON_TYPE.equals(type)
                     && relation.asMultiPolygon().isPresent())
             {
-                this.geometry = MULTIPOLYGON_CONVERTER.convert(
-                        (org.locationtech.jts.geom.MultiPolygon) relation.asMultiPolygon().get());
+                this.geometry = MULTIPOLYGON_CONVERTER.convert(relation.asMultiPolygon().get());
                 return;
             }
         }

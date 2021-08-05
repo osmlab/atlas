@@ -577,7 +577,7 @@ public class OsmPbfReader implements Sink
                     logger.error(
                             "No changes found for staged relation loop. Staged relations were {}",
                             stagedRelations);
-                    logger.error("Just in case, first relation was ",
+                    logger.error("Just in case, first relation was {}",
                             stagedRelations.iterator().next());
                     break;
                 }

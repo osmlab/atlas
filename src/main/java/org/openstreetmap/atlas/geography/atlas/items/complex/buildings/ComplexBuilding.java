@@ -200,8 +200,7 @@ public class ComplexBuilding extends ComplexEntity
                     && relation.asMultiPolygon().isPresent())
             {
                 // 1. Multipolygon. Relatively easy, there will be no building parts.
-                this.outline = MULTIPOLYGON_CONVERTER.convert(
-                        (org.locationtech.jts.geom.MultiPolygon) relation.asMultiPolygon().get());
+                this.outline = MULTIPOLYGON_CONVERTER.convert(relation.asMultiPolygon().get());
                 this.outlineSource = relation;
             }
             else if (BuildingTag.KEY.equals(type))

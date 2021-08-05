@@ -38,8 +38,6 @@ public final class ChangeEntity
     /**
      * Get either the attribute asked from the source entity
      *
-     * @param name
-     *            The name of the extraction operation
      * @param source
      *            The source entity
      * @param memberExtractor
@@ -47,10 +45,10 @@ public final class ChangeEntity
      * @return The corresponding attribute
      */
     static <T extends Object, M extends AtlasEntity> T getAttribute(final M source,
-            final Function<M, T> memberExtractor, final String name)
+            final Function<M, T> memberExtractor)
     {
         T result = null;
-        if (result == null && source != null)
+        if (source != null)
         {
             result = memberExtractor.apply(source);
         }

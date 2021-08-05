@@ -45,6 +45,7 @@ public final class FeatureChangeMergingHelpers
 {
     static final String IN_EDGE_IDENTIFIERS_FIELD = "inEdgeIdentifiers";
     static final String OUT_EDGE_IDENTIFIERS_FIELD = "outEdgeIdentifiers";
+    static final String GEOMETRIC_RELATIONS_FIELD = "geometricRelations";
     private static final String AFTER_ENTITY_RIGHT_WAS_NULL = "afterEntityRight was null, this should never happen!";
     private static final String AFTER_ENTITY_LEFT_WAS_NULL = "afterEntityLeft was null, this should never happen!";
     private static final Logger logger = LoggerFactory.getLogger(FeatureChangeMergingHelpers.class);
@@ -290,7 +291,7 @@ public final class FeatureChangeMergingHelpers
                 .mergeMember();
 
         final MergedMemberBean<Set<Long>> mergedGeometricParentRelationsBean = new MemberMerger.Builder<Set<Long>>()
-                .withMemberName("geometricRelations").withBeforeEntityLeft(beforeEntityLeft)
+                .withMemberName(GEOMETRIC_RELATIONS_FIELD).withBeforeEntityLeft(beforeEntityLeft)
                 .withAfterEntityLeft(afterEntityLeft).withBeforeEntityRight(beforeEntityRight)
                 .withAfterEntityRight(afterEntityRight)
                 .withMemberExtractor(
@@ -381,7 +382,7 @@ public final class FeatureChangeMergingHelpers
                 .mergeMember();
 
         final MergedMemberBean<Set<Long>> mergedGeometricParentRelationsBean = new MemberMerger.Builder<Set<Long>>()
-                .withMemberName("geometricRelations").withBeforeEntityLeft(beforeEntityLeft)
+                .withMemberName(GEOMETRIC_RELATIONS_FIELD).withBeforeEntityLeft(beforeEntityLeft)
                 .withAfterEntityLeft(afterEntityLeft).withBeforeEntityRight(beforeEntityRight)
                 .withAfterEntityRight(afterEntityRight)
                 .withMemberExtractor(
@@ -503,7 +504,7 @@ public final class FeatureChangeMergingHelpers
         }
 
         final MergedMemberBean<Set<Long>> mergedGeometricParentRelationsBean = new MemberMerger.Builder<Set<Long>>()
-                .withMemberName("geometricRelations").withBeforeEntityLeft(beforeEntityLeft)
+                .withMemberName(GEOMETRIC_RELATIONS_FIELD).withBeforeEntityLeft(beforeEntityLeft)
                 .withAfterEntityLeft(afterEntityLeft).withBeforeEntityRight(beforeEntityRight)
                 .withAfterEntityRight(afterEntityRight)
                 .withMemberExtractor(

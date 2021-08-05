@@ -9,7 +9,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
@@ -216,7 +215,6 @@ public class AtlasSectionProcessorTest
                 Iterables.size(finalAtlas.edges(edge -> edge.getOsmIdentifier() == 310540519L)));
     }
 
-    @Ignore
     @Test
     public void testLoopWithRepeatedLocation()
     {
@@ -226,10 +224,10 @@ public class AtlasSectionProcessorTest
         final Atlas finalAtlas = new AtlasSectionProcessor(slicedRawAtlas,
                 AtlasLoadingOption.createOptionWithAllEnabled(COUNTRY_BOUNDARY_MAP)).run();
 
-        Assert.assertEquals("Four edges, each having a reverse counterpart", 4,
+        Assert.assertEquals("Six edges, each having a reverse counterpart", 6,
                 finalAtlas.numberOfEdges());
-        Assert.assertEquals("Two nodes", 2, finalAtlas.numberOfNodes());
-        Assert.assertEquals("This way got sectioned once, with a reverse edge", 2,
+        Assert.assertEquals("Three nodes", 3, finalAtlas.numberOfNodes());
+        Assert.assertEquals("This way got sectioned twice, with reverse edges", 4,
                 Iterables.size(finalAtlas.edges(edge -> edge.getOsmIdentifier() == 488453376L)));
     }
 

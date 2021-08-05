@@ -317,7 +317,7 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     @Override
     public boolean isGeometric()
     {
-        return this.getTags() == null ? false : super.isGeometric();
+        return this.getTags() != null && super.isGeometric();
     }
 
     public boolean isOverrideGeometry()

@@ -99,7 +99,7 @@ public class ChangeRelation extends Relation // NOSONAR
             else if (this.source != null)
             {
                 final Optional<MultiPolygon> sourceJtsGeometry = ChangeEntity
-                        .getAttribute(this.source, Relation::asMultiPolygon, "geometry");
+                        .getAttribute(this.source, Relation::asMultiPolygon);
                 if (sourceJtsGeometry.isPresent())
                 {
                     // don't do anything to invalid geom
@@ -276,9 +276,7 @@ public class ChangeRelation extends Relation // NOSONAR
         }
         Geometry[] geometries = new Geometry[linestrings.size()];
         geometries = linestrings.toArray(geometries);
-        final GeometryCollection collection = new GeometryCollection(geometries,
-                JtsPrecisionManager.getGeometryFactory());
-        return collection;
+        return new GeometryCollection(geometries, JtsPrecisionManager.getGeometryFactory());
     }
 
     private ChangeAtlas getChangeAtlas()
