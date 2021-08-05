@@ -1460,12 +1460,13 @@ public class RawAtlasSlicer
         final Time time = Time.now();
 
         purgeInvalidGeometricRelationMembers(relation);
-        if (relation.asMultiPolygon().isEmpty())
+        final Optional<MultiPolygon> geom = relation.asMultiPolygon();
+        if (geom.isEmpty())
         {
             return;
         }
 
-        org.locationtech.jts.geom.MultiPolygon jtsMp = relation.asMultiPolygon().get();
+        org.locationtech.jts.geom.MultiPolygon jtsMp = geom.get();
 
         // Check to see if the relation is one country only, short circuit if it is
         final Set<PreparedPolygon> polygons = this.boundary.query(jtsMp.getEnvelopeInternal())

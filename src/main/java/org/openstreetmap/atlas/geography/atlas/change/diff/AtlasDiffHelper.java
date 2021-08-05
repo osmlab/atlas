@@ -7,6 +7,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import org.locationtech.jts.geom.MultiPolygon;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
@@ -322,17 +323,17 @@ public final class AtlasDiffHelper
 
             if (beforeRelation.isGeometric())
             {
-                if (afterRelation.asMultiPolygon().isPresent())
+                final Optional<MultiPolygon> afterGeom = afterRelation.asMultiPolygon();
+                if (afterGeom.isPresent())
                 {
-                    if (beforeRelation.asMultiPolygon().isPresent() && beforeRelation
-                            .asMultiPolygon().get().equals(afterRelation.asMultiPolygon().get()))
+                    final Optional<MultiPolygon> beforeGeom = beforeRelation.asMultiPolygon();
+                    if (beforeGeom.isPresent() && beforeGeom.get().equals(afterGeom.get()))
                     {
                         // nothing to see here, move along!
                     }
                     else
                     {
-                        completeRelation
-                                .withMultiPolygonGeometry(afterRelation.asMultiPolygon().get());
+                        completeRelation.withMultiPolygonGeometry(afterGeom.get());
                         featureChangeWouldBeUseful = true;
                     }
                 }

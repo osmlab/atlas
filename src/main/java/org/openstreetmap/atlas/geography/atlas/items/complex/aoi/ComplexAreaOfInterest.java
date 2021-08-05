@@ -135,8 +135,14 @@ public final class ComplexAreaOfInterest extends ComplexEntity
         {
             if (source.getType().equals(ItemType.RELATION))
             {
+                final Optional<org.locationtech.jts.geom.MultiPolygon> geom = ((Relation) source)
+                        .asMultiPolygon();
+                if (geom.isEmpty())
+                {
+                    throw new CoreException("No stored geometry for Relation {}", source);
+                }
                 this.multiPolygon = new JtsMultiPolygonToMultiPolygonConverter()
-                        .convert(((Relation) source).asMultiPolygon().get());
+                        .convert(geom.get());
             }
             else
             {

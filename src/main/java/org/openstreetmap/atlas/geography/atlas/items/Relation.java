@@ -165,13 +165,14 @@ public abstract class Relation extends AtlasEntity
     @Override
     public Rectangle bounds()
     {
-        if (this.isGeometric() && !this.getBadGeom() && this.asMultiPolygon().isPresent())
+        final Optional<org.locationtech.jts.geom.MultiPolygon> geom = this.asMultiPolygon();
+        if (!this.getBadGeom() && geom.isPresent())
         {
             if (this.bounds == null)
             {
                 this.bounds = Rectangle.forLocated(new JtsPolygonConverter()
                         .backwardConvert((org.locationtech.jts.geom.Polygon) new GeometryFactory()
-                                .toGeometry(this.asMultiPolygon().get().getEnvelopeInternal())));
+                                .toGeometry(geom.get().getEnvelopeInternal())));
             }
             return this.bounds;
         }
@@ -486,9 +487,10 @@ public abstract class Relation extends AtlasEntity
     @Override
     public String toWkt()
     {
-        if (this.isGeometric() && this.asMultiPolygon().isPresent())
+        final Optional<org.locationtech.jts.geom.MultiPolygon> geom = this.asMultiPolygon();
+        if (geom.isPresent())
         {
-            return this.asMultiPolygon().get().toText();
+            return geom.get().toText();
         }
         return WktPrintable.toWktCollection(leafMembers().collect(Collectors.toList()));
     }
@@ -544,7 +546,7 @@ public abstract class Relation extends AtlasEntity
             else
             {
                 final Rectangle memberBounds = member.bounds();
-                if (this.bounds != null)
+                if (memberBounds != null)
                 {
                     itemsToConsider.add(memberBounds);
                 }

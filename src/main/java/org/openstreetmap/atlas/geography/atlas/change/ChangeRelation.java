@@ -220,13 +220,14 @@ public class ChangeRelation extends Relation // NOSONAR
 
     public boolean preservedValidGeometry()
     {
-        if (this.source != null && (!addedMembers().isEmpty() || !removedMembers().isEmpty())
-                && this.source.asMultiPolygon().isPresent()
-                && !this.source.asMultiPolygon().isEmpty()
-                && this.source.asMultiPolygon().get().isValid())
+        if (this.source != null && (!addedMembers().isEmpty() || !removedMembers().isEmpty()))
         {
-            return this.asMultiPolygon().isPresent() && !this.asMultiPolygon().get().isEmpty()
-                    && this.asMultiPolygon().get().isValid();
+            final Optional<MultiPolygon> sourceGeom = this.source.asMultiPolygon();
+            if (sourceGeom.isPresent() && !sourceGeom.isEmpty() && sourceGeom.get().isValid())
+            {
+                final Optional<MultiPolygon> geom = this.asMultiPolygon();
+                return geom.isPresent() && !geom.get().isEmpty() && geom.get().isValid();
+            }
         }
         return true;
     }

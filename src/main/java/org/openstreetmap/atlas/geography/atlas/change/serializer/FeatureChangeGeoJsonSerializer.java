@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import org.locationtech.jts.geom.MultiPolygon;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometryPrintable;
 import org.openstreetmap.atlas.geography.Rectangle;
@@ -138,10 +140,10 @@ public class FeatureChangeGeoJsonSerializer
             else
             {
                 // Relation
-                if (((Relation) source).asMultiPolygon().isPresent())
+                final Optional<MultiPolygon> geom = ((Relation) source).asMultiPolygon();
+                if (geom.isPresent())
                 {
-                    result = new JtsMultiPolygonToMultiPolygonConverter()
-                            .convert(((Relation) source).asMultiPolygon().get());
+                    result = new JtsMultiPolygonToMultiPolygonConverter().convert(geom.get());
                 }
                 else
                 {

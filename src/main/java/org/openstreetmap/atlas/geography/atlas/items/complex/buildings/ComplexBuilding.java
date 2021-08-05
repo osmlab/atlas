@@ -196,11 +196,11 @@ public class ComplexBuilding extends ComplexEntity
             final String type = relation.tag(RelationTypeTag.KEY);
             // Two cases here. The relation can be a multipolygon (in case there are just holes and
             // no parts) or a building relation, in case there are building parts.
-            if (RelationTypeTag.MULTIPOLYGON_TYPE.equals(type)
-                    && relation.asMultiPolygon().isPresent())
+            final Optional<org.locationtech.jts.geom.MultiPolygon> geom = relation.asMultiPolygon();
+            if (RelationTypeTag.MULTIPOLYGON_TYPE.equals(type) && geom.isPresent())
             {
                 // 1. Multipolygon. Relatively easy, there will be no building parts.
-                this.outline = MULTIPOLYGON_CONVERTER.convert(relation.asMultiPolygon().get());
+                this.outline = MULTIPOLYGON_CONVERTER.convert(geom.get());
                 this.outlineSource = relation;
             }
             else if (BuildingTag.KEY.equals(type))

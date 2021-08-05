@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.items.complex.water;
 
+import java.util.Optional;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.openstreetmap.atlas.exception.CoreException;
@@ -79,11 +81,11 @@ public class ComplexWaterbody extends ComplexWaterEntity
         else if (source instanceof Relation)
         {
             final Relation relation = (Relation) source;
+            final Optional<org.locationtech.jts.geom.MultiPolygon> geom = relation.asMultiPolygon();
             final String type = relation.tag(RelationTypeTag.KEY);
-            if (RelationTypeTag.MULTIPOLYGON_TYPE.equals(type)
-                    && relation.asMultiPolygon().isPresent())
+            if (RelationTypeTag.MULTIPOLYGON_TYPE.equals(type) && geom.isPresent())
             {
-                this.geometry = MULTIPOLYGON_CONVERTER.convert(relation.asMultiPolygon().get());
+                this.geometry = MULTIPOLYGON_CONVERTER.convert(geom.get());
                 return;
             }
         }

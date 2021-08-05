@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.locationtech.jts.geom.MultiPolygon;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.exception.change.FeatureChangeMergeException;
 import org.openstreetmap.atlas.exception.change.MergeFailureType;
@@ -883,11 +884,12 @@ public class FeatureChange implements Located, Taggable, Serializable, Comparabl
                 ((CompleteRelation) beforeViewUpdatesOnly).withOsmRelationIdentifier(
                         beforeRelationViewFromAtlas.osmRelationIdentifier());
             }
-            if (afterRelationView.asMultiPolygon().isPresent()
-                    && beforeRelationViewFromAtlas.asMultiPolygon().isPresent())
+            final Optional<MultiPolygon> afterGeom = afterRelationView.asMultiPolygon();
+            final Optional<MultiPolygon> beforeGeom = beforeRelationViewFromAtlas.asMultiPolygon();
+            if (afterGeom.isPresent() && beforeGeom.isPresent())
             {
-                ((CompleteRelation) beforeViewUpdatesOnly).withMultiPolygonGeometry(
-                        beforeRelationViewFromAtlas.asMultiPolygon().get());
+                ((CompleteRelation) beforeViewUpdatesOnly)
+                        .withMultiPolygonGeometry(beforeGeom.get());
             }
         }
         else

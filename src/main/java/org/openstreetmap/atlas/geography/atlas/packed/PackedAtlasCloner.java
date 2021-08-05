@@ -3,6 +3,7 @@ package org.openstreetmap.atlas.geography.atlas.packed;
 import java.util.Map;
 import java.util.Optional;
 
+import org.locationtech.jts.geom.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
@@ -98,7 +99,8 @@ public class PackedAtlasCloner
         final RelationBean bean = new RelationBean();
         relation.members().forEach(member -> bean.addItem(member.getEntity().getIdentifier(),
                 member.getRole(), member.getEntity().getType()));
-        if (relation.asMultiPolygon().isPresent())
+        final Optional<MultiPolygon> geom = relation.asMultiPolygon();
+        if (geom.isPresent())
         {
             builder.addRelation(relation.getIdentifier(), relation.osmRelationIdentifier(), bean,
                     relation.getTags(), relation.asMultiPolygon().get());
