@@ -586,33 +586,32 @@ public class OsmPbfReader implements Sink
             if (!stagedRelations.isEmpty())
             {
                 final List<Relation> stagedRelationsButFinal = stagedRelations;
-                final SortedSet<Relation> sortedByNumberOfParents = new TreeSet<Relation>(
-                        (r1, r2) ->
-                        {
-                            final int r1Parents = r1.getMembers().stream().filter(member1 -> member1
-                                    .getMemberType().equals(EntityType.Relation)
+                final SortedSet<Relation> sortedByNumberOfParents = new TreeSet<>((r1, r2) ->
+                {
+                    final int r1Parents = r1.getMembers().stream()
+                            .filter(member1 -> member1.getMemberType().equals(EntityType.Relation)
                                     && stagedRelationsButFinal.stream().anyMatch(
                                             staged1 -> staged1.getId() == member1.getMemberId()))
-                                    .collect(Collectors.toSet()).size();
-                            final int r2Parents = r2.getMembers().stream().filter(member2 -> member2
-                                    .getMemberType().equals(EntityType.Relation)
+                            .collect(Collectors.toSet()).size();
+                    final int r2Parents = r2.getMembers().stream()
+                            .filter(member2 -> member2.getMemberType().equals(EntityType.Relation)
                                     && stagedRelationsButFinal.stream().anyMatch(
                                             staged2 -> staged2.getId() == member2.getMemberId()))
-                                    .collect(Collectors.toSet()).size();
-                            if (r1Parents < r2Parents)
-                            {
-                                return 1;
-                            }
-                            else if (r1Parents > r2Parents)
-                            {
-                                return -1;
-                            }
-                            else
-                            {
-                                return Long.compare(r1.getId(), r2.getId());
-                            }
+                            .collect(Collectors.toSet()).size();
+                    if (r1Parents < r2Parents)
+                    {
+                        return 1;
+                    }
+                    else if (r1Parents > r2Parents)
+                    {
+                        return -1;
+                    }
+                    else
+                    {
+                        return Long.compare(r1.getId(), r2.getId());
+                    }
 
-                        });
+                });
                 stagedRelations.forEach(sortedByNumberOfParents::add);
                 sortedByNumberOfParents.forEach(this::addRelation);
             }

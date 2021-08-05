@@ -1016,7 +1016,7 @@ public final class PackedAtlas extends AbstractAtlas
                             relationIdentifier);
                 }
                 final ByteArrayResource compressedGeom = new ByteArrayResource(
-                        geometry.toText().getBytes().length * Byte.SIZE);
+                        geometry.toText().getBytes().length * (long) Byte.SIZE);
                 compressedGeom.setCompressor(Compressor.GZIP);
                 compressedGeom.writeAndClose(geometry.toText());
                 this.relationGeometries.add(compressedGeom.readBytesAndClose());
@@ -1310,7 +1310,7 @@ public final class PackedAtlas extends AbstractAtlas
         try
         {
             final ByteArrayResource compressed = new ByteArrayResource(
-                    this.relationGeometries().get(index).length * Byte.SIZE);
+                    this.relationGeometries().get(index).length * (long) Byte.SIZE);
             compressed.writeAndClose(this.relationGeometries().get(index));
             compressed.setDecompressor(Decompressor.GZIP);
             final MultiPolygon geom = (MultiPolygon) new WKTReader()

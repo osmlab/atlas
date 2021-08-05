@@ -543,10 +543,10 @@ public abstract class Relation extends AtlasEntity
             }
             else
             {
-                final Rectangle bounds = member.bounds();
-                if (bounds != null)
+                final Rectangle memberBounds = member.bounds();
+                if (this.bounds != null)
                 {
-                    itemsToConsider.add(bounds);
+                    itemsToConsider.add(memberBounds);
                 }
             }
         }

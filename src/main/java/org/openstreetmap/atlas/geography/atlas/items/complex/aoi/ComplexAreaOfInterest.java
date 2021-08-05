@@ -136,8 +136,7 @@ public final class ComplexAreaOfInterest extends ComplexEntity
             if (source.getType().equals(ItemType.RELATION))
             {
                 this.multiPolygon = new JtsMultiPolygonToMultiPolygonConverter()
-                        .convert((org.locationtech.jts.geom.MultiPolygon) ((Relation) source)
-                                .asMultiPolygon().get());
+                        .convert(((Relation) source).asMultiPolygon().get());
             }
             else
             {
