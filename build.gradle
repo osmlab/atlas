@@ -27,6 +27,7 @@ repositories
 {
     // For geotools
     maven { url "http://repo.osgeo.org/repository/release/" }
+    maven { url "https://repo.eclipse.org/content/repositories/jts-snapshots" }
     mavenCentral()
 }
 
