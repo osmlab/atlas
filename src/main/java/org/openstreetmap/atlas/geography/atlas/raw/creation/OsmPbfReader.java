@@ -390,7 +390,10 @@ public class OsmPbfReader implements Sink
         return wayNodes.size() < 2
                 || wayNodes.size() == 2
                         && wayNodes.get(0).getNodeId() == wayNodes.get(1).getNodeId()
-                || wayNodes.size() < MINIMUM_CLOSED_WAY_LENGTH && way.isClosed();
+                || wayNodes.size() < MINIMUM_CLOSED_WAY_LENGTH
+                        && getNodeLocation(padIdentifier(wayNodes.get(0).getNodeId()))
+                                .equals(getNodeLocation(padIdentifier(
+                                        wayNodes.get(wayNodes.size() - 1).getNodeId())));
     }
 
     /**

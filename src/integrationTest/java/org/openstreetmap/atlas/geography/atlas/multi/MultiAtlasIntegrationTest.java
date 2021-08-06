@@ -110,6 +110,6 @@ public class MultiAtlasIntegrationTest extends AtlasIntegrationTest
         final Polygon polygon = this.multi.area(24601488000000L).asPolygon();
 
         Assert.assertEquals(40, Iterables.size(this.multi.edgesIntersecting(polygon)));
-        Assert.assertEquals(7, Iterables.size(this.multi.areasIntersecting(polygon)));
+        Assert.assertEquals(8, Iterables.size(this.multi.areasIntersecting(polygon)));
     }
 }
