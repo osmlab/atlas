@@ -730,6 +730,12 @@ public class ChangeAtlasTest
                 new JtsPolyLineConverter().convert(lbrSlicedAtlas.area(214581000000L).asPolygon()));
         removeChanges.add(FeatureChange.add(relation, lbrSlicedAtlas));
         final ChangeAtlas removed = new ChangeAtlas(lbrSlicedAtlas, removeChanges.get());
+        Assert.assertTrue(removed.relation(2000L).asMultiPolygon().isPresent());
+        Assert.assertTrue(removed.relation(2000L).asMultiPolygon().get()
+                .covers(new JtsPolyLineConverter().convert(area.asPolygon())));
+        Assert.assertFalse(
+                removed.relation(2000L).asMultiPolygon().get().intersects(new JtsPolyLineConverter()
+                        .convert(lbrSlicedAtlas.area(214581000000L).asPolygon())));
     }
 
     @Test(expected = CoreException.class)

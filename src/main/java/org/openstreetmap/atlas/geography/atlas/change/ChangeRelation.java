@@ -88,7 +88,7 @@ public class ChangeRelation extends Relation // NOSONAR
     {
         if (!this.isGeometric())
         {
-            return Optional.ofNullable(null);
+            return Optional.empty();
         }
         final Supplier<Optional<MultiPolygon>> creator = () ->
         {
@@ -223,7 +223,7 @@ public class ChangeRelation extends Relation // NOSONAR
         if (this.source != null && (!addedMembers().isEmpty() || !removedMembers().isEmpty()))
         {
             final Optional<MultiPolygon> sourceGeom = this.source.asMultiPolygon();
-            if (sourceGeom.isPresent() && !sourceGeom.isEmpty() && sourceGeom.get().isValid())
+            if (sourceGeom.isPresent() && !sourceGeom.get().isEmpty() && sourceGeom.get().isValid())
             {
                 final Optional<MultiPolygon> geom = this.asMultiPolygon();
                 return geom.isPresent() && !geom.get().isEmpty() && geom.get().isValid();

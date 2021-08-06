@@ -45,9 +45,76 @@ public class ChangeValidator
         final Time start = Time.now();
         validateChangeNotEmpty();
         validateReverseEdgesHaveForwardMatchingCounterpart();
-        validateGeometricRelationsUpdated();
+        validateAreaGeometricRelationsUpdated();
+        validateLineGeometricRelationsUpdated();
+        validateEdgeGeometricRelationsUpdated();
         logger.trace("Finished validation of Change {} in {}", this.change.getName(),
                 start.elapsedSince());
+    }
+
+    protected void validateAreaGeometricRelationsUpdated()
+    {
+        this.change.changesFor(ItemType.AREA)
+                .filter(featureChange -> featureChange.getChangeType() != ChangeType.REMOVE)
+                .filter(featureChange -> ((CompleteArea) featureChange.getAfterView())
+                        .asPolygon() != null)
+                .filter(featureChange -> ((CompleteArea) featureChange.getAfterView())
+                        .geometricRelationIdentifiers() != null
+                        && !((CompleteArea) featureChange.getAfterView())
+                                .geometricRelationIdentifiers().isEmpty())
+                .filter(featureChange -> featureChange.getBeforeView() == null
+                        || ((Area) featureChange.getBeforeView()).asPolygon() == null
+                        || !((Area) featureChange.getBeforeView()).asPolygon()
+                                .equals(((CompleteArea) featureChange.getAfterView()).asPolygon()))
+                .forEach(featureChange ->
+                {
+                    final CompleteArea after = (CompleteArea) featureChange.getAfterView();
+                    after.geometricRelationIdentifiers().forEach(relationId ->
+                    {
+                        final Optional<FeatureChange> changeRelationOptional = this.change
+                                .changeFor(ItemType.RELATION, relationId);
+                        if (changeRelationOptional.isEmpty())
+                        {
+                            throw new CoreException(
+                                    "Geometric relation {} had no change for area member {} with updated geometry!",
+                                    relationId, after.getIdentifier());
+                        }
+                        if (!changeRelationOptional.get().getChangeType().equals(ChangeType.REMOVE))
+                        {
+                            final CompleteRelation updatedRelation = (CompleteRelation) changeRelationOptional
+                                    .get().getAfterView();
+                            if (!updatedRelation.isOverrideGeometry())
+                            {
+                                if (updatedRelation.getRemovedGeometry().isEmpty()
+                                        && updatedRelation.getAddedGeometry().isEmpty())
+                                {
+                                    throw new CoreException(
+                                            "Geometric relation {} had no change for area member {} with updated geometry!",
+                                            relationId, after.getIdentifier());
+                                }
+                                if (featureChange.getBeforeView() != null
+                                        && ((Area) featureChange.getBeforeView())
+                                                .asPolygon() != null
+                                        && !updatedRelation.getRemovedGeometry()
+                                                .contains(new JtsPolyLineConverter().convert(
+                                                        ((Area) featureChange.getBeforeView())
+                                                                .asPolygon())))
+                                {
+                                    throw new CoreException(
+                                            "Geometric relation {} had no removed geometry for area member {} with updated geometry!",
+                                            relationId, after.getIdentifier());
+                                }
+                                if (!updatedRelation.getAddedGeometry().contains(
+                                        new JtsPolyLineConverter().convert(after.asPolygon())))
+                                {
+                                    throw new CoreException(
+                                            "Geometric relation {} had no added geometry for area member {} with updated geometry!",
+                                            relationId, after.getIdentifier());
+                                }
+                            }
+                        }
+                    });
+                });
     }
 
     protected void validateChangeNotEmpty()
@@ -58,7 +125,7 @@ public class ChangeValidator
         }
     }
 
-    protected void validateGeometricRelationsUpdated()
+    protected void validateEdgeGeometricRelationsUpdated()
     {
         this.change.changesFor(ItemType.EDGE)
                 .filter(featureChange -> featureChange.getChangeType() != ChangeType.REMOVE)
@@ -120,7 +187,10 @@ public class ChangeValidator
                         }
                     });
                 });
+    }
 
+    protected void validateLineGeometricRelationsUpdated()
+    {
         this.change.changesFor(ItemType.LINE)
                 .filter(featureChange -> featureChange.getChangeType() != ChangeType.REMOVE)
                 .filter(featureChange -> ((Line) featureChange.getAfterView()).asPolyLine() != null)
@@ -175,68 +245,6 @@ public class ChangeValidator
                                 {
                                     throw new CoreException(
                                             "Geometric relation {} had no added geometry for Line member {} with updated geometry!",
-                                            relationId, after.getIdentifier());
-                                }
-                            }
-                        }
-                    });
-                });
-
-        this.change.changesFor(ItemType.AREA)
-                .filter(featureChange -> featureChange.getChangeType() != ChangeType.REMOVE)
-                .filter(featureChange -> ((CompleteArea) featureChange.getAfterView())
-                        .asPolygon() != null)
-                .filter(featureChange -> ((CompleteArea) featureChange.getAfterView())
-                        .geometricRelationIdentifiers() != null
-                        && !((CompleteArea) featureChange.getAfterView())
-                                .geometricRelationIdentifiers().isEmpty())
-                .filter(featureChange -> featureChange.getBeforeView() == null
-                        || ((Area) featureChange.getBeforeView()).asPolygon() == null
-                        || !((Area) featureChange.getBeforeView()).asPolygon()
-                                .equals(((CompleteArea) featureChange.getAfterView()).asPolygon()))
-                .forEach(featureChange ->
-                {
-                    final CompleteArea after = (CompleteArea) featureChange.getAfterView();
-                    after.geometricRelationIdentifiers().forEach(relationId ->
-                    {
-                        final Optional<FeatureChange> changeRelationOptional = this.change
-                                .changeFor(ItemType.RELATION, relationId);
-                        if (changeRelationOptional.isEmpty())
-                        {
-                            throw new CoreException(
-                                    "Geometric relation {} had no change for area member {} with updated geometry!",
-                                    relationId, after.getIdentifier());
-                        }
-                        if (!changeRelationOptional.get().getChangeType().equals(ChangeType.REMOVE))
-                        {
-                            final CompleteRelation updatedRelation = (CompleteRelation) changeRelationOptional
-                                    .get().getAfterView();
-                            if (!updatedRelation.isOverrideGeometry())
-                            {
-                                if (updatedRelation.getRemovedGeometry().isEmpty()
-                                        && updatedRelation.getAddedGeometry().isEmpty())
-                                {
-                                    throw new CoreException(
-                                            "Geometric relation {} had no change for area member {} with updated geometry!",
-                                            relationId, after.getIdentifier());
-                                }
-                                if (featureChange.getBeforeView() != null
-                                        && ((Area) featureChange.getBeforeView())
-                                                .asPolygon() != null
-                                        && !updatedRelation.getRemovedGeometry()
-                                                .contains(new JtsPolyLineConverter().convert(
-                                                        ((Area) featureChange.getBeforeView())
-                                                                .asPolygon())))
-                                {
-                                    throw new CoreException(
-                                            "Geometric relation {} had no removed geometry for area member {} with updated geometry!",
-                                            relationId, after.getIdentifier());
-                                }
-                                if (!updatedRelation.getAddedGeometry().contains(
-                                        new JtsPolyLineConverter().convert(after.asPolygon())))
-                                {
-                                    throw new CoreException(
-                                            "Geometric relation {} had no added geometry for area member {} with updated geometry!",
                                             relationId, after.getIdentifier());
                                 }
                             }

@@ -103,7 +103,7 @@ public class PackedAtlasCloner
         if (geom.isPresent())
         {
             builder.addRelation(relation.getIdentifier(), relation.osmRelationIdentifier(), bean,
-                    relation.getTags(), relation.asMultiPolygon().get());
+                    relation.getTags(), geom.get());
         }
         else
         {

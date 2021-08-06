@@ -11,7 +11,6 @@ import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
-import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.streaming.resource.File;
@@ -60,14 +59,12 @@ public class RelationMultipolygonGeometryTest
         try (FileSystem filesystem = Jimfs.newFileSystem(Configuration.osX()))
         {
             setupFilesystem(filesystem);
-
             final PackedAtlas atlas = (PackedAtlas) new AtlasResourceLoader()
                     .load(new File("/Users/foo/test.atlas", filesystem));
-            CompleteRelation.from(atlas.relation(1L)).asMultiPolygon();
-
+            Assert.assertTrue(atlas.relation(1L).asMultiPolygon().isPresent());
             final PackedAtlas atlasNoEnhancedGeometry = (PackedAtlas) new AtlasResourceLoader()
                     .load(new File("/Users/foo/test_notEnhanced.atlas", filesystem));
-            CompleteRelation.from(atlasNoEnhancedGeometry.relation(1L)).asMultiPolygon();
+            Assert.assertFalse(atlasNoEnhancedGeometry.relation(1L).asMultiPolygon().isPresent());
         }
         catch (final IOException exception)
         {

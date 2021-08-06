@@ -165,14 +165,14 @@ public abstract class Relation extends AtlasEntity
     @Override
     public Rectangle bounds()
     {
-        final Optional<org.locationtech.jts.geom.MultiPolygon> geom = this.asMultiPolygon();
-        if (!this.getBadGeom() && geom.isPresent())
+        final Optional<org.locationtech.jts.geom.MultiPolygon> geometry = this.asMultiPolygon();
+        if (!this.getBadGeom() && geometry.isPresent())
         {
             if (this.bounds == null)
             {
                 this.bounds = Rectangle.forLocated(new JtsPolygonConverter()
                         .backwardConvert((org.locationtech.jts.geom.Polygon) new GeometryFactory()
-                                .toGeometry(geom.get().getEnvelopeInternal())));
+                                .toGeometry(geometry.get().getEnvelopeInternal())));
             }
             return this.bounds;
         }
