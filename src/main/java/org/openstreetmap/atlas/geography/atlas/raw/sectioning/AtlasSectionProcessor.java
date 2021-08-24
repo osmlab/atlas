@@ -370,12 +370,13 @@ public class AtlasSectionProcessor
     private CompleteNode createNode(final Line line, final Location nodeLocation,
             final SortedSet<Long> inEdges, final SortedSet<Long> outEdges)
     {
-        final Point pointForNode = this.inputAtlas.pointsAt(nodeLocation).iterator().next();
-        if (pointForNode == null)
+        if (!this.inputAtlas.pointsAt(nodeLocation).iterator().hasNext())
         {
-            throw new CoreException("Couldn't find node while sectioning Line {} for Atlas {}",
-                    line, getShardOrAtlasName());
+            throw new CoreException(
+                    "Couldn't find node at {} while sectioning Line {} for Atlas {}",
+                    nodeLocation.toString(), line.toString(), getShardOrAtlasName());
         }
+        final Point pointForNode = this.inputAtlas.pointsAt(nodeLocation).iterator().next();
         if (pointForNode.getOsmTags().isEmpty())
         {
             this.changes.add(FeatureChange.remove(CompletePoint.shallowFrom(pointForNode)));
