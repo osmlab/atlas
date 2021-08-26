@@ -196,10 +196,11 @@ public abstract class Relation extends AtlasEntity
         builder.append(betweenEachMemberAndRelation);
         builder.append("], ");
         builder.append(tagString());
-        if (this.asMultiPolygon().isPresent())
+        final Optional<org.locationtech.jts.geom.MultiPolygon> multipolygon = this.asMultiPolygon();
+        if (multipolygon.isPresent())
         {
             builder.append(", multipolygon=");
-            builder.append(this.asMultiPolygon().get().toText());
+            builder.append(multipolygon.get().toText());
         }
         builder.append("]");
         return builder.toString();
