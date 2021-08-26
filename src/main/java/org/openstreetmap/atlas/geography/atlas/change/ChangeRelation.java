@@ -26,6 +26,7 @@ import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
+import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiLineStringConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPrecisionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,7 @@ public class ChangeRelation extends Relation // NOSONAR
 {
     private static final long serialVersionUID = 4353679260691518275L;
     private static final Logger logger = LoggerFactory.getLogger(ChangeRelation.class);
+    private static final JtsMultiPolygonToMultiLineStringConverter converter = new JtsMultiPolygonToMultiLineStringConverter();
 
     private final Relation source;
     private final Relation override;
@@ -107,58 +109,62 @@ public class ChangeRelation extends Relation // NOSONAR
                     {
                         return sourceJtsGeometry;
                     }
+
                     final org.locationtech.jts.geom.MultiPolygon sourceGeom;
                     sourceGeom = sourceJtsGeometry.get();
 
                     final Set<LineString> removed = removedMembers();
                     final Set<LineString> added = addedMembers();
 
+                    // if nothing was changed, return the original geometry
                     if (removed.isEmpty() && added.isEmpty())
                     {
                         return sourceJtsGeometry;
                     }
 
-                    Geometry updatedGeometry = convertMultiPolygonToLineCollection(sourceGeom);
-
+                    // get the constituent linework and remove the old geometry and add in the new
+                    // geometry
+                    Geometry updatedGeometry = converter.convert(sourceGeom);
                     for (final Geometry memberGeometry : removed)
                     {
                         updatedGeometry = OverlayNG.overlay(updatedGeometry, memberGeometry,
                                 OverlayNG.DIFFERENCE);
                     }
-
                     for (final Geometry memberGeometry : added)
                     {
                         updatedGeometry = OverlayNG.overlay(updatedGeometry, memberGeometry,
                                 OverlayNG.UNION);
                     }
 
+                    // turn it into a multipolygon, fixing if necessary
                     final Polygonizer update = new Polygonizer(true);
                     update.add(updatedGeometry);
-                    final Polygon[] polygons = (Polygon[]) update.getPolygons()
-                            .toArray(new Polygon[update.getPolygons().size()]);
-                    updatedGeometry = new MultiPolygon(polygons,
-                            JtsPrecisionManager.getGeometryFactory());
-                    if (!updatedGeometry.isValid())
+                    MultiPolygon built = converter.backwardConvert(new GeometryCollection(
+                            (Geometry[]) update.getPolygons()
+                                    .toArray(new Polygon[update.getPolygons().size()]),
+                            JtsPrecisionManager.getGeometryFactory()));
+                    if (!built.isValid())
                     {
-                        final Geometry fixed = GeometryFixer.fix(updatedGeometry);
+                        final Geometry fixed = GeometryFixer.fix(built);
                         if (fixed instanceof Polygon)
                         {
-                            updatedGeometry = new MultiPolygon(new Polygon[] { (Polygon) fixed },
+                            built = new MultiPolygon(new Polygon[] { (Polygon) fixed },
                                     JtsPrecisionManager.getGeometryFactory());
                         }
                         else if (fixed instanceof MultiPolygon)
                         {
-                            updatedGeometry = fixed;
+                            built = (MultiPolygon) fixed;
                         }
                         else
                         {
                             throw new CoreException(
-                                    "Fixed geometry for relation {} included unexpected type! {}",
-                                    this.getIdentifier(), fixed.toText());
+                                    "Fixed geometry {} included unexpected type! {}",
+                                    fixed.toText(), fixed.getGeometryType());
                         }
                         logger.error("Had to fix geometry for relation {}", this.getIdentifier());
                     }
-                    return Optional.ofNullable((MultiPolygon) updatedGeometry);
+
+                    return Optional.ofNullable(built);
                 }
             }
             else if (this.override != null
@@ -261,23 +267,6 @@ public class ChangeRelation extends Relation // NOSONAR
             final String name)
     {
         return ChangeEntity.getAttributeOrBackup(this.source, this.override, memberExtractor, name);
-    }
-
-    private GeometryCollection convertMultiPolygonToLineCollection(final MultiPolygon multipolygon)
-    {
-        final List<LineString> linestrings = new ArrayList<>();
-        for (int i = 0; i < multipolygon.getNumGeometries(); i++)
-        {
-            final Polygon part = (Polygon) multipolygon.getGeometryN(i);
-            linestrings.add(part.getExteriorRing());
-            for (int j = 0; j < part.getNumInteriorRing(); j++)
-            {
-                linestrings.add(part.getInteriorRingN(j));
-            }
-        }
-        Geometry[] geometries = new Geometry[linestrings.size()];
-        geometries = linestrings.toArray(geometries);
-        return new GeometryCollection(geometries, JtsPrecisionManager.getGeometryFactory());
     }
 
     private ChangeAtlas getChangeAtlas()

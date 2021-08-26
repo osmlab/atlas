@@ -240,7 +240,7 @@ public final class PackedAtlas extends AbstractAtlas
     private final LongToLongMultiMap relationOsmIdentifierToRelationIdentifiers;
     private final LongArray relationOsmIdentifiers;
     private ByteArrayOfArrays relationGeometries;
-    private Map<Long, MultiPolygon> builtRelationGeometries = new HashMap<>();
+    private transient Map<Long, MultiPolygon> builtRelationGeometries = new HashMap<>();
 
     // Bounds of the Atlas
     private Rectangle bounds;
@@ -1303,6 +1303,10 @@ public final class PackedAtlas extends AbstractAtlas
 
     protected MultiPolygon relationGeometry(final long index)
     {
+        if (this.builtRelationGeometries == null)
+        {
+            this.builtRelationGeometries = new HashMap<>();
+        }
         if (this.builtRelationGeometries.containsKey(index))
         {
             return this.builtRelationGeometries.get(index);
