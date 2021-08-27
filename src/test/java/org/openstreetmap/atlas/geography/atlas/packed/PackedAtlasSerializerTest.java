@@ -63,18 +63,6 @@ public class PackedAtlasSerializerTest
             this.array.setName("TraceableByteArrayResource");
         }
 
-        /**
-         * @param initialSize
-         *            An initial size to help avoiding resizings.
-         */
-        TraceableByteArrayResource(final long initialSize)
-        {
-            final int blockSize = (int) (initialSize <= Integer.MAX_VALUE ? initialSize
-                    : Integer.MAX_VALUE);
-            this.array = new ByteArray(Long.MAX_VALUE, blockSize, Integer.MAX_VALUE);
-            this.array.setName("TraceableByteArrayResource");
-        }
-
         public int getNumberStreamsClosed()
         {
             return this.numberStreamsClosed;
@@ -288,16 +276,27 @@ public class PackedAtlasSerializerTest
         final TraceableByteArrayResource protoResource = new TraceableByteArrayResource();
         protoResource.setName("proto");
 
+        assert atlas != null;
         atlas.setSaveSerializationFormat(AtlasSerializationFormat.JAVA);
         atlas.save(javaResource);
         atlas.setSaveSerializationFormat(AtlasSerializationFormat.PROTOBUF);
         atlas.save(protoResource);
 
-        final Atlas javaAtlas = PackedAtlas.load(javaResource);
-        final Atlas protoAtlas = PackedAtlas.load(protoResource);
+        PackedAtlas.load(javaResource);
+        PackedAtlas.load(protoResource);
 
+        /*
+         * This value should be 2. Why? Because when we automatically determine atlas load format,
+         * we always test for PROTOBUF first. In case of JAVA, this means we will try to load once
+         * as PROTOBUF, fail, then try to load again as JAVA and succeed.
+         */
         Assert.assertEquals(2, javaResource.getNumberStreamsClosed());
-        Assert.assertEquals(1, protoResource.getNumberStreamsClosed());
+        /*
+         * We also expect 2 for PROTOBUF case. Why, because in case we detect PROTOBUF, we then
+         * attempt an additional load of the optional `relationGeometries' field to determine if it
+         * is present. This triggers an additional stream open/close.
+         */
+        Assert.assertEquals(2, protoResource.getNumberStreamsClosed());
     }
 
     @Test

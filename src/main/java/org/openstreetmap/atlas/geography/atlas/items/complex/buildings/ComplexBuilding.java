@@ -16,6 +16,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.complex.ComplexEntity;
 import org.openstreetmap.atlas.geography.atlas.items.complex.RelationOrAreaToMultiPolygonConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.tags.BuildingLevelsTag;
 import org.openstreetmap.atlas.tags.BuildingMinLevelTag;
 import org.openstreetmap.atlas.tags.BuildingTag;
@@ -37,6 +38,7 @@ public class ComplexBuilding extends ComplexEntity
 
     private static final Logger logger = LoggerFactory.getLogger(ComplexBuilding.class);
     private static final RelationOrAreaToMultiPolygonConverter RELATION_OR_AREA_TO_MULTI_POLYGON_CONVERTER = new RelationOrAreaToMultiPolygonConverter();
+    private static final JtsMultiPolygonToMultiPolygonConverter MULTIPOLYGON_CONVERTER = new JtsMultiPolygonToMultiPolygonConverter();
     private static final HeightConverter HEIGHT_CONVERTER = new HeightConverter();
 
     private final Set<BuildingPart> buildingParts;
@@ -194,10 +196,11 @@ public class ComplexBuilding extends ComplexEntity
             final String type = relation.tag(RelationTypeTag.KEY);
             // Two cases here. The relation can be a multipolygon (in case there are just holes and
             // no parts) or a building relation, in case there are building parts.
-            if (RelationTypeTag.MULTIPOLYGON_TYPE.equals(type))
+            final Optional<org.locationtech.jts.geom.MultiPolygon> geom = relation.asMultiPolygon();
+            if (RelationTypeTag.MULTIPOLYGON_TYPE.equals(type) && geom.isPresent())
             {
                 // 1. Multipolygon. Relatively easy, there will be no building parts.
-                this.outline = RELATION_OR_AREA_TO_MULTI_POLYGON_CONVERTER.convert(relation);
+                this.outline = MULTIPOLYGON_CONVERTER.convert(geom.get());
                 this.outlineSource = relation;
             }
             else if (BuildingTag.KEY.equals(type))

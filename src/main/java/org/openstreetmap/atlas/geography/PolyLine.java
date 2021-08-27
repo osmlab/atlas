@@ -644,6 +644,11 @@ public class PolyLine implements Collection<Location>, Located, Serializable, Ge
         return false;
     }
 
+    public boolean isClosed()
+    {
+        return JTS_POLYLINE_CONVERTER.convert(this).isClosed();
+    }
+
     @Override
     public final boolean isEmpty()
     {
@@ -1001,8 +1006,17 @@ public class PolyLine implements Collection<Location>, Located, Serializable, Ge
     public Set<Location> selfIntersections()
     {
         Set<Location> intersections = null;
-
         final boolean isPolygon = this instanceof Polygon;
+        if (this.isSimple() && !isPolygon)
+        {
+            if (this.isClosed())
+            {
+                intersections = new HashSet<>();
+                intersections.add(this.first());
+                return intersections;
+            }
+            return Collections.emptySet();
+        }
 
         // Exclude point-segments, so we know which segments are actually consecutive
         final List<Segment> segments = this.segments().stream()

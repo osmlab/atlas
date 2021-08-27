@@ -7,6 +7,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import org.locationtech.jts.geom.MultiPolygon;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.change.ChangeType;
@@ -25,6 +26,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPrecisionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -318,6 +320,31 @@ public final class AtlasDiffHelper
                 completeRelation.withMembersAndSource(afterRelation.members(), beforeRelation);
                 featureChangeWouldBeUseful = true;
             }
+
+            if (beforeRelation.isGeometric())
+            {
+                final Optional<MultiPolygon> afterGeom = afterRelation.asMultiPolygon();
+                if (afterGeom.isPresent())
+                {
+                    final Optional<MultiPolygon> beforeGeom = beforeRelation.asMultiPolygon();
+                    if (beforeGeom.isPresent() && beforeGeom.get().equals(afterGeom.get()))
+                    {
+                        // nothing to see here, move along!
+                    }
+                    else
+                    {
+                        completeRelation.withMultiPolygonGeometry(afterGeom.get());
+                        featureChangeWouldBeUseful = true;
+                    }
+                }
+                else if (beforeRelation.asMultiPolygon().isPresent())
+                {
+                    completeRelation.withMultiPolygonGeometry(
+                            JtsPrecisionManager.getGeometryFactory().createMultiPolygon());
+                    featureChangeWouldBeUseful = true;
+                }
+            }
+
             if (featureChangeWouldBeUseful)
             {
                 return Optional.of(FeatureChange.add(completeRelation, beforeViewAtlas));

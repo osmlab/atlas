@@ -1,14 +1,18 @@
 package org.openstreetmap.atlas.geography.converters;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.locationtech.jts.geom.prep.PreparedGeometryFactory;
+import org.locationtech.jts.geom.prep.PreparedPolygon;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.atlas.items.Relation.Ring;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.conversion.Converter;
 import org.openstreetmap.atlas.utilities.maps.MultiMap;
@@ -51,14 +55,19 @@ public class MultiplePolyLineToMultiPolygonConverter
                 .forEach(innerPolyLines::add);
         MULTIPLE_POLY_LINE_TO_POLYGONS_CONVERTER.convert(innerPolyLines)
                 .forEach(innerPolygons::add);
+        final JtsPolygonConverter converter = new JtsPolygonConverter();
+        final Map<Polygon, PreparedPolygon> preparedOuters = new HashMap<>();
+        outersToInners.keySet().forEach(outer -> preparedOuters.put(outer,
+                (PreparedPolygon) PreparedGeometryFactory.prepare(converter.convert(outer))));
         innerPolygons.forEach(inner ->
         {
             boolean added = false;
-            for (final Polygon outer : outersToInners.keySet())
+            final org.locationtech.jts.geom.Polygon inner2 = converter.convert(inner);
+            for (final Map.Entry<Polygon, PreparedPolygon> entry : preparedOuters.entrySet())
             {
-                if (outer.overlaps(inner) && !inner.fullyGeometricallyEncloses(outer))
+                if (entry.getValue().containsProperly(inner2))
                 {
-                    outersToInners.add(outer, inner);
+                    outersToInners.add(entry.getKey(), inner);
                     added = true;
                     break;
                 }

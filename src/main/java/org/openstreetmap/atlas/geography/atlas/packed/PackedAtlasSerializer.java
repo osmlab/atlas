@@ -24,6 +24,7 @@ import org.openstreetmap.atlas.streaming.resource.zip.ZipFileWritableResource;
 import org.openstreetmap.atlas.streaming.resource.zip.ZipResource;
 import org.openstreetmap.atlas.streaming.resource.zip.ZipResource.ZipIterator;
 import org.openstreetmap.atlas.streaming.resource.zip.ZipWritableResource;
+import org.openstreetmap.atlas.utilities.arrays.ByteArrayOfArrays;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.collections.MultiIterable;
 import org.openstreetmap.atlas.utilities.collections.StreamIterable;
@@ -73,6 +74,8 @@ public final class PackedAtlasSerializer
             PackedAtlas.FIELD_SERIAL_VERSION_UID, PackedAtlas.FIELD_LOGGER, "$SWITCH_TABLE$",
             PackedAtlas.FIELD_SERIALIZER, PackedAtlas.FIELD_SAVE_SERIALIZATION_FORMAT,
             PackedAtlas.FIELD_LOAD_SERIALIZATION_FORMAT, PackedAtlas.FIELD_PREFIX,
+            PackedAtlas.FIELD_CONTAINS_ENHANCED_RELATION_GEOMETRY,
+            PackedAtlas.FIELD_BUILT_RELATION_GEOMETRIES,
             /* https://stackoverflow.com/a/39037512/1558687 */"$jacocoData");
     private final PackedAtlas atlas;
     private final ZipResource source;
@@ -121,8 +124,38 @@ public final class PackedAtlasSerializer
                         atlas.getName(), exception);
                 continue;
             }
-            // If we make it here, then we found the appropriate format and we can bail out
+            // If we make it here, then we found the appropriate format
             logger.trace("Using load format {} for atlas {}", candidateFormat, atlas.getName());
+
+            /*
+             * Now, if we are PROTOBUF, let's check for the enhanced relation geometry that some
+             * atlases may contain.
+             */
+            if (atlas.getLoadSerializationFormat() == AtlasSerializationFormat.PROTOBUF)
+            {
+                try
+                {
+                    atlas.setContainsEnhancedRelationGeometry(true);
+                    final ByteArrayOfArrays array = atlas.enhancedRelationGeometries();
+                    if (array == null)
+                    {
+                        atlas.setContainsEnhancedRelationGeometry(false);
+                    }
+                }
+                catch (final CoreException exception)
+                {
+                    if ("Unable to read Atlas field relationGeometries"
+                            .equals(exception.getMessage()))
+                    {
+                        atlas.setContainsEnhancedRelationGeometry(false);
+                    }
+                    else
+                    {
+                        throw exception;
+                    }
+                }
+            }
+
             return;
         }
 
@@ -206,8 +239,17 @@ public final class PackedAtlasSerializer
             final Iterable<Resource> fieldResources = fields().filter(field ->
             {
                 final String fieldName = field.getName();
+                /*
+                 * If this atlas does not contain enhanced relation geometries, skip serialization
+                 */
+                if (!this.atlas.containsEnhancedRelationGeometry()
+                        && PackedAtlas.FIELD_RELATION_GEOMETRIES.equals(fieldName))
+                {
+                    return false;
+                }
                 return !PackedAtlas.FIELD_META_DATA.equals(fieldName)
-                        && !EXCLUDED_FIELDS.startsWithContains(fieldName);
+                        && !EXCLUDED_FIELDS.startsWithContains(fieldName)
+                        && !fieldName.contains("Lock");
             }).map(this::fieldTranslator).collect();
             // Put the metaData field first, always.
             final Iterable<Resource> result = new MultiIterable<>(firstResource, fieldResources);
@@ -333,11 +375,7 @@ public final class PackedAtlasSerializer
             throw new CoreException("{} is not ProtoSerializable", fieldClass.getName(), exception);
         }
 
-        final ProtoAdapter adapter = protoHandle.getProtoAdapter();
-        final ProtoSerializable deserializedMember = adapter
-                .deserialize(resource.readBytesAndClose());
-
-        return deserializedMember;
+        return protoHandle.getProtoAdapter().deserialize(resource.readBytesAndClose());
     }
 
     private Object deserializeResource(final Resource resource, final String fieldName)
@@ -375,6 +413,11 @@ public final class PackedAtlasSerializer
         final Object result;
         if (canLoadWithRandomAccess())
         {
+            if (PackedAtlas.FIELD_RELATION_GEOMETRIES.equals(name)
+                    && !this.atlas.containsEnhancedRelationGeometry())
+            {
+                return;
+            }
             final Resource resource = ((ZipFileWritableResource) this.source).entryForName(name);
             result = deserializeResource(resource, name);
         }

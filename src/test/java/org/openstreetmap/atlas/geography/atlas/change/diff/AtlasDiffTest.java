@@ -67,6 +67,16 @@ public class AtlasDiffTest
     }
 
     @Test
+    public void testRelationGeometriesDiff()
+    {
+        final Atlas atlasX = this.rule.differentRelations5();
+        final Atlas atlasY = this.rule.differentRelations6();
+        final int expectedNumberOfChanges = 1;
+
+        assertChangeAtlasConsistency(atlasX, atlasY, expectedNumberOfChanges);
+    }
+
+    @Test
     public void testRelationMemberRemoval()
     {
         final Atlas atlasX = this.rule.removeRelationMember1();
@@ -124,6 +134,8 @@ public class AtlasDiffTest
                         "This Change should never be empty. The unit test may be broken."));
         changeBeforeToAfter.changes().forEach(change -> logger.trace("{}:\n{} ->\n{}", change,
                 change.getBeforeView(), change.getAfterView()));
+
+        System.out.println(changeBeforeToAfter.toJson());
 
         if (expectedNumberOfChanges != IGNORE_EXPECTED_NUMBER_CHANGES)
         {

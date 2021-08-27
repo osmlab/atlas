@@ -539,6 +539,50 @@ public class AtlasDiffTestRule extends CoreTestRule
     )
     private Atlas removeRelationMember2;
 
+    @TestAtlas(
+
+            nodes = {
+
+                    @Node(id = "5", coordinates = @Loc(value = FIVE), tags = { "tag1=value1" }),
+                    @Node(id = "6", coordinates = @Loc(value = SIX), tags = { "tag1=value1" })
+
+            },
+
+            relations = {
+
+                    @Relation(id = "31", tags = { "type=multipolygon" }, members = {
+
+                            @Member(id = "5", role = "b", type = "node"),
+
+                    }, wkt = "MULTIPOLYGON (((-8.3426173 6.9044046, -8.3478098 6.8973366, -8.3415467 6.8936697, -8.3346947 6.8984526, -8.3426173 6.9044046, -8.3426173 6.9044046)), ((-8.3259156 6.8970709, -8.3170295 6.8994623, -8.3154771 6.8895776, -8.3262368 6.8915439, -8.3259156 6.8970709, -8.3259156 6.8970709)))")
+
+            }
+
+    )
+    private Atlas relationGeometry1;
+
+    @TestAtlas(
+
+            nodes = {
+
+                    @Node(id = "5", coordinates = @Loc(value = FIVE), tags = { "tag1=value1" }),
+                    @Node(id = "6", coordinates = @Loc(value = SIX), tags = { "tag1=value1" })
+
+            },
+
+            relations = {
+
+                    @Relation(id = "31", tags = { "type=multipolygon" }, members = {
+
+                            @Member(id = "5", role = "b", type = "node"),
+
+                    }, wkt = "MULTIPOLYGON (((-8.3372107 6.8921817, -8.3389237 6.8837848, -8.328271 6.883466, -8.3286993 6.8914376, -8.3372107 6.8921817, -8.3372107 6.8921817)), ((-8.3426173 6.9044046, -8.3478098 6.8973366, -8.3415467 6.8936697, -8.3346947 6.8984526, -8.3426173 6.9044046, -8.3426173 6.9044046)), ((-8.3259156 6.8970709, -8.3170295 6.8994623, -8.3154771 6.8895776, -8.3262368 6.8915439, -8.3259156 6.8970709, -8.3259156 6.8970709)))")
+
+            }
+
+    )
+    private Atlas relationGeometry2;
+
     public Atlas differentNodeAndEdgeProperties1()
     {
         return this.differentNodeAndEdgeProperties1;
@@ -577,6 +621,16 @@ public class AtlasDiffTestRule extends CoreTestRule
     public Atlas differentRelations4()
     {
         return this.differentRelations4;
+    }
+
+    public Atlas differentRelations5()
+    {
+        return this.relationGeometry1;
+    }
+
+    public Atlas differentRelations6()
+    {
+        return this.relationGeometry2;
     }
 
     public Atlas differentTags1()

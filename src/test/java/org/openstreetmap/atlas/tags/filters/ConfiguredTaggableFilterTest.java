@@ -63,16 +63,9 @@ public class ConfiguredTaggableFilterTest
         final ConfiguredTaggableFilter wayFilter = new ConfiguredTaggableFilter(wayConfiguration);
 
         final Taggable boundary = Taggable.with("boundary", "administrative");
-        final Taggable highwayBoundary = Taggable.with("boundary", "administrative", "highway",
-                "primary");
-        final Taggable railwayBoundary = Taggable.with("boundary", "administrative", "railway",
-                "rail");
-        final Taggable waterwayBoundary = Taggable.with("boundary", "administrative", "waterway",
-                "river");
+        final Taggable hirez = Taggable.with("hires", "yes");
 
-        Assert.assertTrue(wayFilter.test(highwayBoundary));
-        Assert.assertTrue(wayFilter.test(railwayBoundary));
-        Assert.assertTrue(wayFilter.test(waterwayBoundary));
-        Assert.assertFalse(wayFilter.test(boundary));
+        Assert.assertTrue(wayFilter.test(boundary));
+        Assert.assertFalse(wayFilter.test(hirez));
     }
 }

@@ -1,6 +1,0 @@
-Make a multipolygon WKT out of relation 123 and a single Atlas:
-#$ atlas relation2multipolygon --id=123 country_1-2-3.atlas
-Make a multipolygon WKT only (no output Atlas) out of relation 123 and a single Atlas:
-#$ atlas relation2multipolygon --id=123 --wkt country_1-2-3.atlas
-Make a multipolygon WKT out of relation 123 and an Atlas directory:
-#$ atlas relation2multipolygon --id=123 countryAtlasDir/*

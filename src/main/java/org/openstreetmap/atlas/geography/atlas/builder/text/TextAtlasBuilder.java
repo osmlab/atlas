@@ -1,9 +1,13 @@
 package org.openstreetmap.atlas.geography.atlas.builder.text;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.locationtech.jts.geom.MultiPolygon;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -166,7 +170,7 @@ public class TextAtlasBuilder
         final AtlasMetaData metaData = new AtlasMetaData(size, true, "unknown", "TextAtlas",
                 "unknown", "unknown", Maps.hashMap());
         final PackedAtlasBuilder builder = new PackedAtlasBuilder().withSizeEstimates(size)
-                .withMetaData(metaData).withName(resource.getName());
+                .withMetaData(metaData).withName(resource.getName()).withEnhancedRelationGeometry();
         for (final String line : resource.lines())
         {
             if (line.startsWith("#"))
@@ -429,15 +433,33 @@ public class TextAtlasBuilder
 
     private void parseRelation(final PackedAtlasBuilder builder, final String line)
     {
+        final WKTReader reader = new WKTReader();
         final StringList split = StringList.split(line, SEPARATOR);
-        final long identifier = Long.parseLong(split.get(0));
-        final RelationBean structure = parseRelationBean(split.get(1));
+
+        final Iterator<String> itr = split.iterator();
+        final long identifier = Long.parseLong(itr.next());
+        final RelationBean structure = parseRelationBean(itr.next());
         final Map<String, String> tags = new HashMap<>();
-        if (split.size() > 2)
+        if (itr.hasNext())
         {
-            tags.putAll(parseTags(split.get(2)));
+            tags.putAll(parseTags(itr.next()));
         }
-        builder.addRelation(identifier, identifier, structure, tags);
+        try
+        {
+            if (itr.hasNext())
+            {
+                builder.addRelation(identifier, identifier, structure, tags,
+                        (MultiPolygon) reader.read(itr.next()));
+            }
+            else
+            {
+                builder.addRelation(identifier, identifier, structure, tags);
+            }
+        }
+        catch (final ParseException e)
+        {
+            throw new CoreException("Bad relation data for relation {}", identifier);
+        }
     }
 
     private RelationBean parseRelationBean(final String value)
