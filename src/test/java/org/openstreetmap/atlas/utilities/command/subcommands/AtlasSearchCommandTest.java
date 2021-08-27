@@ -41,7 +41,7 @@ public class AtlasSearchCommandTest
             command.setNewErrStream(new PrintStream(errContent));
 
             command.runSubcommand("/Users/foo/test.atlas", "--verbose",
-                    "--bounding-polygon=POLYGON((0 0, 0 3, 3 3, 3 0, 0 0))");
+                    "--bounding-polygon=POLYGON((0 0, 0 2.8, 2.8 2.8, 2.8 0, 0 0))");
 
             Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas:\n"
                     + "CompletePoint [\n" + "identifier: 1000000, \n" + "geometry: POINT (1 1), \n"

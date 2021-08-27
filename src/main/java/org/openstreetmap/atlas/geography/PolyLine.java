@@ -13,6 +13,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.locationtech.jts.geom.prep.PreparedGeometry;
+import org.locationtech.jts.geom.prep.PreparedGeometryFactory;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Snapper.SnappedLocation;
 import org.openstreetmap.atlas.geography.clipping.Clip;
@@ -21,7 +23,10 @@ import org.openstreetmap.atlas.geography.converters.WkbLocationConverter;
 import org.openstreetmap.atlas.geography.converters.WkbPolyLineConverter;
 import org.openstreetmap.atlas.geography.converters.WktLocationConverter;
 import org.openstreetmap.atlas.geography.converters.WktPolyLineConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonGeometry;
@@ -65,12 +70,16 @@ public class PolyLine implements Collection<Location>, Located, Serializable, Ge
 
     protected static final int SIMPLE_STRING_LENGTH = 200;
 
+    private static final JtsMultiPolygonToMultiPolygonConverter JTS_MULTIPOLYGON_CONVERTER = new JtsMultiPolygonToMultiPolygonConverter();
+    private static final JtsPolygonConverter JTS_POLYGON_CONVERTER = new JtsPolygonConverter();
+    private static final JtsPointConverter JTS_POINT_CONVERTER = new JtsPointConverter();
     private static final JtsPolyLineConverter JTS_POLYLINE_CONVERTER = new JtsPolyLineConverter();
 
     private static final long serialVersionUID = -3291779878869865427L;
     private static final Logger logger = LoggerFactory.getLogger(PolyLine.class);
     private static final String IMMUTABLE_POLYLINE = "A polyline is immutable";
     private final List<Location> points;
+    private transient PreparedGeometry prepared;
 
     public static GeoJsonObject asGeoJson(final Iterable<? extends Iterable<Location>> geometries)
     {
@@ -628,20 +637,16 @@ public class PolyLine implements Collection<Location>, Located, Serializable, Ge
     @Override
     public boolean intersects(final PolyLine other)
     {
-        final List<Segment> segments = this.segments();
-        final List<Segment> otherSegments = other.segments();
-
-        for (final Segment segment : segments)
+        if (this.prepared == null)
         {
-            for (final Segment otherSegment : otherSegments)
-            {
-                if (segment.intersects(otherSegment))
-                {
-                    return true;
-                }
-            }
+            this.prepared = PreparedGeometryFactory.prepare(JTS_POLYLINE_CONVERTER.convert(this));
         }
-        return false;
+        return this.prepared.intersects(JTS_POLYLINE_CONVERTER.convert(other));
+    }
+
+    public boolean isClosed()
+    {
+        return JTS_POLYLINE_CONVERTER.convert(this).isClosed();
     }
 
     public boolean isClosed()
@@ -678,7 +683,11 @@ public class PolyLine implements Collection<Location>, Located, Serializable, Ge
 
     public boolean isSimple()
     {
-        return JTS_POLYLINE_CONVERTER.convert(this).isSimple();
+        if (this.prepared == null)
+        {
+            this.prepared = PreparedGeometryFactory.prepare(JTS_POLYLINE_CONVERTER.convert(this));
+        }
+        return this.prepared.getGeometry().isSimple();
     }
 
     @Override

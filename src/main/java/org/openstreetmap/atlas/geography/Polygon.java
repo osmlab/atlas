@@ -1,25 +1,27 @@
 package org.openstreetmap.atlas.geography;
 
-import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.IntStream;
 
 import org.locationtech.jts.algorithm.match.HausdorffSimilarityMeasure;
 import org.locationtech.jts.geom.GeometryCollection;
 import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.prep.PreparedGeometry;
+import org.locationtech.jts.geom.prep.PreparedGeometryFactory;
 import org.locationtech.jts.triangulate.ConformingDelaunayTriangulationBuilder;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.converters.WkbPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.WktPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.GeometryStreamer;
 import org.openstreetmap.atlas.geography.converters.jts.JtsLocationConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsPrecisionManager;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
@@ -60,16 +62,17 @@ public class Polygon extends PolyLine implements GeometricSurface
             Location.forString("37.390234491673446,-122.03111171722412"));
     public static final Polygon CENTER = new Polygon(Location.CENTER);
 
+    private static final JtsMultiPolygonToMultiPolygonConverter JTS_MULTIPOLYGON_CONVERTER = new JtsMultiPolygonToMultiPolygonConverter();
     private static final JtsPolygonConverter JTS_POLYGON_CONVERTER = new JtsPolygonConverter();
+    private static final JtsPointConverter JTS_POINT_CONVERTER = new JtsPointConverter();
+    private static final JtsPolyLineConverter JTS_POLYLINE_CONVERTER = new JtsPolyLineConverter();
 
     private static final Logger logger = LoggerFactory.getLogger(Polygon.class);
     private static final long serialVersionUID = 2877026648358594354L;
 
     // Calculate sides starting from triangles
     private static final int MINIMUM_N_FOR_SIDE_CALCULATION = 3;
-    private transient Area awtArea;
-    private java.awt.Polygon awtPolygon;
-    private transient Boolean awtOverflows;
+    private transient PreparedGeometry prepared;
 
     /**
      * Generate a random polygon within bounds.
@@ -200,22 +203,21 @@ public class Polygon extends PolyLine implements GeometricSurface
     @Override
     public boolean fullyGeometricallyEncloses(final Location location)
     {
-        // if this value overflows, use JTS to correctly calculate covers
-        if (awtOverflows())
+        if (this.prepared == null)
         {
-            return fullyGeometricallyEnclosesJTS(location);
+            this.prepared = PreparedGeometryFactory.prepare(JTS_POLYGON_CONVERTER.convert(this));
         }
-        // for most cases use the faster awt covers
-        else
-        {
-            return awtPolygon().contains(location.asAwtPoint());
-        }
+        return this.prepared.covers(JTS_POINT_CONVERTER.convert(location));
     }
 
     @Override
     public boolean fullyGeometricallyEncloses(final MultiPolygon multiPolygon)
     {
-        return multiPolygon.outers().stream().allMatch(this::fullyGeometricallyEncloses);
+        if (this.prepared == null)
+        {
+            this.prepared = PreparedGeometryFactory.prepare(JTS_POLYGON_CONVERTER.convert(this));
+        }
+        return this.prepared.covers(JTS_MULTIPOLYGON_CONVERTER.backwardConvert(multiPolygon));
     }
 
     /**
@@ -231,15 +233,15 @@ public class Polygon extends PolyLine implements GeometricSurface
     @Override
     public boolean fullyGeometricallyEncloses(final PolyLine polyLine)
     {
-        final List<Segment> segments = polyLine.segments();
-        for (final Segment segment : segments)
+        if (this.prepared == null)
         {
-            if (!fullyGeometricallyEncloses(segment))
-            {
-                return false;
-            }
+            this.prepared = PreparedGeometryFactory.prepare(JTS_POLYGON_CONVERTER.convert(this));
         }
-        return true;
+        if (polyLine instanceof Polygon)
+        {
+            return this.prepared.covers(JTS_POLYGON_CONVERTER.convert((Polygon) polyLine));
+        }
+        return this.prepared.covers(JTS_POLYLINE_CONVERTER.convert(polyLine));
     }
 
     /**
@@ -254,68 +256,11 @@ public class Polygon extends PolyLine implements GeometricSurface
      */
     public boolean fullyGeometricallyEncloses(final Rectangle rectangle)
     {
-        final Rectangle bounds = this.bounds();
-        if (!bounds.fullyGeometricallyEncloses(rectangle))
+        if (this.prepared == null)
         {
-            // The item is not within the bounds of this Polygon
-            return false;
+            this.prepared = PreparedGeometryFactory.prepare(JTS_POLYGON_CONVERTER.convert(this));
         }
-        // The item is within the bounds of this Polygon. if this value overflows
-        // use JTS to correctly calculate covers
-        if (awtOverflows())
-        {
-            final org.locationtech.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
-            return polygon.covers(JTS_POLYGON_CONVERTER.convert(rectangle));
-        }
-
-        // If AWT contains is false, then we want to recheck with JTS as it's less performant
-        // but more accurate-- AWT contains returns false if the calculation is too expensive
-        if (!awtArea().contains(rectangle.asAwtRectangle()))
-        {
-            final org.locationtech.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
-            return polygon.covers(JTS_POLYGON_CONVERTER.convert(rectangle));
-        }
-        return true;
-
-    }
-
-    /**
-     * Tests if this {@link Polygon} wraps (geometrically contains) a {@link Segment}
-     *
-     * @param segment
-     *            The {@link Segment} to test
-     * @return True if this {@link Polygon} wraps (geometrically contains) the provided
-     *         {@link Segment}
-     */
-    public boolean fullyGeometricallyEncloses(final Segment segment)
-    {
-        final Set<Location> intersections = this.intersections(segment);
-        for (final Location intersection : intersections)
-        {
-            if (!intersection.equals(segment.start()) && !intersection.equals(segment.end()))
-            {
-                // This is a non-end intersection
-                return false;
-            }
-        }
-        return this.fullyGeometricallyEncloses(segment.middle());
-    }
-
-    /**
-     * Tests if this {@link Polygon} fully encloses (geometrically contains) a {@link Location}
-     * according to the JTS definition, which includes points touching all boundaries of the
-     * polygon.
-     *
-     * @param location
-     *            The location to test
-     * @return True if the {@link Polygon} fully encloses (geometrically contains) the
-     *         {@link Location}
-     */
-    public boolean fullyGeometricallyEnclosesJTS(final Location location)
-    {
-        final org.locationtech.jts.geom.Polygon polygon = JTS_POLYGON_CONVERTER.convert(this);
-        final Point point = new JtsPointConverter().convert(location);
-        return polygon.covers(point);
+        return this.prepared.covers(JTS_POLYGON_CONVERTER.convert(rectangle));
     }
 
     @Override
@@ -485,28 +430,11 @@ public class Polygon extends PolyLine implements GeometricSurface
     @Override
     public boolean overlaps(final MultiPolygon multiPolygon)
     {
-        for (final Polygon outer : multiPolygon.outers())
+        if (this.prepared == null)
         {
-            final List<Polygon> inners = multiPolygon.innersOf(outer);
-            if (this.overlaps(outer))
-            {
-                boolean result = true;
-                for (final Polygon inner : inners)
-                {
-                    if (inner.fullyGeometricallyEncloses(this))
-                    {
-                        // The feature is fully inside an inner polygon, hence not overlapped
-                        result = false;
-                        break;
-                    }
-                }
-                if (result)
-                {
-                    return true;
-                }
-            }
+            this.prepared = PreparedGeometryFactory.prepare(JTS_POLYGON_CONVERTER.convert(this));
         }
-        return false;
+        return this.prepared.intersects(JTS_MULTIPOLYGON_CONVERTER.backwardConvert(multiPolygon));
     }
 
     /**
@@ -521,7 +449,15 @@ public class Polygon extends PolyLine implements GeometricSurface
     @Override
     public boolean overlaps(final PolyLine polyline)
     {
-        return overlapsInternal(polyline, true);
+        if (this.prepared == null)
+        {
+            this.prepared = PreparedGeometryFactory.prepare(JTS_POLYGON_CONVERTER.convert(this));
+        }
+        if (polyline instanceof Polygon)
+        {
+            return this.prepared.intersects(JTS_POLYGON_CONVERTER.convert((Polygon) polyline));
+        }
+        return this.prepared.intersects(JTS_POLYLINE_CONVERTER.convert(polyline));
     }
 
     public int previousSegmentIndex(final int currentVertexIndex)
@@ -700,44 +636,6 @@ public class Polygon extends PolyLine implements GeometricSurface
         throw new CoreException("{} is not a vertex of {}", vertex, this);
     }
 
-    protected Area awtArea()
-    {
-        if (this.awtArea == null)
-        {
-            this.awtArea = new Area(awtPolygon());
-        }
-        return this.awtArea;
-    }
-
-    private boolean awtOverflows()
-    {
-        if (this.awtOverflows == null)
-        {
-            final Rectangle bounds = bounds();
-            this.awtOverflows = bounds.width().asDm7() <= 0 || bounds.height().asDm7() <= 0;
-        }
-        return this.awtOverflows;
-    }
-
-    private java.awt.Polygon awtPolygon()
-    {
-        if (this.awtPolygon == null)
-        {
-            final int size = size();
-            final int[] xArray = new int[size];
-            final int[] yArray = new int[size];
-            int index = 0;
-            for (final Location location : this)
-            {
-                xArray[index] = (int) location.getLongitude().asDm7();
-                yArray[index] = (int) location.getLatitude().asDm7();
-                index++;
-            }
-            this.awtPolygon = new java.awt.Polygon(xArray, yArray, size);
-        }
-        return this.awtPolygon;
-    }
-
     private Iterable<Location> loopOnItself()
     {
         return new MultiIterable<>(this, () -> new Iterator<Location>()
@@ -764,23 +662,6 @@ public class Polygon extends PolyLine implements GeometricSurface
                 }
             }
         });
-    }
-
-    private boolean overlapsInternal(final PolyLine polyline, final boolean runReverseCheck)
-    {
-        for (final Location location : polyline)
-        {
-            if (fullyGeometricallyEncloses(location))
-            {
-                return true;
-            }
-        }
-        if (runReverseCheck && polyline instanceof Polygon
-                && ((Polygon) polyline).overlapsInternal(this, false))
-        {
-            return true;
-        }
-        return this.intersects(polyline);
     }
 
     private void verifyVertexIndex(final int index)
