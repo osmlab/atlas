@@ -463,8 +463,8 @@ public class AtlasSearchCommandTest
                     + "CompleteRelation [\n" + "identifier: 12000000, \n" + "tags: {route=bike}, \n"
                     + "members: RelationBean [[[EDGE, 11000000, role0], [EDGE, 11000001, role1], [AREA, 7000000, role2]]], \n"
                     + "parentRelations: [], \n"
-                    + "bounds: POLYGON ((20 20, 20 34, 34 34, 34 20, 20 20)), \n" + "]\n" + "\n",
-                    outContent.toString());
+                    + "bounds: POLYGON ((20 20, 20 34, 34 34, 34 20, 20 20)), \n" + "\n" + "]\n"
+                    + "\n", outContent.toString());
             Assert.assertEquals(
                     "find: loading /Users/foo/test.atlas\n"
                             + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
@@ -525,8 +525,8 @@ public class AtlasSearchCommandTest
                     + "CompleteRelation [\n" + "identifier: 12000000, \n" + "tags: {route=bike}, \n"
                     + "members: RelationBean [[[EDGE, 11000000, role0], [EDGE, 11000001, role1], [AREA, 7000000, role2]]], \n"
                     + "parentRelations: [], \n"
-                    + "bounds: POLYGON ((20 20, 20 34, 34 34, 34 20, 20 20)), \n" + "]\n" + "\n",
-                    outContent.toString());
+                    + "bounds: POLYGON ((20 20, 20 34, 34 34, 34 20, 20 20)), \n" + "\n" + "]\n"
+                    + "\n", outContent.toString());
             Assert.assertEquals(
                     "find: loading /Users/foo/test.atlas\n"
                             + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
@@ -542,14 +542,12 @@ public class AtlasSearchCommandTest
             command.runSubcommand("/Users/foo/test.atlas", "--verbose",
                     "--relation-members=POINT,*,\\*");
 
-            Assert.assertEquals(
-                    "Found entity matching criteria in /Users/foo/test.atlas:\n"
-                            + "CompleteRelation [\n" + "identifier: 1300000, \n"
-                            + "tags: {some=relation}, \n"
-                            + "members: RelationBean [[[POINT, 4000000, *]]], \n"
-                            + "parentRelations: [], \n"
-                            + "bounds: POLYGON ((4 5, 4 5, 4 5, 4 5, 4 5)), \n" + "]\n" + "\n",
-                    outContent2.toString());
+            Assert.assertEquals("Found entity matching criteria in /Users/foo/test.atlas:\n"
+                    + "CompleteRelation [\n" + "identifier: 1300000, \n"
+                    + "tags: {some=relation}, \n"
+                    + "members: RelationBean [[[POINT, 4000000, *]]], \n"
+                    + "parentRelations: [], \n" + "bounds: POLYGON ((4 5, 4 5, 4 5, 4 5, 4 5)), \n"
+                    + "\n" + "]\n" + "\n", outContent2.toString());
             Assert.assertEquals(
                     "find: loading /Users/foo/test.atlas\n"
                             + "find: processing atlas /Users/foo/test.atlas (1/1)\n",
@@ -571,8 +569,8 @@ public class AtlasSearchCommandTest
                     + "tags: {some2=relation2}, \n"
                     + "members: RelationBean [[[POINT, 5000000, 💯]]], \n"
                     + "parentRelations: [], \n"
-                    + "bounds: POLYGON ((30 30, 30 30, 30 30, 30 30, 30 30)), \n" + "]\n" + "\n",
-                    outContent3.toString());
+                    + "bounds: POLYGON ((30 30, 30 30, 30 30, 30 30, 30 30)), \n" + "\n" + "]\n"
+                    + "\n", outContent3.toString());
             Assert.assertEquals(
                     "find: loading /Users/foo/test.atlas\n"
                             + "find: processing atlas /Users/foo/test.atlas (1/1)\n",

@@ -213,7 +213,7 @@ public class OsmPbfIngestTest
             atlas = new RawAtlasSlicer(loadingOption, atlas).slice();
             atlas = new AtlasSectionProcessor(atlas, AtlasLoadingOption.createOptionWithNoSlicing())
                     .run();
-            Assert.assertEquals(1, atlas.numberOfLines());
+            Assert.assertEquals(2, atlas.numberOfLines());
             Assert.assertEquals(1, atlas.numberOfRelations());
             final Relation relation = atlas.relations().iterator().next();
             Assert.assertEquals(1, relation.members().size());

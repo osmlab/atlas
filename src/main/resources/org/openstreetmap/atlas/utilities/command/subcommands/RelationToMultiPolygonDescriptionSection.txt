@@ -1,6 +1,0 @@
-Given an input directory of Atlas files and a relation ID, find all relation members for the relation
-inside the Atlas files and attempt to create a multipolygon. Assumes the relation should be a 
-multipolygon (e.g. is tagged type->multipolygon). Should the data not construct an OGC or OSM valid
-multipolygon, an error will be logged and the command will halt; should the data be OSM valid but not
-OGC valid, then only an error will be logged. Small relation WKTs will be printed to the console, and 
-all valid relation multipolygons will be saved as WKT and Atlas files to the local directory.

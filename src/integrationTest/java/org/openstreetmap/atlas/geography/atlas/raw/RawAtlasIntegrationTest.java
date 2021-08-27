@@ -191,10 +191,10 @@ public class RawAtlasIntegrationTest
         Assert.assertEquals(0, rawAtlas.numberOfNodes());
         Assert.assertEquals(0, rawAtlas.numberOfEdges());
         Assert.assertEquals(5119, rawAtlas.numberOfAreas());
-        Assert.assertEquals(74342, rawAtlas.numberOfPoints());
+        Assert.assertEquals(79634, rawAtlas.numberOfPoints());
 
-        Assert.assertEquals(2699, rawAtlas.numberOfLines());
-        Assert.assertEquals(17, rawAtlas.numberOfRelations());
+        Assert.assertEquals(2729, rawAtlas.numberOfLines());
+        Assert.assertEquals(24, rawAtlas.numberOfRelations());
 
         final Atlas slicedRawAtlas = new RawAtlasSlicer(loadingOptionAll, rawAtlas).slice();
 
@@ -202,8 +202,8 @@ public class RawAtlasIntegrationTest
         Assert.assertEquals(0, slicedRawAtlas.numberOfEdges());
         Assert.assertEquals(5132, slicedRawAtlas.numberOfAreas());
         Assert.assertEquals(32524, slicedRawAtlas.numberOfPoints());
-        Assert.assertEquals(2956, slicedRawAtlas.numberOfLines());
-        Assert.assertEquals(17, slicedRawAtlas.numberOfRelations());
+        Assert.assertEquals(3003, slicedRawAtlas.numberOfLines());
+        Assert.assertEquals(24, slicedRawAtlas.numberOfRelations());
 
         // Assert all raw Atlas entities have a country code
         assertAllEntitiesHaveCountryCode(slicedRawAtlas);
@@ -214,8 +214,8 @@ public class RawAtlasIntegrationTest
         Assert.assertEquals(0, ivoryCoast.numberOfEdges());
         Assert.assertEquals(2400, ivoryCoast.numberOfAreas());
         Assert.assertEquals(15075, ivoryCoast.numberOfPoints());
-        Assert.assertEquals(1236, ivoryCoast.numberOfLines());
-        Assert.assertEquals(12, ivoryCoast.numberOfRelations());
+        Assert.assertEquals(1265, ivoryCoast.numberOfLines());
+        Assert.assertEquals(19, ivoryCoast.numberOfRelations());
 
         // Assert all raw Atlas entities have a country code
         assertAllEntitiesHaveCountryCode(ivoryCoast);
@@ -227,8 +227,8 @@ public class RawAtlasIntegrationTest
         Assert.assertEquals(9764, finalAtlas.numberOfEdges());
         Assert.assertEquals(5132, finalAtlas.numberOfAreas());
         Assert.assertEquals(184, finalAtlas.numberOfPoints());
-        Assert.assertEquals(329, finalAtlas.numberOfLines());
-        Assert.assertEquals(17, finalAtlas.numberOfRelations());
+        Assert.assertEquals(376, finalAtlas.numberOfLines());
+        Assert.assertEquals(24, finalAtlas.numberOfRelations());
     }
 
     @Ignore

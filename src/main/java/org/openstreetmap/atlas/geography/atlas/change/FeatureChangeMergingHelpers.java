@@ -45,6 +45,7 @@ public final class FeatureChangeMergingHelpers
 {
     static final String IN_EDGE_IDENTIFIERS_FIELD = "inEdgeIdentifiers";
     static final String OUT_EDGE_IDENTIFIERS_FIELD = "outEdgeIdentifiers";
+    static final String GEOMETRIC_RELATIONS_FIELD = "geometricRelations";
     private static final String AFTER_ENTITY_RIGHT_WAS_NULL = "afterEntityRight was null, this should never happen!";
     private static final String AFTER_ENTITY_LEFT_WAS_NULL = "afterEntityLeft was null, this should never happen!";
     private static final Logger logger = LoggerFactory.getLogger(FeatureChangeMergingHelpers.class);
@@ -289,9 +290,25 @@ public final class FeatureChangeMergingHelpers
                 .withBeforeViewMerger(MemberMergeStrategies.autofailBinaryPolygonMerger).build()
                 .mergeMember();
 
+        final MergedMemberBean<Set<Long>> mergedGeometricParentRelationsBean = new MemberMerger.Builder<Set<Long>>()
+                .withMemberName(GEOMETRIC_RELATIONS_FIELD).withBeforeEntityLeft(beforeEntityLeft)
+                .withAfterEntityLeft(afterEntityLeft).withBeforeEntityRight(beforeEntityRight)
+                .withAfterEntityRight(afterEntityRight)
+                .withMemberExtractor(
+                        atlasEntity -> ((CompleteArea) atlasEntity).geometricRelationIdentifiers())
+                .withAfterViewNoBeforeMerger(MemberMergeStrategies.simpleLongSetMerger)
+                .withAfterViewConsistentBeforeViewMerger(
+                        MemberMergeStrategies.diffBasedLongSetMerger)
+                .withAfterViewConflictingBeforeViewMerger(
+                        MemberMergeStrategies.autofailQuaternaryLongSetMerger)
+                .withBeforeViewMerger(MemberMergeStrategies.autofailBinaryLongSetMerger).build()
+                .mergeMember();
+
         final CompleteArea mergedAfterArea = new CompleteArea(left.getIdentifier(),
                 mergedPolygonBean.getMergedAfterMember(), mergedTagsBean.getMergedAfterMember(),
                 mergedParentRelationsBean.getMergedAfterMember());
+        mergedAfterArea.withGeometricRelationIdentifiers(
+                mergedGeometricParentRelationsBean.getMergedAfterMember());
         mergedAfterArea.withBoundsExtendedBy(afterEntityLeft.bounds());
         mergedAfterArea.withBoundsExtendedBy(afterEntityRight.bounds());
 
@@ -308,7 +325,9 @@ public final class FeatureChangeMergingHelpers
             mergedBeforeArea = CompleteArea.shallowFrom((Area) beforeEntityLeft)
                     .withTags(mergedTagsBean.getMergedBeforeMember())
                     .withPolygon(mergedPolygonBean.getMergedBeforeMember())
-                    .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
+                    .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember())
+                    .withGeometricRelationIdentifiers(
+                            mergedGeometricParentRelationsBean.getMergedBeforeMember());
         }
         else
         {
@@ -362,6 +381,20 @@ public final class FeatureChangeMergingHelpers
                 .withBeforeViewMerger(MemberMergeStrategies.autofailBinaryLongMerger).build()
                 .mergeMember();
 
+        final MergedMemberBean<Set<Long>> mergedGeometricParentRelationsBean = new MemberMerger.Builder<Set<Long>>()
+                .withMemberName(GEOMETRIC_RELATIONS_FIELD).withBeforeEntityLeft(beforeEntityLeft)
+                .withAfterEntityLeft(afterEntityLeft).withBeforeEntityRight(beforeEntityRight)
+                .withAfterEntityRight(afterEntityRight)
+                .withMemberExtractor(
+                        atlasEntity -> ((CompleteEdge) atlasEntity).geometricRelationIdentifiers())
+                .withAfterViewNoBeforeMerger(MemberMergeStrategies.simpleLongSetMerger)
+                .withAfterViewConsistentBeforeViewMerger(
+                        MemberMergeStrategies.diffBasedLongSetMerger)
+                .withAfterViewConflictingBeforeViewMerger(
+                        MemberMergeStrategies.autofailQuaternaryLongSetMerger)
+                .withBeforeViewMerger(MemberMergeStrategies.autofailBinaryLongSetMerger).build()
+                .mergeMember();
+
         final CompleteEdge mergedAfterEdge = new CompleteEdge(left.getIdentifier(),
                 mergedPolyLineBean.getMergedAfterMember(), mergedTagsBean.getMergedAfterMember(),
                 mergedStartNodeIdentifierBean.getMergedAfterMember(),
@@ -369,6 +402,8 @@ public final class FeatureChangeMergingHelpers
                 mergedParentRelationsBean.getMergedAfterMember());
         mergedAfterEdge.withBoundsExtendedBy(afterEntityLeft.bounds());
         mergedAfterEdge.withBoundsExtendedBy(afterEntityRight.bounds());
+        mergedAfterEdge.withGeometricRelationIdentifiers(
+                mergedGeometricParentRelationsBean.getMergedAfterMember());
 
         final CompleteEdge mergedBeforeEdge;
         /*
@@ -385,7 +420,9 @@ public final class FeatureChangeMergingHelpers
                     .withEndNodeIdentifier(mergedEndNodeIdentifierBean.getMergedBeforeMember())
                     .withTags(mergedTagsBean.getMergedBeforeMember())
                     .withPolyLine(mergedPolyLineBean.getMergedBeforeMember())
-                    .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
+                    .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember())
+                    .withGeometricRelationIdentifiers(
+                            mergedGeometricParentRelationsBean.getMergedBeforeMember());
         }
         else
         {
@@ -453,6 +490,7 @@ public final class FeatureChangeMergingHelpers
             final MergedMemberBean<Set<Long>> mergedParentRelationsBean)
     {
         final AtlasEntity beforeEntityLeft = left.getBeforeView();
+        final AtlasEntity beforeEntityRight = right.getBeforeView();
         final AtlasEntity afterEntityLeft = left.getAfterView();
         final AtlasEntity afterEntityRight = right.getAfterView();
 
@@ -465,11 +503,27 @@ public final class FeatureChangeMergingHelpers
             throw new CoreException(AFTER_ENTITY_RIGHT_WAS_NULL);
         }
 
+        final MergedMemberBean<Set<Long>> mergedGeometricParentRelationsBean = new MemberMerger.Builder<Set<Long>>()
+                .withMemberName(GEOMETRIC_RELATIONS_FIELD).withBeforeEntityLeft(beforeEntityLeft)
+                .withAfterEntityLeft(afterEntityLeft).withBeforeEntityRight(beforeEntityRight)
+                .withAfterEntityRight(afterEntityRight)
+                .withMemberExtractor(
+                        atlasEntity -> ((CompleteLine) atlasEntity).geometricRelationIdentifiers())
+                .withAfterViewNoBeforeMerger(MemberMergeStrategies.simpleLongSetMerger)
+                .withAfterViewConsistentBeforeViewMerger(
+                        MemberMergeStrategies.diffBasedLongSetMerger)
+                .withAfterViewConflictingBeforeViewMerger(
+                        MemberMergeStrategies.autofailQuaternaryLongSetMerger)
+                .withBeforeViewMerger(MemberMergeStrategies.autofailBinaryLongSetMerger).build()
+                .mergeMember();
+
         final CompleteLine mergedAfterLine = new CompleteLine(left.getIdentifier(),
                 mergedPolyLineBean.getMergedAfterMember(), mergedTagsBean.getMergedAfterMember(),
                 mergedParentRelationsBean.getMergedAfterMember());
         mergedAfterLine.withBoundsExtendedBy(afterEntityLeft.bounds());
         mergedAfterLine.withBoundsExtendedBy(afterEntityRight.bounds());
+        mergedAfterLine.withGeometricRelationIdentifiers(
+                mergedGeometricParentRelationsBean.getMergedAfterMember());
 
         final CompleteLine mergedBeforeLine;
         /*
@@ -484,7 +538,9 @@ public final class FeatureChangeMergingHelpers
             mergedBeforeLine = CompleteLine.shallowFrom((Line) beforeEntityLeft)
                     .withTags(mergedTagsBean.getMergedBeforeMember())
                     .withPolyLine(mergedPolyLineBean.getMergedBeforeMember())
-                    .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember());
+                    .withRelationIdentifiers(mergedParentRelationsBean.getMergedBeforeMember())
+                    .withGeometricRelationIdentifiers(
+                            mergedGeometricParentRelationsBean.getMergedBeforeMember());
         }
         else
         {
@@ -781,6 +837,16 @@ public final class FeatureChangeMergingHelpers
                 mergedParentRelationsBean.getMergedAfterMember());
         mergedAfterRelation.withBoundsExtendedBy(afterEntityLeft.bounds());
         mergedAfterRelation.withBoundsExtendedBy(afterEntityRight.bounds());
+
+        mergedAfterRelation.getRemovedGeometry()
+                .addAll(((CompleteRelation) afterEntityLeft).getRemovedGeometry());
+        mergedAfterRelation.getRemovedGeometry()
+                .addAll(((CompleteRelation) afterEntityRight).getRemovedGeometry());
+
+        mergedAfterRelation.getAddedGeometry()
+                .addAll(((CompleteRelation) afterEntityLeft).getAddedGeometry());
+        mergedAfterRelation.getAddedGeometry()
+                .addAll(((CompleteRelation) afterEntityRight).getAddedGeometry());
 
         final CompleteRelation mergedBeforeRelation;
         /*

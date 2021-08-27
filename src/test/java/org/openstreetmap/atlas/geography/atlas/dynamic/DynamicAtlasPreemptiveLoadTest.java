@@ -83,7 +83,7 @@ public class DynamicAtlasPreemptiveLoadTest
                             final AtlasEntityKey key = AtlasEntityKey.from(atlasEntity.getType(),
                                     atlasEntity.getIdentifier());
                             if (this.identifiersChecked.containsKey(key)
-                                    && this.identifiersChecked.get(key) > 4)
+                                    && this.identifiersChecked.get(key) > 9)
                             {
                                 throw new CoreException("Checked {} {} times!", key,
                                         this.identifiersChecked.get(key));

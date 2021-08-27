@@ -12,6 +12,8 @@ import java.util.Optional;
 import java.util.TreeSet;
 
 import org.apache.commons.lang3.StringUtils;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Latitude;
 import org.openstreetmap.atlas.geography.Location;
@@ -299,7 +301,7 @@ public class TestAtlasHandler implements FieldHandler
             final CoreTestRule rule, final CreationContext context)
     {
 
-        final PackedAtlasBuilder builder = new PackedAtlasBuilder();
+        final PackedAtlasBuilder builder = new PackedAtlasBuilder().withEnhancedRelationGeometry();
         final AtlasSize size = convertSizeEstimates(testAtlas.size());
         final Optional<String> iso = testAtlas.iso().equals(TestAtlas.UNKNOWN_ISO_COUNTRY)
                 ? Optional.empty()
@@ -437,6 +439,7 @@ public class TestAtlasHandler implements FieldHandler
             final Relation... relations)
     {
         final FeatureIDGenerator relationIDGenerator = new FeatureIDGenerator();
+        final WKTReader wktReader = new WKTReader();
         for (final Relation relation : relations)
         {
             final RelationBean bean = new RelationBean();
@@ -449,7 +452,16 @@ public class TestAtlasHandler implements FieldHandler
             final long osmIdentifier = relation.osmId().equals(TestAtlas.DEFAULT_OSM_ID)
                     ? identifier
                     : relationIDGenerator.nextId(relation.osmId());
-            builder.addRelation(identifier, osmIdentifier, bean, parseTags(iso, relation.tags()));
+            try
+            {
+                builder.addRelation(identifier, osmIdentifier, bean,
+                        parseTags(iso, relation.tags()),
+                        (org.locationtech.jts.geom.MultiPolygon) wktReader.read(relation.wkt()));
+            }
+            catch (final ParseException e)
+            {
+                throw new CoreException("Couldn't parse geometry for relation {}", relation);
+            }
         }
     }
 
