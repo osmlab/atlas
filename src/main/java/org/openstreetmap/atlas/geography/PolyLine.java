@@ -649,11 +649,6 @@ public class PolyLine implements Collection<Location>, Located, Serializable, Ge
         return JTS_POLYLINE_CONVERTER.convert(this).isClosed();
     }
 
-    public boolean isClosed()
-    {
-        return JTS_POLYLINE_CONVERTER.convert(this).isClosed();
-    }
-
     @Override
     public final boolean isEmpty()
     {
