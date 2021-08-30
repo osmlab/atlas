@@ -172,7 +172,7 @@ public class PolygonTest
         Assert.assertTrue(polygon.fullyGeometricallyEncloses(onBoundary1));
         Assert.assertTrue(polygon.fullyGeometricallyEncloses(onBoundary2));
         // see awt definition of contains
-        Assert.assertFalse(polygon.fullyGeometricallyEncloses(onBoundary3));
+        Assert.assertTrue(polygon.fullyGeometricallyEncloses(onBoundary3));
         Assert.assertFalse(polygon.fullyGeometricallyEncloses(outside1));
         Assert.assertFalse(polygon.fullyGeometricallyEncloses(outside2));
     }
@@ -191,8 +191,7 @@ public class PolygonTest
 
         Assert.assertTrue(concave.fullyGeometricallyEncloses(inside1));
         Assert.assertTrue(concave.fullyGeometricallyEncloses(onBoundary1));
-        // see awt definition of contains
-        Assert.assertFalse(concave.fullyGeometricallyEncloses(onBoundary2));
+        Assert.assertTrue(concave.fullyGeometricallyEncloses(onBoundary2));
         Assert.assertFalse(concave.fullyGeometricallyEncloses(outside1));
         Assert.assertFalse(concave.fullyGeometricallyEncloses(outside2));
         Assert.assertTrue(concave.intersects(new Segment(outside1, inside1)));
@@ -716,8 +715,7 @@ public class PolygonTest
         final Location middleThirdSegment = polygon.segmentForIndex(2).middle();
         // Locations on the zero area part are still on the boundary, and therefore contained
         Assert.assertTrue(polygon.fullyGeometricallyEncloses(middleZeroAreaPart));
-        // see awt definition of contains
-        Assert.assertFalse(polygon.fullyGeometricallyEncloses(endpointZeroAreaPart));
+        Assert.assertTrue(polygon.fullyGeometricallyEncloses(endpointZeroAreaPart));
         Assert.assertTrue(polygon.fullyGeometricallyEncloses(middleThirdSegment));
     }
 
@@ -732,7 +730,7 @@ public class PolygonTest
         final Location endpoint = Location.forString("0.0007635,-0.0174722");
         Assert.assertTrue(polygon.fullyGeometricallyEncloses(onZeroAreaPart));
         // see awt definition of contains
-        Assert.assertFalse(polygon.fullyGeometricallyEncloses(endpoint));
+        Assert.assertTrue(polygon.fullyGeometricallyEncloses(endpoint));
     }
 
     @Test

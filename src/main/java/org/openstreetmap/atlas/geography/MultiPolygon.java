@@ -14,6 +14,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.locationtech.jts.algorithm.match.HausdorffSimilarityMeasure;
+import org.locationtech.jts.geom.prep.PreparedGeometry;
+import org.locationtech.jts.geom.prep.PreparedGeometryFactory;
 import org.locationtech.jts.operation.valid.IsValidOp;
 import org.locationtech.jts.operation.valid.TopologyValidationError;
 import org.openstreetmap.atlas.geography.clipping.Clip;
@@ -24,13 +26,15 @@ import org.openstreetmap.atlas.geography.converters.WkbMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.WktMultiPolygonConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsLocationConverter;
 import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPointConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolyLineConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsPolygonConverter;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonBuilder.LocationIterableProperties;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonGeometry;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonObject;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonType;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonUtils;
-import org.openstreetmap.atlas.geography.index.RTree;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.streaming.writers.JsonWriter;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
@@ -59,6 +63,9 @@ public class MultiPolygon
     private static final long serialVersionUID = 4198234682870043547L;
     private static final int SIMPLE_STRING_LENGTH = 200;
     private static final JtsMultiPolygonToMultiPolygonConverter JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER = new JtsMultiPolygonToMultiPolygonConverter();
+    private static final JtsPointConverter JTS_POINT_CONVERTER = new JtsPointConverter();
+    private static final JtsPolyLineConverter JTS_POLYLINE_CONVERTER = new JtsPolyLineConverter();
+    private static final JtsPolygonConverter JTS_POLYGON_CONVERTER = new JtsPolygonConverter();
 
     static
     {
@@ -69,6 +76,8 @@ public class MultiPolygon
         outerToInners.add(outer, inner);
         TEST_MULTI_POLYGON = new MultiPolygon(outerToInners);
     }
+
+    private transient PreparedGeometry prepared;
 
     private final MultiMap<Polygon, Polygon> outerToInners;
     private Rectangle bounds;
@@ -257,29 +266,12 @@ public class MultiPolygon
     @Override
     public boolean fullyGeometricallyEncloses(final Location location)
     {
-        for (final Polygon outer : outers())
+        if (this.prepared == null)
         {
-            if (outer.fullyGeometricallyEncloses(location))
-            {
-                boolean result = true;
-                // Checking the inners only when a location is within the outer saves the expensive
-                // general inners() call.
-                for (final Polygon inner : innersOf(outer))
-                {
-                    if (inner.fullyGeometricallyEncloses(location))
-                    {
-                        // If the inner is overlapping the location, we skip that outer and continue
-                        result = false;
-                        break;
-                    }
-                }
-                if (result)
-                {
-                    return true;
-                }
-            }
+            this.prepared = PreparedGeometryFactory
+                    .prepare(JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER.backwardConvert(this));
         }
-        return false;
+        return this.prepared.covers(JTS_POINT_CONVERTER.convert(location));
     }
 
     /**
@@ -293,25 +285,13 @@ public class MultiPolygon
     @Override
     public boolean fullyGeometricallyEncloses(final MultiPolygon that)
     {
-        final RTree<Polygon> thisOuters = RTree.forLocated(this.outers());
-        // each outer of that must fit within one of this' outer/inner groups
-        for (final Polygon thatOuter : that.outers())
+        if (this.prepared == null)
         {
-            boolean enclosedWithoutInnerOverlap = false;
-            for (final Polygon thisOuter : thisOuters.get(thatOuter.bounds(), thatOuter::overlaps))
-            {
-                if (thisOuter.fullyGeometricallyEncloses(thatOuter))
-                {
-                    enclosedWithoutInnerOverlap = this.getOuterToInners().get(thisOuter).stream()
-                            .noneMatch(that::overlaps);
-                }
-            }
-            if (!enclosedWithoutInnerOverlap)
-            {
-                return false;
-            }
+            this.prepared = PreparedGeometryFactory
+                    .prepare(JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER.backwardConvert(this));
         }
-        return true;
+        return this.prepared
+                .covers(JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER.backwardConvert(that));
     }
 
     /**
@@ -322,15 +302,17 @@ public class MultiPolygon
     @Override
     public boolean fullyGeometricallyEncloses(final PolyLine polyLine)
     {
-        for (final Polygon outer : outers())
+        if (this.prepared == null)
         {
-            if (outer.fullyGeometricallyEncloses(polyLine))
-            {
-                return this.getOuterToInners().get(outer).stream()
-                        .noneMatch(inner -> inner.overlaps(polyLine));
-            }
+            this.prepared = PreparedGeometryFactory
+                    .prepare(JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER.backwardConvert(this));
         }
-        return false;
+        if (polyLine instanceof Polygon)
+        {
+            return this.prepared.covers(JTS_POLYGON_CONVERTER.convert((Polygon) polyLine));
+        }
+        return this.prepared.covers(JTS_POLYLINE_CONVERTER.convert(polyLine));
+
     }
 
     @Override
@@ -372,21 +354,16 @@ public class MultiPolygon
     @Override
     public boolean intersects(final PolyLine polyLine)
     {
-        for (final Polygon outer : this.outers())
+        if (this.prepared == null)
         {
-            if (outer.intersects(polyLine))
-            {
-                return true;
-            }
+            this.prepared = PreparedGeometryFactory
+                    .prepare(JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER.backwardConvert(this));
         }
-        for (final Polygon inner : this.inners())
+        if (polyLine instanceof Polygon)
         {
-            if (inner.intersects(polyLine))
-            {
-                return true;
-            }
+            return this.prepared.intersects(JTS_POLYGON_CONVERTER.convert((Polygon) polyLine));
         }
-        return false;
+        return this.prepared.intersects(JTS_POLYLINE_CONVERTER.convert(polyLine));
     }
 
     /**
@@ -484,14 +461,28 @@ public class MultiPolygon
     @Override
     public boolean overlaps(final MultiPolygon otherMultiPolygon)
     {
-        return this.outers().stream().anyMatch(otherMultiPolygon::overlaps)
-                && otherMultiPolygon.outers().stream().anyMatch(this::overlaps);
+        if (this.prepared == null)
+        {
+            this.prepared = PreparedGeometryFactory
+                    .prepare(JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER.backwardConvert(this));
+        }
+        return this.prepared.intersects(
+                JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER.backwardConvert(otherMultiPolygon));
     }
 
     @Override
     public boolean overlaps(final PolyLine polyLine)
     {
-        return overlapsInternal(polyLine, true);
+        if (this.prepared == null)
+        {
+            this.prepared = PreparedGeometryFactory
+                    .prepare(JTS_MULTI_POLYGON_TO_MULTI_POLYGON_CONVERTER.backwardConvert(this));
+        }
+        if (polyLine instanceof Polygon)
+        {
+            return this.prepared.intersects(JTS_POLYGON_CONVERTER.convert((Polygon) polyLine));
+        }
+        return this.prepared.intersects(JTS_POLYLINE_CONVERTER.convert(polyLine));
     }
 
     public void saveAsGeoJson(final WritableResource resource)
@@ -585,14 +576,14 @@ public class MultiPolygon
 
     private boolean isLinear(final GeometricObject geometricObject)
     {
-        return (geometricObject instanceof PolyLine && !(geometricObject instanceof Polygon))
+        return geometricObject instanceof PolyLine && !(geometricObject instanceof Polygon)
                 || geometricObject instanceof MultiPolyLine || geometricObject instanceof Location;
     }
 
     /**
      * Given an OGC intersection location, check all the touching features to see if they are OSM
      * valid.
-     * 
+     *
      * @param errorExpandedBoundingBox
      *            Small bounding box around the error location
      * @return True if the error is not an error according to OSM
@@ -638,40 +629,5 @@ public class MultiPolygon
             }
         }
         return ringsOfInterest.size() > 1 && allIntersectionsArePolyLines;
-    }
-
-    private boolean overlapsInternal(final PolyLine polyLine, final boolean runReverseCheck)
-    {
-        for (final Location location : polyLine)
-        {
-            if (fullyGeometricallyEncloses(location))
-            {
-                return true;
-            }
-        }
-        if (runReverseCheck && polyLine instanceof Polygon)
-        {
-            final Polygon polygon = (Polygon) polyLine;
-            for (final Polygon outer : this.outers())
-            {
-                if (polygon.overlaps(outer))
-                {
-                    boolean result = true;
-                    for (final Polygon inner : this.innersOf(outer))
-                    {
-                        if (inner.fullyGeometricallyEncloses(polygon))
-                        {
-                            result = false;
-                            break;
-                        }
-                    }
-                    if (result)
-                    {
-                        return true;
-                    }
-                }
-            }
-        }
-        return this.intersects(polyLine);
     }
 }

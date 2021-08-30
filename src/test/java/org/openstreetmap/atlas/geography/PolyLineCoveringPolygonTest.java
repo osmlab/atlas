@@ -21,7 +21,7 @@ public class PolyLineCoveringPolygonTest
     {
         final Atlas atlas = this.rule.getPolyLinesAsEntirePolygonBoundaryAtlas();
         verifyOverlapExists(atlas);
-        verifyNoFullContainment(atlas);
+        verifyFullContainment(atlas);
         verifyIntersection(atlas);
     }
 

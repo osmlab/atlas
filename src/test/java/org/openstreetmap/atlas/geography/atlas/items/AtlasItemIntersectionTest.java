@@ -95,7 +95,7 @@ public class AtlasItemIntersectionTest
         // awt definition of insideness - which considers Node 4 from edge 0 to be "outside" the
         // polygon, even though it is on the boundary.
         Assert.assertEquals("There are 2 lines, 2 edges, 2 Areas and 2 Nodes within this Polygon",
-                8, Iterables.size(atlas.itemsWithin(polygonBoundary)));
+                9, Iterables.size(atlas.itemsWithin(polygonBoundary)));
 
         // If we represent the Polygon as a Rectangle, then we forego the awt call and the same Node
         // 4 is now considered inside. This is an unfortunate side-affect of the awt dependency.

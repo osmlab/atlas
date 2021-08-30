@@ -32,7 +32,7 @@ public class PolygonCoveringPolygonTest
     {
         final Atlas atlas = this.rule.getPolygonsStackedOnEachOtherAtlas();
         verifyOverlapExists(atlas);
-        verifyNoFullContainment(atlas);
+        verifyFullContainment(atlas);
         verifyIntersection(atlas);
     }
 
