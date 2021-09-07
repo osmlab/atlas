@@ -53,16 +53,14 @@ public class ChangeBuilder
     }
 
     /**
-     * Iteratively {@link #add(FeatureChange)} all the FeatureChanges.
-     *
+     * @see #addAll(Stream)
      * @param featureChanges
      *            - The featureChanges to add.
      * @return ChangeBuilder - returns itself to allow fluency in calls.
      */
-    public synchronized ChangeBuilder addAll(final Stream<FeatureChange> featureChanges)
+    public synchronized ChangeBuilder addAll(final FeatureChange... featureChanges)
     {
-        featureChanges.forEach(this::add);
-        return this;
+        return addAll(Arrays.stream(featureChanges));
     }
 
     /**
@@ -77,14 +75,16 @@ public class ChangeBuilder
     }
 
     /**
-     * @see #addAll(Stream)
+     * Iteratively {@link #add(FeatureChange)} all the FeatureChanges.
+     *
      * @param featureChanges
      *            - The featureChanges to add.
      * @return ChangeBuilder - returns itself to allow fluency in calls.
      */
-    public synchronized ChangeBuilder addAll(final FeatureChange... featureChanges)
+    public synchronized ChangeBuilder addAll(final Stream<FeatureChange> featureChanges)
     {
-        return addAll(Arrays.stream(featureChanges));
+        featureChanges.forEach(this::add);
+        return this;
     }
 
     public synchronized Change get()

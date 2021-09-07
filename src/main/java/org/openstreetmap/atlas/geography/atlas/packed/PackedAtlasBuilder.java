@@ -2,6 +2,7 @@ package org.openstreetmap.atlas.geography.atlas.packed;
 
 import java.util.Map;
 
+import org.locationtech.jts.geom.MultiPolygon;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -180,7 +181,32 @@ public final class PackedAtlasBuilder implements AtlasBuilder
         try
         {
             this.atlas.addRelation(identifier, osmIdentifier, structure.getMemberIdentifiers(),
-                    structure.getMemberTypes(), structure.getMemberRoles(), tags);
+                    structure.getMemberTypes(), structure.getMemberRoles(), tags, null);
+        }
+        catch (final AtlasIntegrityException e)
+        {
+            throw e;
+        }
+        catch (final Exception e)
+        {
+            logger.error("Error adding Relation ({}): {}", identifier, structure, e);
+        }
+    }
+
+    public void addRelation(final long identifier, final long osmIdentifier,
+            final RelationBean structure, final Map<String, String> tags,
+            final MultiPolygon geometry)
+    {
+        if (structure.isEmpty())
+        {
+            throw new CoreException("Cannot add relation {} with an empty member list.",
+                    identifier);
+        }
+        initialize();
+        try
+        {
+            this.atlas.addRelation(identifier, osmIdentifier, structure.getMemberIdentifiers(),
+                    structure.getMemberTypes(), structure.getMemberRoles(), tags, geometry);
         }
         catch (final AtlasIntegrityException e)
         {
@@ -248,6 +274,12 @@ public final class PackedAtlasBuilder implements AtlasBuilder
         this.sizeEstimates = estimates;
     }
 
+    public PackedAtlasBuilder withEnhancedRelationGeometry()
+    {
+        initialize(true);
+        return this;
+    }
+
     public PackedAtlasBuilder withMetaData(final AtlasMetaData metaData)
     {
         setMetaData(metaData);
@@ -268,13 +300,18 @@ public final class PackedAtlasBuilder implements AtlasBuilder
 
     private void initialize()
     {
+        initialize(false);
+    }
+
+    private void initialize(final boolean withEnhancedRelationGeometry)
+    {
         if (this.locked)
         {
             throw new CoreException("Cannot keep adding items to a locked graph.");
         }
         if (this.atlas == null)
         {
-            this.atlas = new PackedAtlas(this.sizeEstimates);
+            this.atlas = new PackedAtlas(this.sizeEstimates, withEnhancedRelationGeometry);
             this.atlas.setName(this.name);
         }
     }

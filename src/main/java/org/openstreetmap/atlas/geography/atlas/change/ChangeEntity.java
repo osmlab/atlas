@@ -36,6 +36,26 @@ public final class ChangeEntity
     }
 
     /**
+     * Get either the attribute asked from the source entity
+     *
+     * @param source
+     *            The source entity
+     * @param memberExtractor
+     *            Extract the member attribute from that entity
+     * @return The corresponding attribute
+     */
+    static <T extends Object, M extends AtlasEntity> T getAttribute(final M source,
+            final Function<M, T> memberExtractor)
+    {
+        T result = null;
+        if (source != null)
+        {
+            result = memberExtractor.apply(source);
+        }
+        return result;
+    }
+
+    /**
      * Get all the available attributes asked from the change entity (override), and/or from the
      * backup entity.
      *

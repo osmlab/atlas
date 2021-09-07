@@ -37,6 +37,7 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
     private Long startNodeIdentifier;
     private Long endNodeIdentifier;
     private Set<Long> relationIdentifiers;
+    private Set<Long> geometricRelationIdentifiers;
     private final TagChangeDelegate tagChangeDelegate = TagChangeDelegate.newTagChangeDelegate();
 
     /**
@@ -57,7 +58,12 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
         }
         return new CompleteEdge(edge.getIdentifier(), edge.asPolyLine(), edge.getTags(),
                 edge.start().getIdentifier(), edge.end().getIdentifier(),
-                edge.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()));
+                edge.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()))
+                        .withGeometricRelationIdentifiers(
+                                edge.relations().stream().filter(Relation::isGeometric)
+                                        .filter(relation -> relation.asMultiPolygon().isPresent()
+                                                && !relation.asMultiPolygon().get().isEmpty())
+                                        .map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
 
     /**
@@ -100,7 +106,7 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
         this.relationIdentifiers = relationIdentifiers;
     }
 
-    CompleteEdge(final long identifier)
+    protected CompleteEdge(final long identifier)
     {
         this(identifier, null, null, null, null, null);
     }
@@ -169,6 +175,11 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
     public void fireTagChangeEvent(final TagChangeEvent tagChangeEvent)
     {
         this.tagChangeDelegate.fireTagChangeEvent(tagChangeEvent);
+    }
+
+    public Set<Long> geometricRelationIdentifiers()
+    {
+        return this.geometricRelationIdentifiers;
     }
 
     @Override
@@ -365,6 +376,13 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
         return this;
     }
 
+    public CompleteEdge withGeometricRelationIdentifiers(
+            final Set<Long> geometricRelationIdentifiers)
+    {
+        this.geometricRelationIdentifiers = geometricRelationIdentifiers;
+        return this;
+    }
+
     @Override
     public CompleteEntity withGeometry(final Iterable<Location> locations)
     {
@@ -401,6 +419,10 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
     {
         this.relationIdentifiers = relations.stream().map(Relation::getIdentifier)
                 .collect(Collectors.toSet());
+        this.geometricRelationIdentifiers = relations.stream().filter(Relation::isGeometric)
+                .filter(relation -> relation.asMultiPolygon().isPresent()
+                        && !relation.asMultiPolygon().get().isEmpty())
+                .map(Relation::getIdentifier).collect(Collectors.toSet());
         return this;
     }
 
@@ -408,6 +430,9 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
     public CompleteEdge withRemovedRelationIdentifier(final Long relationIdentifier)
     {
         this.relationIdentifiers = this.relationIdentifiers.stream()
+                .filter(keepId -> keepId != relationIdentifier.longValue())
+                .collect(Collectors.toSet());
+        this.geometricRelationIdentifiers = this.geometricRelationIdentifiers.stream()
                 .filter(keepId -> keepId != relationIdentifier.longValue())
                 .collect(Collectors.toSet());
         return this;

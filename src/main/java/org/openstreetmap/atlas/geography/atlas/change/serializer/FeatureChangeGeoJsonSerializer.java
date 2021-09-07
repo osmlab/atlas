@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import org.locationtech.jts.geom.MultiPolygon;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.GeometryPrintable;
 import org.openstreetmap.atlas.geography.Rectangle;
@@ -20,6 +22,7 @@ import org.openstreetmap.atlas.geography.atlas.items.LineItem;
 import org.openstreetmap.atlas.geography.atlas.items.LocationItem;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
+import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.conversion.Converter;
@@ -137,7 +140,15 @@ public class FeatureChangeGeoJsonSerializer
             else
             {
                 // Relation
-                result = ((Relation) source).bounds();
+                final Optional<MultiPolygon> geom = ((Relation) source).asMultiPolygon();
+                if (geom.isPresent())
+                {
+                    result = new JtsMultiPolygonToMultiPolygonConverter().convert(geom.get());
+                }
+                else
+                {
+                    result = ((Relation) source).bounds();
+                }
             }
             if (result == null)
             {
@@ -228,6 +239,11 @@ public class FeatureChangeGeoJsonSerializer
         result.addProperty(name, property == null ? null : writer.apply(property).toString());
     }
 
+    public FeatureChangeGeoJsonSerializer(final boolean prettyPrint)
+    {
+        this(prettyPrint, true);
+    }
+
     public FeatureChangeGeoJsonSerializer(final boolean prettyPrint, final boolean showDescription)
     {
         final GsonBuilder gsonBuilder = new GsonBuilder();
@@ -239,11 +255,6 @@ public class FeatureChangeGeoJsonSerializer
         gsonBuilder.registerTypeHierarchyAdapter(FeatureChange.class,
                 new FeatureChangeTypeHierarchyAdapter(showDescription));
         this.jsonSerializer = gsonBuilder.create();
-    }
-
-    public FeatureChangeGeoJsonSerializer(final boolean prettyPrint)
-    {
-        this(prettyPrint, true);
     }
 
     @Override

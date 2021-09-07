@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.items.complex.water;
 
+import java.util.Optional;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.openstreetmap.atlas.exception.CoreException;
@@ -8,6 +10,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.complex.RelationOrAreaToMultiPolygonConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +27,7 @@ public class ComplexWaterbody extends ComplexWaterEntity
 
     private static final RelationOrAreaToMultiPolygonConverter RELATION_OR_AREA_TO_MULTI_POLYGON_CONVERTER = new RelationOrAreaToMultiPolygonConverter(
             true);
+    private static final JtsMultiPolygonToMultiPolygonConverter MULTIPOLYGON_CONVERTER = new JtsMultiPolygonToMultiPolygonConverter();
 
     private static final Logger logger = LoggerFactory.getLogger(ComplexWaterbody.class);
 
@@ -77,10 +81,11 @@ public class ComplexWaterbody extends ComplexWaterEntity
         else if (source instanceof Relation)
         {
             final Relation relation = (Relation) source;
+            final Optional<org.locationtech.jts.geom.MultiPolygon> geom = relation.asMultiPolygon();
             final String type = relation.tag(RelationTypeTag.KEY);
-            if (RelationTypeTag.MULTIPOLYGON_TYPE.equals(type))
+            if (RelationTypeTag.MULTIPOLYGON_TYPE.equals(type) && geom.isPresent())
             {
-                this.geometry = RELATION_OR_AREA_TO_MULTI_POLYGON_CONVERTER.convert(relation);
+                this.geometry = MULTIPOLYGON_CONVERTER.convert(geom.get());
                 return;
             }
         }

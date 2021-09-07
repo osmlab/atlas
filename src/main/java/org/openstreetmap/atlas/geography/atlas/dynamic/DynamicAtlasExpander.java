@@ -213,7 +213,8 @@ class DynamicAtlasExpander
         }
         final PolyLine polyLine = item.asPolyLine();
         final MultiPolygon initialShardsBounds = this.policy.getInitialShardsBounds();
-        if (!this.policy.isExtendIndefinitely() && !initialShardsBounds.overlaps(polyLine))
+        if (!this.policy.isExtendIndefinitely() && !initialShardsBounds.overlaps(polyLine)
+                || !this.policy.getAtlasEntitiesToConsiderForExpansion().test(item))
         {
             // If the policy is to not extend indefinitely, then assume that the loading is not
             // necessary.
@@ -237,7 +238,8 @@ class DynamicAtlasExpander
         final Location location = item.getLocation();
         final MultiPolygon initialShardsBounds = this.policy.getInitialShardsBounds();
         if (!this.policy.isExtendIndefinitely()
-                && !initialShardsBounds.fullyGeometricallyEncloses(location))
+                && !initialShardsBounds.fullyGeometricallyEncloses(location)
+                || !this.policy.getAtlasEntitiesToConsiderForExpansion().test(item))
         {
             // If the policy is to not extend indefinitely, then assume that the loading is not
             // necessary.

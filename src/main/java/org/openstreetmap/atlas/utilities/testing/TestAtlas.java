@@ -232,6 +232,8 @@ public @interface TestAtlas
          * @return array of tag annotations
          */
         String[] tags() default {};
+
+        String wkt() default "";
     }
 
     /**

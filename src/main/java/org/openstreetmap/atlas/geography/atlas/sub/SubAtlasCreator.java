@@ -726,8 +726,16 @@ public final class SubAtlasCreator
                 validMembers.forEach(validMember -> structure.addItem(
                         validMember.getEntity().getIdentifier(), validMember.getRole(),
                         ItemType.forEntity(validMember.getEntity())));
-                builder.addRelation(relation.getIdentifier(), relation.getOsmIdentifier(),
-                        structure, relation.getTags());
+                if (relation.asMultiPolygon().isPresent())
+                {
+                    builder.addRelation(relation.getIdentifier(), relation.getOsmIdentifier(),
+                            structure, relation.getTags(), relation.asMultiPolygon().get());
+                }
+                else
+                {
+                    builder.addRelation(relation.getIdentifier(), relation.getOsmIdentifier(),
+                            structure, relation.getTags());
+                }
             }
             else
             {
@@ -810,7 +818,8 @@ public final class SubAtlasCreator
     {
         return new PackedAtlasBuilder().withSizeEstimates(sizeEstimates)
                 .withMetaData(atlas.metaData())
-                .withName(String.format("%s%s", atlas.getName(), SUB_ATLAS_NAME_POSTFIX));
+                .withName(String.format("%s%s", atlas.getName(), SUB_ATLAS_NAME_POSTFIX))
+                .withEnhancedRelationGeometry();
     }
 
     /**

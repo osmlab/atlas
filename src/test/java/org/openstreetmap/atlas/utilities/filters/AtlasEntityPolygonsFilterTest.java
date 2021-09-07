@@ -318,9 +318,9 @@ public class AtlasEntityPolygonsFilterTest
         this.assertCounts(testCountsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
                 .polygons(dudIntersectionPolicy, Collections.singleton(polygon1)), 0L, 0L, 0L, 0L);
         this.assertCounts(testCountsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE.polygons(
-                FULL_GEOMETRIC_ENCLOSING, Collections.singleton(polygon1)), 2L, 1L, 0L, 0L);
+                FULL_GEOMETRIC_ENCLOSING, Collections.singleton(polygon1)), 2L, 1L, 1L, 0L);
         this.assertCounts(testCountsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE.geometricSurfaces(
-                FULL_GEOMETRIC_ENCLOSING, Collections.singleton(polygon1)), 2L, 1L, 0L, 0L);
+                FULL_GEOMETRIC_ENCLOSING, Collections.singleton(polygon1)), 2L, 1L, 1L, 0L);
 
         // Test all three decision makers on two polygon filter
         this.assertCounts(testCountsAtlas,
@@ -330,14 +330,14 @@ public class AtlasEntityPolygonsFilterTest
         this.assertCounts(testCountsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
                 .polygons(dudIntersectionPolicy, Arrays.asList(polygon1, polygon2)), 0, 0, 0, 0);
         this.assertCounts(testCountsAtlas, AtlasEntityPolygonsFilter.Type.INCLUDE
-                .polygons(FULL_GEOMETRIC_ENCLOSING, Arrays.asList(polygon1, polygon2)), 2, 1, 0, 0);
+                .polygons(FULL_GEOMETRIC_ENCLOSING, Arrays.asList(polygon1, polygon2)), 2, 1, 2, 0);
 
         // Test Serializability
         this.assertCounts(testCountsAtlas,
                 new FreezeDryFunction<AtlasEntityPolygonsFilter>().apply(
                         AtlasEntityPolygonsFilter.Type.INCLUDE.polygons(FULL_GEOMETRIC_ENCLOSING,
                                 Arrays.asList(polygon1, polygon2))),
-                2, 1, 0, 0);
+                2, 1, 2, 0);
     }
 
     /**

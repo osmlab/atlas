@@ -2,8 +2,10 @@ package org.openstreetmap.atlas.geography.atlas.packed;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
+import org.locationtech.jts.geom.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 
@@ -32,6 +34,27 @@ public class PackedRelation extends Relation
     public List<Relation> allRelationsWithSameOsmIdentifier()
     {
         return packedAtlas().relationAllRelationsWithSameOsmIdentifier(this.index);
+    }
+
+    @Override
+    public Optional<MultiPolygon> asMultiPolygon()
+    {
+        // return the previously stored result
+        if (this.getBadGeom() || this.getGeom() != null)
+        {
+            return Optional.ofNullable(this.getGeom());
+        }
+        MultiPolygon relationGeometry = null;
+        if (packedAtlas().containsEnhancedRelationGeometry())
+        {
+            relationGeometry = packedAtlas().relationGeometry(this.index);
+            this.setGeom(relationGeometry);
+        }
+        if (relationGeometry == null)
+        {
+            return super.asMultiPolygon();
+        }
+        return Optional.ofNullable(relationGeometry);
     }
 
     @Override
