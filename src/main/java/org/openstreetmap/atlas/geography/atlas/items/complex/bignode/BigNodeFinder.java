@@ -22,6 +22,7 @@ import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.openstreetmap.atlas.exception.CoreException;
+import org.openstreetmap.atlas.geography.Heading;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.geography.atlas.items.Node;
@@ -34,8 +35,10 @@ import org.openstreetmap.atlas.streaming.resource.WritableResource;
 import org.openstreetmap.atlas.tags.HighwayTag;
 import org.openstreetmap.atlas.tags.JunctionTag;
 import org.openstreetmap.atlas.tags.names.NameFinder;
+import org.openstreetmap.atlas.tags.names.NameTag;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.direction.EdgeDirectionComparator;
+import org.openstreetmap.atlas.utilities.scalars.Angle;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -278,8 +281,18 @@ public class BigNodeFinder implements Finder<BigNode>
      * OSM ways overlap.
      */
     private static final int MAXIMUM_CANDIDATE_JUNCTION_ROUTE_SET_SIZE = 10_000;
+    public static final String LOWEST_JUNCTION_EDGE_CANDIDATE_HIGHWAY_KEY = "LOWEST_JUNCTION_EDGE_CANDIDATE_HIGHWAY_TAG";
+    public static final String LONG_JUNCTION_ROUTE_LENGTH_KEY = "LONG_JUNCTION_ROUTE_LENGTH";
+    public static final String NON_STRAIGHT_JUNCTION_EDGES_ANGLE_KEY = "NON_STRAIGHT_JUNCTION_EDGES_ANGLE";
     private Map<String, Distance> radiusMap;
     private Map<String, String> nonJunctionEdgeTagMap;
+    private HighwayTag lowestJunctionEdgeCandidateHighwayTag = HighwayTag.SERVICE;
+    // if junction route is longer than this length, we need to extra check to determine if it is
+    // a straight long junction route which is considered to be invalid junction route
+    private static final int LONG_JUNCTION_ROUTE_LENGTH = 100;
+    private static final int NON_STRAIGHT_JUNCTION_EDGES_ANGLE = 60;
+    private Distance longJunctionRouteLength = Distance.meters(LONG_JUNCTION_ROUTE_LENGTH);
+    private Angle nonStraightJunctionEdgesAngle = Angle.degrees(NON_STRAIGHT_JUNCTION_EDGES_ANGLE);
     private final EdgeDirectionComparator edgeDirectionComparator = new EdgeDirectionComparator();
     private final NameFinder nameFinder = new NameFinder().withTags(STANDARD_TAGS);
 
@@ -288,10 +301,15 @@ public class BigNodeFinder implements Finder<BigNode>
     }
 
     public BigNodeFinder(final Map<String, Distance> radiusMap,
-            final Map<String, String> nonJunctionEdgeTagMap)
+            final Map<String, String> nonJunctionEdgeTagMap,
+            final Map<String, String> configurationMap)
     {
         this.radiusMap = radiusMap;
         this.nonJunctionEdgeTagMap = nonJunctionEdgeTagMap;
+        if (configurationMap != null)
+        {
+            configure(configurationMap);
+        }
     }
 
     @Override
@@ -351,31 +369,35 @@ public class BigNodeFinder implements Finder<BigNode>
                     junctionEdgeIds);
             logger.debug("Merged bigNode Route : {}. Number of Edges : {}", mergedCandidate,
                     mergedCandidate.size());
-            /*
-             * mergedRoutes are formed after strict connectivity checks. But mergedRoutes can share
-             * same node. Each node must have 1-1 mapping with a big node. So we merge routes into
-             * same big node if they share a node
-             */
-            final Set<Node> nodes = new HashSet<>();
-            mergedCandidate.forEach(edge -> nodes.addAll(edge.connectedNodes()));
+            // logger.debug("Merged candidate route {}", mergedCandidate.asPolyLine().toWkt());
+            if (!isStraightLongRoute(mergedCandidate))
+            {
+                /*
+                 * mergedRoutes are formed after strict connectivity checks. But mergedRoutes can
+                 * share same node. Each node must have 1-1 mapping with a big node. So we merge
+                 * routes into same big node if they share a node
+                 */
+                final Set<Node> nodes = new HashSet<>();
+                mergedCandidate.forEach(edge -> nodes.addAll(edge.connectedNodes()));
 
-            final Set<BigNodeCandidate> bigNodesMergeCandidates = new HashSet<>();
-            for (final Node node : nodes)
-            {
-                if (nodeIdToBigNodeCandidateMap.containsKey(node.getIdentifier()))
+                final Set<BigNodeCandidate> bigNodesMergeCandidates = new HashSet<>();
+                for (final Node node : nodes)
                 {
-                    bigNodesMergeCandidates
-                            .add(nodeIdToBigNodeCandidateMap.get(node.getIdentifier()));
+                    if (nodeIdToBigNodeCandidateMap.containsKey(node.getIdentifier()))
+                    {
+                        bigNodesMergeCandidates
+                                .add(nodeIdToBigNodeCandidateMap.get(node.getIdentifier()));
+                    }
                 }
-            }
-            final BigNodeCandidate bigNodeCandidate = BigNodeCandidate.from(nodes);
-            for (final BigNodeCandidate mergeBigNode : bigNodesMergeCandidates)
-            {
-                bigNodeCandidate.merge(mergeBigNode);
-            }
-            for (final Long nodeIdentifier : bigNodeCandidate.getNodeIdentifiers())
-            {
-                nodeIdToBigNodeCandidateMap.put(nodeIdentifier, bigNodeCandidate);
+                final BigNodeCandidate bigNodeCandidate = BigNodeCandidate.from(nodes);
+                for (final BigNodeCandidate mergeBigNode : bigNodesMergeCandidates)
+                {
+                    bigNodeCandidate.merge(mergeBigNode);
+                }
+                for (final Long nodeIdentifier : bigNodeCandidate.getNodeIdentifiers())
+                {
+                    nodeIdToBigNodeCandidateMap.put(nodeIdentifier, bigNodeCandidate);
+                }
             }
             // Successfully added the bigNodeCandidate, can safely remove the junction edge
             mergedCandidate.forEach(edge -> junctionEdgeIds.remove(edge.getIdentifier()));
@@ -440,6 +462,53 @@ public class BigNodeFinder implements Finder<BigNode>
         return true;
     }
 
+    // Check if merged junction candidate is a very long straight route which is normally not a
+    // valid junction route
+    protected boolean isStraightLongRoute(final Route mergedCandidate)
+    {
+        if (mergedCandidate.size() < 2)
+        {
+            return false;
+        }
+        // if merged candidate is longer than threshold, we will check if all junctions edges are
+        // from the same long and straight road
+        if (mergedCandidate.length().isGreaterThanOrEqualTo(this.longJunctionRouteLength))
+        {
+            final Iterator<Edge> iterator = mergedCandidate.iterator();
+            Edge currentEdge = iterator.next();
+            while (iterator.hasNext())
+            {
+                final Edge nextEdge = iterator.next();
+                final Optional<Heading> currentHeading = currentEdge.overallHeading();
+                final Optional<Heading> nextHeading = nextEdge.overallHeading();
+                // if the angle of any two edges are large than 60 degree, we think they are valid
+                // junction route
+                if (currentHeading.isPresent() && nextHeading.isPresent()
+                        && currentHeading.get().difference(nextHeading.get()).asPositiveAngle()
+                                .isGreaterThanOrEqualTo(this.nonStraightJunctionEdgesAngle))
+                {
+                    return false;
+                }
+                // if there are any two edges has different name, we think they are valid
+                if (currentEdge.getTag(NameTag.KEY).isPresent()
+                        && nextEdge.getTag(NameTag.KEY).isPresent()
+                        && !currentEdge.getTag(NameTag.KEY).get()
+                                .equalsIgnoreCase(nextEdge.getTag(NameTag.KEY).get()))
+                {
+                    return false;
+                }
+                currentEdge = nextEdge;
+            }
+            logger.info("Invalid Merged Candidate Route length is {} with WKT {}",
+                    mergedCandidate.length(), mergedCandidate.asPolyLine().toWkt());
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     /*
      * Check if the start and end node of an edge connects to the same edge. Example is
      * https://www.openstreetmap.org/way/798542598 This type of edge should not be considered as
@@ -453,6 +522,25 @@ public class BigNodeFinder implements Finder<BigNode>
                 .anyMatch(connectedEdge -> edge.end().connectedEdges().contains(connectedEdge));
     }
 
+    private void configure(final Map<String, String> configurationMap)
+    {
+        if (configurationMap.get(LOWEST_JUNCTION_EDGE_CANDIDATE_HIGHWAY_KEY) != null)
+        {
+            this.lowestJunctionEdgeCandidateHighwayTag = HighwayTag.valueOf(configurationMap
+                    .get(LOWEST_JUNCTION_EDGE_CANDIDATE_HIGHWAY_KEY).toUpperCase());
+        }
+        if (configurationMap.get(LONG_JUNCTION_ROUTE_LENGTH_KEY) != null)
+        {
+            this.longJunctionRouteLength = Distance.meters(
+                    Double.parseDouble(configurationMap.get(LONG_JUNCTION_ROUTE_LENGTH_KEY)));
+        }
+        if (configurationMap.get(NON_STRAIGHT_JUNCTION_EDGES_ANGLE_KEY) != null)
+        {
+            this.nonStraightJunctionEdgesAngle = Angle.degrees(Double
+                    .parseDouble(configurationMap.get(NON_STRAIGHT_JUNCTION_EDGES_ANGLE_KEY)));
+        }
+    }
+    
     /**
      * Identify {@link Edge} name matches when both {@link Edge}s have same names. When strict mode
      * parameter is set to {@code true}, both edge names must be non-empty and must match. Exact
@@ -507,7 +595,9 @@ public class BigNodeFinder implements Finder<BigNode>
     private boolean isCandidateJunctionEdge(final Edge edge)
     {
         final HighwayTag highwayTag = edge.highwayTag();
-        return isShortEnough(edge) && highwayTag.isMoreImportantThanOrEqualTo(HighwayTag.SERVICE)
+        return isShortEnough(edge)
+                && highwayTag.isMoreImportantThanOrEqualTo(
+                        this.lowestJunctionEdgeCandidateHighwayTag)
                 && hasJunctionEdgeTags(edge) && !JunctionTag.isRoundabout(edge)
                 && !startAndEndNodesConnectedToSameEdge(edge);
     }
@@ -593,7 +683,6 @@ public class BigNodeFinder implements Finder<BigNode>
         {
             return false;
         }
-
         /*
          * A restriction with at least 4 main edges in a dual carriage way intersection, used to
          * filter out false positives, missed Test case 5 in BigNodeFinderTest. To increase
@@ -701,6 +790,7 @@ public class BigNodeFinder implements Finder<BigNode>
         {
             return candidateRoute;
         }
+
         final Set<Edge> connectedEdges = candidateRoute.end().outEdges();
         connectedEdges.addAll(candidateRoute.start().inEdges());
 

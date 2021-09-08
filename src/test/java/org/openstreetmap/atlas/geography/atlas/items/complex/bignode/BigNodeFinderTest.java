@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.items.complex.bignode;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -132,7 +133,7 @@ public class BigNodeFinderTest extends AtlasLoadingCommand
         final Atlas atlas = this.setup.getOverMergeAtlas();
         logger.info("Atlas: {}", atlas);
         final List<BigNode> bigNodes = Iterables
-                .asList(new BigNodeFinder(configurableRadius, null).find(atlas));
+                .asList(new BigNodeFinder(configurableRadius, null, null).find(atlas));
         final Set<BigNode> dualCarriageWayBigNodes = bigNodes.stream()
                 .filter(bigNode -> bigNode.getType().equals(Type.DUAL_CARRIAGEWAY))
                 .collect(Collectors.toSet());
@@ -153,7 +154,7 @@ public class BigNodeFinderTest extends AtlasLoadingCommand
                 .asList(new BigNodeFinder().find(this.setup.getAtlas()));
         bigNodes.forEach(complexEntity -> logger.info("{}", complexEntity.toString()));
         logger.info("Total Number of big Nodes :{}", bigNodes.size());
-        Assert.assertEquals("Total Number of big Nodes (Simple + Dual Carrriage Way)", 58,
+        Assert.assertEquals("Total Number of big Nodes (Simple + Dual Carrriage Way)", 65,
                 bigNodes.size());
         final Set<BigNode> dualCarriageWayBigNodes = bigNodes.stream()
                 .filter(bigNode -> bigNode.getType().equals(Type.DUAL_CARRIAGEWAY))
@@ -245,8 +246,8 @@ public class BigNodeFinderTest extends AtlasLoadingCommand
 
         final Atlas atlas = this.setup.getOverMergeAtlas();
         logger.info("Atlas: {}", atlas);
-        final List<BigNode> bigNodes = Iterables
-                .asList(new BigNodeFinder(configurableRadius, nonJunctionEdgeTagMap).find(atlas));
+        final List<BigNode> bigNodes = Iterables.asList(
+                new BigNodeFinder(configurableRadius, nonJunctionEdgeTagMap, null).find(atlas));
         final Set<BigNode> dualCarriageWayBigNodes = bigNodes.stream()
                 .filter(bigNode -> bigNode.getType().equals(Type.DUAL_CARRIAGEWAY))
                 .collect(Collectors.toSet());
@@ -257,6 +258,29 @@ public class BigNodeFinderTest extends AtlasLoadingCommand
                 .collect(Collectors.toSet());
         Assert.assertEquals("Expect to find 4 Dual Carriageway Sub Nodes", 4,
                 dualCarriageWayNodes.size());
+    }
+
+    @Test
+    public void testNonStraightLongRoute()
+    {
+        final Atlas atlas = this.setup.getAtlas();
+        final List<Edge> edges = new ArrayList<>();
+        edges.add(atlas.edge(101102));
+        edges.add(atlas.edge(102103));
+        edges.add(atlas.edge(103104));
+        edges.add(atlas.edge(104105));
+        edges.add(atlas.edge(105106));
+        edges.add(atlas.edge(106107));
+        final Route route = Route.forEdges(edges);
+
+        final Map<String, String> configurationMap = new HashMap<>();
+        configurationMap.put(BigNodeFinder.LONG_JUNCTION_ROUTE_LENGTH_KEY, "100");
+        configurationMap.put(BigNodeFinder.NON_STRAIGHT_JUNCTION_EDGES_ANGLE_KEY, "80");
+        final BigNodeFinder finder = new BigNodeFinder(null, null, configurationMap);
+        Assert.assertTrue(finder.isStraightLongRoute(route));
+        edges.add(atlas.edge(107108));
+        final Route route2 = Route.forEdges(edges);
+        Assert.assertFalse(finder.isStraightLongRoute(route2));
     }
 
     @Test
