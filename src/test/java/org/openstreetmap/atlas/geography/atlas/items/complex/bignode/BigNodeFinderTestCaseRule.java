@@ -293,7 +293,7 @@ public class BigNodeFinderTestCaseRule extends CoreTestRule
                     @Node(id = "105", coordinates = @Loc(value = ONE_HUNDRED_AND_FIVE)),
                     @Node(id = "106", coordinates = @Loc(value = ONE_HUNDRED_AND_SIX)),
                     @Node(id = "107", coordinates = @Loc(value = ONE_HUNDRED_AND_SEVEN)),
-                    @Node(id = "108", coordinates = @Loc(value = ONE_HUNDRED_AND_EIGHT))},
+                    @Node(id = "108", coordinates = @Loc(value = ONE_HUNDRED_AND_EIGHT)) },
 
             edges = {
                     @Edge(id = "12", coordinates = { @Loc(value = ONE),
@@ -526,11 +526,9 @@ public class BigNodeFinderTestCaseRule extends CoreTestRule
                     @Edge(id = "105106", coordinates = { @Loc(value = ONE_HUNDRED_AND_FIVE),
                             @Loc(value = ONE_HUNDRED_AND_SIX) }, tags = { "highway=tertiary" }),
                     @Edge(id = "106107", coordinates = { @Loc(value = ONE_HUNDRED_AND_SIX),
-                            @Loc(value = ONE_HUNDRED_AND_SEVEN) }, tags = {
-                                    "highway=tertiary" }),
+                            @Loc(value = ONE_HUNDRED_AND_SEVEN) }, tags = { "highway=tertiary" }),
                     @Edge(id = "107108", coordinates = { @Loc(value = ONE_HUNDRED_AND_SEVEN),
-                            @Loc(value = ONE_HUNDRED_AND_EIGHT) }, tags = {
-                            "highway=tertiary" }) })
+                            @Loc(value = ONE_HUNDRED_AND_EIGHT) }, tags = { "highway=tertiary" }) })
     private Atlas atlas;
 
     @TestAtlas(

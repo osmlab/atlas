@@ -526,8 +526,8 @@ public class BigNodeFinder implements Finder<BigNode>
     {
         if (configurationMap.get(LOWEST_JUNCTION_EDGE_CANDIDATE_HIGHWAY_KEY) != null)
         {
-            this.lowestJunctionEdgeCandidateHighwayTag = HighwayTag.valueOf(configurationMap
-                    .get(LOWEST_JUNCTION_EDGE_CANDIDATE_HIGHWAY_KEY).toUpperCase());
+            this.lowestJunctionEdgeCandidateHighwayTag = HighwayTag.valueOf(
+                    configurationMap.get(LOWEST_JUNCTION_EDGE_CANDIDATE_HIGHWAY_KEY).toUpperCase());
         }
         if (configurationMap.get(LONG_JUNCTION_ROUTE_LENGTH_KEY) != null)
         {
@@ -540,7 +540,7 @@ public class BigNodeFinder implements Finder<BigNode>
                     .parseDouble(configurationMap.get(NON_STRAIGHT_JUNCTION_EDGES_ANGLE_KEY)));
         }
     }
-    
+
     /**
      * Identify {@link Edge} name matches when both {@link Edge}s have same names. When strict mode
      * parameter is set to {@code true}, both edge names must be non-empty and must match. Exact
