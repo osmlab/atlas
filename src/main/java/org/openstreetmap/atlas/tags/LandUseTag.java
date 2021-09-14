@@ -1,7 +1,11 @@
 package org.openstreetmap.atlas.tags;
 
+import java.util.Optional;
+
 import org.openstreetmap.atlas.tags.annotations.Tag;
 import org.openstreetmap.atlas.tags.annotations.TagKey;
+import org.openstreetmap.atlas.tags.annotations.validation.Validators;
+
 
 /**
  * OSM landuse tag
@@ -46,4 +50,9 @@ public enum LandUseTag
 
     @TagKey
     public static final String KEY = "landuse";
+
+    public static Optional<LandUseTag> get(final Taggable taggable)
+    {
+        return Validators.from(LandUseTag.class, taggable);
+    }
 }
