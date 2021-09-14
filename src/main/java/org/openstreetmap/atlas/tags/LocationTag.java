@@ -6,8 +6,6 @@ import org.openstreetmap.atlas.tags.annotations.Tag;
 import org.openstreetmap.atlas.tags.annotations.TagKey;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 
-
-
 /**
  * OSM location tag
  *
