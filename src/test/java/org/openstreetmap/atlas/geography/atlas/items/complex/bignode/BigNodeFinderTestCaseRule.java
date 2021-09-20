@@ -166,6 +166,20 @@ public class BigNodeFinderTestCaseRule extends CoreTestRule
     private static final String NINETY = "56.1930248, 10.2426652";
     private static final String NINETY_ONE = "56.1930801, 10.243183";
 
+    /**
+     * 13. long straight route e.g:
+     * https://www.openstreetmap.org/search?query=%2042.7764202%20-83.2392182#map=18/42.77623/-83.23883
+     */
+    private static final String ONE_HUNDRED_AND_ONE = "42.7764202, -83.2392182";
+    private static final String ONE_HUNDRED_AND_TWO = "42.7764052, -83.239217";
+    private static final String ONE_HUNDRED_AND_THREE = "42.7763731, -83.2392143";
+    private static final String ONE_HUNDRED_AND_FOUR = "42.7763412, -83.2392117 ";
+    private static final String ONE_HUNDRED_AND_FIVE = "42.7763093, -83.2392091";
+    private static final String ONE_HUNDRED_AND_SIX = "42.7721413, -83.2387795";
+    private static final String ONE_HUNDRED_AND_SEVEN = "42.7720644, -83.2387711";
+    // add one more point to break the long straight route
+    private static final String ONE_HUNDRED_AND_EIGHT = "42.7749246, -83.2392277";
+
     @TestAtlas(
 
             nodes = { @Node(id = "1", coordinates = @Loc(value = ONE)),
@@ -270,7 +284,16 @@ public class BigNodeFinderTestCaseRule extends CoreTestRule
                     @Node(id = "88", coordinates = @Loc(value = EIGHTY_EIGHT)),
                     @Node(id = "89", coordinates = @Loc(value = EIGHTY_NINE)),
                     @Node(id = "90", coordinates = @Loc(value = NINETY)),
-                    @Node(id = "91", coordinates = @Loc(value = NINETY_ONE)) },
+                    @Node(id = "91", coordinates = @Loc(value = NINETY_ONE)),
+
+                    @Node(id = "101", coordinates = @Loc(value = ONE_HUNDRED_AND_ONE)),
+                    @Node(id = "102", coordinates = @Loc(value = ONE_HUNDRED_AND_TWO)),
+                    @Node(id = "103", coordinates = @Loc(value = ONE_HUNDRED_AND_THREE)),
+                    @Node(id = "104", coordinates = @Loc(value = ONE_HUNDRED_AND_FOUR)),
+                    @Node(id = "105", coordinates = @Loc(value = ONE_HUNDRED_AND_FIVE)),
+                    @Node(id = "106", coordinates = @Loc(value = ONE_HUNDRED_AND_SIX)),
+                    @Node(id = "107", coordinates = @Loc(value = ONE_HUNDRED_AND_SEVEN)),
+                    @Node(id = "108", coordinates = @Loc(value = ONE_HUNDRED_AND_EIGHT)) },
 
             edges = {
                     @Edge(id = "12", coordinates = { @Loc(value = ONE),
@@ -490,7 +513,22 @@ public class BigNodeFinderTestCaseRule extends CoreTestRule
                             @Loc(value = NINETY_ONE) }, tags = { "highway=service", "oneway=yes" }),
                     @Edge(id = "9089", coordinates = { @Loc(value = NINETY),
                             @Loc(value = EIGHTY_NINE) }, tags = { "highway=service",
-                                    "oneway=yes" }) })
+                                    "oneway=yes" }),
+
+                    @Edge(id = "101102", coordinates = { @Loc(value = ONE_HUNDRED_AND_ONE),
+                            @Loc(value = ONE_HUNDRED_AND_TWO) }, tags = { "highway=tertiary" }),
+                    @Edge(id = "102103", coordinates = { @Loc(value = ONE_HUNDRED_AND_TWO),
+                            @Loc(value = ONE_HUNDRED_AND_THREE) }, tags = { "highway=tertiary" }),
+                    @Edge(id = "103104", coordinates = { @Loc(value = ONE_HUNDRED_AND_THREE),
+                            @Loc(value = ONE_HUNDRED_AND_FOUR) }, tags = { "highway=tertiary" }),
+                    @Edge(id = "104105", coordinates = { @Loc(value = ONE_HUNDRED_AND_FOUR),
+                            @Loc(value = ONE_HUNDRED_AND_FIVE) }, tags = { "highway=tertiary" }),
+                    @Edge(id = "105106", coordinates = { @Loc(value = ONE_HUNDRED_AND_FIVE),
+                            @Loc(value = ONE_HUNDRED_AND_SIX) }, tags = { "highway=tertiary" }),
+                    @Edge(id = "106107", coordinates = { @Loc(value = ONE_HUNDRED_AND_SIX),
+                            @Loc(value = ONE_HUNDRED_AND_SEVEN) }, tags = { "highway=tertiary" }),
+                    @Edge(id = "107108", coordinates = { @Loc(value = ONE_HUNDRED_AND_SEVEN),
+                            @Loc(value = ONE_HUNDRED_AND_EIGHT) }, tags = { "highway=tertiary" }) })
     private Atlas atlas;
 
     @TestAtlas(
