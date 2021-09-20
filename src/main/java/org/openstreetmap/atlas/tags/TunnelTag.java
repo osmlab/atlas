@@ -22,8 +22,8 @@ public enum TunnelTag
     FLOODED,
     NO;
 
-    private static final EnumSet<TunnelTag> TUNNEL_WAYS = EnumSet.of(YES, CULVERT,
-            BUILDING_PASSAGE, FLOODED);
+    private static final EnumSet<TunnelTag> TUNNEL_WAYS = EnumSet.of(YES, CULVERT, BUILDING_PASSAGE,
+            FLOODED);
 
     @TagKey
     public static final String KEY = "tunnel";
