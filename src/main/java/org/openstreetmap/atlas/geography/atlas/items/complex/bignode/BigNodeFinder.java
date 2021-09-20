@@ -369,7 +369,6 @@ public class BigNodeFinder implements Finder<BigNode>
                     junctionEdgeIds);
             logger.debug("Merged bigNode Route : {}. Number of Edges : {}", mergedCandidate,
                     mergedCandidate.size());
-            // logger.debug("Merged candidate route {}", mergedCandidate.asPolyLine().toWkt());
             if (!isStraightLongRoute(mergedCandidate))
             {
                 /*
@@ -466,6 +465,8 @@ public class BigNodeFinder implements Finder<BigNode>
     // valid junction route
     protected boolean isStraightLongRoute(final Route mergedCandidate)
     {
+        // if a junction route is merged route, it must have equal to or more than two junction
+        // edges
         if (mergedCandidate.size() < 2)
         {
             return false;
