@@ -900,14 +900,14 @@ public class RawAtlasSlicerTest
                 AtlasLoadingOption.createOptionWithAllEnabled(boundary).setCountryCode("LBR"),
                 rawAtlas).slice();
 
-        Assert.assertEquals(0, civSlicedAtlas.numberOfPoints());
+        Assert.assertEquals(1, civSlicedAtlas.numberOfPoints());
         Assert.assertEquals(3, civSlicedAtlas.numberOfAreas());
-        Assert.assertEquals(1, civSlicedAtlas.numberOfRelations());
+        Assert.assertEquals(2, civSlicedAtlas.numberOfRelations());
         final Iterable<ComplexBuilding> civBuildings = new ComplexBuildingFinder()
                 .find(civSlicedAtlas, Finder::ignore);
         Assert.assertEquals(1, Iterables.size(civBuildings));
 
-        Assert.assertEquals(0, lbrSlicedAtlas.numberOfPoints());
+        Assert.assertEquals(1, lbrSlicedAtlas.numberOfPoints());
         Assert.assertEquals(3, lbrSlicedAtlas.numberOfAreas());
         Assert.assertEquals(1, lbrSlicedAtlas.numberOfRelations());
         final Iterable<ComplexBuilding> lbrBuildings = new ComplexBuildingFinder()

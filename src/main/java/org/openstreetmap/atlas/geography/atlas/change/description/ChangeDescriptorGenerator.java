@@ -14,6 +14,7 @@ import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptorComparator;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptorName;
+import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.GeometricRelationGeometryChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.GeometryChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.LongElementChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.RelationMemberChangeDescriptor;
@@ -24,6 +25,7 @@ import org.openstreetmap.atlas.geography.atlas.complete.CompleteNode;
 import org.openstreetmap.atlas.geography.atlas.complete.CompleteRelation;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
+import org.openstreetmap.atlas.geography.atlas.items.Relation;
 
 /**
  * A helper class for generating a list of {@link ChangeDescriptor}s based on some
@@ -139,6 +141,14 @@ public final class ChangeDescriptorGenerator
          */
         if (this.afterView.getType() == ItemType.RELATION)
         {
+            final Relation beforeRelation = (Relation) this.beforeView;
+            final Relation afterRelation = (Relation) this.afterView;
+            final ChangeDescriptor descriptor = GeometricRelationGeometryChangeDescriptor
+                    .getDescriptorsForGeometricRelations(beforeRelation, afterRelation);
+            if (descriptor != null)
+            {
+                descriptors.add(descriptor);
+            }
             return descriptors;
         }
 
