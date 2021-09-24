@@ -1332,6 +1332,13 @@ public class RawAtlasSlicer
         for (final Map.Entry<String, Set<org.locationtech.jts.geom.Geometry>> entry : currentResults
                 .entrySet())
         {
+            if (entry.getValue().size() == 1 && entry.getValue().iterator()
+                    .next() instanceof org.locationtech.jts.geom.MultiPolygon)
+            {
+                results.put(entry.getKey(), (org.locationtech.jts.geom.MultiPolygon) entry
+                        .getValue().iterator().next());
+                continue;
+            }
             final Set<org.locationtech.jts.geom.Polygon> polygonClippings = new HashSet<>();
             entry.getValue().stream()
                     .filter(polygon -> polygon instanceof org.locationtech.jts.geom.Polygon)
@@ -1369,7 +1376,8 @@ public class RawAtlasSlicer
     {
         if (point.getOsmTags().isEmpty()
                 && !this.pointsBelongingToEdge.contains(point.getIdentifier()) && this.stagedPoints
-                        .get(point.getIdentifier()).getTag(SyntheticBoundaryNodeTag.KEY).isEmpty())
+                        .get(point.getIdentifier()).getTag(SyntheticBoundaryNodeTag.KEY).isEmpty()
+                && point.relations().isEmpty())
         {
             // we care about a point if and only if it has pre-existing OSM tags OR it belongs
             // to a future edge
