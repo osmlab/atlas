@@ -77,6 +77,8 @@ public final class AtlasLoadingOption implements Serializable
     private boolean loadAtlasRelation;
     private boolean loadOsmBound;
     private boolean countrySlicing;
+    /** Used to indicate that all objects should be kept */
+    private boolean keepAll;
     private boolean waySectioning;
     private boolean loadWaysSpanningCountryBoundaries;
     private String countryCode;
@@ -153,6 +155,7 @@ public final class AtlasLoadingOption implements Serializable
         this.loadAtlasRelation = true;
         this.loadOsmBound = true;
         this.countrySlicing = false;
+        this.keepAll = false;
         this.waySectioning = false;
         this.loadWaysSpanningCountryBoundaries = true;
         this.countryBoundaryMap = null;
@@ -211,6 +214,17 @@ public final class AtlasLoadingOption implements Serializable
     public boolean isCountrySlicing()
     {
         return this.countrySlicing;
+    }
+
+    /**
+     * Check to see if the atlas should not be filtered or deduplicated. This option takes
+     * precedence over all filtering options.
+     *
+     * @return {@code true} if we should not drop any items
+     */
+    public boolean isKeepAll()
+    {
+        return this.keepAll;
     }
 
     public boolean isLoadAtlasArea()
@@ -298,6 +312,19 @@ public final class AtlasLoadingOption implements Serializable
     public void setEdgeFilter(final BridgeConfiguredFilter edgeFilter)
     {
         this.edgeFilter = edgeFilter;
+    }
+
+    /**
+     * Set whether or not all objects should be kept, regardless of filters.
+     *
+     * @param isKeepAll
+     *            {@code true} to keep all objects
+     * @return {@code this}, for easy chaining
+     */
+    public AtlasLoadingOption setKeepAll(final boolean isKeepAll)
+    {
+        this.keepAll = isKeepAll;
+        return this;
     }
 
     public AtlasLoadingOption setLoadAtlasArea(final boolean isLoadAtlasArea)
