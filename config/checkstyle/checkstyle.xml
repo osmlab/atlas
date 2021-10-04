@@ -124,7 +124,10 @@
 		<module name="MutableException"/>
 		<module name="OneTopLevelClass"/>
 		<module name="ThrowsCount"/>
-		<module name="VisibilityModifier" />
+		<module name="VisibilityModifier">
+				<!-- Depending upon use, the @TempDir annotation may need to be added to the list -->
+				<property name="ignoreAnnotationCanonicalNames" value="com.google.common.annotations.VisibleForTesting,org.junit.ClassRule,org.junit.Rule,org.junit.jupiter.api.extension.RegisterExtension" />
+		</module>
 
 
 		<!-- Miscellaneous other checks. -->

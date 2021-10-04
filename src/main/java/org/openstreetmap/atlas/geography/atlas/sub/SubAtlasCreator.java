@@ -52,7 +52,7 @@ public final class SubAtlasCreator
     public static Optional<Atlas> hardCutAllEntities(final Atlas atlas,
             final GeometricSurface boundary)
     {
-        logger.debug(CUT_START_MESSAGE, AtlasCutType.HARD_CUT_ALL, atlas.getName(),
+        logger.trace(CUT_START_MESSAGE, AtlasCutType.HARD_CUT_ALL, atlas.getName(),
                 atlas.metaData());
         final Time begin = Time.now();
 
@@ -100,7 +100,7 @@ public final class SubAtlasCreator
             result.trim();
         }
 
-        logger.info(CUT_STOP_MESSAGE, AtlasCutType.HARD_CUT_ALL, atlas.getName(),
+        logger.trace(CUT_STOP_MESSAGE, AtlasCutType.HARD_CUT_ALL, atlas.getName(),
                 begin.elapsedSince());
         return Optional.ofNullable(result);
     }
@@ -108,7 +108,7 @@ public final class SubAtlasCreator
     public static Optional<Atlas> hardCutAllEntities(final Atlas atlas,
             final Predicate<AtlasEntity> matcher)
     {
-        logger.debug(CUT_START_MESSAGE, AtlasCutType.HARD_CUT_ALL, atlas.getName(),
+        logger.trace(CUT_START_MESSAGE, AtlasCutType.HARD_CUT_ALL, atlas.getName(),
                 atlas.metaData());
         final Time begin = Time.now();
 
@@ -149,7 +149,7 @@ public final class SubAtlasCreator
             result.trim();
         }
 
-        logger.info(CUT_STOP_MESSAGE, AtlasCutType.HARD_CUT_ALL, atlas.getName(),
+        logger.trace(CUT_STOP_MESSAGE, AtlasCutType.HARD_CUT_ALL, atlas.getName(),
                 begin.elapsedSince());
         return Optional.ofNullable(result);
     }
@@ -157,7 +157,7 @@ public final class SubAtlasCreator
     public static Optional<Atlas> hardCutRelationsOnly(final Atlas atlas,
             final Predicate<AtlasEntity> matcher)
     {
-        logger.debug(CUT_START_MESSAGE, AtlasCutType.HARD_CUT_RELATIONS_ONLY, atlas.getName(),
+        logger.trace(CUT_START_MESSAGE, AtlasCutType.HARD_CUT_RELATIONS_ONLY, atlas.getName(),
                 atlas.metaData());
         final Time begin = Time.now();
 
@@ -188,7 +188,7 @@ public final class SubAtlasCreator
             result.trim();
         }
 
-        logger.info(CUT_STOP_MESSAGE, AtlasCutType.HARD_CUT_RELATIONS_ONLY, atlas.getName(),
+        logger.trace(CUT_STOP_MESSAGE, AtlasCutType.HARD_CUT_RELATIONS_ONLY, atlas.getName(),
                 begin.elapsedSince());
         return Optional.ofNullable(result);
     }
@@ -253,7 +253,8 @@ public final class SubAtlasCreator
             result.trim();
         }
 
-        logger.info(CUT_STOP_MESSAGE, AtlasCutType.SILK_CUT, atlas.getName(), begin.elapsedSince());
+        logger.trace(CUT_STOP_MESSAGE, AtlasCutType.SILK_CUT, atlas.getName(),
+                begin.elapsedSince());
         return Optional.ofNullable(result);
     }
 
@@ -266,7 +267,7 @@ public final class SubAtlasCreator
      */
     public static Optional<Atlas> silkCut(final Atlas atlas, final Predicate<AtlasEntity> matcher)
     {
-        logger.debug(CUT_START_MESSAGE, AtlasCutType.SOFT_CUT, atlas.getName(), atlas.metaData());
+        logger.trace(CUT_START_MESSAGE, AtlasCutType.SOFT_CUT, atlas.getName(), atlas.metaData());
         final Time begin = Time.now();
 
         // Using a predicate here can create wild changes in entity counts. For example a predicate
@@ -310,14 +311,15 @@ public final class SubAtlasCreator
             result.trim();
         }
 
-        logger.info(CUT_STOP_MESSAGE, AtlasCutType.SOFT_CUT, atlas.getName(), begin.elapsedSince());
+        logger.trace(CUT_STOP_MESSAGE, AtlasCutType.SOFT_CUT, atlas.getName(),
+                begin.elapsedSince());
         return Optional.ofNullable(result);
     }
 
     public static Optional<Atlas> softCut(final Atlas atlas, final GeometricSurface boundary,
             final boolean hardCutRelations)
     {
-        logger.debug(CUT_START_MESSAGE,
+        logger.trace(CUT_START_MESSAGE,
                 !hardCutRelations ? AtlasCutType.SOFT_CUT : AtlasCutType.HARD_CUT_RELATIONS_ONLY,
                 atlas.getName(), atlas.metaData());
         final Time begin = Time.now();
@@ -406,7 +408,7 @@ public final class SubAtlasCreator
             result.trim();
         }
 
-        logger.info(CUT_STOP_MESSAGE,
+        logger.trace(CUT_STOP_MESSAGE,
                 !hardCutRelations ? AtlasCutType.SOFT_CUT : AtlasCutType.HARD_CUT_RELATIONS_ONLY,
                 atlas.getName(), begin.elapsedSince());
         return Optional.ofNullable(result);
@@ -421,7 +423,7 @@ public final class SubAtlasCreator
      */
     public static Optional<Atlas> softCut(final Atlas atlas, final Predicate<AtlasEntity> matcher)
     {
-        logger.debug(CUT_START_MESSAGE, AtlasCutType.SOFT_CUT, atlas.getName(), atlas.metaData());
+        logger.trace(CUT_START_MESSAGE, AtlasCutType.SOFT_CUT, atlas.getName(), atlas.metaData());
         final Time begin = Time.now();
 
         // Using a predicate here can create wild changes in entity counts. For example a predicate
@@ -464,7 +466,8 @@ public final class SubAtlasCreator
             result.trim();
         }
 
-        logger.info(CUT_STOP_MESSAGE, AtlasCutType.SOFT_CUT, atlas.getName(), begin.elapsedSince());
+        logger.trace(CUT_STOP_MESSAGE, AtlasCutType.SOFT_CUT, atlas.getName(),
+                begin.elapsedSince());
         return Optional.ofNullable(result);
     }
 
