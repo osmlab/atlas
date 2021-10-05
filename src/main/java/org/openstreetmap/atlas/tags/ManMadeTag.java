@@ -64,8 +64,14 @@ public enum ManMadeTag
     @TagKey
     public static final String KEY = "man_made";
 
+    public static boolean isBridge(final Taggable taggable)
+    {
+        return Validators.isOfType(taggable, ManMadeTag.class, BRIDGE);
+    }
+
     public static boolean isPier(final Taggable taggable)
     {
         return Validators.isOfType(taggable, ManMadeTag.class, PIER);
     }
+
 }
