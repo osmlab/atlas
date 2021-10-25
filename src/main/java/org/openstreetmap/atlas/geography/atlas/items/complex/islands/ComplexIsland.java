@@ -1,5 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas.items.complex.islands;
 
+import java.util.Optional;
+
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.MultiPolygon;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
@@ -7,6 +9,7 @@ import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.complex.ComplexEntity;
 import org.openstreetmap.atlas.geography.atlas.items.complex.RelationOrAreaToMultiPolygonConverter;
+import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.tags.RelationTypeTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +26,7 @@ public class ComplexIsland extends ComplexEntity
     private static final long serialVersionUID = 7840944233946510730L;
 
     private static final RelationOrAreaToMultiPolygonConverter RELATION_OR_AREA_TO_MULTI_POLYGON_CONVERTER = new RelationOrAreaToMultiPolygonConverter();
+    private static final JtsMultiPolygonToMultiPolygonConverter MULTIPOLYGON_CONVERTER = new JtsMultiPolygonToMultiPolygonConverter();
 
     private static final Logger logger = LoggerFactory.getLogger(ComplexIsland.class);
 
@@ -60,9 +64,10 @@ public class ComplexIsland extends ComplexEntity
         {
             final Relation relation = (Relation) source;
             final String type = relation.tag(RelationTypeTag.KEY);
-            if (RelationTypeTag.MULTIPOLYGON_TYPE.equals(type))
+            final Optional<org.locationtech.jts.geom.MultiPolygon> geom = relation.asMultiPolygon();
+            if (RelationTypeTag.MULTIPOLYGON_TYPE.equals(type) && geom.isPresent())
             {
-                this.multiPolygon = RELATION_OR_AREA_TO_MULTI_POLYGON_CONVERTER.convert(relation);
+                this.multiPolygon = MULTIPOLYGON_CONVERTER.convert(geom.get());
                 return;
             }
         }
