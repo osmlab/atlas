@@ -22,7 +22,7 @@ public class ComplexIslandFinderTestRule extends CoreTestRule
             @TestAtlas.Loc(value = FOUR) }) }, relations = {
                     @TestAtlas.Relation(id = RELATION_ID_STRING_ONE, tags = { "type=multipolygon",
                             "place=islet" }, members = {
-                                    @TestAtlas.Relation.Member(id = ISLAND_ID_STRING, type = "area", role = "outer") }) })
+                                    @TestAtlas.Relation.Member(id = ISLAND_ID_STRING, type = "area", role = "outer") }, wkt = "MULTIPOLYGON (((-80.0000003 40.0000001, -80.0000001 40.0000001, -80.0000001 40.0000003, -80.0000003 40.0000003, -80.0000003 40.0000001)))") })
     private Atlas atlasWithValidIsletRelation;
 
     @TestAtlas(areas = { @TestAtlas.Area(id = ISLAND_ID_STRING, coordinates = {
