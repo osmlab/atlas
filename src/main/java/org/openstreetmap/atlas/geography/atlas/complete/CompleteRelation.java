@@ -310,8 +310,7 @@ public class CompleteRelation extends Relation implements CompleteEntity<Complet
     {
         return this.bounds != null && this.tags != null && this.members != null
                 && this.allRelationsWithSameOsmIdentifier != null && this.allKnownOsmMembers != null
-                && this.osmRelationIdentifier != null && this.relationIdentifiers != null
-                && (!this.isGeometric() || this.storedGeometry != null);
+                && this.osmRelationIdentifier != null && this.relationIdentifiers != null;
     }
 
     @Override

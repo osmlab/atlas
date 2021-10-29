@@ -72,6 +72,10 @@ dependencies
     compile packages.jim_fs
 
     testCompile packages.checkstyle_tests
+    testCompile packages.junit.api
+    testCompile packages.junit.engine
+    testCompile packages.junit.params
+    testCompile packages.junit.vintage
 
     checkstyle packages.checkstyle
     checkstyle packages.atlas_checkstyle

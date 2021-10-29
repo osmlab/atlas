@@ -1,11 +1,13 @@
 package org.openstreetmap.atlas.geography.atlas.change;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.locationtech.jts.geom.MultiPolygon;
 import org.openstreetmap.atlas.exception.change.FeatureChangeMergeException;
 import org.openstreetmap.atlas.exception.change.MergeFailureType;
 import org.openstreetmap.atlas.geography.Location;
@@ -28,6 +30,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
+import org.openstreetmap.atlas.geography.converters.jts.JtsMultiPolygonToMultiPolygonConverter;
 import org.openstreetmap.atlas.utilities.collections.Maps;
 import org.openstreetmap.atlas.utilities.collections.Sets;
 import org.slf4j.Logger;
@@ -1021,6 +1024,9 @@ public class FeatureChangeMergerTest
                 Arrays.asList(10L, 11L, 12L), beforeAllKnownOsmBean, 123456L,
                 Sets.hashSet(1L, 2L, 3L));
 
+        final MultiPolygon multipolygon = new JtsMultiPolygonToMultiPolygonConverter()
+                .backwardConvert(org.openstreetmap.atlas.geography.MultiPolygon.TEST_MULTI_POLYGON);
+
         final RelationBean afterMemberBean1 = new RelationBean();
         afterMemberBean1.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
         afterMemberBean1.addItem(new RelationBeanItem(2L, "areaRole2", ItemType.AREA));
@@ -1035,7 +1041,7 @@ public class FeatureChangeMergerTest
                 new CompleteRelation(123L, Maps.hashMap("a", "1", "b", "2", "c", "3"),
                         Rectangle.TEST_RECTANGLE, afterMemberBean1,
                         Arrays.asList(10L, 11L, 12L, 13L), afterAllKnownOsmBean1, 123456L,
-                        Sets.hashSet(1L, 2L, 3L, 4L)),
+                        Sets.hashSet(1L, 2L, 3L, 4L)).withMultiPolygonGeometry(multipolygon),
                 beforeRelation);
 
         final RelationBean afterMemberBean2 = new RelationBean();
@@ -1051,15 +1057,20 @@ public class FeatureChangeMergerTest
         final FeatureChange featureChange2 = new FeatureChange(ChangeType.ADD,
                 new CompleteRelation(123L, Maps.hashMap("b", "100"), Rectangle.TEST_RECTANGLE_2,
                         afterMemberBean2, Arrays.asList(11L, 12L), afterAllKnownOsmBean2, 1234567L,
-                        Sets.hashSet(2L, 3L)),
+                        Sets.hashSet(2L, 3L)).withMultiPolygonGeometry(multipolygon),
                 beforeRelation);
 
         final FeatureChange merged = featureChange1.merge(featureChange2);
         /*
          * Check that all the relation fields merged correctly.
          */
+        final Optional<MultiPolygon> mergedGeometry = ((Relation) merged.getAfterView())
+                .asMultiPolygon();
         Assert.assertEquals(Maps.hashMap("b", "100", "c", "3"),
                 ((Relation) merged.getAfterView()).getTags());
+        Assert.assertTrue(mergedGeometry.isPresent());
+        Assert.assertFalse(mergedGeometry.get().isEmpty());
+        Assert.assertEquals(multipolygon, mergedGeometry.get());
 
         final RelationBean goldenMergedMemberBean = new RelationBean();
         goldenMergedMemberBean.addItem(new RelationBeanItem(1L, "areaRole1", ItemType.AREA));
@@ -1068,10 +1079,6 @@ public class FeatureChangeMergerTest
         goldenMergedMemberBean.addItem(new RelationBeanItem(3L, "pointRole3", ItemType.POINT));
         Assert.assertEquals(goldenMergedMemberBean,
                 ((Relation) merged.getAfterView()).members().asBean());
-
-        Assert.assertEquals(
-                Rectangle.forLocated(Rectangle.TEST_RECTANGLE, Rectangle.TEST_RECTANGLE_2),
-                ((Relation) merged.getAfterView()).bounds());
 
         final RelationBean goldenMergedOsmBean = new RelationBean();
         goldenMergedOsmBean.addItem(new RelationBeanItem(2L, "lineRole2", ItemType.LINE));

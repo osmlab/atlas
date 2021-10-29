@@ -4,11 +4,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import org.locationtech.jts.geom.MultiPolygon;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
@@ -837,6 +839,44 @@ public final class FeatureChangeMergingHelpers
                 mergedParentRelationsBean.getMergedAfterMember());
         mergedAfterRelation.withBoundsExtendedBy(afterEntityLeft.bounds());
         mergedAfterRelation.withBoundsExtendedBy(afterEntityRight.bounds());
+
+        if (((CompleteRelation) afterEntityLeft).isOverrideGeometry())
+        {
+            final Optional<MultiPolygon> leftGeom = ((CompleteRelation) afterEntityLeft)
+                    .asMultiPolygon();
+            if (((CompleteRelation) afterEntityRight).isOverrideGeometry())
+            {
+                final Optional<MultiPolygon> rightGeom = ((CompleteRelation) afterEntityRight)
+                        .asMultiPolygon();
+                if (leftGeom.isPresent() && rightGeom.isPresent()
+                        && leftGeom.get().equalsNorm(rightGeom.get()))
+                {
+                    mergedAfterRelation.withMultiPolygonGeometry(rightGeom.get());
+                }
+                else
+                {
+                    throw new CoreException(
+                            "Problem merging relation override geometries for relation {}!",
+                            mergedAfterRelation.getIdentifier());
+                }
+            }
+            else
+            {
+                if (leftGeom.isPresent())
+                {
+                    mergedAfterRelation.withMultiPolygonGeometry(leftGeom.get());
+                }
+            }
+        }
+        else if (((CompleteRelation) afterEntityRight).isOverrideGeometry())
+        {
+            final Optional<MultiPolygon> rightGeom = ((CompleteRelation) afterEntityRight)
+                    .asMultiPolygon();
+            if (rightGeom.isPresent())
+            {
+                mergedAfterRelation.withMultiPolygonGeometry(rightGeom.get());
+            }
+        }
 
         mergedAfterRelation.getRemovedGeometry()
                 .addAll(((CompleteRelation) afterEntityLeft).getRemovedGeometry());

@@ -20,7 +20,8 @@ import com.google.common.collect.Table;
 
 /**
  * Any JUnit rules that subclass from CoreTestRule can have their values set through annotation
- * instead of direct manipulation.
+ * instead of direct manipulation. <br >
+ * If JUnit 5 support is desired, see {@code CoreTestExtension} (only available in test code).
  *
  * @author cstaylor
  */

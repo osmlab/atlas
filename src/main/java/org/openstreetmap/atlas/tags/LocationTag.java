@@ -1,7 +1,10 @@
 package org.openstreetmap.atlas.tags;
 
+import java.util.Optional;
+
 import org.openstreetmap.atlas.tags.annotations.Tag;
 import org.openstreetmap.atlas.tags.annotations.TagKey;
+import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 
 /**
  * OSM location tag
@@ -24,4 +27,9 @@ public enum LocationTag
 
     @TagKey
     public static final String KEY = "location";
+
+    public static Optional<LocationTag> get(final Taggable taggable)
+    {
+        return Validators.from(LocationTag.class, taggable);
+    }
 }

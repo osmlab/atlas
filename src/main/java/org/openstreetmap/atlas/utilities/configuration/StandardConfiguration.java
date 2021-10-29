@@ -259,7 +259,7 @@ public class StandardConfiguration implements Configuration
     @SuppressWarnings("unchecked")
     private Optional<Map<String, Object>> readConfigurationMapFromJSON(final byte[] readBytes)
     {
-        logger.info("Attempting to load configuration as JSON");
+        logger.trace("Attempting to load configuration as JSON");
         try (ByteArrayInputStream read = new ByteArrayInputStream(readBytes))
         {
             final ObjectMapper objectMapper = new ObjectMapper();
@@ -268,12 +268,12 @@ public class StandardConfiguration implements Configuration
             objectMapper.registerModule(simpleModule);
             final JsonParser parser = new JsonFactory().createParser(read);
             final Map<String, Object> readConfig = objectMapper.readValue(parser, Map.class);
-            logger.info("Success! Loaded JSON configuration");
+            logger.trace("Success! Loaded JSON configuration");
             return Optional.of(readConfig);
         }
         catch (final Exception jsonReadException)
         {
-            logger.warn("Unable to parse config file as JSON");
+            logger.error("Unable to parse config file as JSON");
             return Optional.empty();
         }
     }
@@ -291,12 +291,12 @@ public class StandardConfiguration implements Configuration
             objectMapper.registerModule(simpleModule);
             final YAMLParser parser = new YAMLFactory().createParser(read);
             final Map<String, Object> readConfig = objectMapper.readValue(parser, Map.class);
-            logger.info("Success! Loaded YAML configuration.");
+            logger.trace("Success! Loaded YAML configuration.");
             return Optional.of(readConfig);
         }
         catch (final Exception yamlReadException)
         {
-            logger.warn("Unable to parse config file as YAML");
+            logger.error("Unable to parse config file as YAML");
             return Optional.empty();
         }
         finally
