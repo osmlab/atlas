@@ -35,6 +35,8 @@ public final class AtlasMetaData
     public static final String OSM_PBF_WAY_CONFIGURATION = "osmPbfWayConfiguration";
     public static final String OSM_PBF_NODE_CONFIGURATION = "osmPbfNodeConfiguration";
     public static final String OSM_PBF_RELATION_CONFIGURATION = "osmPbfRelationConfiguration";
+    /** Set to "true" if -keepAll was passed on the command line */
+    public static final String KEEP_ALL_CONFIGURATION = "keepAll";
     private static final long serialVersionUID = -285346019736489425L;
     private static final String UNKNOWN_VALUE = "unknown";
 
@@ -86,6 +88,19 @@ public final class AtlasMetaData
     {
         return new AtlasMetaData(size, this.original, this.codeVersion, this.dataVersion,
                 this.country, this.shardName, this.tags);
+    }
+
+    /**
+     * Copy this metadata with new tags
+     *
+     * @param tags
+     *            The tags to copy
+     * @return The new AtlasMetaData to use
+     */
+    public AtlasMetaData copyWithNewTags(final Map<String, String> tags)
+    {
+        return new AtlasMetaData(this.size, this.original, this.codeVersion, this.dataVersion,
+                this.country, this.shardName, tags);
     }
 
     @Override

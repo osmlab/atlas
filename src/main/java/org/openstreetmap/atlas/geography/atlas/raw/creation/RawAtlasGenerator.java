@@ -362,15 +362,29 @@ public class RawAtlasGenerator
     /**
      * Populates the {@link AtlasMetaData} used to build the raw {@link Atlas}. Specifically,
      * records any {@link Node}, {@link Way} and {@link Relation} filtering that may have been used.
+     * This may also populate other options that were passed in the {@link AtlasLoadingOption}
+     * parameter at construction.
      */
     private void populateAtlasMetadata()
     {
-        this.metaData.getTags().put(AtlasMetaData.OSM_PBF_NODE_CONFIGURATION,
+        // AtlasMetaData returns a new HashMap with every getTags() call.
+        // We therefore want to operate on a "copy" of the original tags,
+        // and create a new metadata object.
+        final Map<String, String> originalTags = this.metaData.getTags();
+        originalTags.put(AtlasMetaData.OSM_PBF_NODE_CONFIGURATION,
                 this.atlasLoadingOption.getOsmPbfNodeFilter().toString());
-        this.metaData.getTags().put(AtlasMetaData.OSM_PBF_WAY_CONFIGURATION,
+        originalTags.put(AtlasMetaData.OSM_PBF_WAY_CONFIGURATION,
                 this.atlasLoadingOption.getOsmPbfWayFilter().toString());
-        this.metaData.getTags().put(AtlasMetaData.OSM_PBF_RELATION_CONFIGURATION,
+        originalTags.put(AtlasMetaData.OSM_PBF_RELATION_CONFIGURATION,
                 this.atlasLoadingOption.getOsmPbfRelationFilter().toString());
+        originalTags.put(AtlasMetaData.KEEP_ALL_CONFIGURATION,
+                Boolean.toString(this.atlasLoadingOption.isKeepAll()));
+        // While AtlasMetaData returns a new map by default, this accounts for the possibility that
+        // it may change in the future.
+        if (!originalTags.equals(this.metaData.getTags()))
+        {
+            this.metaData = this.metaData.copyWithNewTags(originalTags);
+        }
         this.builder.setMetaData(this.metaData);
     }
 
