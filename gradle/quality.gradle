@@ -67,8 +67,8 @@ configurations
 
 dependencies
 {
-    testCompile packages.slf4j.log4j12
-    testCompile packages.log4j
+    testCompile packages.log4j.slf4j
+    testCompile packages.log4j.api
     // Support Junit 5 tests
     testImplementation packages.junit.api
     testRuntimeOnly packages.junit.engine
