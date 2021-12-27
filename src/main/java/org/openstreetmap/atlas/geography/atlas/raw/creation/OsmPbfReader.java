@@ -128,6 +128,16 @@ public class OsmPbfReader implements Sink
     }
 
     @Override
+    public void close()
+    {
+        // We've processed all Nodes, Ways and shallow Relations to this point. Now, we need to
+        // handle Relations that contain Relation members properly.
+        this.processStagedRelations();
+        this.statistics.summary();
+        logger.info("Released OSM PBF Reader");
+    }
+
+    @Override
     public void complete()
     {
         // No-op
@@ -172,16 +182,6 @@ public class OsmPbfReader implements Sink
             logger.trace("Filtering out OSM {} {} from Raw Atlas", rawEntity.getType(),
                     rawEntity.getId());
         }
-    }
-
-    @Override
-    public void release()
-    {
-        // We've processed all Nodes, Ways and shallow Relations to this point. Now, we need to
-        // handle Relations that contain Relation members properly.
-        processStagedRelations();
-        this.statistics.summary();
-        logger.info("Released OSM PBF Reader");
     }
 
     /**
@@ -493,7 +493,7 @@ public class OsmPbfReader implements Sink
      * Tries to create an Atlas {@link org.openstreetmap.atlas.geography.atlas.items.Relation}. If
      * the {@link Entity} contains a member that's also a relation and that member hasn't been
      * processed yet, then we add the given {@link Relation} to a Collection of staged relations to
-     * process later (see {@link #release()} method). Otherwise, we add it.
+     * process later (see {@link #close()} method). Otherwise, we add it.
      *
      * @param entity
      *            The {@link Entity} that will become an Atlas
