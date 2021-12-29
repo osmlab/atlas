@@ -1,7 +1,11 @@
 package org.openstreetmap.atlas.geography.geojson.parser.impl.jackson;
 
+import java.io.Serializable;
+
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.openstreetmap.atlas.geography.atlas.complete.CompleteEdge;
 import org.openstreetmap.atlas.geography.geojson.parser.GeoJsonParser;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.properties.ext.change.Description;
 import org.openstreetmap.atlas.geography.geojson.parser.domain.properties.ext.change.Descriptor;
@@ -135,6 +139,10 @@ public class GeoJsonParserJacksonImplExtensionsTest extends AbstractGeoJsonParse
         Assert.assertFalse(featureChangeProperties.getBboxWKT().isEmpty());
     }
 
+    /**
+     * Ensure that an exception is thrown when a class that requires arguments on instantiation is
+     * given as an argument
+     */
     @Test
     public void featureChangePropertiesBad1()
     {
@@ -142,22 +150,18 @@ public class GeoJsonParserJacksonImplExtensionsTest extends AbstractGeoJsonParse
 
         final GeoJsonParser geoJsonParser = GeoJsonParserJacksonImpl.INSTANCE;
 
-        try
-        {
-            final FeatureChangeProperties featureChangeProperties = geoJsonParser
-                    .deserializeExtension(json, FeatureChangeProperties.class);
-        }
-        catch (final Exception e)
-        {
-            final String message1 = e.getCause().getMessage();
-            Assert.assertTrue(message1.startsWith("Population failed. propertyDescriptor name"));
-            final String message2 = e.getCause().getCause().getCause().getMessage();
-            Assert.assertEquals("Can not call newInstance() on the Class for java.lang.Class",
-                    message2);
-            return;
-        }
+        final Exception exception = Assertions.assertThrows(Exception.class,
+                () -> geoJsonParser.deserializeExtension(json,
+                        TestClassWithFieldRequiringInstantiation.class),
+                "field name `completeEdge` should have caused a failure.");
 
-        Assert.fail("field name `class` should have caused a failure.");
+        final String message1 = exception.getCause().getMessage();
+        Assertions.assertTrue(message1.startsWith("Population failed. propertyDescriptor name"),
+                message1);
+        final String message2 = exception.getCause().getCause().getCause().getMessage();
+        Assertions.assertEquals(NoSuchMethodException.class,
+                exception.getCause().getCause().getCause().getClass());
+        Assertions.assertEquals("java.lang.Class.<init>()", message2);
     }
 
     @Test
@@ -200,5 +204,23 @@ public class GeoJsonParserJacksonImplExtensionsTest extends AbstractGeoJsonParse
         Assert.assertEquals(402306209000000L, (long) descriptor.getId());
         Assert.assertEquals("NODE", descriptor.getItemType());
         Assert.assertEquals("via", descriptor.getRole());
+    }
+
+    /**
+     * Used exclusively for {@link #featureChangePropertiesBad1()}
+     */
+    public static final class TestClassWithFieldRequiringInstantiation implements Serializable
+    {
+        private Class<CompleteEdge> completeEdgeClass;
+
+        public TestClassWithFieldRequiringInstantiation()
+        {
+            // Do nothing -- our mapper expects the constructor to be public
+        }
+
+        public Class<CompleteEdge> getCompleteEdgeClass()
+        {
+            return this.completeEdgeClass;
+        }
     }
 }
