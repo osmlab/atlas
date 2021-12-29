@@ -5,7 +5,6 @@ plugins {
     id 'jacoco'
     id 'java'
     id 'java-library'
-    id 'maven'
     id 'maven-publish'
     id 'signing'
     id 'com.diffplug.spotless' version '6.1.2'
@@ -61,9 +60,9 @@ dependencies
     implementation packages.gson
     api            packages.guava
     api            packages.http
-    implementation packages.jackson.core
-    implementation packages.jackson.databind
-    implementation packages.jackson.dataformat
+    api            packages.jackson.core
+    api            packages.jackson.databind
+    api            packages.jackson.dataformat
     api            packages.jim_fs
     implementation packages.jsonassert
     api            packages.jts
@@ -147,4 +146,20 @@ idea {
     project {
         languageLevel = '1.8'
     }
+}
+
+/*
+ * Workaround Gradle not liking duplicate files
+ * I suspect that it is due to fake duplicates.
+ * For more information, see https://github.com/gradle/gradle/issues/17236
+ * (AKA, remove this when that issue is fixed)
+ *
+ * Note: It may be useful to disable this from time to time on Gradle update
+ *       to see if either it is fixed or if there is better debugging
+ *       information available.
+ */
+tasks.each {
+  task -> if (task.hasProperty("duplicatesStrategy")) {
+    task.setProperty("duplicatesStrategy", "EXCLUDE")
+  }
 }
