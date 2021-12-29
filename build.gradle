@@ -83,8 +83,8 @@ dependencies
     testCompile packages.junit.params
     testCompile packages.junit.vintage
 
+    checkstyle files("build/libs/${project.name}-${project.version}.jar")
     checkstyle packages.checkstyle
-    checkstyle packages.atlas_checkstyle
 
     shaded project.configurations.getByName('compile')
     shaded packages.log4j.api

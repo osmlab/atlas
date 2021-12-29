@@ -176,6 +176,10 @@ class DynamicAtlasExpander
      * @param mapper
      *            What to do with the result. This is to replace the regular items with
      *            DynamicItems.
+     * @param <T>
+     *            The object type the returned iterable will return
+     * @param <V>
+     *            The original entity type
      * @return The {@link Iterable} of DynamicItems
      */
     <V extends AtlasEntity, T> Iterable<T> expand(final Supplier<Iterable<V>> entitiesSupplier,

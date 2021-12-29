@@ -8,10 +8,7 @@
 	<module name="TreeWalker">
 		<!-- Checks for Javadoc comments. -->
 		<module name="JavadocMethod">
-			<property name="scope" value="protected" />
-			<property name="excludeScope" value="private" />
-			<property name="allowMissingJavadoc" value="true" />
-			<property name="allowUndeclaredRTE" value="true" />
+			<property name="accessModifiers" value="public, protected, package" />
 		</module>
 		<module name="JavadocType">
 			<property name="authorFormat" value="\S" />
@@ -43,7 +40,18 @@
 
 		<!-- Checks for imports -->
 		<module name="AvoidStarImport" />
-		<module name="CustomImportOrder" />
+		<!-- Spotless allows for more groups than CustomImportOrder.
+		Spotless: importOrder 'static java', 'static javax', 'static org', 'static com', 'static scala', 'java', 'javax', 'org', 'com', 'scala'
+		This enforces blank lines between `import java.*`, `import javax.*`, `import org*`, etc. CustomImportOrder only enforces spaces between groups,
+		and expects no spaces between packages of the same group.
+		<module name="CustomImportOrder">
+			<property name="customImportOrderRules" value="STATIC###STANDARD_JAVA_PACKAGE###SPECIAL_IMPORTS###THIRD_PARTY_PACKAGE"/>
+			<property name="separateLineBetweenGroups" value="true"/>
+			<property name="sortImportsInGroupAlphabetically" value="true"/>
+			<property name="specialImportsRegExp" value="^org\."/>
+			<property name="thirdPartyPackageRegExp" value="^com\."/>
+		</module>
+		-->
 		<module name="IllegalImport" />
 		<module name="ImportOrder">
 			<property name="groups" value="java,javax,org,com,*"/>
