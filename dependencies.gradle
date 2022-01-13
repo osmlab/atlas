@@ -4,7 +4,7 @@ project.ext.versions = [
     junit5: '5.8.1',
     jacoco: '0.8.3',
     slf4j: '1.7.12',
-    log4j: '1.2.17',
+    log4j: '1.2.17-norce',
     opencsv: '2.3',
     gson: '2.2.4',
     http: '4.5.1',
