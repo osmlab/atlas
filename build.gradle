@@ -26,7 +26,13 @@ targetCompatibility=11
 repositories
 {
     // For geotools
-    maven { url "http://repo.osgeo.org/repository/release/" }
+    maven {
+      url "https://repo.osgeo.org/repository/release/"
+      content {
+        // osgeo removed the jar and added a -norce version
+        excludeVersion("log4j", "log4j", "1.2.17")
+      }
+    }
     mavenCentral()
 }
 
