@@ -28,6 +28,16 @@ public class ComplexAreaOfInterestFinderTest
     }
 
     @Test
+    public void testBuildingAOIRelation()
+    {
+        final Atlas atlas = this.rule.getBuildingAOIRelationAtlas();
+        final ComplexAreaOfInterestFinder aoiRelationFinder = new ComplexAreaOfInterestFinder();
+        final Iterable<ComplexAreaOfInterest> complexAOIRelations = aoiRelationFinder.find(atlas);
+        Assert.assertEquals(1,
+                StreamSupport.stream(complexAOIRelations.spliterator(), false).count());
+    }
+
+    @Test
     public void testComplexAOIWithCustomFilter()
     {
         final Atlas atlas = this.rule.getComplexAOIWithRelationsAndAreas();
