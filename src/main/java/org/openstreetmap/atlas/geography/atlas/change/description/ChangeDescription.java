@@ -574,7 +574,7 @@ public class ChangeDescription
         {
             final Optional<String> lastEditVersion = Optional
                     .ofNullable(tagsToUse.get("last_edit_version"));
-            lastEditVersion.ifPresent(s -> information.addProperty(VERSION, Long.parseLong(s) + 1));
+            lastEditVersion.ifPresent(s -> information.addProperty(VERSION, Long.parseLong(s)));
         }
         // Add the tags (OSC files are idempotent, in that they require <i>all</i> information for
         // an object)

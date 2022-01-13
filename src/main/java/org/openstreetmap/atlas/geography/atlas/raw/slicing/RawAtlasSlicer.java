@@ -279,10 +279,14 @@ public class RawAtlasSlicer
             {
                 // Override meta-data here so the country code is properly included.
                 final AtlasMetaData metaData = super.metaData();
+                final var originalTags = metaData.getTags();
+                // Remove the country shards to keep old behavior where they were dropped, but keep
+                // other tags
+                originalTags.remove("countryShards");
                 return new AtlasMetaData(metaData.getSize(), false,
                         metaData.getCodeVersion().orElse(null),
                         metaData.getDataVersion().orElse(null), RawAtlasSlicer.this.country,
-                        RawAtlasSlicer.this.shardOrAtlasName, new HashMap<>());
+                        RawAtlasSlicer.this.shardOrAtlasName, originalTags);
             }
         };
     }
