@@ -26,7 +26,13 @@ targetCompatibility=11
 repositories
 {
     // For geotools
-    maven { url "http://repo.osgeo.org/repository/release/" }
+    maven {
+      url "https://repo.osgeo.org/repository/release/"
+      content {
+        // osgeo removed the jar and added a -norce version
+        excludeVersion("log4j", "log4j", "1.2.17")
+      }
+    }
     mavenCentral()
 }
 
@@ -81,8 +87,8 @@ dependencies
     checkstyle packages.atlas_checkstyle
 
     shaded project.configurations.getByName('compile')
-    shaded packages.slf4j.log4j12
-    shaded packages.log4j
+    shaded packages.log4j.api
+    shaded packages.log4j.slf4j
 
 }
 
