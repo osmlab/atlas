@@ -1,6 +1,7 @@
 package org.openstreetmap.atlas.geography.atlas;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -15,6 +16,7 @@ import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
+import org.openstreetmap.atlas.geography.Snapper;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
@@ -28,6 +30,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.SnappedEdge;
+import org.openstreetmap.atlas.geography.atlas.items.SnappedLineItem;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
 import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
@@ -949,6 +952,27 @@ public interface Atlas
      *         candidates.
      */
     List<SnappedEdge> snaps(Location point, Distance threshold);
+
+    /**
+     * @param point
+     *            A {@link Location} to snap
+     * @param threshold
+     *            A {@link Distance} threshold to look for edges around the {@link Location}
+     * @return A sorted {@link List} of all the candidate snaps. The list is empty if there are no
+     *         candidates.
+     */
+    default List<SnappedLineItem> snapsLineItem(final Location point, final Distance threshold)
+    {
+        final List<SnappedLineItem> snaps = new ArrayList<>();
+        for (final LineItem lineItem : this.lineItemsIntersecting(point.boxAround(threshold)))
+        {
+            final SnappedLineItem candidate = new SnappedLineItem(
+                    point.snapTo(lineItem.asPolyLine()), lineItem);
+            snaps.add(candidate);
+        }
+        snaps.sort(Snapper.SnappedLocation::compareTo);
+        return snaps;
+    }
 
     /**
      * Return a sub-atlas from this Atlas.
