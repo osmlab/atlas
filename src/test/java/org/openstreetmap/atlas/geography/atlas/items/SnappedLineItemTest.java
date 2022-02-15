@@ -8,7 +8,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
-import org.openstreetmap.atlas.geography.atlas.dynamic.rules.DynamicAtlasTestRule;
 import org.openstreetmap.atlas.utilities.scalars.Distance;
 
 /**
@@ -17,7 +16,7 @@ import org.openstreetmap.atlas.utilities.scalars.Distance;
 public class SnappedLineItemTest
 {
     @Rule
-    public final DynamicAtlasTestRule rule = new DynamicAtlasTestRule();
+    public final SnappedLineItemTestRule rule = new SnappedLineItemTestRule();
 
     @Test
     public void testEquals()

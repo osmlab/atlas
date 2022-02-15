@@ -20,6 +20,7 @@ import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.PolyLine;
 import org.openstreetmap.atlas.geography.Polygon;
+import org.openstreetmap.atlas.geography.Snapper;
 import org.openstreetmap.atlas.geography.Snapper.SnappedLocation;
 import org.openstreetmap.atlas.geography.atlas.builder.text.TextAtlasBuilder;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
@@ -36,6 +37,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMember;
 import org.openstreetmap.atlas.geography.atlas.items.RelationMemberList;
 import org.openstreetmap.atlas.geography.atlas.items.SnappedEdge;
+import org.openstreetmap.atlas.geography.atlas.items.SnappedLineItem;
 import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
 import org.openstreetmap.atlas.geography.atlas.sub.SubAtlasCreator;
 import org.openstreetmap.atlas.geography.geojson.GeoJsonFeatureCollection;
@@ -608,6 +610,20 @@ public abstract class BareAtlas implements Atlas
             snaps.add(candidate);
         }
         snaps.sort(SnappedLocation::compareTo);
+        return snaps;
+    }
+
+    @Override
+    public List<SnappedLineItem> snapsLineItem(final Location point, final Distance threshold)
+    {
+        final List<SnappedLineItem> snaps = new ArrayList<>();
+        for (final LineItem lineItem : this.lineItemsIntersecting(point.boxAround(threshold)))
+        {
+            final SnappedLineItem candidate = new SnappedLineItem(
+                    point.snapTo(lineItem.asPolyLine()), lineItem);
+            snaps.add(candidate);
+        }
+        snaps.sort(Snapper.SnappedLocation::compareTo);
         return snaps;
     }
 

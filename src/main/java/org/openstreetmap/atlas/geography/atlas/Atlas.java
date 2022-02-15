@@ -1,7 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -16,7 +15,6 @@ import org.openstreetmap.atlas.geography.GeometricSurface;
 import org.openstreetmap.atlas.geography.Located;
 import org.openstreetmap.atlas.geography.Location;
 import org.openstreetmap.atlas.geography.Rectangle;
-import org.openstreetmap.atlas.geography.Snapper;
 import org.openstreetmap.atlas.geography.atlas.builder.AtlasSize;
 import org.openstreetmap.atlas.geography.atlas.items.Area;
 import org.openstreetmap.atlas.geography.atlas.items.AtlasEntity;
@@ -961,18 +959,7 @@ public interface Atlas
      * @return A sorted {@link List} of all the candidate snaps. The list is empty if there are no
      *         candidates.
      */
-    default List<SnappedLineItem> snapsLineItem(final Location point, final Distance threshold)
-    {
-        final List<SnappedLineItem> snaps = new ArrayList<>();
-        for (final LineItem lineItem : this.lineItemsIntersecting(point.boxAround(threshold)))
-        {
-            final SnappedLineItem candidate = new SnappedLineItem(
-                    point.snapTo(lineItem.asPolyLine()), lineItem);
-            snaps.add(candidate);
-        }
-        snaps.sort(Snapper.SnappedLocation::compareTo);
-        return snaps;
-    }
+    List<SnappedLineItem> snapsLineItem(Location point, Distance threshold);
 
     /**
      * Return a sub-atlas from this Atlas.
