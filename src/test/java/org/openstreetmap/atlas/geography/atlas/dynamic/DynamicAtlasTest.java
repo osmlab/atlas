@@ -32,6 +32,7 @@ import org.openstreetmap.atlas.geography.sharding.Shard;
 import org.openstreetmap.atlas.geography.sharding.SlippyTile;
 import org.openstreetmap.atlas.geography.sharding.SlippyTileSharding;
 import org.openstreetmap.atlas.utilities.collections.Iterables;
+import org.openstreetmap.atlas.utilities.scalars.Distance;
 
 /**
  * @author matthieun
@@ -367,6 +368,16 @@ public class DynamicAtlasTest
                 atlasz12x1349y1869, atlasz12x1349y1870);
         Assert.assertEquals("Found differences: " + new AtlasDelta(atlas, multiAtlas).toString(),
                 atlas, multiAtlas);
+    }
+
+    @Test
+    public void testSnapsLineItem()
+    {
+        final Atlas atlas = this.rule.getAtlas();
+        Assert.assertEquals(5,
+                atlas.snapsLineItem(atlas.node(1L).getLocation(), Distance.meters(100)).size());
+        Assert.assertEquals(3,
+                atlas.snaps(atlas.node(1L).getLocation(), Distance.meters(100)).size());
     }
 
     @Test

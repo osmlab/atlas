@@ -28,6 +28,7 @@ import org.openstreetmap.atlas.geography.atlas.items.Node;
 import org.openstreetmap.atlas.geography.atlas.items.Point;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
 import org.openstreetmap.atlas.geography.atlas.items.SnappedEdge;
+import org.openstreetmap.atlas.geography.atlas.items.SnappedLineItem;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlas;
 import org.openstreetmap.atlas.geography.atlas.packed.PackedAtlasCloner;
 import org.openstreetmap.atlas.geography.atlas.sub.AtlasCutType;
@@ -949,6 +950,16 @@ public interface Atlas
      *         candidates.
      */
     List<SnappedEdge> snaps(Location point, Distance threshold);
+
+    /**
+     * @param point
+     *            A {@link Location} to snap
+     * @param threshold
+     *            A {@link Distance} threshold to look for edges around the {@link Location}
+     * @return A sorted {@link List} of all the candidate snaps. The list is empty if there are no
+     *         candidates.
+     */
+    List<SnappedLineItem> snapsLineItem(Location point, Distance threshold);
 
     /**
      * Return a sub-atlas from this Atlas.
