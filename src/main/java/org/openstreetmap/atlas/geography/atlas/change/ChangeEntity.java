@@ -42,9 +42,13 @@ public final class ChangeEntity
      *            The source entity
      * @param memberExtractor
      *            Extract the member attribute from that entity
+     * @param <M>
+     *            The entity type that some object will be extracted from
+     * @param <T>
+     *            The object type that will be extracted and returned
      * @return The corresponding attribute
      */
-    static <T extends Object, M extends AtlasEntity> T getAttribute(final M source,
+    static <T, M extends AtlasEntity> T getAttribute(final M source,
             final Function<M, T> memberExtractor)
     {
         T result = null;
@@ -67,11 +71,14 @@ public final class ChangeEntity
      *            The change entity (override)
      * @param memberExtractor
      *            Extract the member attribute from that entity
+     * @param <M>
+     *            The entity type to extract information from
+     * @param <T>
+     *            The type that will be extracted from the entity
      * @return The corresponding attribute list. Will not be empty.
      */
-    static <T extends Object, M extends AtlasEntity> List<T> getAttributeAndOptionallyBackup(
-            final M source, final M override, final Function<M, T> memberExtractor,
-            final String name)
+    static <T, M extends AtlasEntity> List<T> getAttributeAndOptionallyBackup(final M source,
+            final M override, final Function<M, T> memberExtractor, final String name)
     {
         final List<T> result = new ArrayList<>();
         if (override != null)
@@ -112,10 +119,14 @@ public final class ChangeEntity
      *            The change entity (override)
      * @param memberExtractor
      *            Extract the member attribute from that entity
+     * @param <M>
+     *            The atlas entity type that will be extracted from
+     * @param <T>
+     *            The expected return type
      * @return The corresponding attribute
      */
-    static <T extends Object, M extends AtlasEntity> T getAttributeOrBackup(final M source,
-            final M override, final Function<M, T> memberExtractor, final String name)
+    static <T, M extends AtlasEntity> T getAttributeOrBackup(final M source, final M override,
+            final Function<M, T> memberExtractor, final String name)
     {
         T result = null;
         if (override != null)

@@ -52,7 +52,7 @@ public class OsmosisReaderMock extends CloseableOsmosisReader
                 .forEach((identifier, relation) -> this.sink.process(new RelationContainer(
                         new AtlasPrimitiveRelationToOsmosisRelationConverter().convert(relation))));
         // Close
-        this.sink.release();
+        this.sink.close();
         this.sink.complete();
     }
 

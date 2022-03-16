@@ -57,12 +57,12 @@ public enum DefaultBeanUtilsBasedMapperImpl implements Mapper
 
         try
         {
-            return targetClass.newInstance();
+            return targetClass.getConstructor().newInstance();
         }
-        catch (final Exception e)
+        catch (final ReflectiveOperationException reflectiveOperationException)
         {
             throw new IllegalStateException("Failed to construct instance of class: " + targetClass
-                    + "; isArray: " + targetClass.isArray(), e);
+                    + "; isArray: " + targetClass.isArray(), reflectiveOperationException);
         }
     }
 
@@ -155,7 +155,7 @@ public enum DefaultBeanUtilsBasedMapperImpl implements Mapper
         catch (final Exception e)
         {
             throw new IllegalStateException(
-                    "Population fialed. map: " + map + "; bean: " + bean + ".", e);
+                    "Population failed. map: " + map + "; bean: " + bean + ".", e);
         }
     }
 }

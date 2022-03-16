@@ -720,7 +720,7 @@ public class BigNodeFinder implements Finder<BigNode>
                     if (outEdge.highwayTag().isMoreImportantThanOrEqualTo(HighwayTag.UNCLASSIFIED)
                             // if an edge is considered as a junction edge, the dual carriage way
                             // it connects to can not be link road
-                            && (!inEdge.highwayTag().isLink() && !outEdge.highwayTag().isLink())
+                            && !inEdge.highwayTag().isLink() && !outEdge.highwayTag().isLink()
                             && this.edgeDirectionComparator.isOppositeDirection(inEdge, outEdge,
                                     false)
                             && !outEdge.hasReverseEdge() && !inEdge.hasReverseEdge()

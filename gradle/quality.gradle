@@ -53,6 +53,8 @@ checkstyleIntegrationTest.dependsOn jar
 check.dependsOn integrationTest
 integrationTest.mustRunAfter test
 
+jacocoTestReport.dependsOn test
+jacocoTestReport.dependsOn integrationTest
 check.dependsOn jacocoTestReport
 
 tasks.withType(Test) {
@@ -61,22 +63,19 @@ tasks.withType(Test) {
 
 configurations
 {
-    integrationTestCompile.extendsFrom testCompile
+    integrationTestImplementation.extendsFrom testImplementation
     integrationTestRuntime.extendsFrom testRuntime
 }
 
 dependencies
 {
-    testCompile packages.log4j.slf4j
-    testCompile packages.log4j.api
+    testImplementation packages.log4j.slf4j
+    testImplementation packages.log4j.api
     // Support Junit 5 tests
     testImplementation packages.junit.api
     testRuntimeOnly packages.junit.engine
     // Support JUnit 3/4 tests
-    testCompile packages.junit.junit4
-    testRuntimeOnly packages.junit.vintage
-
-    integrationTestCompile packages.junit.junit4
+    testImplementation packages.junit.junit4
     testRuntimeOnly packages.junit.vintage
 }
 
@@ -97,8 +96,8 @@ spotless {
 
 jacocoTestReport {
     reports {
-        xml.enabled true
-        csv.enabled true
+        xml.required = true
+        csv.required = true
         html.destination file("${buildDir}/reports/jacoco")
     }
     // Below, works with gradle 6

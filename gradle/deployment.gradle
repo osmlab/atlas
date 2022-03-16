@@ -23,79 +23,58 @@ signing
     sign configurations.archives
 }
 
-uploadArchives
+publishing
 {
-    doFirst {
-        mkdir "file:/$rootDir/build/deploy"
-    }
-    repositories
+    publications
     {
-        mavenDeployer
+        mavenJava(MavenPublication)
         {
-            beforeDeployment
+            pom
             {
-                MavenDeployment deployment -> signing.signPom(deployment)
-            }
-
-            // Hack: Deploy to a local repository first, then upload to Sonatype using scripts.
-            repository(url: "file://localhost/$rootDir/build/deploy" /*maven2_url*/) {
-                authentication(userName: System.getenv('SONATYPE_USERNAME'), password: System.getenv('SONATYPE_PASSWORD'))
-            }
-
-            snapshotRepository(url: "file://localhost/$rootDir/build/deploy" /*snapshot_url*/) {
-                authentication(userName: System.getenv('SONATYPE_USERNAME'), password: System.getenv('SONATYPE_PASSWORD'))
-            }
-
-            pom.project
-            {
-                name project_name
-                packaging 'jar'
+                name = project_name
+                packaging = 'jar'
                 // optionally artifactId can be defined here
-                description project_description
-                url project_url
+                description = project_description
+                url = project_url
 
                 scm {
-                    connection project_scm
-                    developerConnection project_scm
-                    url project_url
+                    connection = project_scm
+                    developerConnection = project_scm
+                    url = project_url
                 }
 
                 licenses {
                     license {
-                        name project_license_slug
-                        url project_license_url
+                        name = project_license_slug
+                        url = project_license_url
                     }
                 }
 
                 developers {
                     developer {
-                        id project_developer
-                        name project_developer
+                        id = project_developer
+                        name = project_developer
                     }
                 }
             }
         }
     }
-}
-
-// Scripted hack, inpired from:
-// https://github.com/h2oai/sparkling-water/tree/3f8fcf387a2bcc080343a8fafdc81aebc0d99fa1/gradle/publish
-// and
-// https://github.com/h2oai/sparkling-water/blob/73d2e2bd11ce35c6379f6961188fb2af1a7bc04b/build.gradle#L228
-// and
-// https://support.sonatype.com/hc/en-us/articles/213465868-Uploading-to-a-Staging-Repository-via-REST-API
-// and
-// https://support.sonatype.com/hc/en-us/articles/213465448-Automatically-dropping-old-staging-repositories
-// Until either this one works for us: https://github.com/marcphilipp/nexus-publish-plugin
-// or this issue is fixed another way:
-// https://github.com/travis-ci/travis-ci/issues/9555
-def uploadAndRelease(def username, def password, def repoDir) {
-    def proc = ['./uploadAndRelease.sh', username, password, repoDir].execute([], file("${rootDir.toString()}/gradle"))
-    proc.waitForProcessOutput(System.out, System.err)
-}
-
-task publishToNexusAndClose(dependsOn: 'publish'){
-    doLast {
-        uploadAndRelease(System.getenv('SONATYPE_USERNAME'), System.getenv('SONATYPE_PASSWORD'), "$rootDir/build/deploy")
+    repositories {
+      // Hack: Deploy to a local repository first, then upload to Sonatype using scripts.
+      maven {
+        url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/" // maven2_url
+        credentials {
+          username System.getenv('SONATYPE_USERNAME')
+          password System.getenv('SONATYPE_PASSWORD')
+        }
+      }
+      maven {
+        url = "https://s01.oss.sonatype.org/content/repositories/snapshots" // snapshot_url
+        name = "snapshot"
+        credentials {
+          username System.getenv('SONATYPE_USERNAME')
+          password System.getenv('SONATYPE_PASSWORD')
+        }
+      }
     }
 }
