@@ -190,6 +190,14 @@ public final class PackedAtlasSerializer
     }
 
     /**
+     * Go after all the fields that might not have been deserialized and deserialize them
+     */
+    protected void deserializeAllFieldsIfNeeded()
+    {
+        fields().map(Field::getName).forEach(this::deserializeIfNeeded);
+    }
+
+    /**
      * This method is used by the {@link PackedAtlas} to access its own fields!
      *
      * @param name
@@ -307,14 +315,6 @@ public final class PackedAtlasSerializer
                 deserializeJavaResource(resource);
             }
         });
-    }
-
-    /**
-     * Go after all the fields that might not have been deserialized and deserialize them
-     */
-    private void deserializeAllFieldsIfNeeded()
-    {
-        fields().map(Field::getName).forEach(this::deserializeIfNeeded);
     }
 
     private Object deserializeJavaResource(final Resource resource)

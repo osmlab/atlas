@@ -1,5 +1,6 @@
 package org.openstreetmap.atlas.geography.atlas.packed;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -88,85 +89,85 @@ public final class PackedAtlas extends AbstractAtlas
     protected static final String FIELD_CONTAINS_ENHANCED_RELATION_GEOMETRY = "containsEnhancedRelationGeometry";
     protected static final String FIELD_META_DATA = "metaData";
     protected static final String FIELD_DICTIONARY = "dictionary";
-    private final transient Object fieldDictionaryLock = new Object();
+    private transient Object fieldDictionaryLock = new Object();
     protected static final String FIELD_EDGE_IDENTIFIERS = "edgeIdentifiers";
-    private final transient Object fieldEdgeIdentifiersLock = new Object();
+    private transient Object fieldEdgeIdentifiersLock = new Object();
     protected static final String FIELD_NODE_IDENTIFIERS = "nodeIdentifiers";
-    private final transient Object fieldNodeIdentifiersLock = new Object();
+    private transient Object fieldNodeIdentifiersLock = new Object();
     protected static final String FIELD_AREA_IDENTIFIERS = "areaIdentifiers";
-    private final transient Object fieldAreaIdentifiersLock = new Object();
+    private transient Object fieldAreaIdentifiersLock = new Object();
     protected static final String FIELD_LINE_IDENTIFIERS = "lineIdentifiers";
-    private final transient Object fieldLineIdentifiersLock = new Object();
+    private transient Object fieldLineIdentifiersLock = new Object();
     protected static final String FIELD_POINT_IDENTIFIERS = "pointIdentifiers";
-    private final transient Object fieldPointIdentifiersLock = new Object();
+    private transient Object fieldPointIdentifiersLock = new Object();
     protected static final String FIELD_RELATION_IDENTIFIERS = "relationIdentifiers";
-    private final transient Object fieldRelationIdentifiersLock = new Object();
+    private transient Object fieldRelationIdentifiersLock = new Object();
     protected static final String FIELD_EDGE_IDENTIFIER_TO_EDGE_ARRAY_INDEX = "edgeIdentifierToEdgeArrayIndex";
-    private final transient Object fieldEdgeIdentifierToEdgeArrayIndexLock = new Object();
+    private transient Object fieldEdgeIdentifierToEdgeArrayIndexLock = new Object();
     protected static final String FIELD_NODE_IDENTIFIER_TO_NODE_ARRAY_INDEX = "nodeIdentifierToNodeArrayIndex";
-    private final transient Object fieldNodeIdentifierToNodeArrayIndexLock = new Object();
+    private transient Object fieldNodeIdentifierToNodeArrayIndexLock = new Object();
     protected static final String FIELD_AREA_IDENTIFIER_TO_AREA_ARRAY_INDEX = "areaIdentifierToAreaArrayIndex";
-    private final transient Object fieldAreaIdentifierToAreaArrayIndexLock = new Object();
+    private transient Object fieldAreaIdentifierToAreaArrayIndexLock = new Object();
     protected static final String FIELD_LINE_IDENTIFIER_TO_LINE_ARRAY_INDEX = "lineIdentifierToLineArrayIndex";
-    private final transient Object fieldLineIdentifierToLineArrayIndexLock = new Object();
+    private transient Object fieldLineIdentifierToLineArrayIndexLock = new Object();
     protected static final String FIELD_POINT_IDENTIFIER_TO_POINT_ARRAY_INDEX = "pointIdentifierToPointArrayIndex";
-    private final transient Object fieldPointIdentifierToPointArrayIndexLock = new Object();
+    private transient Object fieldPointIdentifierToPointArrayIndexLock = new Object();
     protected static final String FIELD_RELATION_IDENTIFIER_TO_RELATION_ARRAY_INDEX = "relationIdentifierToRelationArrayIndex";
-    private final transient Object fieldRelationIdentifierToRelationArrayIndexLock = new Object();
+    private transient Object fieldRelationIdentifierToRelationArrayIndexLock = new Object();
     protected static final String FIELD_NODE_LOCATIONS = "nodeLocations";
-    private final transient Object fieldNodeLocationsLock = new Object();
+    private transient Object fieldNodeLocationsLock = new Object();
     protected static final String FIELD_NODE_IN_EDGES_INDICES = "nodeInEdgesIndices";
-    private final transient Object fieldNodeInEdgesIndicesLock = new Object();
+    private transient Object fieldNodeInEdgesIndicesLock = new Object();
     protected static final String FIELD_NODE_OUT_EDGES_INDICES = "nodeOutEdgesIndices";
-    private final transient Object fieldNodeOutEdgesIndicesLock = new Object();
+    private transient Object fieldNodeOutEdgesIndicesLock = new Object();
     protected static final String FIELD_NODE_TAGS = "nodeTags";
-    private final transient Object fieldNodeTagsLock = new Object();
+    private transient Object fieldNodeTagsLock = new Object();
     protected static final String FIELD_NODE_INDEX_TO_RELATION_INDICES = "nodeIndexToRelationIndices";
-    private final transient Object fieldNodeIndexToRelationIndicesLock = new Object();
+    private transient Object fieldNodeIndexToRelationIndicesLock = new Object();
     protected static final String FIELD_EDGE_START_NODE_INDEX = "edgeStartNodeIndex";
-    private final transient Object fieldEdgeStartNodeIndexLock = new Object();
+    private transient Object fieldEdgeStartNodeIndexLock = new Object();
     protected static final String FIELD_EDGE_END_NODE_INDEX = "edgeEndNodeIndex";
-    private final transient Object fieldEdgeEndNodeIndexLock = new Object();
+    private transient Object fieldEdgeEndNodeIndexLock = new Object();
     protected static final String FIELD_EDGE_POLY_LINES = "edgePolyLines";
-    private final transient Object fieldEdgePolyLinesLock = new Object();
+    private transient Object fieldEdgePolyLinesLock = new Object();
     protected static final String FIELD_EDGE_TAGS = "edgeTags";
-    private final transient Object fieldEdgeTagsLock = new Object();
+    private transient Object fieldEdgeTagsLock = new Object();
     protected static final String FIELD_EDGE_INDEX_TO_RELATION_INDICES = "edgeIndexToRelationIndices";
-    private final transient Object fieldEdgeIndexToRelationIndicesLock = new Object();
+    private transient Object fieldEdgeIndexToRelationIndicesLock = new Object();
     protected static final String FIELD_AREA_POLYGONS = "areaPolygons";
-    private final transient Object fieldAreaPolygonsLock = new Object();
+    private transient Object fieldAreaPolygonsLock = new Object();
     protected static final String FIELD_AREA_TAGS = "areaTags";
-    private final transient Object fieldAreaTagsLock = new Object();
+    private transient Object fieldAreaTagsLock = new Object();
     protected static final String FIELD_AREA_INDEX_TO_RELATION_INDICES = "areaIndexToRelationIndices";
-    private final transient Object fieldAreaIndexToRelationIndicesLock = new Object();
+    private transient Object fieldAreaIndexToRelationIndicesLock = new Object();
     protected static final String FIELD_LINE_POLYLINES = "linePolyLines";
-    private final transient Object fieldLinePolyLinesLock = new Object();
+    private transient Object fieldLinePolyLinesLock = new Object();
     protected static final String FIELD_LINE_TAGS = "lineTags";
-    private final transient Object fieldLineTagsLock = new Object();
+    private transient Object fieldLineTagsLock = new Object();
     protected static final String FIELD_LINE_INDEX_TO_RELATION_INDICES = "lineIndexToRelationIndices";
-    private final transient Object fieldLindIndexToRelationIndicesLock = new Object();
+    private transient Object fieldLindIndexToRelationIndicesLock = new Object();
     protected static final String FIELD_POINT_LOCATIONS = "pointLocations";
-    private final transient Object fieldPointLocationsLock = new Object();
+    private transient Object fieldPointLocationsLock = new Object();
     protected static final String FIELD_POINT_TAGS = "pointTags";
-    private final transient Object fieldPointTagsLock = new Object();
+    private transient Object fieldPointTagsLock = new Object();
     protected static final String FIELD_POINT_INDEX_TO_RELATION_INDICES = "pointIndexToRelationIndices";
-    private final transient Object fieldPointIndexToRelationIndicesLock = new Object();
+    private transient Object fieldPointIndexToRelationIndicesLock = new Object();
     protected static final String FIELD_RELATION_MEMBERS_INDICES = "relationMemberIndices";
-    private final transient Object fieldRelationMembersIndicesLock = new Object();
+    private transient Object fieldRelationMembersIndicesLock = new Object();
     protected static final String FIELD_RELATION_MEMBER_TYPES = "relationMemberTypes";
-    private final transient Object fieldRelationMemberTypesLock = new Object();
+    private transient Object fieldRelationMemberTypesLock = new Object();
     protected static final String FIELD_RELATION_MEMBER_ROLES = "relationMemberRoles";
-    private final transient Object fieldRelationMemberRolesLock = new Object();
+    private transient Object fieldRelationMemberRolesLock = new Object();
     protected static final String FIELD_RELATION_TAGS = "relationTags";
-    private final transient Object fieldRelationTagsLock = new Object();
+    private transient Object fieldRelationTagsLock = new Object();
     protected static final String FIELD_RELATION_INDEX_TO_RELATION_INDICES = "relationIndexToRelationIndices";
-    private final transient Object fieldRelationIndexToRelationIndicesLock = new Object();
+    private transient Object fieldRelationIndexToRelationIndicesLock = new Object();
     protected static final String FIELD_RELATION_OSM_IDENTIFIER_TO_RELATION_IDENTIFIERS = "relationOsmIdentifierToRelationIdentifiers";
-    private final transient Object fieldRelationOsmIdentifierToRelationIdentifiersLock = new Object();
+    private transient Object fieldRelationOsmIdentifierToRelationIdentifiersLock = new Object();
     protected static final String FIELD_RELATION_OSM_IDENTIFIERS = "relationOsmIdentifiers";
-    private final transient Object fieldRelationOsmIdentifiersLock = new Object();
+    private transient Object fieldRelationOsmIdentifiersLock = new Object();
     protected static final String FIELD_RELATION_GEOMETRIES = "relationGeometries";
-    private final transient Object fieldRelationGeometriesLock = new Object();
+    private transient Object fieldRelationGeometriesLock = new Object();
     protected static final String FIELD_BUILT_RELATION_GEOMETRIES = "builtRelationGeometries";
 
     private static final long serialVersionUID = -7582554057580336684L;
@@ -1709,6 +1710,172 @@ public final class PackedAtlas extends AbstractAtlas
                 this.fieldPointTagsLock, FIELD_POINT_TAGS);
     }
 
+    private void readObject(final java.io.ObjectInputStream inFile)
+            throws IOException, ClassNotFoundException
+    {
+        inFile.defaultReadObject();
+        if (this.fieldDictionaryLock == null)
+        {
+            this.fieldDictionaryLock = new Object();
+        }
+        if (this.fieldEdgeIdentifiersLock == null)
+        {
+            this.fieldEdgeIdentifiersLock = new Object();
+        }
+        if (this.fieldNodeIdentifiersLock == null)
+        {
+            this.fieldNodeIdentifiersLock = new Object();
+        }
+        if (this.fieldAreaIdentifiersLock == null)
+        {
+            this.fieldAreaIdentifiersLock = new Object();
+        }
+        if (this.fieldLineIdentifiersLock == null)
+        {
+            this.fieldLineIdentifiersLock = new Object();
+        }
+        if (this.fieldPointIdentifiersLock == null)
+        {
+            this.fieldPointIdentifiersLock = new Object();
+        }
+        if (this.fieldRelationIdentifiersLock == null)
+        {
+            this.fieldRelationIdentifiersLock = new Object();
+        }
+        if (this.fieldEdgeIdentifierToEdgeArrayIndexLock == null)
+        {
+            this.fieldEdgeIdentifierToEdgeArrayIndexLock = new Object();
+        }
+        if (this.fieldNodeIdentifierToNodeArrayIndexLock == null)
+        {
+            this.fieldNodeIdentifierToNodeArrayIndexLock = new Object();
+        }
+        if (this.fieldAreaIdentifierToAreaArrayIndexLock == null)
+        {
+            this.fieldAreaIdentifierToAreaArrayIndexLock = new Object();
+        }
+        if (this.fieldLineIdentifierToLineArrayIndexLock == null)
+        {
+            this.fieldLineIdentifierToLineArrayIndexLock = new Object();
+        }
+        if (this.fieldPointIdentifierToPointArrayIndexLock == null)
+        {
+            this.fieldPointIdentifierToPointArrayIndexLock = new Object();
+        }
+        if (this.fieldRelationIdentifierToRelationArrayIndexLock == null)
+        {
+            this.fieldRelationIdentifierToRelationArrayIndexLock = new Object();
+        }
+        if (this.fieldNodeLocationsLock == null)
+        {
+            this.fieldNodeLocationsLock = new Object();
+        }
+        if (this.fieldNodeInEdgesIndicesLock == null)
+        {
+            this.fieldNodeInEdgesIndicesLock = new Object();
+        }
+        if (this.fieldNodeOutEdgesIndicesLock == null)
+        {
+            this.fieldNodeOutEdgesIndicesLock = new Object();
+        }
+        if (this.fieldNodeTagsLock == null)
+        {
+            this.fieldNodeTagsLock = new Object();
+        }
+        if (this.fieldNodeIndexToRelationIndicesLock == null)
+        {
+            this.fieldNodeIndexToRelationIndicesLock = new Object();
+        }
+        if (this.fieldEdgeStartNodeIndexLock == null)
+        {
+            this.fieldEdgeStartNodeIndexLock = new Object();
+        }
+        if (this.fieldEdgeEndNodeIndexLock == null)
+        {
+            this.fieldEdgeEndNodeIndexLock = new Object();
+        }
+        if (this.fieldEdgePolyLinesLock == null)
+        {
+            this.fieldEdgePolyLinesLock = new Object();
+        }
+        if (this.fieldEdgeTagsLock == null)
+        {
+            this.fieldEdgeTagsLock = new Object();
+        }
+        if (this.fieldEdgeIndexToRelationIndicesLock == null)
+        {
+            this.fieldEdgeIndexToRelationIndicesLock = new Object();
+        }
+        if (this.fieldAreaPolygonsLock == null)
+        {
+            this.fieldAreaPolygonsLock = new Object();
+        }
+        if (this.fieldAreaTagsLock == null)
+        {
+            this.fieldAreaTagsLock = new Object();
+        }
+        if (this.fieldAreaIndexToRelationIndicesLock == null)
+        {
+            this.fieldAreaIndexToRelationIndicesLock = new Object();
+        }
+        if (this.fieldLinePolyLinesLock == null)
+        {
+            this.fieldLinePolyLinesLock = new Object();
+        }
+        if (this.fieldLineTagsLock == null)
+        {
+            this.fieldLineTagsLock = new Object();
+        }
+        if (this.fieldLindIndexToRelationIndicesLock == null)
+        {
+            this.fieldLindIndexToRelationIndicesLock = new Object();
+        }
+        if (this.fieldPointLocationsLock == null)
+        {
+            this.fieldPointLocationsLock = new Object();
+        }
+        if (this.fieldPointTagsLock == null)
+        {
+            this.fieldPointTagsLock = new Object();
+        }
+        if (this.fieldPointIndexToRelationIndicesLock == null)
+        {
+            this.fieldPointIndexToRelationIndicesLock = new Object();
+        }
+        if (this.fieldRelationMembersIndicesLock == null)
+        {
+            this.fieldRelationMembersIndicesLock = new Object();
+        }
+        if (this.fieldRelationMemberTypesLock == null)
+        {
+            this.fieldRelationMemberTypesLock = new Object();
+        }
+        if (this.fieldRelationMemberRolesLock == null)
+        {
+            this.fieldRelationMemberRolesLock = new Object();
+        }
+        if (this.fieldRelationTagsLock == null)
+        {
+            this.fieldRelationTagsLock = new Object();
+        }
+        if (this.fieldRelationIndexToRelationIndicesLock == null)
+        {
+            this.fieldRelationIndexToRelationIndicesLock = new Object();
+        }
+        if (this.fieldRelationOsmIdentifierToRelationIdentifiersLock == null)
+        {
+            this.fieldRelationOsmIdentifierToRelationIdentifiersLock = new Object();
+        }
+        if (this.fieldRelationOsmIdentifiersLock == null)
+        {
+            this.fieldRelationOsmIdentifiersLock = new Object();
+        }
+        if (this.fieldRelationGeometriesLock == null)
+        {
+            this.fieldRelationGeometriesLock = new Object();
+        }
+    }
+
     private ByteArrayOfArrays relationGeometries()
     {
         return deserializedIfNeeded(() -> this.relationGeometries, this.fieldRelationGeometriesLock,
@@ -1806,5 +1973,11 @@ public final class PackedAtlas extends AbstractAtlas
                 packedTagStore.add(index, entry.getKey(), entry.getValue());
             }
         }
+    }
+
+    private void writeObject(final java.io.ObjectOutputStream out) throws IOException
+    {
+        this.serializer.deserializeAllFieldsIfNeeded();
+        out.defaultWriteObject();
     }
 }
