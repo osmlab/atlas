@@ -59,16 +59,6 @@ publishing
             }
         }
     }
-    repositories {
-      // Hack: Deploy to a local repository first, then upload to Sonatype using scripts.
-      maven {
-        url = "file://localhost/$rootDir/build/deploy" // maven2_url
-      }
-      maven {
-        url = "file://localhost/$rootDir/build/deploy" // snapshot_url
-        name = "snapshot"
-      }
-    }
 }
 
 
