@@ -20,7 +20,7 @@ gradle.taskGraph.whenReady { taskGraph ->
 
 signing
 {
-    sign configurations.archives
+    sign publishing.publications
 }
 
 publishing
@@ -57,6 +57,11 @@ publishing
                     }
                 }
             }
+        }
+    }
+    repositories {
+        maven {
+            url = layout.buildDirectory.dir("deploy")
         }
     }
 }
