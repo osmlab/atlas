@@ -22,46 +22,51 @@ signing
 {
     sign publishing.publications
 }
-
-publishing
-{
-    publications
+project.afterEvaluate {
+    publishing
     {
-        mavenJava(MavenPublication)
+        publications
         {
-            pom
+            mavenJava(MavenPublication)
             {
-                name = project_name
-                packaging = 'jar'
-                // optionally artifactId can be defined here
-                description = project_description
-                url = project_url
-
-                scm {
-                    connection = project_scm
-                    developerConnection = project_scm
+                from components.java
+                artifact shaded
+                artifact javadocJar
+                artifact sourcesJar
+                pom
+                {
+                    name = project_name
+                    packaging = 'jar'
+                    // optionally artifactId can be defined here
+                    description = project_description
                     url = project_url
-                }
 
-                licenses {
-                    license {
-                        name = project_license_slug
-                        url = project_license_url
+                    scm {
+                        connection = project_scm
+                        developerConnection = project_scm
+                        url = project_url
                     }
-                }
 
-                developers {
-                    developer {
-                        id = project_developer
-                        name = project_developer
+                    licenses {
+                        license {
+                            name = project_license_slug
+                            url = project_license_url
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id = project_developer
+                            name = project_developer
+                        }
                     }
                 }
             }
         }
-    }
-    repositories {
-        maven {
-            url = layout.buildDirectory.dir("deploy")
+        repositories {
+            maven {
+                url = layout.buildDirectory.dir("deploy")
+            }
         }
     }
 }
