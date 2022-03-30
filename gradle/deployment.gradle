@@ -30,7 +30,6 @@ project.afterEvaluate {
             mavenJava(MavenPublication)
             {
                 from components.java
-                artifact shaded
                 artifact javadocJar
                 artifact sourcesJar
                 pom
