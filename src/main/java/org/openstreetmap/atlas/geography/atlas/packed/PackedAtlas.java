@@ -1977,7 +1977,10 @@ public final class PackedAtlas extends AbstractAtlas
 
     private void writeObject(final java.io.ObjectOutputStream out) throws IOException
     {
-        this.serializer.deserializeAllFieldsIfNeeded();
+        if (this.serializer != null)
+        {
+            this.serializer.deserializeAllFieldsIfNeeded();
+        }
         out.defaultWriteObject();
     }
 }
