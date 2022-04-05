@@ -54,7 +54,7 @@ dependencies
     implementation packages.commons.math
     implementation packages.commons.text
     implementation packages.diff_utils
-    implementation packages.geotools
+    api packages.geotools
     api            packages.groovy
     implementation packages.groovy_json
     implementation packages.gson
@@ -64,7 +64,7 @@ dependencies
     api            packages.jackson.databind
     api            packages.jackson.dataformat
     api            packages.jim_fs
-    implementation packages.jsonassert
+    api packages.jsonassert
     api            packages.jts
     // Support JUnit 3/4 tests
     api            packages.junit.junit4 // only API level due to CoreTestRule
