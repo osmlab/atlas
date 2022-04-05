@@ -392,7 +392,7 @@ sub install_repo {
 
     dependencies
     {
-        atlasshelltools project.configurations.getByName('compile')
+        atlasshelltools project.configurations.getByName('api')
         if (packages.slf4j != null) {
             atlasshelltools packages.slf4j.log4j12
         }
