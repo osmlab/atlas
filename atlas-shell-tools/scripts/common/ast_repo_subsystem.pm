@@ -394,10 +394,11 @@ sub install_repo {
     {
         atlasshelltools project.configurations.getByName('api')
         if (packages.slf4j != null) {
-            atlasshelltools packages.slf4j.log4j12
+            atlasshelltools packages.slf4j.api
         }
         if (packages.log4j != null) {
-            atlasshelltools packages.log4j
+            atlasshelltools packages.log4j.api
+            atlasshelltools packages.log4j.slf4j
         }
     }
     ";
