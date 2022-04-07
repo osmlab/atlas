@@ -393,7 +393,7 @@ sub install_repo {
 
     dependencies
     {
-        atlasshelltools project.configurations.getByName('api')
+        atlasshelltools project.configurations.getByName('implementation')
         if (packages.slf4j != null) {
             atlasshelltools packages.slf4j.api
         }
