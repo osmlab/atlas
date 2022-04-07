@@ -367,6 +367,7 @@ sub install_repo {
     task atlasshelltools(type: Jar) {
         baseName = project.name
         classifier = '-AST'
+        duplicatesStrategy = 'exclude'
         from {
             configurations.atlasshelltools.collect
             {
