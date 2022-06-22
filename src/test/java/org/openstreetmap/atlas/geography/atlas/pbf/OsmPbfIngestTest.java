@@ -1,10 +1,16 @@
 package org.openstreetmap.atlas.geography.atlas.pbf;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -16,6 +22,7 @@ import org.openstreetmap.atlas.geography.Polygon;
 import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.Segment;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
+import org.openstreetmap.atlas.geography.atlas.AtlasMetaData;
 import org.openstreetmap.atlas.geography.atlas.builder.RelationBean;
 import org.openstreetmap.atlas.geography.atlas.builder.store.AtlasPrimitiveLineItem;
 import org.openstreetmap.atlas.geography.atlas.builder.store.AtlasPrimitiveLocationItem;
@@ -218,6 +225,46 @@ public class OsmPbfIngestTest
             final Relation relation = atlas.relations().iterator().next();
             Assert.assertEquals(1, relation.members().size());
             Assert.assertEquals(2, atlas.numberOfEdges());
+        }
+    }
+
+    @Test
+    public void testKeepTags() throws IOException
+    {
+        try (OsmosisReaderMock osmosis = new OsmosisReaderMock(this.store))
+        {
+            // AtlasGenerator from atlas-generator does
+            // 1. PBF -> Raw Atlas
+            // 2. Raw Atlas -> Augmented Atlas
+            // 3. Augmented Atlas -> Sliced Atlas
+            // 4. Sliced Atlas -> Sectioned Atlas
+            // For this test, we only need to check AtlasSectionProcessor and RawAtlasSlicer, as
+            // those are the only steps that modify the metadata at this time.
+            final AtlasLoadingOption loadingOption = AtlasLoadingOption
+                    .createOptionWithAllEnabled(this.countryBoundariesAll).setKeepAll(true)
+                    .setCountryCode(COUNTRY_1_NAME);
+            final List<UnaryOperator<Atlas>> atlasFunctions = Arrays.asList(
+                    atlas -> new RawAtlasGenerator(() -> osmosis, loadingOption,
+                            MultiPolygon.MAXIMUM).build(),
+                    atlas -> new RawAtlasSlicer(loadingOption, atlas).slice(),
+                    atlas -> new AtlasSectionProcessor(atlas, loadingOption).run());
+            Atlas atlas = null;
+            for (final UnaryOperator<Atlas> function : atlasFunctions)
+            {
+                atlas = function.apply(atlas);
+                final Supplier<String> messageSupplier = () -> "Failed on "
+                        + atlasFunctions.indexOf(function);
+                assertEquals(4, atlas.metaData().getTags().size(), messageSupplier);
+                assertTrue(
+                        atlas.metaData().getTags()
+                                .containsKey(AtlasMetaData.KEEP_ALL_CONFIGURATION),
+                        messageSupplier.get() + " "
+                                + String.join(",", atlas.metaData().getTags().keySet()));
+                assertEquals(Boolean.TRUE.toString(),
+                        atlas.metaData().getTags().get(AtlasMetaData.KEEP_ALL_CONFIGURATION),
+                        messageSupplier.get() + " " + atlas.metaData().getTags()
+                                .get(AtlasMetaData.KEEP_ALL_CONFIGURATION));
+            }
         }
     }
 

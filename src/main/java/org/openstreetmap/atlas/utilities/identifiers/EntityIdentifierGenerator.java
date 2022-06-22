@@ -310,7 +310,7 @@ public class EntityIdentifierGenerator
         UUID entityHash = UUID.nameUUIDFromBytes(entityString.getBytes());
 
         long shortHash = entityHash.getMostSignificantBits();
-        while (!isHashSafeToUse(shortHash) || (shortHash < 0 && !allowNegativeIdentifiers))
+        while (!this.isHashSafeToUse(shortHash) || shortHash < 0 && !allowNegativeIdentifiers)
         {
             entityHash = UUID.nameUUIDFromBytes(entityHash.toString().getBytes());
             shortHash = entityHash.getMostSignificantBits();

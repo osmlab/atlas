@@ -42,6 +42,25 @@ public class OsmosisXmlReaderFromResource implements RunnableSource
     private final CompressionMethod compressionMethod;
 
     /**
+     * Creates a new SAX parser.
+     *
+     * @return The newly created SAX parser.
+     */
+    private static SAXParser createParser()
+    {
+        try
+        {
+            final SAXParserFactory factory = SAXParserFactory.newInstance();
+            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            return factory.newSAXParser();
+        }
+        catch (final ParserConfigurationException | SAXException e)
+        {
+            throw new OsmosisRuntimeException("Unable to create SAX Parser.", e);
+        }
+    }
+
+    /**
      * Creates a new instance.
      *
      * @param resource
@@ -66,25 +85,15 @@ public class OsmosisXmlReaderFromResource implements RunnableSource
     @Override
     public void run()
     {
-        InputStream inputStream = null;
-        try
+        final InputStream inputStream = this.getInputStream();
+        try (Sink temporarySink = this.sink)
         {
             final SAXParser parser;
-            this.sink.initialize(Collections.<String, Object> emptyMap());
-            // make "-" an alias for /dev/stdin
-            if (this.resource.getName() != null && this.resource.getName().equals("-"))
-            {
-                inputStream = System.in;
-            }
-            else
-            {
-                inputStream = this.resource.read();
-            }
-            inputStream = new CompressionActivator(this.compressionMethod)
-                    .createCompressionInputStream(inputStream);
+            temporarySink.initialize(Collections.emptyMap());
+
             parser = createParser();
             parser.parse(inputStream, new OsmHandler(this.sink, this.enableDateParsing));
-            this.sink.complete();
+            temporarySink.complete();
         }
         catch (final SAXParseException e)
         {
@@ -105,18 +114,13 @@ public class OsmosisXmlReaderFromResource implements RunnableSource
         }
         finally
         {
-            this.sink.release();
-            if (inputStream != null)
+            try
             {
-                try
-                {
-                    inputStream.close();
-                }
-                catch (final IOException e)
-                {
-                    log.log(Level.SEVERE, "Unable to close input stream.", e);
-                }
-                inputStream = null;
+                inputStream.close();
+            }
+            catch (final IOException e)
+            {
+                log.log(Level.SEVERE, "Unable to close input stream.", e);
             }
         }
     }
@@ -131,21 +135,24 @@ public class OsmosisXmlReaderFromResource implements RunnableSource
     }
 
     /**
-     * Creates a new SAX parser.
+     * Get the input stream
      *
-     * @return The newly created SAX parser.
+     * @return The input stream for the resource (non-null), but may throw a
+     *         {@link OsmosisRuntimeException}.
      */
-    private SAXParser createParser()
+    private InputStream getInputStream()
     {
-        try
+        final InputStream temporaryInputStream;
+        // make "-" an alias for /dev/stdin
+        if (this.resource.getName() != null && "-".equals(this.resource.getName()))
         {
-            final SAXParserFactory factory = SAXParserFactory.newInstance();
-            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            return factory.newSAXParser();
+            temporaryInputStream = System.in;
         }
-        catch (final ParserConfigurationException | SAXException e)
+        else
         {
-            throw new OsmosisRuntimeException("Unable to create SAX Parser.", e);
+            temporaryInputStream = this.resource.read();
         }
+        return new CompressionActivator(this.compressionMethod)
+                .createCompressionInputStream(temporaryInputStream);
     }
 }

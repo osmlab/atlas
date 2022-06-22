@@ -96,6 +96,20 @@ public class OsmPbfCounter implements Sink
     }
 
     @Override
+    public void close()
+    {
+        // Process all staged Relations
+        processStagedRelations();
+
+        // Grab any bridges, ferries or other ways that may be outside the immediate boundary
+        bringInConnectedOutsideWays();
+
+        // Combine all included nodes into a single collection
+        this.nodeIdentifiersToInclude.addAll(this.nodeIdentifiersBroughtInByWaysOrRelations);
+        logger.info("Released OSM PBF Counter");
+    }
+
+    @Override
     public void complete()
     {
         // No-Op
@@ -207,20 +221,6 @@ public class OsmPbfCounter implements Sink
     public long relationCount()
     {
         return this.relationIdentifiersToInclude.size();
-    }
-
-    @Override
-    public void release()
-    {
-        // Process all staged Relations
-        processStagedRelations();
-
-        // Grab any bridges, ferries or other ways that may be outside the immediate boundary
-        bringInConnectedOutsideWays();
-
-        // Combine all included nodes into a single collection
-        this.nodeIdentifiersToInclude.addAll(this.nodeIdentifiersBroughtInByWaysOrRelations);
-        logger.info("Released OSM PBF Counter");
     }
 
     private void addWayNodes(final Set<Long> set, final Way way)

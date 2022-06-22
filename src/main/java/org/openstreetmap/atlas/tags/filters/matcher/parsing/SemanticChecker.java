@@ -24,7 +24,7 @@ public class SemanticChecker
             return;
         }
 
-        if ((root instanceof EqualsOperator) && subtreeContainsEquals(root))
+        if (root instanceof EqualsOperator && this.subtreeContainsEquals(root))
         {
             throw new CoreException("semantic error: invalid nested equality operators");
         }

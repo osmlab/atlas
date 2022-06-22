@@ -2,13 +2,10 @@ package org.openstreetmap.atlas.geography.atlas.change.description.descriptors;
 
 import java.util.Optional;
 
-import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.MultiPolygon;
-import org.locationtech.jts.operation.overlayng.OverlayNG;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescriptorType;
 import org.openstreetmap.atlas.geography.atlas.items.Relation;
-import org.openstreetmap.atlas.geography.converters.jts.JtsPrecisionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,10 +18,10 @@ import com.google.gson.JsonObject;
 public final class GeometricRelationGeometryChangeDescriptor implements ChangeDescriptor
 {
 
-    private final ChangeDescriptorType changeType;
-    private final String diffWkt;
     private static final Logger logger = LoggerFactory
             .getLogger(GeometricRelationGeometryChangeDescriptor.class);
+    private final ChangeDescriptorType changeType;
+    private final String diff;
 
     public static GeometricRelationGeometryChangeDescriptor getDescriptorsForGeometricRelations(
             final Relation before, final Relation after)
@@ -83,13 +80,12 @@ public final class GeometricRelationGeometryChangeDescriptor implements ChangeDe
 
         try
         {
-            final Geometry diff = OverlayNG.overlay(beforeGeometry.get(), afterGeometry.get(),
-                    OverlayNG.SYMDIFFERENCE, JtsPrecisionManager.getPrecisionModel());
-            if (diff.isEmpty())
+            if (beforeGeometry.get().getArea() == afterGeometry.get().getArea())
             {
                 return null;
             }
-            return new GeometricRelationGeometryChangeDescriptor(diff.toText(),
+            return new GeometricRelationGeometryChangeDescriptor(
+                    Double.toString(beforeGeometry.get().getArea() - afterGeometry.get().getArea()),
                     ChangeDescriptorType.UPDATE);
         }
         catch (final Exception exc)
@@ -101,11 +97,11 @@ public final class GeometricRelationGeometryChangeDescriptor implements ChangeDe
         }
     }
 
-    private GeometricRelationGeometryChangeDescriptor(final String diffWkt,
+    private GeometricRelationGeometryChangeDescriptor(final String diff,
             final ChangeDescriptorType changeType)
     {
         this.changeType = changeType;
-        this.diffWkt = diffWkt;
+        this.diff = diff;
     }
 
     @Override
@@ -124,7 +120,7 @@ public final class GeometricRelationGeometryChangeDescriptor implements ChangeDe
     public JsonElement toJsonElement()
     {
         final JsonObject descriptor = (JsonObject) ChangeDescriptor.super.toJsonElement();
-        descriptor.addProperty("diff", this.diffWkt);
+        descriptor.addProperty("diff", this.diff);
         return descriptor;
     }
 
@@ -138,15 +134,15 @@ public final class GeometricRelationGeometryChangeDescriptor implements ChangeDe
         {
             case UPDATE:
                 diffString.append(", ");
-                diffString.append(this.diffWkt);
+                diffString.append(this.diff);
                 break;
             case REMOVE:
                 diffString.append(", ");
-                diffString.append(this.diffWkt);
+                diffString.append(this.diff);
                 break;
             case ADD:
                 diffString.append(", ");
-                diffString.append(this.diffWkt);
+                diffString.append(this.diff);
                 break;
             default:
                 throw new CoreException("Unexpected ChangeType value: " + this.changeType);

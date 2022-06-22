@@ -43,7 +43,6 @@ import org.openstreetmap.atlas.utilities.scalars.Distance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Sets;
@@ -501,12 +500,14 @@ public class BigNodeFinder implements Finder<BigNode>
                 }
                 currentEdge = nextEdge;
             }
-            Preconditions.checkState(
-                    logger.isInfoEnabled() && mergedCandidate != null
-                            && mergedCandidate.asPolyLine() != null,
-                    "Invalid Merged Candidate Route length is {} with WKT {}",
-                    mergedCandidate.length(), mergedCandidate.asPolyLine().toWkt());
-
+            if (logger.isInfoEnabled())
+            {
+                if (mergedCandidate != null && mergedCandidate.asPolyLine() != null)
+                {
+                    logger.info("Invalid Merged Candidate Route length is {} with WKT {}",
+                            mergedCandidate.length(), mergedCandidate.asPolyLine().toWkt());
+                }
+            }
             return true;
         }
         else
@@ -719,7 +720,7 @@ public class BigNodeFinder implements Finder<BigNode>
                     if (outEdge.highwayTag().isMoreImportantThanOrEqualTo(HighwayTag.UNCLASSIFIED)
                             // if an edge is considered as a junction edge, the dual carriage way
                             // it connects to can not be link road
-                            && (!inEdge.highwayTag().isLink() && !outEdge.highwayTag().isLink())
+                            && !inEdge.highwayTag().isLink() && !outEdge.highwayTag().isLink()
                             && this.edgeDirectionComparator.isOppositeDirection(inEdge, outEdge,
                                     false)
                             && !outEdge.hasReverseEdge() && !inEdge.hasReverseEdge()

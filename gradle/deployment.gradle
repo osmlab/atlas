@@ -20,63 +20,56 @@ gradle.taskGraph.whenReady { taskGraph ->
 
 signing
 {
-    sign configurations.archives
+    sign publishing.publications
 }
-
-uploadArchives
-{
-    doFirst {
-        mkdir "file:/$rootDir/build/deploy"
-    }
-    repositories
+project.afterEvaluate {
+    publishing
     {
-        mavenDeployer
+        publications
         {
-            beforeDeployment
+            mavenJava(MavenPublication)
             {
-                MavenDeployment deployment -> signing.signPom(deployment)
-            }
+                from components.java
+                artifact javadocJar
+                artifact sourcesJar
+                pom
+                {
+                    name = project_name
+                    packaging = 'jar'
+                    // optionally artifactId can be defined here
+                    description = project_description
+                    url = project_url
 
-            // Hack: Deploy to a local repository first, then upload to Sonatype using scripts.
-            repository(url: "file://localhost/$rootDir/build/deploy" /*maven2_url*/) {
-                authentication(userName: System.getenv('SONATYPE_USERNAME'), password: System.getenv('SONATYPE_PASSWORD'))
-            }
-
-            snapshotRepository(url: "file://localhost/$rootDir/build/deploy" /*snapshot_url*/) {
-                authentication(userName: System.getenv('SONATYPE_USERNAME'), password: System.getenv('SONATYPE_PASSWORD'))
-            }
-
-            pom.project
-            {
-                name project_name
-                packaging 'jar'
-                // optionally artifactId can be defined here
-                description project_description
-                url project_url
-
-                scm {
-                    connection project_scm
-                    developerConnection project_scm
-                    url project_url
-                }
-
-                licenses {
-                    license {
-                        name project_license_slug
-                        url project_license_url
+                    scm {
+                        connection = project_scm
+                        developerConnection = project_scm
+                        url = project_url
                     }
-                }
 
-                developers {
-                    developer {
-                        id project_developer
-                        name project_developer
+                    licenses {
+                        license {
+                            name = project_license_slug
+                            url = project_license_url
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id = project_developer
+                            name = project_developer
+                        }
                     }
                 }
             }
         }
+        repositories {
+            maven {
+                url = layout.buildDirectory.dir("deploy")
+            }
+        }
     }
 }
+
 
 // Scripted hack, inpired from:
 // https://github.com/h2oai/sparkling-water/tree/3f8fcf387a2bcc080343a8fafdc81aebc0d99fa1/gradle/publish

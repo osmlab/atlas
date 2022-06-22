@@ -367,6 +367,7 @@ sub install_repo {
     task atlasshelltools(type: Jar) {
         baseName = project.name
         classifier = '-AST'
+        duplicatesStrategy = 'exclude'
         from {
             configurations.atlasshelltools.collect
             {
@@ -392,12 +393,13 @@ sub install_repo {
 
     dependencies
     {
-        atlasshelltools project.configurations.getByName('compile')
+        atlasshelltools project.configurations.getByName('implementation')
         if (packages.slf4j != null) {
-            atlasshelltools packages.slf4j.log4j12
+            atlasshelltools packages.slf4j.api
         }
         if (packages.log4j != null) {
-            atlasshelltools packages.log4j
+            atlasshelltools packages.log4j.api
+            atlasshelltools packages.log4j.slf4j
         }
     }
     ";

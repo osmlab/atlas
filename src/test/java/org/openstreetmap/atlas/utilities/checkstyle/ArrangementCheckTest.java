@@ -89,7 +89,7 @@ public class ArrangementCheckTest extends AbstractModuleTestSupport
     {
         final DefaultConfiguration result = createModuleConfig(ArrangementCheck.class);
         // Make sure to test with the configurable path!
-        result.addAttribute("arrangementDefinition",
+        result.addProperty("arrangementDefinition",
                 ArrangementCheck.class.getResource("arrangement.txt").getPath());
         return result;
     }

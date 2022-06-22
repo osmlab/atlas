@@ -34,10 +34,12 @@ public enum RailwayTag
     NARROW_GAUGE,
     MILESTONE,
     SUBWAY_ENTRANCE,
+    TRAM_LEVEL_CROSSING,
     LIGHT_RAIL,
     STOP,
     PRESERVED,
     RAZED,
+    TRAM_CROSSING,
     CONSTRUCTION,
     RAILWAY_CROSSING,
     DISMANTLED,
@@ -52,7 +54,7 @@ public enum RailwayTag
     public static final String KEY = "railway";
 
     private static final EnumSet<RailwayTag> RAILWAY_CROSSINGS = EnumSet.of(CROSSING,
-            LEVEL_CROSSING);
+            LEVEL_CROSSING, TRAM_LEVEL_CROSSING, TRAM_CROSSING);
 
     public static Optional<RailwayTag> get(final Taggable taggable)
     {

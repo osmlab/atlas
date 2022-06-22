@@ -56,6 +56,36 @@ public class Segment extends PolyLine
         return result;
     }
 
+    /**
+     * Ensures that numerator/denominator is within the range [0,1] without doing the division
+     *
+     * @param denominator
+     *            The denominator of the fraction
+     * @param numerator
+     *            The numerator of the fraction
+     * @return {@code true} if the fraction is in the range [0,1]
+     */
+    private static boolean rangeCheck(final double denominator, final double numerator)
+    {
+        return denominator > 0 && (numerator < 0 || numerator > denominator)
+                || denominator < 0 && (numerator > 0 || numerator < denominator);
+    }
+
+    /**
+     * Ensures that numerator/denominator is within the range [0,1] without doing the division
+     *
+     * @param denominator
+     *            The denominator of the fraction
+     * @param numerator
+     *            The numerator of the fraction
+     * @return {@code true} if the fraction is in the range [0,1]
+     */
+    private static boolean rangeCheck(final long denominator, final long numerator)
+    {
+        return denominator > 0 && (numerator < 0 || numerator > denominator)
+                || denominator < 0 && (numerator > 0 || numerator < denominator);
+    }
+
     public Segment(final Location start, final Location end)
     {
         super(asList(start, end));
@@ -184,19 +214,14 @@ public class Segment extends PolyLine
             final long alphaNumerator = Math.subtractExact(byAxis * cxAxis, bxAxis * cyAxis);
             final long commonDenominator = Math.subtractExact(ayAxis * bxAxis, axAxis * byAxis);
             // ensures that alpha is within the range [0,1] without doing the division
-            if ((commonDenominator > 0
-                    && (alphaNumerator < 0 || alphaNumerator > commonDenominator))
-                    || (commonDenominator < 0
-                            && (alphaNumerator > 0 || alphaNumerator < commonDenominator)))
+            if (rangeCheck(commonDenominator, alphaNumerator))
             {
                 return false;
 
             }
             final long betaNumerator = Math.subtractExact(axAxis * cyAxis, ayAxis * cxAxis);
             // ensures that beta is within the range [0,1] without doing the division
-            if ((commonDenominator > 0 && (betaNumerator < 0 || betaNumerator > commonDenominator))
-                    || (commonDenominator < 0
-                            && (betaNumerator > 0 || betaNumerator < commonDenominator)))
+            if (rangeCheck(commonDenominator, betaNumerator))
             {
                 return false;
             }
@@ -383,18 +408,14 @@ public class Segment extends PolyLine
         final double alphaNumerator = byAxis * cxAxis - bxAxis * cyAxis;
         final double commonDenominator = ayAxis * bxAxis - axAxis * byAxis;
         // ensures that alpha is within the range [0,1] without doing the division
-        if ((commonDenominator > 0 && (alphaNumerator < 0 || alphaNumerator > commonDenominator))
-                || (commonDenominator < 0
-                        && (alphaNumerator > 0 || alphaNumerator < commonDenominator)))
+        if (rangeCheck(commonDenominator, alphaNumerator))
         {
             return false;
 
         }
         final double betaNumerator = axAxis * cyAxis - ayAxis * cxAxis;
         // ensures that beta is within the range [0,1] without doing the division
-        if ((commonDenominator > 0 && (betaNumerator < 0 || betaNumerator > commonDenominator))
-                || (commonDenominator < 0
-                        && (betaNumerator > 0 || betaNumerator < commonDenominator)))
+        if (rangeCheck(commonDenominator, betaNumerator))
         {
             return false;
         }
