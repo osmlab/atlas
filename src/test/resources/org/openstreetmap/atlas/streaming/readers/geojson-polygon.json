@@ -1,5 +1,6 @@
 {
   "type": "FeatureCollection",
+  "generator": "test",
   "features": [
     {
       "type": "Feature",

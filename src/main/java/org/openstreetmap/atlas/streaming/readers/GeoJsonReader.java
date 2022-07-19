@@ -51,7 +51,7 @@ public class GeoJsonReader implements Iterator<PropertiesLocated>
             while (!"features".equals(features))
             {
                 // Read and skip the object (crs for example)
-                this.gson.fromJson(this.reader, JsonObject.class);
+                this.reader.skipValue();
                 features = this.reader.nextName();
             }
             this.reader.beginArray();
