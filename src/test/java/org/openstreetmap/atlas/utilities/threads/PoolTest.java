@@ -248,6 +248,18 @@ public class PoolTest
         }
     }
 
+    @Test
+    public void testZeroThreads()
+    {
+        runWithTimer(Duration.seconds(5), () ->
+        {
+            try (Pool pool = new Pool(0, "testZeroThreads", Duration.seconds(10)))
+            {
+                pool.queue(() -> logger.info("Zero threads!"));
+            }
+        });
+    }
+
     private void runWithTimer(final Duration maximum, final Runnable test)
     {
         try (Pool pool = new Pool(1, "RunWithTimer", maximum))
