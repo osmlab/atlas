@@ -67,7 +67,7 @@ public class Pool implements Closeable
 
     public Pool(final int numberOfThreads, final String name, final Duration endTimeout)
     {
-        this.numberOfThreads = numberOfThreads;
+        this.numberOfThreads = Math.max(numberOfThreads, 1);
         this.name = name;
         this.endTimeout = endTimeout;
         this.errors = Collections.synchronizedList(new ArrayList<>());
