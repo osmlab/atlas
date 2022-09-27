@@ -253,10 +253,12 @@ public class PoolTest
     {
         runWithTimer(Duration.seconds(5), () ->
         {
+            final List<Integer> accumulator = new ArrayList<>();
             try (Pool pool = new Pool(0, "testZeroThreads", Duration.seconds(10)))
             {
-                pool.queue(() -> logger.info("Zero threads!"));
+                pool.queue(() -> accumulator.add(1));
             }
+            Assert.assertEquals(1, accumulator.size());
         });
     }
 
