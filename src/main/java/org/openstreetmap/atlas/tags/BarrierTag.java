@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.openstreetmap.atlas.tags.annotations.Tag;
 import org.openstreetmap.atlas.tags.annotations.TagKey;
+import org.openstreetmap.atlas.tags.annotations.TagValueAs;
 import org.openstreetmap.atlas.tags.annotations.validation.Validators;
 
 /**
@@ -48,7 +49,28 @@ public enum BarrierTag
     HAMPSHIRE_GATE,
     WOOD_FENCE,
     BUMP_GATE,
-    BUS_TRAP;
+    BUS_TRAP,
+    JERSEY_BARRIER,
+    SLIDING_GATE,
+    HEIGHT_RESTRICTOR,
+    HANDRAIL,
+    LOG,
+    AVALANCHE_PROTECTION,
+    MEDIAN_STRIP,
+    DEBRIS,
+    TRAFFIC_ISLAND,
+    WICKET_GATE,
+    ROPE,
+    @TagValueAs("full-height_turnstile")
+    FULL_HEIGHT_TURNSTILE,
+    PLANTER,
+    PROPERTY_BOUNDARY,
+    NO,
+    CABLE_BARRIER,
+    RAILING,
+    SUMP_BUSTER,
+    @TagValueAs("sump-buster")
+    SUMPBUSTER;
 
     @TagKey
     public static final String KEY = "barrier";
@@ -57,7 +79,10 @@ public enum BarrierTag
             BOLLARD, LIFT_GATE, RETAINING_WALL, STILE, CYCLE_BARRIER, KERB, YES, ENTRANCE, BLOCK,
             TOLL_BOOTH, CATTLE_GRID, DITCH, KISSING_GATE, CITY_WALL, GUARD_RAIL, HEDGE_BANK,
             WIRE_FENCE, LINE, SWING_GATE, CHAIN, TURNSTILE, EMBANKMENT, FIELD_BOUNDARY,
-            BORDER_CONTROL, SALLY_PORT, DOOR, HAMPSHIRE_GATE, WOOD_FENCE, BUMP_GATE, BUS_TRAP);
+            BORDER_CONTROL, SALLY_PORT, DOOR, HAMPSHIRE_GATE, WOOD_FENCE, BUMP_GATE, BUS_TRAP,
+            JERSEY_BARRIER, SLIDING_GATE, HEIGHT_RESTRICTOR, HANDRAIL, LOG, AVALANCHE_PROTECTION,
+            MEDIAN_STRIP, DEBRIS, TRAFFIC_ISLAND, WICKET_GATE, ROPE, FULL_HEIGHT_TURNSTILE, PLANTER,
+            PROPERTY_BOUNDARY, NO, CABLE_BARRIER, RAILING, SUMP_BUSTER, SUMPBUSTER);
 
     public static boolean isBarrier(final Taggable taggable)
     {
