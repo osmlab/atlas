@@ -313,7 +313,7 @@ public class BigNodeFinderTest extends AtlasLoadingCommand
         logger.info("Atlas: {}", atlas);
         final List<BigNode> bigNodes = Iterables.asList(new BigNodeFinder().find(atlas));
         bigNodes.forEach(complexEntity -> logger.info("{}", complexEntity.toString()));
-        Assert.assertEquals("Expect to find 7 Big Nodes for this atlas", 7, bigNodes.size());
+        Assert.assertEquals("Expect to find 9 Big Nodes for this atlas", 9, bigNodes.size());
 
         Time timeNow = Time.now();
         final Set<Route> shortestRoutes = new HashSet<>();
@@ -322,7 +322,7 @@ public class BigNodeFinderTest extends AtlasLoadingCommand
                 shortestRoutes.size());
 
         logger.info("Big Node Shortest Routes: {} ", shortestRoutes);
-        Assert.assertEquals("Expect to find 18 shortest paths through these Big Nodes", 18,
+        Assert.assertEquals("Expect to find 16 shortest paths through these Big Nodes", 16,
                 shortestRoutes.size());
 
         timeNow = Time.now();
@@ -333,14 +333,14 @@ public class BigNodeFinderTest extends AtlasLoadingCommand
                 allRoutes.size());
 
         logger.info("Big Node All Routes: {} ", allRoutes);
-        Assert.assertEquals("Expect to find 26 total paths through these Big Nodes", 26,
+        Assert.assertEquals("Expect to find 28 total paths through these Big Nodes", 28,
                 allRoutes.size());
 
         Assert.assertTrue("Make sure the shortest routes are a subset of allRoutes",
                 allRoutes.containsAll(shortestRoutes));
 
-        final Route nonShortestValidRoute = Route.forEdges(atlas.edge(-3), atlas.edge(-2),
-                atlas.edge(2), atlas.edge(3));
+        final Route nonShortestValidRoute = Route.forEdges(atlas.edge(4), atlas.edge(11),
+                atlas.edge(-12), atlas.edge(-9), atlas.edge(3));
         Assert.assertTrue("Valid route should be absent from the shortest path set",
                 !shortestRoutes.contains(nonShortestValidRoute));
         Assert.assertTrue("Valid route should be present in the total path set",

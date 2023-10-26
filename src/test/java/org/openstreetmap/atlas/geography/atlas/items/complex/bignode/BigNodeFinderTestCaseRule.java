@@ -575,6 +575,79 @@ public class BigNodeFinderTestCaseRule extends CoreTestRule
                                     "name=West Davison Avenue", "oneway=yes" }) })
     private Atlas complexJunctionAtlas;
 
+    @TestAtlas(
+
+            nodes = { @Node(id = "49", coordinates = @Loc(value = FORTYNINE)),
+                    @Node(id = "50", coordinates = @Loc(value = FIFTY)),
+                    @Node(id = "51", coordinates = @Loc(value = FIFTYONE)),
+                    @Node(id = "52", coordinates = @Loc(value = FIFTYTWO)),
+                    @Node(id = "53", coordinates = @Loc(value = FIFTYTHREE)),
+                    @Node(id = "54", coordinates = @Loc(value = FIFTYFOUR)),
+                    @Node(id = "55", coordinates = @Loc(value = FIFTYFIVE)),
+                    @Node(id = "56", coordinates = @Loc(value = FIFTYSIX)),
+                    @Node(id = "57", coordinates = @Loc(value = FIFTYSEVEN)),
+                    @Node(id = "58", coordinates = @Loc(value = FIFTYEIGHT)),
+                    @Node(id = "59", coordinates = @Loc(value = FIFTYNINE)),
+                    @Node(id = "60", coordinates = @Loc(value = SIXTY)), },
+
+            edges = {
+                    @Edge(id = "1", coordinates = { @Loc(value = FORTYNINE),
+                            @Loc(value = FIFTYTWO) }, tags = { "highway=secondary",
+                                    "name=Soorkie Avenue" }),
+                    @Edge(id = "2", coordinates = { @Loc(value = FIFTYTHREE),
+                            @Loc(value = FIFTY) }, tags = { "highway=secondary",
+                                    "name=Soorkie Avenue" }),
+
+                    @Edge(id = "3", coordinates = { @Loc(value = FIFTYTWO),
+                            @Loc(value = FIFTYONE) }, tags = { "highway=secondary",
+                                    "name=Biryani Avenue" }),
+                    @Edge(id = "4", coordinates = { @Loc(value = FIFTYFIVE),
+                            @Loc(value = FIFTYSIX) }, tags = { "highway=secondary",
+                                    "name=Biryani Avenue" }),
+
+                    @Edge(id = "5", coordinates = { @Loc(value = FIFTYSIX),
+                            @Loc(value = FIFTYNINE) }, tags = { "highway=secondary",
+                                    "name=Soorkie Avenue" }),
+                    @Edge(id = "6", coordinates = { @Loc(value = SIXTY),
+                            @Loc(value = FIFTYSEVEN) }, tags = { "highway=secondary",
+                                    "name=Soorkie Avenue" }),
+
+                    @Edge(id = "7", coordinates = { @Loc(value = FIFTYSEVEN),
+                            @Loc(value = FIFTYEIGHT) }, tags = { "highway=secondary",
+                                    "name=Biryani Avenue" }),
+                    @Edge(id = "8", coordinates = { @Loc(value = FIFTYFOUR),
+                            @Loc(value = FIFTYTHREE) }, tags = { "highway=secondary",
+                                    "name=Biryani Avenue" }),
+
+                    @Edge(id = "9", coordinates = { @Loc(value = FIFTYTWO),
+                            @Loc(value = FIFTYTHREE) }, tags = { "highway=secondary",
+                                    "name=Biryani Avenue" }),
+                    @Edge(id = "-9", coordinates = { @Loc(value = FIFTYTHREE),
+                            @Loc(value = FIFTYTWO) }, tags = { "highway=secondary",
+                                    "name=Biryani Avenue" }),
+
+                    @Edge(id = "10", coordinates = { @Loc(value = FIFTYTWO),
+                            @Loc(value = FIFTYSIX) }, tags = { "highway=secondary",
+                                    "name=Biryani Avenue" }),
+                    @Edge(id = "-10", coordinates = { @Loc(value = FIFTYSIX),
+                            @Loc(value = FIFTYTWO) }, tags = { "highway=secondary",
+                                    "name=Biryani Avenue" }),
+
+                    @Edge(id = "11", coordinates = { @Loc(value = FIFTYSIX),
+                            @Loc(value = FIFTYSEVEN) }, tags = { "highway=secondary",
+                                    "name=Biryani Avenue" }),
+                    @Edge(id = "-11", coordinates = { @Loc(value = FIFTYSEVEN),
+                            @Loc(value = FIFTYSIX) }, tags = { "highway=secondary",
+                                    "name=Biryani Avenue" }),
+
+                    @Edge(id = "12", coordinates = { @Loc(value = FIFTYTHREE),
+                            @Loc(value = FIFTYSEVEN) }, tags = { "highway=secondary",
+                                    "name=Biryani Avenue" }),
+                    @Edge(id = "-12", coordinates = { @Loc(value = FIFTYSEVEN),
+                            @Loc(value = FIFTYTHREE) }, tags = { "highway=secondary",
+                                    "name=Biryani Avenue" }), })
+    private Atlas superComplexJunctionAtlas;
+
     /*
      * Intersections where nearby big nodes overlap
      */
@@ -609,7 +682,7 @@ public class BigNodeFinderTestCaseRule extends CoreTestRule
 
     public Atlas getComplexJunctionAtlas()
     {
-        return this.complexJunctionAtlas;
+        return this.superComplexJunctionAtlas;
     }
 
     public Atlas getDNKAtlasToTestExcludeLinkRoadAsDualCarriageWay()
