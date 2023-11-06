@@ -193,7 +193,7 @@ public final class AllPathsRouter
         }
         // Add start edge to the path
         path.push(start);
-        //This will avoid adding same edge both in forward and reverse direction
+        // This will avoid adding same edge both in forward and reverse direction
         onPath.add(start.end().getIdentifier());
 
         if (start.equals(end))
