@@ -193,7 +193,8 @@ public final class AllPathsRouter
         }
         // Add start edge to the path
         path.push(start);
-        onPath.add(start.getIdentifier());
+        // This will avoid adding same edge both in forward and reverse direction
+        onPath.add(start.end().getIdentifier());
 
         if (start.equals(end))
         {
@@ -203,7 +204,7 @@ public final class AllPathsRouter
             if (routes.size() > maximumAllowedPaths)
             {
                 logger.warn("Too many paths found - aborting! Path so far: {}",
-                        path.stream().map(edge -> String.valueOf(edge.getIdentifier()))
+                        path.stream().map(edge -> String.valueOf(edge.getMainEdgeIdentifier()))
                                 .collect(Collectors.toList()));
             }
         }
@@ -214,7 +215,10 @@ public final class AllPathsRouter
             // given filter
             for (final Edge candidate : start.outEdges())
             {
-                if (!candidate.isZeroLength() && !onPath.contains(candidate.getIdentifier())
+                // Proceed if we have not yet visited the edge in any direction (It would be really
+                // weired
+                // to revisit an edge in a BigNode, both in positive and negative directions.
+                if (!candidate.isZeroLength() && !onPath.contains(candidate.end().getIdentifier())
                         && (filter.test(candidate) || candidate.equals(end)))
                 {
                     allRoutes(candidate, end, path, onPath, routes, filter, maximumAllowedPaths);
@@ -224,7 +228,7 @@ public final class AllPathsRouter
 
         // We've explored all paths that go through this edge. Remove it from consideration
         path.pop();
-        onPath.remove(start.getIdentifier());
+        onPath.remove(start.end().getIdentifier());
     }
 
     private AllPathsRouter()

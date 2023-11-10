@@ -230,13 +230,13 @@ public class ComplexTurnRestrictionTest
     @Test
     public void testTurnRestrictionsFromComplexBigNodes()
     {
-        final int expectedCountOfRestrictedRoutes = 302;
+        final int expectedCountOfRestrictedRoutes = 49;
 
         // There's an only turn restriction (http://www.openstreetmap.org/relation/6643212)
         // specifying that 447301069000000 must go to 447301070000000. This route has a corner case
         // where an otherToOption (-447301069000000) is found before the from edge. Specifically
         // check to make sure this path is restricted.
-        final String expectedRestrictedRoute = "[Route: 447301065000000, -447301070000000, -447301069000000, 447301069000000, 447301074000000, 447301068000000, 338286211000000]";
+        final String expectedRestrictedRoute = "[Route: 447301065000000, -447301070000000, 447301074000000, 447301068000000, 338286211000000]";
 
         final Atlas complexBigNodeAtlas = this.rule.getBigNodeWithOnlyTurnRestrictionsAtlas();
 

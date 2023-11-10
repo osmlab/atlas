@@ -32,16 +32,8 @@ public class AllPathsRouterTest
         final Set<Route> expectedRoutes = new TreeSet<>(Route.ROUTE_COMPARATOR);
         expectedRoutes.add(Route.forEdges(atlas.edge(315932590), atlas.edge(316932590),
                 atlas.edge(317932590)));
-        expectedRoutes.add(Route.forEdges(atlas.edge(315932590), atlas.edge(-315932590),
-                atlas.edge(-318932590), atlas.edge(-317932590), atlas.edge(-316932590),
-                atlas.edge(316932590), atlas.edge(317932590)));
-        expectedRoutes.add(Route.forEdges(atlas.edge(315932590), atlas.edge(316932590),
-                atlas.edge(-316932590), atlas.edge(-315932590), atlas.edge(-318932590),
-                atlas.edge(-317932590), atlas.edge(317932590)));
-        expectedRoutes.add(Route.forEdges(atlas.edge(315932590), atlas.edge(-315932590),
-                atlas.edge(-318932590), atlas.edge(-317932590), atlas.edge(317932590)));
 
-        Assert.assertEquals("Expect four distinct routes between start and end", 4, routes.size());
+        Assert.assertEquals("Expect one distinct route between start and end", 1, routes.size());
         Assert.assertEquals("Expect deterministic results from the router", expectedRoutes, routes);
     }
 
