@@ -142,7 +142,7 @@ public class AtlasDiff
          */
         createFeatureChangesBasedOnEntitySets(addedEntities, removedEntities,
                 potentiallyModifiedEntities, this.before, this.after, this.saveAllGeometries)
-                        .stream().forEach(changeBuilder::add);
+                .stream().forEach(changeBuilder::add);
 
         if (changeBuilder.peekNumberOfChanges() == 0)
         {

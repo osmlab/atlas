@@ -317,9 +317,8 @@ public class AtlasSectionProcessor
 
         final DynamicAtlasPolicy policy = new DynamicAtlasPolicy(fullySlicedAtlasFetcher, sharding,
                 initialShard.bounds().expand(SHARD_EXPANSION_DISTANCE), Rectangle.MAXIMUM)
-                        .withDeferredLoading(true).withExtendIndefinitely(false)
-                        .withAtlasEntitiesToConsiderForExpansion(
-                                this.dynamicAtlasExpansionFilter::test);
+                .withDeferredLoading(true).withExtendIndefinitely(false)
+                .withAtlasEntitiesToConsiderForExpansion(this.dynamicAtlasExpansionFilter::test);
 
         final DynamicAtlas atlas = new DynamicAtlas(policy);
         atlas.preemptiveLoad();

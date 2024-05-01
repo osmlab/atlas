@@ -81,8 +81,8 @@ public class ChangeRelation extends Relation // NOSONAR
     {
         return attribute(Relation::allRelationsWithSameOsmIdentifier,
                 "all relations with same osm identifier").stream()
-                        .map(relation -> getChangeAtlas().relation(relation.getIdentifier()))
-                        .collect(Collectors.toList());
+                .map(relation -> getChangeAtlas().relation(relation.getIdentifier()))
+                .collect(Collectors.toList());
     }
 
     @Override

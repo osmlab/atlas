@@ -25,7 +25,7 @@ public class CountryShardListingTest
         final CountryBoundaryMap boundaries = CountryBoundaryMap
                 .fromPlainText(new InputStreamResource(() -> CountryShardListingTest.class
                         .getResourceAsStream("ZAF_osm_boundary.txt.gz"))
-                                .withDecompressor(Decompressor.GZIP));
+                        .withDecompressor(Decompressor.GZIP));
         final Sharding sharding = Sharding.forString("dynamic@"
                 + CountryShardListingTest.class.getResource("tree-6-14-100000.txt.gz").getPath());
         final MultiMapWithSet<String, Shard> shardSetPerCountry = CountryShardListing
@@ -51,7 +51,7 @@ public class CountryShardListingTest
         final CountryBoundaryMap boundaries = CountryBoundaryMap
                 .fromPlainText(new InputStreamResource(() -> CountryShardListingTest.class
                         .getResourceAsStream("DMA_as_world_osm_boundaries.txt.gz"))
-                                .withDecompressor(Decompressor.GZIP));
+                        .withDecompressor(Decompressor.GZIP));
         final Sharding sharding = Sharding.forString("dynamic@"
                 + CountryShardListingTest.class.getResource("tree-6-13-100000.txt.gz").getPath());
         final MultiMapWithSet<String, Shard> shardSetPerCountry = CountryShardListing

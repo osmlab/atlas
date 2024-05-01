@@ -278,12 +278,12 @@ public final class MemberMergeStrategies
          */
         final Map<RelationBeanItem, Integer> removedFromLeftView = computeMapDifferenceCounts(
                 beforeBeanMap, afterLeftBeanMap).entrySet().stream()
-                        .filter(entry -> entry.getValue() > 0)
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .filter(entry -> entry.getValue() > 0)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         final Map<RelationBeanItem, Integer> removedFromRightView = computeMapDifferenceCounts(
                 beforeBeanMap, afterRightBeanMap).entrySet().stream()
-                        .filter(entry -> entry.getValue() > 0)
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .filter(entry -> entry.getValue() > 0)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         /*
          * Compute the difference set between the afterViews and the beforeView (which is equivalent
@@ -292,12 +292,12 @@ public final class MemberMergeStrategies
          */
         final Map<RelationBeanItem, Integer> addedToLeftView = computeMapDifferenceCounts(
                 afterLeftBeanMap, beforeBeanMap).entrySet().stream()
-                        .filter(entry -> entry.getValue() > 0)
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .filter(entry -> entry.getValue() > 0)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         final Map<RelationBeanItem, Integer> addedToRightView = computeMapDifferenceCounts(
                 afterRightBeanMap, beforeBeanMap).entrySet().stream()
-                        .filter(entry -> entry.getValue() > 0)
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .filter(entry -> entry.getValue() > 0)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         /*
          * Check for REMOVE/REMOVE conflicts. A REMOVE/REMOVE conflict occurs when

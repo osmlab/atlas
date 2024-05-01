@@ -43,7 +43,7 @@ public class ComplexTurnRestrictionTest
     {
         final Atlas atlas = new TextAtlasBuilder().read(new InputStreamResource(
                 () -> ComplexTurnRestrictionTest.class.getResourceAsStream("bigNode.txt.gz"))
-                        .withDecompressor(Decompressor.GZIP).withName("bigNode.txt.gz"));
+                .withDecompressor(Decompressor.GZIP).withName("bigNode.txt.gz"));
 
         final List<BigNode> bigNodes = Iterables.asList(new BigNodeFinder().find(atlas));
 

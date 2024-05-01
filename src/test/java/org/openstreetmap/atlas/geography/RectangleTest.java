@@ -101,7 +101,7 @@ public class RectangleTest
         Assert.assertEquals(Math.round(contractRectangle1Distance.asMeters()),
                 Math.round(new Location(this.rectangle1.lowerLeft().getLatitude(),
                         collapsedHorizontally.middle().getLongitude())
-                                .distanceTo(collapsedHorizontally.lowerLeft()).asMeters()));
+                        .distanceTo(collapsedHorizontally.lowerLeft()).asMeters()));
 
         // test collapse vertically
         final Location rectangle2UpperLeft = Iterables.asList(this.rectangle2).get(1);
@@ -114,7 +114,7 @@ public class RectangleTest
         Assert.assertEquals(Math.round(contractRectangle2Distance.asMeters()),
                 Math.round(new Location(collapsedVertically.middle().getLatitude(),
                         this.rectangle2.lowerLeft().getLongitude())
-                                .distanceTo(collapsedVertically.lowerLeft()).asMeters()));
+                        .distanceTo(collapsedVertically.lowerLeft()).asMeters()));
 
         // Test fully collapse Collapsed
         Assert.assertEquals(this.rectangle1.center().bounds(),

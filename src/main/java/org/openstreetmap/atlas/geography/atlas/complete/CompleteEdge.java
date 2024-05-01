@@ -59,11 +59,11 @@ public class CompleteEdge extends Edge implements CompleteLineItem<CompleteEdge>
         return new CompleteEdge(edge.getIdentifier(), edge.asPolyLine(), edge.getTags(),
                 edge.start().getIdentifier(), edge.end().getIdentifier(),
                 edge.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()))
-                        .withGeometricRelationIdentifiers(
-                                edge.relations().stream().filter(Relation::isGeometric)
-                                        .filter(relation -> relation.asMultiPolygon().isPresent()
-                                                && !relation.asMultiPolygon().get().isEmpty())
-                                        .map(Relation::getIdentifier).collect(Collectors.toSet()));
+                .withGeometricRelationIdentifiers(
+                        edge.relations().stream().filter(Relation::isGeometric)
+                                .filter(relation -> relation.asMultiPolygon().isPresent()
+                                        && !relation.asMultiPolygon().get().isEmpty())
+                                .map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
 
     /**

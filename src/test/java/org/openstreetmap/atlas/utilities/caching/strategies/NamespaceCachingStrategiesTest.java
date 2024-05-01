@@ -257,6 +257,6 @@ public class NamespaceCachingStrategiesTest
          */
         gzippedFile.copyFrom(new InputStreamResource(
                 () -> NamespaceCachingStrategiesTest.class.getResourceAsStream("hello.txt.gz"))
-                        .withDecompressor(Decompressor.GZIP));
+                .withDecompressor(Decompressor.GZIP));
     }
 }

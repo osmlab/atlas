@@ -44,7 +44,7 @@ public class DynamicAtlasPreemptiveLoadTest
                     return Optional.empty();
                 }
             }, new SlippyTileSharding(9), INITIAL_SHARD, Rectangle.MAXIMUM)
-                    .withDeferredLoading(true).withExtendIndefinitely(false);
+            .withDeferredLoading(true).withExtendIndefinitely(false);
     private final Supplier<DynamicAtlasPolicy> allInitialShardsPolicySupplier = () -> new DynamicAtlasPolicy(
             shard ->
             {
@@ -72,34 +72,34 @@ public class DynamicAtlasPreemptiveLoadTest
                     return Optional.empty();
                 }
             }, new SlippyTileSharding(9), INITIAL_SHARD, Rectangle.MAXIMUM)
-                    .withDeferredLoading(true).withExtendIndefinitely(true)
-                    .withAtlasEntitiesToConsiderForExpansion(new Predicate<>()
-                    {
-                        private final Map<AtlasEntityKey, Integer> identifiersChecked = new HashMap<>();
+            .withDeferredLoading(true).withExtendIndefinitely(true)
+            .withAtlasEntitiesToConsiderForExpansion(new Predicate<>()
+            {
+                private final Map<AtlasEntityKey, Integer> identifiersChecked = new HashMap<>();
 
-                        @Override
-                        public boolean test(final AtlasEntity atlasEntity)
+                @Override
+                public boolean test(final AtlasEntity atlasEntity)
+                {
+                    final AtlasEntityKey key = AtlasEntityKey.from(atlasEntity.getType(),
+                            atlasEntity.getIdentifier());
+                    if (this.identifiersChecked.containsKey(key)
+                            && this.identifiersChecked.get(key) > 9)
+                    {
+                        throw new CoreException("Checked {} {} times!", key,
+                                this.identifiersChecked.get(key));
+                    }
+                    else
+                    {
+                        int newCount = 1;
+                        if (this.identifiersChecked.containsKey(key))
                         {
-                            final AtlasEntityKey key = AtlasEntityKey.from(atlasEntity.getType(),
-                                    atlasEntity.getIdentifier());
-                            if (this.identifiersChecked.containsKey(key)
-                                    && this.identifiersChecked.get(key) > 9)
-                            {
-                                throw new CoreException("Checked {} {} times!", key,
-                                        this.identifiersChecked.get(key));
-                            }
-                            else
-                            {
-                                int newCount = 1;
-                                if (this.identifiersChecked.containsKey(key))
-                                {
-                                    newCount += this.identifiersChecked.get(key);
-                                }
-                                this.identifiersChecked.put(key, newCount);
-                            }
-                            return true;
+                            newCount += this.identifiersChecked.get(key);
                         }
-                    });
+                        this.identifiersChecked.put(key, newCount);
+                    }
+                    return true;
+                }
+            });
 
     @Test
     public void loadPreemptivelyCapExpansionCheckTest()

@@ -55,11 +55,11 @@ public class CompleteArea extends Area implements CompleteEntity<CompleteArea>
         }
         return new CompleteArea(area.getIdentifier(), area.asPolygon(), area.getTags(),
                 area.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()))
-                        .withGeometricRelationIdentifiers(
-                                area.relations().stream().filter(Relation::isGeometric)
-                                        .filter(relation -> relation.asMultiPolygon().isPresent()
-                                                && !relation.asMultiPolygon().get().isEmpty())
-                                        .map(Relation::getIdentifier).collect(Collectors.toSet()));
+                .withGeometricRelationIdentifiers(
+                        area.relations().stream().filter(Relation::isGeometric)
+                                .filter(relation -> relation.asMultiPolygon().isPresent()
+                                        && !relation.asMultiPolygon().get().isEmpty())
+                                .map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
 
     /**

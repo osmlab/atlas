@@ -55,11 +55,11 @@ public class CompleteLine extends Line implements CompleteLineItem<CompleteLine>
         }
         return new CompleteLine(line.getIdentifier(), line.asPolyLine(), line.getTags(),
                 line.relations().stream().map(Relation::getIdentifier).collect(Collectors.toSet()))
-                        .withGeometricRelationIdentifiers(
-                                line.relations().stream().filter(Relation::isGeometric)
-                                        .filter(relation -> relation.asMultiPolygon().isPresent()
-                                                && !relation.asMultiPolygon().get().isEmpty())
-                                        .map(Relation::getIdentifier).collect(Collectors.toSet()));
+                .withGeometricRelationIdentifiers(
+                        line.relations().stream().filter(Relation::isGeometric)
+                                .filter(relation -> relation.asMultiPolygon().isPresent()
+                                        && !relation.asMultiPolygon().get().isEmpty())
+                                .map(Relation::getIdentifier).collect(Collectors.toSet()));
     }
 
     /**

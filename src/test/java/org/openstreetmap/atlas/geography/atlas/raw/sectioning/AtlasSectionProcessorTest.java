@@ -42,7 +42,7 @@ public class AtlasSectionProcessorTest
         COUNTRY_BOUNDARY_MAP = CountryBoundaryMap
                 .fromPlainText(new InputStreamResource(() -> RawAtlasSlicerTest.class
                         .getResourceAsStream("CIV_GIN_LBR_osm_boundaries.txt.gz"))
-                                .withDecompressor(Decompressor.GZIP));
+                        .withDecompressor(Decompressor.GZIP));
     }
 
     @Rule

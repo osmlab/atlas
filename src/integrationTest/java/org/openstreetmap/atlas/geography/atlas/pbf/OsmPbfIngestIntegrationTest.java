@@ -236,7 +236,7 @@ public class OsmPbfIngestIntegrationTest extends AtlasIntegrationTest
         final CountryBoundaryMap map = CountryBoundaryMap
                 .fromPlainText(new InputStreamResource(() -> OsmPbfIngestIntegrationTest.class
                         .getResourceAsStream("CUB_osm_boundaries.txt.gz"))
-                                .withDecompressor(Decompressor.GZIP));
+                        .withDecompressor(Decompressor.GZIP));
         final SlippyTile tile = SlippyTile.forName("8-72-111");
         final MultiPolygon boundary = new JtsPolygonToMultiPolygonConverter()
                 .convert(map.countryBoundary("CUB").get(0));

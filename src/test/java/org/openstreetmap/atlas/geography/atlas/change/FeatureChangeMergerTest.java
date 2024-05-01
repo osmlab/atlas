@@ -50,7 +50,7 @@ public class FeatureChangeMergerTest
                 null).withBoundsExtendedBy(Polygon.SILICON_VALLEY.bounds());
         final CompleteArea after1 = new CompleteArea(123L, null,
                 Maps.hashMap("a", "1", "b", "2", "c", "3"), null)
-                        .withBoundsExtendedBy(Polygon.SILICON_VALLEY.bounds());
+                .withBoundsExtendedBy(Polygon.SILICON_VALLEY.bounds());
         final CompleteArea before2 = new CompleteArea(123L, Polygon.SILICON_VALLEY, null, null);
         final CompleteArea after2 = new CompleteArea(123L, Polygon.SILICON_VALLEY_2, null, null);
 
@@ -72,7 +72,7 @@ public class FeatureChangeMergerTest
                 null, null, null).withBoundsExtendedBy(PolyLine.TEST_POLYLINE.bounds());
         final CompleteEdge after1 = new CompleteEdge(123L, null,
                 Maps.hashMap("a", "1", "b", "2", "c", "3"), null, null, null)
-                        .withBoundsExtendedBy(PolyLine.TEST_POLYLINE.bounds());
+                .withBoundsExtendedBy(PolyLine.TEST_POLYLINE.bounds());
         final CompleteEdge before2 = new CompleteEdge(123L, PolyLine.TEST_POLYLINE, null, null,
                 null, null);
         final CompleteEdge after2 = new CompleteEdge(123L, PolyLine.TEST_POLYLINE_2, null, null,
@@ -96,7 +96,7 @@ public class FeatureChangeMergerTest
                 null).withBoundsExtendedBy(PolyLine.TEST_POLYLINE.bounds());
         final CompleteLine after1 = new CompleteLine(123L, null,
                 Maps.hashMap("a", "1", "b", "2", "c", "3"), null)
-                        .withBoundsExtendedBy(PolyLine.TEST_POLYLINE.bounds());
+                .withBoundsExtendedBy(PolyLine.TEST_POLYLINE.bounds());
         final CompleteLine before2 = new CompleteLine(123L, PolyLine.TEST_POLYLINE, null, null);
         final CompleteLine after2 = new CompleteLine(123L, PolyLine.TEST_POLYLINE_2, null, null);
 
@@ -118,7 +118,7 @@ public class FeatureChangeMergerTest
                 null, null, null).withBoundsExtendedBy(Location.TEST_1.bounds());
         final CompleteNode after1 = new CompleteNode(123L, null,
                 Maps.hashMap("a", "1", "b", "2", "c", "3"), null, null, null)
-                        .withBoundsExtendedBy(Location.TEST_1.bounds());
+                .withBoundsExtendedBy(Location.TEST_1.bounds());
         final CompleteNode before2 = new CompleteNode(123L, Location.TEST_1, null, null, null,
                 null);
         final CompleteNode after2 = new CompleteNode(123L, Location.TEST_2, null, null, null, null);
@@ -139,10 +139,10 @@ public class FeatureChangeMergerTest
     {
         final CompletePoint before1 = new CompletePoint(123L, null,
                 Maps.hashMap("a", "1", "b", "2"), null)
-                        .withBoundsExtendedBy(Location.TEST_1.bounds());
+                .withBoundsExtendedBy(Location.TEST_1.bounds());
         final CompletePoint after1 = new CompletePoint(123L, null,
                 Maps.hashMap("a", "1", "b", "2", "c", "3"), null)
-                        .withBoundsExtendedBy(Location.TEST_1.bounds());
+                .withBoundsExtendedBy(Location.TEST_1.bounds());
         final CompletePoint before2 = new CompletePoint(123L, Location.TEST_1, null, null);
         final CompletePoint after2 = new CompletePoint(123L, Location.TEST_2, null, null);
 
