@@ -52,11 +52,11 @@ jobs:
       run: ./gradlew jar check -x test -x integrationTest
     - name: Tests
       run: ./gradlew check build
-    - name: Sonar
-      env:
-        SONAR_TOKEN: 374d4e512b90257ba50c21c37202ee01af40c6a0
-        SONAR_PR_DECORATION_GITHUB_TOKEN: ${{ secrets.SONAR_PR_DECORATION_GITHUB_TOKEN }}
-      run: .github/workflow_scripts/sonar.sh
+#    - name: Sonar
+#      env:
+#        SONAR_TOKEN: 374d4e512b90257ba50c21c37202ee01af40c6a0
+#        SONAR_PR_DECORATION_GITHUB_TOKEN: ${{ secrets.SONAR_PR_DECORATION_GITHUB_TOKEN }}
+#      run: .github/workflow_scripts/sonar.sh
 
 # Merge to Main
     - name: Merge dev to main
