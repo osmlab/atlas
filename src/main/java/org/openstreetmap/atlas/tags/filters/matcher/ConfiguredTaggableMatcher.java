@@ -27,8 +27,8 @@ public class ConfiguredTaggableMatcher implements Predicate<Taggable>, Serializa
     {
         this.matchers = ((List<String>) configuration.get(MATCHERS_CONFIGURATION_NAME).valueOption()
                 .orElseThrow(() -> new CoreException("No matchers defined in configuration {}",
-                        configuration))).stream().map(TaggableMatcher::from)
-                                .collect(Collectors.toList());
+                        configuration)))
+                .stream().map(TaggableMatcher::from).collect(Collectors.toList());
     }
 
     @Override

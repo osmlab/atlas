@@ -47,7 +47,7 @@ public class JavaToProtoSerializationCommandTest
             Assert.assertEquals(PackedAtlas.AtlasSerializationFormat.PROTOBUF,
                     ((PackedAtlas) new AtlasResourceLoader()
                             .load(new File("/work/java-atlas.atlas", filesystem)))
-                                    .getSerializationFormat());
+                            .getSerializationFormat());
 
         }
         catch (final IOException exception)
@@ -112,7 +112,7 @@ public class JavaToProtoSerializationCommandTest
             Assert.assertEquals(PackedAtlas.AtlasSerializationFormat.JAVA,
                     ((PackedAtlas) new AtlasResourceLoader()
                             .load(new File("/work/proto-atlas.atlas", filesystem)))
-                                    .getSerializationFormat());
+                            .getSerializationFormat());
         }
         catch (final IOException exception)
         {

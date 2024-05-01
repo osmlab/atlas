@@ -33,7 +33,8 @@ public class EntityIdentifierGeneratorTest
         Assert.assertTrue((new EntityIdentifierGenerator.Configuration().getGenerator()
                 .getBasicPropertyString(point)
                 + new EntityIdentifierGenerator.Configuration().getGenerator()
-                        .getTypeSpecificPropertyString(point)).isEmpty());
+                        .getTypeSpecificPropertyString(point))
+                .isEmpty());
 
         this.expectedException.expect(CoreException.class);
         this.expectedException.expectMessage(

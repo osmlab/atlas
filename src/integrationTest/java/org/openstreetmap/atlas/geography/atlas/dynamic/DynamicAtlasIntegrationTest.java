@@ -24,7 +24,7 @@ public class DynamicAtlasIntegrationTest
         final String fileName = "DMA_" + shard.getName() + ".atlas.txt.gz";
         return Optional.of(new TextAtlasBuilder().read(new InputStreamResource(
                 () -> DynamicAtlasIntegrationTest.class.getResourceAsStream(fileName))
-                        .withName(fileName).withDecompressor(Decompressor.GZIP)));
+                .withName(fileName).withDecompressor(Decompressor.GZIP)));
     }, new SlippyTileSharding(9), SlippyTile.forName("9-168-234"), Rectangle.MAXIMUM);
 
     @Test

@@ -78,8 +78,8 @@ public class LocalizedTaggableTestCase
     public void findRussianNameFromRussianAndDefaults()
     {
         final Optional<String> value = new TestTaggable(
-                Maps.hashMap(NameTag.KEY + ":ru", "dah", NameTag.KEY, "nyet")).getTag(NameTag.class,
-                        Optional.of(IsoLanguage.forLanguageCode("ru").get()));
+                Maps.hashMap(NameTag.KEY + ":ru", "dah", NameTag.KEY, "nyet"))
+                .getTag(NameTag.class, Optional.of(IsoLanguage.forLanguageCode("ru").get()));
         Assert.assertTrue(value.isPresent());
         Assert.assertEquals("dah", value.get());
     }

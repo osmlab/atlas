@@ -62,7 +62,7 @@ public class RawAtlasIntegrationTest
         final CountryBoundaryMap boundary = CountryBoundaryMap
                 .fromPlainText(new InputStreamResource(() -> RawAtlasIntegrationTest.class
                         .getResourceAsStream("CIV_GIN_LBR_osm_boundaries_with_grid_index.txt.gz"))
-                                .withDecompressor(Decompressor.GZIP));
+                        .withDecompressor(Decompressor.GZIP));
         loadingOptionAll = AtlasLoadingOption.createOptionWithAllEnabled(boundary);
 
         loadingOptionIvoryCoast = AtlasLoadingOption.createOptionWithAllEnabled(boundary)

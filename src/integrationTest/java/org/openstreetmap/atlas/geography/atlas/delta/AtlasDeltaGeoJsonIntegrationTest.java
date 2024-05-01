@@ -66,13 +66,12 @@ public class AtlasDeltaGeoJsonIntegrationTest
         this.before = new TextAtlasBuilder()
                 .read(new InputStreamResource(() -> AtlasDeltaIntegrationTest.class
                         .getResourceAsStream("DMA_9-168-233-base.txt.gz"))
-                                .withDecompressor(Decompressor.GZIP)
-                                .withName("DMA_9-168-233-base.txt.gz"));
+                        .withDecompressor(Decompressor.GZIP).withName("DMA_9-168-233-base.txt.gz"));
         this.after = new TextAtlasBuilder()
                 .read(new InputStreamResource(() -> AtlasDeltaIntegrationTest.class
                         .getResourceAsStream("DMA_9-168-233-alter.txt.gz"))
-                                .withDecompressor(Decompressor.GZIP)
-                                .withName("DMA_9-168-233-alter.txt.gz"));
+                        .withDecompressor(Decompressor.GZIP)
+                        .withName("DMA_9-168-233-alter.txt.gz"));
         this.delta = new AtlasDelta(this.before, this.after, false).generate();
     }
 

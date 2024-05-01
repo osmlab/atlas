@@ -604,8 +604,7 @@ class DynamicAtlasExpander
                     source.length > 0
                             ? "Atlas " + new StringList(Iterables.stream(Iterables.asList(source))
                                     .map(item -> item.getType() + " " + item.getIdentifier()))
-                                            .join(", ")
-                                    + " with shape "
+                                    .join(", ") + " with shape "
                             : "",
                     geometry.toWkt());
         }

@@ -50,7 +50,7 @@ public class CountryBoundaryMapTest
         final CountryBoundaryMap map = CountryBoundaryMap
                 .fromPlainText(new InputStreamResource(() -> CountryBoundaryMapTest.class
                         .getResourceAsStream("HTI_DOM_osm_boundaries.txt.gz"))
-                                .withDecompressor(Decompressor.GZIP));
+                        .withDecompressor(Decompressor.GZIP));
         final LineString lineString = (LineString) TestUtility
                 .createJtsGeometryFromWKT("LINESTRING ( -179 18.84927, 179 18.84927 )");
 
@@ -85,7 +85,7 @@ public class CountryBoundaryMapTest
     {
         final CountryBoundaryMap map = CountryBoundaryMap.fromPlainText(new InputStreamResource(
                 () -> CountryBoundaryMapTest.class.getResourceAsStream("CIV_osm_boundaries.txt.gz"))
-                        .withDecompressor(Decompressor.GZIP));
+                .withDecompressor(Decompressor.GZIP));
         Assert.assertEquals("CIV", firstCountryName(map));
 
         final Location locationInsideInner1 = Location.forString("4.5847047, -7.573053");
@@ -122,7 +122,7 @@ public class CountryBoundaryMapTest
         final CountryBoundaryMap map = CountryBoundaryMap
                 .fromPlainText(new InputStreamResource(() -> CountryBoundaryMapTest.class
                         .getResourceAsStream("MAF_AIA_osm_boundaries_with_grid_index.txt.gz"))
-                                .withDecompressor(Decompressor.GZIP));
+                        .withDecompressor(Decompressor.GZIP));
 
         final PolyLine line = PolyLine.wkt(
                 "LINESTRING(-63.069960775034794 18.20724437315409,-63.056442441599735 18.203616100626693,-63.058416547434696 18.211076399156397)");
@@ -140,7 +140,7 @@ public class CountryBoundaryMapTest
         final CountryBoundaryMap map = CountryBoundaryMap
                 .fromPlainText(new InputStreamResource(() -> CountryBoundaryMapTest.class
                         .getResourceAsStream("HTI_DOM_osm_boundaries.txt.gz"))
-                                .withDecompressor(Decompressor.GZIP));
+                        .withDecompressor(Decompressor.GZIP));
 
         final WKTReader reader = new WKTReader();
         final PackedAtlasBuilder builder = new PackedAtlasBuilder();
@@ -166,7 +166,7 @@ public class CountryBoundaryMapTest
         final CountryBoundaryMap map = CountryBoundaryMap
                 .fromPlainText(new InputStreamResource(() -> CountryBoundaryMapTest.class
                         .getResourceAsStream("HTI_DOM_osm_boundaries.txt.gz"))
-                                .withDecompressor(Decompressor.GZIP));
+                        .withDecompressor(Decompressor.GZIP));
 
         // Slice a line along the border
         final PolyLine geometry = PolyLine.wkt(
@@ -212,7 +212,7 @@ public class CountryBoundaryMapTest
         final CountryBoundaryMap map = CountryBoundaryMap
                 .fromPlainText(new InputStreamResource(() -> CountryBoundaryMapTest.class
                         .getResourceAsStream("HTI_DOM_osm_boundaries.txt.gz"))
-                                .withDecompressor(Decompressor.GZIP));
+                        .withDecompressor(Decompressor.GZIP));
 
         Point point = JTS_POINT_CONVERTER
                 .convert(Location.forString("19.068387997775737, -71.7029007844633"));

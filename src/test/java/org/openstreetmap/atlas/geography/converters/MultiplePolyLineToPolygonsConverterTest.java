@@ -166,13 +166,16 @@ public class MultiplePolyLineToPolygonsConverterTest
         final List<PolyLine> list = new ArrayList<>();
         list.add(PolyLine.wkt(new InputStreamResource(
                 () -> MultiplePolyLineToPolygonsConverterTest.class.getResourceAsStream(
-                        "MultiplePolyLineToPolygonsConverterTest_jtsErrorOuter.wkt")).all()));
+                        "MultiplePolyLineToPolygonsConverterTest_jtsErrorOuter.wkt"))
+                .all()));
         list.add(PolyLine.wkt(new InputStreamResource(
                 () -> MultiplePolyLineToPolygonsConverterTest.class.getResourceAsStream(
-                        "MultiplePolyLineToPolygonsConverterTest_jtsErrorInner1.wkt")).all()));
+                        "MultiplePolyLineToPolygonsConverterTest_jtsErrorInner1.wkt"))
+                .all()));
         list.add(PolyLine.wkt(new InputStreamResource(
                 () -> MultiplePolyLineToPolygonsConverterTest.class.getResourceAsStream(
-                        "MultiplePolyLineToPolygonsConverterTest_jtsErrorInner2.wkt")).all()));
+                        "MultiplePolyLineToPolygonsConverterTest_jtsErrorInner2.wkt"))
+                .all()));
         Assert.assertEquals(3, Iterables.size(CONVERTER.convert(list)));
     }
 
@@ -237,13 +240,13 @@ public class MultiplePolyLineToPolygonsConverterTest
         final List<PolyLine> input = new InputStreamResource(
                 () -> MultiplePolyLineToPolygonsConverterTest.class.getResourceAsStream(
                         "MultiplePolyLineToPolygonsConverterTest_multiplePolyLines.txt"))
-                                .linesList().stream().map(WKT_POLY_LINE_CONVERTER::backwardConvert)
-                                .collect(Collectors.toList());
+                .linesList().stream().map(WKT_POLY_LINE_CONVERTER::backwardConvert)
+                .collect(Collectors.toList());
         final List<Polygon> expected = new InputStreamResource(
                 () -> MultiplePolyLineToPolygonsConverterTest.class.getResourceAsStream(
-                        "MultiplePolyLineToPolygonsConverterTest_expectedPolygons.txt")).linesList()
-                                .stream().map(WKT_POLYGON_CONVERTER::backwardConvert)
-                                .collect(Collectors.toList());
+                        "MultiplePolyLineToPolygonsConverterTest_expectedPolygons.txt"))
+                .linesList().stream().map(WKT_POLYGON_CONVERTER::backwardConvert)
+                .collect(Collectors.toList());
         Iterables.asList(CONVERTER.convert(input)).forEach(System.out::println);
         Assert.assertEquals(expected.stream().map(Polygon::length).collect(Collectors.toList()),
                 Iterables.asList(CONVERTER.convert(input)).stream().map(Polygon::length)

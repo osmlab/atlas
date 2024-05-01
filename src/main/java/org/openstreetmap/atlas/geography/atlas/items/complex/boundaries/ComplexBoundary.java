@@ -199,7 +199,8 @@ public class ComplexBoundary extends ComplexEntity implements GeometryPrintable
                 this.outline == null ? "MISSING" : this.outline.toReadableString(),
                 new StringList(
                         this.subAreas.stream().map(subArea -> subArea.toString(header + "\t"))
-                                .collect(Collectors.toList())).join("\n"));
+                                .collect(Collectors.toList()))
+                        .join("\n"));
     }
 
     /**

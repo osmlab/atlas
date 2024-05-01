@@ -146,7 +146,7 @@ public class GeoJsonParserJacksonImplTest extends AbstractGeoJsonParserJacksonIm
 
         final int innermostLevelSize = (((GeometryCollection) ((GeometryCollection) ((GeometryCollection) ((GeometryCollection) geoJsonItem)
                 .getGeometries().get(3)).getGeometries().get(3)).getGeometries().get(3)))
-                        .getGeometries().size();
+                .getGeometries().size();
 
         Assert.assertEquals(3, innermostLevelSize);
     }

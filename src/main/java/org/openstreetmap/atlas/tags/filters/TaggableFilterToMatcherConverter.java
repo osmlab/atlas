@@ -39,7 +39,7 @@ public class TaggableFilterToMatcherConverter implements Converter<TaggableFilte
                 + new StringList(filter.getChildren().stream()
                         .map(TaggableFilterToMatcherConverter::toTaggableMatcherDefinition)
                         .collect(Collectors.toList()))
-                                .join(" " + filter.getTreeBoolean().separator() + " ")
+                        .join(" " + filter.getTreeBoolean().separator() + " ")
                 + Token.TokenType.PAREN_CLOSE.getLiteralValue();
     }
 

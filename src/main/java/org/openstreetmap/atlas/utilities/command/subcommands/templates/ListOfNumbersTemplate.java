@@ -82,7 +82,7 @@ public class ListOfNumbersTemplate implements AtlasShellToolsCommandTemplate
                 new ByteArrayInputStream(
                         ("This is an example man page section for the ListOfNumbersTemplate! "
                                 + "This template adds an option that reads a list of numbers.")
-                                        .getBytes(StandardCharsets.UTF_8)));
+                                .getBytes(StandardCharsets.UTF_8)));
     }
 
     @Override

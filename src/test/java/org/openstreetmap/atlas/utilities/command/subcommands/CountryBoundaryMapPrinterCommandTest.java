@@ -29,7 +29,8 @@ public class CountryBoundaryMapPrinterCommandTest
                     .withCompressor(Compressor.GZIP);
             inputText.writeAndClose(new InputStreamResource(
                     () -> CountryBoundaryMapPrinterCommandTest.class.getResourceAsStream(
-                            "CountryBoundaryMapPrinterCommandTestBoundaries.txt")).all());
+                            "CountryBoundaryMapPrinterCommandTestBoundaries.txt"))
+                    .all());
             final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
             final CountryBoundaryMapPrinterCommand command = new CountryBoundaryMapPrinterCommand();
             command.setNewFileSystem(filesystem);
