@@ -96,35 +96,16 @@ dependencies
 
 }
 
-task shaded(type: Jar) {
-    archiveBaseName = project.name
-    classifier = 'shaded'
-    from
-    {
-        configurations.shaded.collect
-        {
-            it.isDirectory() ? it : zipTree(it).matching{
-                exclude
-                {
-                    it.path.contains('META-INF') && (it.path.endsWith('.SF') || it.path.endsWith('.DSA') || it.path.endsWith('.RSA'))
-                }
-            }
-        }
-    }
-    with jar
-    zip64 = true
-}
-
 /**
  * Artifact related items
  */
 task javadocJar(type: Jar) {
-    classifier = 'javadoc'
+    archiveClassifier = 'javadoc'
     from javadoc
 }
 
 task sourcesJar(type: Jar) {
-    classifier = 'sources'
+    archiveClassifier = 'sources'
     from sourceSets.main.allSource
 }
 
@@ -163,3 +144,5 @@ tasks.each {
     task.setProperty("duplicatesStrategy", "EXCLUDE")
   }
 }
+
+javadoc.dependsOn jacocoTestReport

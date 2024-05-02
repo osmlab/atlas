@@ -38,6 +38,10 @@ protobuf {
 
         compileJava.dependsOn(generateProto)
         clean.dependsOn(deleteGeneratedProto)
+        spotlessJava.dependsOn generateProto
+
+        sourcesJar.dependsOn generateProto
+        javadocJar.dependsOn generateProto
     }
 }
 
