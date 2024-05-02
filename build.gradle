@@ -146,3 +146,4 @@ tasks.each {
 }
 
 javadoc.dependsOn jacocoTestReport
+jacocoTestReport.dependsOn spotlessJava
