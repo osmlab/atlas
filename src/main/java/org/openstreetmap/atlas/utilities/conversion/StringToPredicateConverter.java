@@ -91,6 +91,7 @@ public class StringToPredicateConverter<T> implements Converter<String, Predicat
      * @return the {@link Predicate} object
      */
     @SuppressWarnings("unchecked")
+    @Deprecated
     public Predicate<T> convertUnsafe(final String booleanExpressionString)
     {
         checkExpressionSafety(booleanExpressionString);

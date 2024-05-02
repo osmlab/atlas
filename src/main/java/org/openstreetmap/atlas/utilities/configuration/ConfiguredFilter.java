@@ -310,7 +310,7 @@ public final class ConfiguredFilter implements Predicate<AtlasEntity>, Serializa
             }
             if (!this.unsafePredicate.isEmpty())
             {
-                localTemporaryPredicate = predicateReader.convertUnsafe(this.unsafePredicate);
+                localTemporaryPredicate = predicateReader.convert(this.unsafePredicate);
             }
             final Predicate<AtlasEntity> localPredicate = localTemporaryPredicate;
             final TaggableFilter localTaggablefilter = TaggableFilter

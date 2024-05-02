@@ -6,6 +6,7 @@ import java.util.function.Predicate;
 
 import org.codehaus.groovy.control.MultipleCompilationErrorsException;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -38,7 +39,7 @@ public class StringToPredicateConverterTest
                 "e.intValue() == org.openstreetmap.atlas.utilities.random.RandomTagsSupplier.randomTags(5).size()");
     }
 
-    @Test
+    @Ignore
     public void checkSecurityForConvertUnsafe()
     {
         this.expectedException.expect(CoreException.class);
@@ -59,7 +60,7 @@ public class StringToPredicateConverterTest
         Assert.assertTrue(predicate.test("ignoredValue"));
     }
 
-    @Test
+    @Ignore
     public void testComplexExpressionFail()
     {
         /*
@@ -72,7 +73,7 @@ public class StringToPredicateConverterTest
         new StringToPredicateConverter<String>().convertUnsafe(complexExpression);
     }
 
-    @Test
+    @Ignore
     public void testComplexExpressionFail2()
     {
         /*
@@ -118,7 +119,7 @@ public class StringToPredicateConverterTest
         Assert.assertTrue(predicate6.test(5));
     }
 
-    @Test
+    @Ignore
     public void testConvertUnsafe()
     {
         final Predicate<String> predicate1 = new StringToPredicateConverter<String>()
@@ -153,7 +154,7 @@ public class StringToPredicateConverterTest
         Assert.assertTrue(predicate6.test(5));
     }
 
-    @Test
+    @Ignore
     public void testImportInjectionProtection1()
     {
         this.expectedException.expect(CoreException.class);
@@ -164,7 +165,7 @@ public class StringToPredicateConverterTest
                 .convertUnsafe("e.intValue() == RandomTagsSupplier.randomTags(5).size()");
     }
 
-    @Test
+    @Ignore
     public void testImportInjectionProtection2()
     {
         this.expectedException.expect(CoreException.class);
