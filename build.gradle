@@ -44,7 +44,9 @@ configurations
 dependencies
 {
     implementation packages.artifact
-    implementation packages.checkstyle
+    implementation (packages.checkstyle) {
+        exclude group: 'info.picocli', module: 'picocli'
+    }
     api            packages.classgraph
     implementation packages.commons.cli
     implementation packages.commons.compress
